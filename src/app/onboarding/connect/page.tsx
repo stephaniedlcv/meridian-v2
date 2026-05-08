@@ -110,7 +110,7 @@ export default function ConnectPage() {
 
       const { error } = await supabase
         .from('profiles')
-        .update({ onboarding_completed: true })
+        .update({ onboarding_completed: true } as any)
         .eq('id', user.id)
 
       if (error) {
