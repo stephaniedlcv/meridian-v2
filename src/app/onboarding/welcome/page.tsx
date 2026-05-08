@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 const colors = {
   background: '#061316',
@@ -22,12 +23,48 @@ const fonts = {
 
 export default function WelcomePage() {
   const router = useRouter()
+  const supabase = createClient()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [isLogin, setIsLogin] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    router.push('/onboarding/profile')
+    setLoading(true)
+    setError(null)
+
+    try {
+      if (isLogin) {
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+        if (authError) {
+          setError(authError.message)
+          return
+        }
+        router.push('/')
+        return
+      }
+
+      const { error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: '' },
+        },
+      })
+      if (authError) {
+        setError(authError.message)
+        return
+      }
+      router.push('/onboarding/profile')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -151,6 +188,7 @@ export default function WelcomePage() {
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
               style={{
                 width: '100%',
                 padding: '16px 20px',
@@ -175,6 +213,7 @@ export default function WelcomePage() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
               style={{
                 width: '100%',
                 padding: '16px 20px',
@@ -192,30 +231,47 @@ export default function WelcomePage() {
             />
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <p
+              style={{
+                color: '#EF4444',
+                fontSize: '14px',
+                textAlign: 'center',
+                marginBottom: '16px',
+              }}
+            >
+              {error}
+            </p>
+          )}
+
           {/* Submit Button */}
           <motion.button
             type="submit"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            disabled={loading}
+            whileHover={loading ? {} : { scale: 1.02 }}
+            whileTap={loading ? {} : { scale: 0.98 }}
             style={{
               width: '100%',
               padding: '16px 24px',
-              background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
+              background: loading
+                ? `${colors.teal}60`
+                : `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
               border: 'none',
               borderRadius: '12px',
               color: colors.background,
               fontFamily: fonts.ui,
               fontSize: '16px',
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: loading ? 'not-allowed' : 'pointer',
               marginBottom: '16px',
             }}
           >
-            Get started →
+            {loading ? 'Loading...' : isLogin ? 'Log in →' : 'Get started →'}
           </motion.button>
         </form>
 
-        {/* Login link */}
+        {/* Login/Signup toggle */}
         <p
           style={{
             fontFamily: fonts.ui,
@@ -225,14 +281,18 @@ export default function WelcomePage() {
             marginBottom: '8px',
           }}
         >
-          Already have an account?{' '}
+          {isLogin ? "Don't have an account? " : 'Already have an account? '}
           <span
+            onClick={() => {
+              setIsLogin((prev) => !prev)
+              setError(null)
+            }}
             style={{
               color: colors.teal,
               cursor: 'pointer',
             }}
           >
-            Log in
+            {isLogin ? 'Sign up' : 'Log in'}
           </span>
         </p>
 
