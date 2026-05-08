@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 const colors = {
   background: '#061316',
@@ -73,7 +74,20 @@ const HeartIcon = () => (
 
 export default function ConnectPage() {
   const router = useRouter()
+  const supabase = createClient()
+
   const [selected, setSelected] = useState<ConnectionOption[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    async function checkUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/onboarding/welcome')
+      }
+    }
+    checkUser()
+  }, [router, supabase])
 
   const toggleSelection = (option: ConnectionOption) => {
     setSelected((prev) =>
@@ -83,14 +97,35 @@ export default function ConnectPage() {
     )
   }
 
-  const handleContinue = () => {
-    // Navigate to dashboard or next step
-    router.push('/')
+  const completeOnboarding = async () => {
+    setLoading(true)
+
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      if (userError || !user) {
+        console.error(userError)
+        router.push('/onboarding/welcome')
+        return
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ onboarding_completed: true })
+        .eq('id', user.id)
+
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      router.push('/')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleSkip = () => {
-    router.push('/')
-  }
+  const handleContinue = () => completeOnboarding()
+  const handleSkip = () => completeOnboarding()
 
   const ConnectionCard = ({
     option,
@@ -332,35 +367,39 @@ export default function ConnectPage() {
         {/* Continue Button */}
         <motion.button
           onClick={handleContinue}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          disabled={loading}
+          whileHover={loading ? {} : { scale: 1.02 }}
+          whileTap={loading ? {} : { scale: 0.98 }}
           style={{
             width: '100%',
             padding: '16px 24px',
-            background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
+            background: loading
+              ? `${colors.teal}60`
+              : `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
             border: 'none',
             borderRadius: '12px',
             color: colors.background,
             fontFamily: fonts.ui,
             fontSize: '16px',
             fontWeight: 600,
-            cursor: 'pointer',
+            cursor: loading ? 'not-allowed' : 'pointer',
             marginBottom: '16px',
           }}
         >
-          Continue →
+          {loading ? 'Loading...' : 'Continue →'}
         </motion.button>
 
         {/* Skip link */}
         <button
           onClick={handleSkip}
+          disabled={loading}
           style={{
             background: 'none',
             border: 'none',
             fontFamily: fonts.ui,
             fontSize: '14px',
             color: colors.textMuted,
-            cursor: 'pointer',
+            cursor: loading ? 'not-allowed' : 'pointer',
             padding: '8px',
           }}
         >
