@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createBrowserClient } from '@supabase/ssr'
 
 const colors = {
   background: '#061316',
@@ -74,7 +74,10 @@ const HeartIcon = () => (
 
 export default function ConnectPage() {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const [selected, setSelected] = useState<ConnectionOption[]>([])
   const [loading, setLoading] = useState(false)
@@ -110,7 +113,7 @@ export default function ConnectPage() {
 
       const { error } = await supabase
         .from('profiles')
-        .update({ onboarding_completed: true } as any)
+        .update({ onboarding_completed: true })
         .eq('id', user.id)
 
       if (error) {
