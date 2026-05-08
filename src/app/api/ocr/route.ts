@@ -39,25 +39,35 @@ interface OCRResponse {
   total_extracted: number
   total_matched: number
   total_errors: number
+  lab_date: string | null
 }
 
 const EXTRACTION_PROMPT = `You are a medical lab report parser. Extract ALL biomarker results from this lab report.
 
-For each biomarker found, return a JSON object with:
+IMPORTANT: Also extract the date when the lab was collected or reported. Look for "Collection Date", "Date Collected", "Report Date", "Date of Service", "Specimen Collected", or similar fields.
+
+Return a JSON object with two fields:
+1. "lab_date": the collection/report date in YYYY-MM-DD format, or null if not found
+2. "biomarkers": array of biomarker objects
+
+For each biomarker found, return:
 - name: the biomarker name exactly as written in the report
 - value: the numeric value (number only, no text)
 - unit: the unit of measurement exactly as written
 - reference_range: the reference range string if shown (e.g. "0.4-4.0")
 
-Return ONLY a JSON array of objects. No explanations, no markdown, no extra text.
-If you cannot find any biomarkers, return an empty array: []
+IMPORTANT: If a biomarker appears multiple times (e.g. from different sections), only include it ONCE — use the most specific or primary result.
+
+Return ONLY valid JSON. No explanations, no markdown, no extra text.
 
 Example output:
-[
-  {"name": "TSH", "value": 3.03, "unit": "mIU/L", "reference_range": "0.40-4.00"},
-  {"name": "Vitamin D, 25-OH", "value": 23, "unit": "ng/mL", "reference_range": "30-100"},
-  {"name": "Glucose", "value": 95, "unit": "mg/dL", "reference_range": "70-100"}
-]`
+{
+  "lab_date": "2025-03-15",
+  "biomarkers": [
+    {"name": "TSH", "value": 3.03, "unit": "mIU/L", "reference_range": "0.40-4.00"},
+    {"name": "Vitamin D, 25-OH", "value": 23, "unit": "ng/mL", "reference_range": "30-100"}
+  ]
+}`
 
 function parseReferenceRange(rangeStr: string | undefined): { min: number | null; max: number | null } {
   if (!rangeStr) return { min: null, max: null }
@@ -128,10 +138,21 @@ export async function POST(request: NextRequest) {
       .map((block: { type: string; text?: string }) => block.type === 'text' ? block.text : '')
       .join('')
 
+    // Parse Claude's response — now expecting { lab_date, biomarkers }
     let rawExtractions: RawExtraction[] = []
+    let labDate: string | null = null
+
     try {
       const cleaned = rawText.replace(/```json|```/g, '').trim()
-      rawExtractions = JSON.parse(cleaned)
+      const parsed = JSON.parse(cleaned)
+
+      // Handle both old format (array) and new format (object with lab_date)
+      if (Array.isArray(parsed)) {
+        rawExtractions = parsed
+      } else {
+        labDate = parsed.lab_date || null
+        rawExtractions = parsed.biomarkers || []
+      }
     } catch {
       console.error('Failed to parse Claude response:', rawText)
       return NextResponse.json(
@@ -140,6 +161,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Deduplicate: keep only first occurrence of each matched slug
+    const seenSlugs = new Set<string>()
     const stagedBiomarkers: StagedBiomarker[] = []
     const unmatched: RawExtraction[] = []
 
@@ -150,6 +173,12 @@ export async function POST(request: NextRequest) {
         unmatched.push(raw)
         continue
       }
+
+      // Skip duplicates — keep the first match
+      if (seenSlugs.has(slug)) {
+        continue
+      }
+      seenSlugs.add(slug)
 
       const marker = CANONICAL_DICTIONARY[slug]
       const converted = convertToCanonicalUnit(slug, raw.value, raw.unit)
@@ -184,6 +213,7 @@ export async function POST(request: NextRequest) {
       total_extracted: rawExtractions.length,
       total_matched: stagedBiomarkers.length,
       total_errors: stagedBiomarkers.filter(b => b.flag_error).length,
+      lab_date: labDate,
     }
 
     return NextResponse.json(response)
