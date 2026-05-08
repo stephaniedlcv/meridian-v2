@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 const colors = {
   background: '#061316',
@@ -24,11 +25,46 @@ type BiologyType = 'female' | 'male' | null
 
 export default function ProfilePage() {
   const router = useRouter()
-  const [selected, setSelected] = useState<BiologyType>(null)
+  const supabase = createClient()
 
-  const handleContinue = () => {
-    if (selected) {
+  const [selected, setSelected] = useState<BiologyType>(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    async function checkUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/onboarding/welcome')
+      }
+    }
+    checkUser()
+  }, [router, supabase])
+
+  const handleContinue = async () => {
+    if (!selected) return
+    setLoading(true)
+
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      if (userError || !user) {
+        console.error(userError)
+        router.push('/onboarding/welcome')
+        return
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ biological_profile: selected })
+        .eq('id', user.id)
+
+      if (error) {
+        console.error(error)
+        return
+      }
+
       router.push('/onboarding/connect')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -221,26 +257,26 @@ export default function ProfilePage() {
         {/* Continue Button */}
         <motion.button
           onClick={handleContinue}
-          disabled={!selected}
-          whileHover={selected ? { scale: 1.02 } : {}}
-          whileTap={selected ? { scale: 0.98 } : {}}
+          disabled={!selected || loading}
+          whileHover={selected && !loading ? { scale: 1.02 } : {}}
+          whileTap={selected && !loading ? { scale: 0.98 } : {}}
           style={{
             width: '100%',
             padding: '16px 24px',
-            background: selected
+            background: selected && !loading
               ? `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`
               : colors.cardBg,
-            border: selected ? 'none' : `1px solid ${colors.cardBorder}`,
+            border: selected && !loading ? 'none' : `1px solid ${colors.cardBorder}`,
             borderRadius: '12px',
-            color: selected ? colors.background : colors.textMuted,
+            color: selected && !loading ? colors.background : colors.textMuted,
             fontFamily: fonts.ui,
             fontSize: '16px',
             fontWeight: 600,
-            cursor: selected ? 'pointer' : 'not-allowed',
+            cursor: selected && !loading ? 'pointer' : 'not-allowed',
             transition: 'all 0.3s ease',
           }}
         >
-          Continue →
+          {loading ? 'Loading...' : 'Continue →'}
         </motion.button>
       </motion.div>
     </div>
