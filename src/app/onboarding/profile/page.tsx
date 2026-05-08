@@ -65,7 +65,7 @@ export default function ProfilePage() {
         return
       }
 
-      router.push('/onboarding/connect')
+      router.push('/onboarding/goals')
     } finally {
       setLoading(false)
     }
