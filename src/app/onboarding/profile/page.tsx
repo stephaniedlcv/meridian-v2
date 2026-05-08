@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createBrowserClient } from '@supabase/ssr'
 
 const colors = {
   background: '#061316',
@@ -25,7 +25,10 @@ type BiologyType = 'female' | 'male' | null
 
 export default function ProfilePage() {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const [selected, setSelected] = useState<BiologyType>(null)
   const [loading, setLoading] = useState(false)
@@ -54,7 +57,7 @@ export default function ProfilePage() {
 
       const { error } = await supabase
         .from('profiles')
-        .update({ biological_profile: selected } as any)
+        .update({ biological_profile: selected })
         .eq('id', user.id)
 
       if (error) {
