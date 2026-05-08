@@ -121,7 +121,7 @@ export default function ConnectPage() {
         return
       }
 
-      router.push('/')
+   
     } finally {
       setLoading(false)
     }
@@ -135,7 +135,10 @@ export default function ConnectPage() {
     }
     router.push('/')
   }
-  const handleSkip = () => completeOnboarding()
+  const handleSkip = async () => {
+    await completeOnboarding()
+    router.push('/')
+  }
 
   const ConnectionCard = ({
     option,
