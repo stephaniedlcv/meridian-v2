@@ -54,7 +54,7 @@ export default function ProfilePage() {
 
       const { error } = await supabase
         .from('profiles')
-        .update({ biological_profile: selected })
+        .update({ biological_profile: selected } as any)
         .eq('id', user.id)
 
       if (error) {
