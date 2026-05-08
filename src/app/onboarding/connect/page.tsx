@@ -127,7 +127,14 @@ export default function ConnectPage() {
     }
   }
 
-  const handleContinue = () => completeOnboarding()
+  const handleContinue = async () => {
+    await completeOnboarding()
+    if (selected.includes('lab')) {
+      router.push('/labs/upload')
+      return
+    }
+    router.push('/')
+  }
   const handleSkip = () => completeOnboarding()
 
   const ConnectionCard = ({
