@@ -83,6 +83,7 @@ export default function LabsUploadPage() {
   const [stats, setStats] = useState<{ extracted: number; matched: number; errors: number } | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   const [savedCount, setSavedCount] = useState(0)
+  const [labDate, setLabDate] = useState<string>('')
 
   useEffect(() => {
     async function checkAuth() {
@@ -156,6 +157,11 @@ export default function LabsUploadPage() {
           matched: data.total_matched,
           errors: data.total_errors,
         })
+        if (data.lab_date) {
+          setLabDate(data.lab_date)
+        } else {
+          setLabDate(new Date().toISOString().split('T')[0])
+        }
         setUploading(false)
       }
 
@@ -178,7 +184,7 @@ export default function LabsUploadPage() {
         body: JSON.stringify({
           user_id: userId,
           biomarkers: staged,
-          collected_at: new Date().toISOString(),
+          collected_at: labDate ? new Date(labDate).toISOString() : new Date().toISOString(),
         }),
       })
 
@@ -207,6 +213,7 @@ export default function LabsUploadPage() {
     setError(null)
     setConfirmed(false)
     setSavedCount(0)
+    setLabDate('')
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -365,6 +372,42 @@ export default function LabsUploadPage() {
                 Review your extracted biomarkers below. Click confirm to save them.
               </p>
 
+              {/* Lab Date */}
+              <div style={{
+                padding: '16px 20px',
+                backgroundColor: colors.cardBg,
+                border: `1px solid ${colors.cardBorder}`,
+                borderRadius: '12px',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                flexWrap: 'wrap',
+              }}>
+                <div>
+                  <span style={{ fontSize: '13px', color: colors.textMuted, display: 'block', marginBottom: '4px' }}>Collection Date</span>
+                  <span style={{ fontSize: '15px', color: colors.text, fontWeight: 600 }}>
+                    {labDate ? new Date(labDate + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not detected'}
+                  </span>
+                </div>
+                <input
+                  type="date"
+                  value={labDate}
+                  onChange={(e) => setLabDate(e.target.value)}
+                  style={{
+                    padding: '8px 12px',
+                    backgroundColor: 'rgba(6,19,22,0.5)',
+                    border: `1px solid ${colors.cardBorder}`,
+                    borderRadius: '8px',
+                    color: colors.text,
+                    fontFamily: fonts.ui,
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
               {/* Biomarker cards */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
                 {staged.map((b, i) => {
@@ -446,20 +489,20 @@ export default function LabsUploadPage() {
               <div style={{ display: 'flex', gap: '12px' }}>
                 <motion.button
                   onClick={handleConfirm}
-                  disabled={confirming}
-                  whileHover={confirming ? {} : { scale: 1.02 }}
-                  whileTap={confirming ? {} : { scale: 0.98 }}
+                  disabled={confirming || !labDate}
+                  whileHover={confirming || !labDate ? {} : { scale: 1.02 }}
+                  whileTap={confirming || !labDate ? {} : { scale: 0.98 }}
                   style={{
                     flex: 1,
                     padding: '16px 24px',
-                    background: confirming ? `${colors.teal}60` : `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
+                    background: confirming || !labDate ? `${colors.teal}60` : `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
                     border: 'none',
                     borderRadius: '12px',
                     color: colors.background,
                     fontFamily: fonts.ui,
                     fontSize: '16px',
                     fontWeight: 600,
-                    cursor: confirming ? 'not-allowed' : 'pointer',
+                    cursor: confirming || !labDate ? 'not-allowed' : 'pointer',
                   }}
                 >
                   {confirming ? 'Saving...' : `Confirm ${staged.filter(b => !b.flag_error).length} markers`}
