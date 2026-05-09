@@ -1,6 +1,6 @@
-// MERIDIAN — Canonical Biomarker Dictionary v2
-// Expanded to cover markers found in user's real lab PDFs
-// Includes: thyroid panel, CBC differential, electrolytes, lipid panel details
+// MERIDIAN — Canonical Biomarker Dictionary v3
+// Fixes: LDL/VLDL confusion, added ratios, absolute counts, anion gap
+// Improved fuzzy matching with protected terms
 
 export type RiskProfile = 'linear-high' | 'linear-low' | 'u-shaped' | 'context'
 
@@ -71,7 +71,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'total_t3',
     name: 'Total T3',
     unit: 'ng/mL',
-    aliases: ['total t3', 't3 total', 't3', 'triiodothyronine', 'triiodotironina'],
+    aliases: ['total t3', 't3 total', 'triiodothyronine', 'triiodotironina'],
     system: 'thyroid',
     riskProfile: 'u-shaped',
     normalF: { min: 0.6, max: 1.81 },
@@ -131,11 +131,26 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
   },
 
   // ===== CARDIOVASCULAR / LIPIDS =====
+  total_cholesterol: {
+    slug: 'total_cholesterol',
+    name: 'Total Cholesterol',
+    unit: 'mg/dL',
+    aliases: ['total cholesterol', 'cholesterol total', 'colesterol total', 'cholesterol'],
+    system: 'cardiovascular',
+    riskProfile: 'linear-high',
+    normalF: { min: 100, max: 200 },
+    normalM: { min: 100, max: 200 },
+    optimalF: { min: 120, max: 180 },
+    optimalM: { min: 120, max: 180 },
+    impossibleMin: 30,
+    impossibleMax: 600,
+    priorityWeight: 3,
+  },
   hdl: {
     slug: 'hdl',
     name: 'HDL Cholesterol',
     unit: 'mg/dL',
-    aliases: ['hdl', 'hdl-c', 'hdl cholesterol', 'colesterol hdl', 'lipoproteina alta densidad', 'high density lipoprotein', 'hdl-cholesterol'],
+    aliases: ['hdl cholesterol', 'hdl-c', 'hdl-cholesterol', 'colesterol hdl', 'high density lipoprotein', 'lipoproteina alta densidad'],
     system: 'cardiovascular',
     riskProfile: 'linear-low',
     normalF: { min: 50, max: 100 },
@@ -150,7 +165,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'ldl',
     name: 'LDL Cholesterol',
     unit: 'mg/dL',
-    aliases: ['ldl', 'ldl-c', 'ldl cholesterol', 'colesterol ldl', 'lipoproteina baja densidad', 'low density lipoprotein', 'ldl-cholesterol', 'ldl calculated', 'ldl calc'],
+    aliases: ['ldl cholesterol', 'ldl-c', 'ldl-cholesterol', 'colesterol ldl', 'low density lipoprotein', 'lipoproteina baja densidad', 'ldl calculated', 'ldl calc', 'ldl chol calc'],
     system: 'cardiovascular',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 130 },
@@ -160,6 +175,36 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMin: 0,
     impossibleMax: 500,
     priorityWeight: 4,
+  },
+  vldl: {
+    slug: 'vldl',
+    name: 'VLDL Cholesterol',
+    unit: 'mg/dL',
+    aliases: ['vldl', 'vldl cholesterol', 'vldl-c', 'vldl calculated', 'vldl calc'],
+    system: 'cardiovascular',
+    riskProfile: 'linear-high',
+    normalF: { min: 5, max: 40 },
+    normalM: { min: 5, max: 40 },
+    optimalF: { min: 5, max: 25 },
+    optimalM: { min: 5, max: 25 },
+    impossibleMin: 0,
+    impossibleMax: 200,
+    priorityWeight: 2,
+  },
+  non_hdl: {
+    slug: 'non_hdl',
+    name: 'Non-HDL Cholesterol',
+    unit: 'mg/dL',
+    aliases: ['non-hdl', 'non hdl', 'non-hdl cholesterol', 'non-hdl calculate', 'non hdl cholesterol'],
+    system: 'cardiovascular',
+    riskProfile: 'linear-high',
+    normalF: { min: 0, max: 160 },
+    normalM: { min: 0, max: 160 },
+    optimalF: { min: 0, max: 130 },
+    optimalM: { min: 0, max: 130 },
+    impossibleMin: 0,
+    impossibleMax: 500,
+    priorityWeight: 3,
   },
   triglycerides: {
     slug: 'triglycerides',
@@ -176,20 +221,35 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMax: 3000,
     priorityWeight: 4,
   },
-  total_cholesterol: {
-    slug: 'total_cholesterol',
-    name: 'Total Cholesterol',
-    unit: 'mg/dL',
-    aliases: ['total cholesterol', 'cholesterol total', 'colesterol total', 'cholesterol', 'tc'],
+  ldl_hdl_ratio: {
+    slug: 'ldl_hdl_ratio',
+    name: 'LDL/HDL Ratio',
+    unit: 'ratio',
+    aliases: ['ldl/hdl ratio', 'ldl hdl ratio'],
     system: 'cardiovascular',
     riskProfile: 'linear-high',
-    normalF: { min: 100, max: 200 },
-    normalM: { min: 100, max: 200 },
-    optimalF: { min: 120, max: 180 },
-    optimalM: { min: 120, max: 180 },
-    impossibleMin: 30,
-    impossibleMax: 600,
-    priorityWeight: 3,
+    normalF: { min: 0, max: 3.5 },
+    normalM: { min: 0, max: 3.5 },
+    optimalF: { min: 0, max: 2.5 },
+    optimalM: { min: 0, max: 2.5 },
+    impossibleMin: 0,
+    impossibleMax: 20,
+    priorityWeight: 2,
+  },
+  chol_hdl_ratio: {
+    slug: 'chol_hdl_ratio',
+    name: 'Cholesterol/HDL Ratio',
+    unit: 'ratio',
+    aliases: ['cholesterol/hdl ratio', 'chol/hdl ratio', 'total cholesterol/hdl ratio', 'tc/hdl ratio'],
+    system: 'cardiovascular',
+    riskProfile: 'linear-high',
+    normalF: { min: 0, max: 5.0 },
+    normalM: { min: 0, max: 5.0 },
+    optimalF: { min: 0, max: 3.5 },
+    optimalM: { min: 0, max: 3.5 },
+    impossibleMin: 0,
+    impossibleMax: 20,
+    priorityWeight: 2,
   },
   homocysteine: {
     slug: 'homocysteine',
@@ -313,13 +373,28 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMax: 10,
     priorityWeight: 1,
   },
+  ag_ratio: {
+    slug: 'ag_ratio',
+    name: 'Albumin/Globulin Ratio',
+    unit: 'ratio',
+    aliases: ['albumin/globulin ratio', 'a/g ratio', 'ag ratio', 'a:g ratio'],
+    system: 'liver',
+    riskProfile: 'u-shaped',
+    normalF: { min: 1.0, max: 2.5 },
+    normalM: { min: 1.0, max: 2.5 },
+    optimalF: { min: 1.2, max: 2.0 },
+    optimalM: { min: 1.2, max: 2.0 },
+    impossibleMin: 0,
+    impossibleMax: 10,
+    priorityWeight: 1,
+  },
 
   // ===== KIDNEY =====
   egfr: {
     slug: 'egfr',
     name: 'eGFR',
     unit: 'mL/min',
-    aliases: ['egfr', 'gfr', 'e-gfr', 'tfg', 'creatinine clearance', 'filtrado glomerular', 'glomerular filtration rate', 'egfr non-african american', 'egfr if non-african am'],
+    aliases: ['egfr', 'gfr', 'e-gfr', 'tfg', 'filtrado glomerular', 'glomerular filtration rate', 'egfr non-african american', 'egfr if non-african am', 'egfr if nonafr. am'],
     system: 'kidney',
     riskProfile: 'linear-low',
     normalF: { min: 90, max: 200 },
@@ -360,13 +435,28 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMax: 200,
     priorityWeight: 2,
   },
+  bun_creatinine_ratio: {
+    slug: 'bun_creatinine_ratio',
+    name: 'BUN/Creatinine Ratio',
+    unit: 'ratio',
+    aliases: ['bun/creatinine ratio', 'bun creatinine ratio', 'bun/creat ratio'],
+    system: 'kidney',
+    riskProfile: 'u-shaped',
+    normalF: { min: 10, max: 20 },
+    normalM: { min: 10, max: 20 },
+    optimalF: { min: 12, max: 18 },
+    optimalM: { min: 12, max: 18 },
+    impossibleMin: 0,
+    impossibleMax: 100,
+    priorityWeight: 1,
+  },
 
   // ===== ELECTROLYTES =====
   sodium: {
     slug: 'sodium',
     name: 'Sodium',
     unit: 'mmol/L',
-    aliases: ['sodium', 'sodio', 'na', 'na+', 'serum sodium'],
+    aliases: ['sodium', 'sodio', 'na+', 'serum sodium'],
     system: 'electrolytes',
     riskProfile: 'u-shaped',
     normalF: { min: 136, max: 145 },
@@ -381,7 +471,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'potassium',
     name: 'Potassium',
     unit: 'mmol/L',
-    aliases: ['potassium', 'potasio', 'k', 'k+', 'serum potassium'],
+    aliases: ['potassium', 'potasio', 'k+', 'serum potassium'],
     system: 'electrolytes',
     riskProfile: 'u-shaped',
     normalF: { min: 3.5, max: 5.0 },
@@ -396,7 +486,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'chloride',
     name: 'Chloride',
     unit: 'mmol/L',
-    aliases: ['chloride', 'cloruro', 'cl', 'cl-', 'serum chloride'],
+    aliases: ['chloride', 'cloruro', 'cl-', 'serum chloride'],
     system: 'electrolytes',
     riskProfile: 'u-shaped',
     normalF: { min: 98, max: 106 },
@@ -426,7 +516,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'calcium',
     name: 'Calcium',
     unit: 'mg/dL',
-    aliases: ['calcium', 'calcio', 'ca', 'serum calcium', 'total calcium'],
+    aliases: ['calcium', 'calcio', 'serum calcium', 'total calcium'],
     system: 'electrolytes',
     riskProfile: 'u-shaped',
     normalF: { min: 8.5, max: 10.5 },
@@ -436,6 +526,21 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMin: 4,
     impossibleMax: 18,
     priorityWeight: 3,
+  },
+  anion_gap: {
+    slug: 'anion_gap',
+    name: 'Anion Gap',
+    unit: 'mEq/L',
+    aliases: ['anion gap', 'agap', 'ag'],
+    system: 'electrolytes',
+    riskProfile: 'u-shaped',
+    normalF: { min: 3, max: 18 },
+    normalM: { min: 3, max: 18 },
+    optimalF: { min: 6, max: 14 },
+    optimalM: { min: 6, max: 14 },
+    impossibleMin: 0,
+    impossibleMax: 50,
+    priorityWeight: 2,
   },
 
   // ===== IRON =====
@@ -460,7 +565,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'crp_hs',
     name: 'hs-CRP',
     unit: 'mg/L',
-    aliases: ['crp', 'hs-crp', 'crp-hs', 'pcr', 'pcr-us', 'c reactive protein', 'proteina c reactiva', 'proteina c reactiva alta sensibilidad', 'high sensitivity crp', 'c-reactive protein'],
+    aliases: ['crp', 'hs-crp', 'crp-hs', 'pcr', 'pcr-us', 'c reactive protein', 'proteina c reactiva', 'high sensitivity crp', 'c-reactive protein'],
     system: 'inflammation',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 3.0 },
@@ -477,7 +582,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'vitamin_d',
     name: 'Vitamin D',
     unit: 'ng/mL',
-    aliases: ['vitamin d', 'vitamina d', '25-oh vitamin d', '25-hydroxyvitamin d', 'calcidiol', 'vit d3', '25-oh vitamina d', 'd3', 'cholecalciferol', 'vitamin d 25-hydroxy', 'vitamin d, 25-hydroxy'],
+    aliases: ['vitamin d', 'vitamina d', '25-oh vitamin d', '25-hydroxyvitamin d', 'calcidiol', 'vit d3', '25-oh vitamina d', 'cholecalciferol', 'vitamin d 25-hydroxy', 'vitamin d 25-oh'],
     system: 'nutrients',
     riskProfile: 'linear-low',
     normalF: { min: 30, max: 100 },
@@ -522,7 +627,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'magnesium',
     name: 'Magnesium',
     unit: 'mg/dL',
-    aliases: ['magnesium', 'magnesio', 'mg', 'magnesio serico', 'serum magnesium'],
+    aliases: ['magnesium', 'magnesio', 'magnesio serico', 'serum magnesium'],
     system: 'nutrients',
     riskProfile: 'linear-low',
     normalF: { min: 1.7, max: 2.2 },
@@ -571,7 +676,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'testosterone_total',
     name: 'Total Testosterone',
     unit: 'ng/dL',
-    aliases: ['testosterone', 'testosterona', 'testosterone total', 'testosterona total', 'testo t', 'total testosterone'],
+    aliases: ['testosterone', 'testosterona', 'testosterone total', 'testosterona total', 'total testosterone'],
     system: 'hormones',
     riskProfile: 'linear-low',
     normalF: { min: 8, max: 60 },
@@ -618,7 +723,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'rbc',
     name: 'Red Blood Cells',
     unit: 'M/µL',
-    aliases: ['rbc', 'red blood cells', 'red blood cell count', 'eritrocitos', 'globulos rojos', 'red cell count'],
+    aliases: ['rbc', 'red blood cells', 'red blood cell count', 'eritrocitos', 'globulos rojos'],
     system: 'blood',
     riskProfile: 'u-shaped',
     normalF: { min: 3.9, max: 5.0 },
@@ -633,7 +738,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'mcv',
     name: 'MCV',
     unit: 'fL',
-    aliases: ['mcv', 'mean corpuscular volume', 'volumen corpuscular medio'],
+    aliases: ['mcv', 'mean corpuscular volume'],
     system: 'blood',
     riskProfile: 'u-shaped',
     normalF: { min: 80, max: 100 },
@@ -693,7 +798,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'mpv',
     name: 'MPV',
     unit: 'fL',
-    aliases: ['mpv', 'mean platelet volume', 'volumen plaquetario medio'],
+    aliases: ['mpv', 'mean platelet volume'],
     system: 'blood',
     riskProfile: 'u-shaped',
     normalF: { min: 7.5, max: 11.5 },
@@ -725,7 +830,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'wbc',
     name: 'White Blood Cells',
     unit: 'K/µL',
-    aliases: ['wbc', 'white blood cells', 'leucocitos', 'globulos blancos', 'white blood cell count', 'leucocyte count'],
+    aliases: ['wbc', 'white blood cells', 'leucocitos', 'globulos blancos', 'white blood cell count'],
     system: 'immune',
     riskProfile: 'u-shaped',
     normalF: { min: 4.5, max: 11.0 },
@@ -738,9 +843,9 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
   },
   neutrophils_pct: {
     slug: 'neutrophils_pct',
-    name: 'Neutrophils',
+    name: 'Neutrophils %',
     unit: '%',
-    aliases: ['neutrophils', 'neutrofilos', 'neut', 'neut %', 'neutrophils %'],
+    aliases: ['neutrophils', 'neutrophils %', 'neut %', 'neutrofilos'],
     system: 'immune',
     riskProfile: 'u-shaped',
     normalF: { min: 40, max: 70 },
@@ -751,11 +856,26 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMax: 100,
     priorityWeight: 2,
   },
+  neutrophils_abs: {
+    slug: 'neutrophils_abs',
+    name: 'Neutrophils #',
+    unit: 'K/µL',
+    aliases: ['neutrophils #', 'neutrophils abs', 'absolute neutrophils', 'neut #', 'neut abs', 'abs neutrophils'],
+    system: 'immune',
+    riskProfile: 'u-shaped',
+    normalF: { min: 1.8, max: 7.7 },
+    normalM: { min: 1.8, max: 7.7 },
+    optimalF: { min: 2.0, max: 6.0 },
+    optimalM: { min: 2.0, max: 6.0 },
+    impossibleMin: 0,
+    impossibleMax: 50,
+    priorityWeight: 2,
+  },
   lymphocytes_pct: {
     slug: 'lymphocytes_pct',
-    name: 'Lymphocytes',
+    name: 'Lymphocytes %',
     unit: '%',
-    aliases: ['lymphocytes', 'linfocitos', 'lymph', 'lymph %', 'lymphocytes %'],
+    aliases: ['lymphocytes', 'lymphocytes %', 'lymph %', 'linfocitos'],
     system: 'immune',
     riskProfile: 'u-shaped',
     normalF: { min: 20, max: 40 },
@@ -766,11 +886,26 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMax: 100,
     priorityWeight: 2,
   },
+  lymphocytes_abs: {
+    slug: 'lymphocytes_abs',
+    name: 'Lymphocytes #',
+    unit: 'K/µL',
+    aliases: ['lymphocytes #', 'lymphocytes abs', 'absolute lymphocytes', 'lymph #', 'lymph abs', 'abs lymphocytes'],
+    system: 'immune',
+    riskProfile: 'u-shaped',
+    normalF: { min: 1.0, max: 4.8 },
+    normalM: { min: 1.0, max: 4.8 },
+    optimalF: { min: 1.5, max: 3.5 },
+    optimalM: { min: 1.5, max: 3.5 },
+    impossibleMin: 0,
+    impossibleMax: 30,
+    priorityWeight: 2,
+  },
   monocytes_pct: {
     slug: 'monocytes_pct',
-    name: 'Monocytes',
+    name: 'Monocytes %',
     unit: '%',
-    aliases: ['monocytes', 'monocitos', 'mono', 'mono %', 'monocytes %'],
+    aliases: ['monocytes', 'monocytes %', 'mono %', 'monocitos'],
     system: 'immune',
     riskProfile: 'linear-high',
     normalF: { min: 2, max: 8 },
@@ -781,11 +916,26 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMax: 50,
     priorityWeight: 1,
   },
+  monocytes_abs: {
+    slug: 'monocytes_abs',
+    name: 'Monocytes #',
+    unit: 'K/µL',
+    aliases: ['monocytes #', 'monocytes abs', 'absolute monocytes', 'mono #', 'mono abs', 'abs monocytes'],
+    system: 'immune',
+    riskProfile: 'linear-high',
+    normalF: { min: 0.1, max: 1.0 },
+    normalM: { min: 0.1, max: 1.0 },
+    optimalF: { min: 0.2, max: 0.8 },
+    optimalM: { min: 0.2, max: 0.8 },
+    impossibleMin: 0,
+    impossibleMax: 10,
+    priorityWeight: 1,
+  },
   eosinophils_pct: {
     slug: 'eosinophils_pct',
-    name: 'Eosinophils',
+    name: 'Eosinophils %',
     unit: '%',
-    aliases: ['eosinophils', 'eosinofilos', 'eos', 'eos %', 'eosinophils %'],
+    aliases: ['eosinophils', 'eosinophils %', 'eos %', 'eosinofilos'],
     system: 'immune',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 5 },
@@ -796,11 +946,26 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMax: 30,
     priorityWeight: 1,
   },
+  eosinophils_abs: {
+    slug: 'eosinophils_abs',
+    name: 'Eosinophils #',
+    unit: 'K/µL',
+    aliases: ['eosinophils #', 'eosinophils abs', 'absolute eosinophils', 'eos #', 'eos abs', 'abs eosinophils'],
+    system: 'immune',
+    riskProfile: 'linear-high',
+    normalF: { min: 0, max: 0.5 },
+    normalM: { min: 0, max: 0.5 },
+    optimalF: { min: 0.02, max: 0.3 },
+    optimalM: { min: 0.02, max: 0.3 },
+    impossibleMin: 0,
+    impossibleMax: 10,
+    priorityWeight: 1,
+  },
   basophils_pct: {
     slug: 'basophils_pct',
-    name: 'Basophils',
+    name: 'Basophils %',
     unit: '%',
-    aliases: ['basophils', 'basofilos', 'baso', 'baso %', 'basophils %'],
+    aliases: ['basophils', 'basophils %', 'baso %', 'basofilos'],
     system: 'immune',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 1 },
@@ -811,43 +976,68 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMax: 10,
     priorityWeight: 1,
   },
+  basophils_abs: {
+    slug: 'basophils_abs',
+    name: 'Basophils #',
+    unit: 'K/µL',
+    aliases: ['basophils #', 'basophils abs', 'absolute basophils', 'baso #', 'baso abs', 'abs basophils'],
+    system: 'immune',
+    riskProfile: 'linear-high',
+    normalF: { min: 0, max: 0.2 },
+    normalM: { min: 0, max: 0.2 },
+    optimalF: { min: 0, max: 0.1 },
+    optimalM: { min: 0, max: 0.1 },
+    impossibleMin: 0,
+    impossibleMax: 5,
+    priorityWeight: 1,
+  },
+  immature_granulocytes_pct: {
+    slug: 'immature_granulocytes_pct',
+    name: 'Immature Granulocytes %',
+    unit: '%',
+    aliases: ['immature granulocytes', 'immature granulocytes %', 'ig %', 'immature gran %'],
+    system: 'immune',
+    riskProfile: 'linear-high',
+    normalF: { min: 0, max: 1 },
+    normalM: { min: 0, max: 1 },
+    optimalF: { min: 0, max: 0.5 },
+    optimalM: { min: 0, max: 0.5 },
+    impossibleMin: 0,
+    impossibleMax: 10,
+    priorityWeight: 1,
+  },
+  immature_granulocytes_abs: {
+    slug: 'immature_granulocytes_abs',
+    name: 'Immature Granulocytes #',
+    unit: 'K/µL',
+    aliases: ['immature granulocytes #', 'immature granulocytes abs', 'ig #', 'immature gran #'],
+    system: 'immune',
+    riskProfile: 'linear-high',
+    normalF: { min: 0, max: 0.1 },
+    normalM: { min: 0, max: 0.1 },
+    optimalF: { min: 0, max: 0.05 },
+    optimalM: { min: 0, max: 0.05 },
+    impossibleMin: 0,
+    impossibleMax: 5,
+    priorityWeight: 1,
+  },
 }
 
-// Unit conversion table
+// Unit conversions
 export const UNIT_CONVERSIONS: Record<string, { from: string; to: string; multiply: number }[]> = {
-  crp_hs: [
-    { from: 'mg/dL', to: 'mg/L', multiply: 10 },
-  ],
-  glucose_fasting: [
-    { from: 'mmol/L', to: 'mg/dL', multiply: 18.018 },
-  ],
-  vitamin_d: [
-    { from: 'nmol/L', to: 'ng/mL', multiply: 0.4 },
-  ],
-  hemoglobin: [
-    { from: 'mmol/L', to: 'g/dL', multiply: 1.6114 },
-  ],
-  creatinine: [
-    { from: 'µmol/L', to: 'mg/dL', multiply: 0.0113 },
-  ],
-  testosterone_total: [
-    { from: 'nmol/L', to: 'ng/dL', multiply: 28.818 },
-  ],
-  triglycerides: [
-    { from: 'mmol/L', to: 'mg/dL', multiply: 88.57 },
-  ],
-  hdl: [
-    { from: 'mmol/L', to: 'mg/dL', multiply: 38.67 },
-  ],
-  ldl: [
-    { from: 'mmol/L', to: 'mg/dL', multiply: 38.67 },
-  ],
-  total_cholesterol: [
-    { from: 'mmol/L', to: 'mg/dL', multiply: 38.67 },
-  ],
+  crp_hs: [{ from: 'mg/dL', to: 'mg/L', multiply: 10 }],
+  glucose_fasting: [{ from: 'mmol/L', to: 'mg/dL', multiply: 18.018 }],
+  vitamin_d: [{ from: 'nmol/L', to: 'ng/mL', multiply: 0.4 }],
+  hemoglobin: [{ from: 'mmol/L', to: 'g/dL', multiply: 1.6114 }],
+  creatinine: [{ from: 'µmol/L', to: 'mg/dL', multiply: 0.0113 }],
+  testosterone_total: [{ from: 'nmol/L', to: 'ng/dL', multiply: 28.818 }],
+  triglycerides: [{ from: 'mmol/L', to: 'mg/dL', multiply: 88.57 }],
+  hdl: [{ from: 'mmol/L', to: 'mg/dL', multiply: 38.67 }],
+  ldl: [{ from: 'mmol/L', to: 'mg/dL', multiply: 38.67 }],
+  total_cholesterol: [{ from: 'mmol/L', to: 'mg/dL', multiply: 38.67 }],
 }
 
-// Build a reverse lookup: alias → slug
+// Build reverse lookup
 const _aliasMap = new Map<string, string>()
 for (const [slug, marker] of Object.entries(CANONICAL_DICTIONARY)) {
   for (const alias of marker.aliases) {
@@ -855,9 +1045,24 @@ for (const [slug, marker] of Object.entries(CANONICAL_DICTIONARY)) {
   }
 }
 
+// PROTECTED TERMS: these slugs must NOT match via partial/substring matching
+// to prevent confusion between similar names (e.g. "vldl" matching "ldl")
+const PROTECTED_SLUGS = new Set([
+  'ldl', 'hdl', 'vldl', 'non_hdl',
+  'ldl_hdl_ratio', 'chol_hdl_ratio',
+  'neutrophils_pct', 'neutrophils_abs',
+  'lymphocytes_pct', 'lymphocytes_abs',
+  'monocytes_pct', 'monocytes_abs',
+  'eosinophils_pct', 'eosinophils_abs',
+  'basophils_pct', 'basophils_abs',
+  'immature_granulocytes_pct', 'immature_granulocytes_abs',
+  'bun', 'bun_creatinine_ratio',
+  'total_t3', 'free_t3',
+  'co2',
+])
+
 /**
- * Fuzzy match a raw marker name from OCR to canonical slug.
- * Improved: handles hyphens, extra spaces, common lab formatting
+ * Fuzzy match with protection against false partial matches.
  */
 export function matchMarkerToSlug(rawName: string): string | null {
   const normalized = rawName.toLowerCase().trim()
@@ -865,33 +1070,25 @@ export function matchMarkerToSlug(rawName: string): string | null {
     .replace(/,/g, '')
     .replace(/\s+/g, ' ')
 
-  // Direct match
+  // 1. Direct match (highest priority)
   if (_aliasMap.has(normalized)) {
     return _aliasMap.get(normalized)!
   }
 
-  // Normalize hyphens: "vitamin b-12" → "vitamin b12" and also keep hyphenated version
+  // 2. Normalize hyphens
   const withoutHyphens = normalized.replace(/-/g, '')
   if (_aliasMap.has(withoutHyphens)) {
     return _aliasMap.get(withoutHyphens)!
   }
-
-  // With hyphens replaced by spaces
   const hyphensToSpaces = normalized.replace(/-/g, ' ')
   if (_aliasMap.has(hyphensToSpaces)) {
     return _aliasMap.get(hyphensToSpaces)!
   }
 
-  // Partial match: check if any alias is contained in the raw name or vice versa
+  // 3. Partial match — but SKIP protected slugs to avoid false matches
   for (const [alias, slug] of _aliasMap.entries()) {
-    if (normalized.includes(alias) || alias.includes(normalized)) {
-      return slug
-    }
-  }
-
-  // Try without hyphens in partial match
-  for (const [alias, slug] of _aliasMap.entries()) {
-    if (withoutHyphens.includes(alias.replace(/-/g, '')) || alias.replace(/-/g, '').includes(withoutHyphens)) {
+    if (PROTECTED_SLUGS.has(slug)) continue
+    if (alias.length >= 4 && (normalized.includes(alias) || alias.includes(normalized))) {
       return slug
     }
   }
@@ -899,9 +1096,6 @@ export function matchMarkerToSlug(rawName: string): string | null {
   return null
 }
 
-/**
- * Convert a value from a non-canonical unit to the canonical unit.
- */
 export function convertToCanonicalUnit(
   slug: string,
   value: number,
@@ -909,17 +1103,13 @@ export function convertToCanonicalUnit(
 ): { value: number; unit: string; converted: boolean } {
   const marker = CANONICAL_DICTIONARY[slug]
   if (!marker) return { value, unit: reportedUnit, converted: false }
-
   const normalizedReported = reportedUnit.toLowerCase().trim()
   const normalizedCanonical = marker.unit.toLowerCase().trim()
-
   if (normalizedReported === normalizedCanonical) {
     return { value, unit: marker.unit, converted: false }
   }
-
   const conversions = UNIT_CONVERSIONS[slug]
   if (!conversions) return { value, unit: reportedUnit, converted: false }
-
   for (const conv of conversions) {
     if (conv.from.toLowerCase() === normalizedReported) {
       return {
@@ -929,22 +1119,15 @@ export function convertToCanonicalUnit(
       }
     }
   }
-
   return { value, unit: reportedUnit, converted: false }
 }
 
-/**
- * Check if a value is physically impossible for a given marker.
- */
 export function isImpossibleValue(slug: string, value: number): boolean {
   const marker = CANONICAL_DICTIONARY[slug]
   if (!marker) return false
   return value < marker.impossibleMin || value > marker.impossibleMax
 }
 
-/**
- * Determine the state for a biomarker value.
- */
 export function classifyBiomarkerState(
   slug: string,
   value: number,
@@ -952,17 +1135,13 @@ export function classifyBiomarkerState(
 ): 'Optimal' | 'Watch' | 'Attention' | 'Critical' {
   const marker = CANONICAL_DICTIONARY[slug]
   if (!marker) return 'Watch'
-
   const optimal = biologicalProfile === 'female' ? marker.optimalF : marker.optimalM
   const normal = biologicalProfile === 'female' ? marker.normalF : marker.normalM
-
   if (value >= optimal.min && value <= optimal.max) return 'Optimal'
   if (value >= normal.min && value <= normal.max) return 'Watch'
-
   const distFromNormal = value < normal.min
     ? (normal.min - value) / normal.min
     : (value - normal.max) / normal.max
-
   if (distFromNormal > 0.5) return 'Critical'
   return 'Attention'
 }
