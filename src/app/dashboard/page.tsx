@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
+import NavBar from '@/components/NavBar'
 
 const colors = {
   background: '#061316',
@@ -144,7 +145,7 @@ export default function DashboardPage() {
       <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '50%', height: '50%', background: `radial-gradient(circle, ${colors.teal}15 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '50%', height: '50%', background: `radial-gradient(circle, ${colors.cyan}15 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
 
-      <div style={{ maxWidth: '640px', margin: '0 auto', padding: '24px', position: 'relative', zIndex: 1 }}>
+      <div style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 24px 100px', position: 'relative', zIndex: 1 }}>
 
         {/* Header */}
         <motion.div
@@ -256,6 +257,7 @@ export default function DashboardPage() {
           Meridian provides health insights for informational purposes only. It is not medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider for medical decisions. Meridian interprets, you decide.
         </motion.div>
       </div>
+      <NavBar />
     </div>
   )
 }
