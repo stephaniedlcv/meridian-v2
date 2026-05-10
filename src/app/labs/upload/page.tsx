@@ -568,7 +568,7 @@ export default function LabsUploadPage() {
                 Upload another PDF
               </motion.button>
               <button
-                onClick={() => router.push('/')}
+                onClick={() => router.push('/dashboard')}
                 style={{
                   padding: '12px 24px',
                   backgroundColor: colors.cardBg,
