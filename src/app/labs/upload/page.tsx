@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
+import NavBar from '@/components/NavBar'
 
 const colors = {
   background: '#061316',
@@ -225,7 +226,7 @@ export default function LabsUploadPage() {
         fontFamily: fonts.ui,
         position: 'relative',
         overflow: 'hidden',
-        padding: '24px',
+        padding: '24px 24px 100px',
       }}
     >
       {/* Ambient orbs */}
@@ -586,7 +587,7 @@ export default function LabsUploadPage() {
           </motion.div>
         )}
       </div>
+      <NavBar />
     </div>
   )
 }
-  
