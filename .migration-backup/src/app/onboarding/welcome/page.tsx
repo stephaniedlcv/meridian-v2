@@ -85,30 +85,9 @@ export default function WelcomePage() {
       }}
     >
       {/* Ambient orbs */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '-20%',
-          left: '-10%',
-          width: '50%',
-          height: '50%',
-          background: `radial-gradient(circle, ${colors.teal}20 0%, transparent 70%)`,
-          filter: 'blur(80px)',
-          pointerEvents: 'none',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '-20%',
-          right: '-10%',
-          width: '50%',
-          height: '50%',
-          background: `radial-gradient(circle, ${colors.cyan}20 0%, transparent 70%)`,
-          filter: 'blur(80px)',
-          pointerEvents: 'none',
-        }}
-      />
+      <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '55%', height: '55%', background: `radial-gradient(circle, rgba(45,212,191,0.13) 0%, transparent 70%)`, filter: 'blur(90px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '-15%', right: '-10%', width: '55%', height: '55%', background: `radial-gradient(circle, rgba(103,232,249,0.11) 0%, transparent 70%)`, filter: 'blur(90px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '40%', height: '30%', background: `radial-gradient(circle, rgba(45,212,191,0.05) 0%, transparent 70%)`, filter: 'blur(60px)', pointerEvents: 'none' }} />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -124,34 +103,58 @@ export default function WelcomePage() {
           zIndex: 1,
         }}
       >
-        {/* Logo */}
+        {/* Logo halo — matches refined MeridianApp treatment */}
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
           style={{
-            width: '80px',
-            height: '80px',
+            position: 'relative',
+            width: '104px',
+            height: '104px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: '32px',
+            marginBottom: '20px',
           }}
         >
-          <span
-            style={{
-              fontFamily: fonts.heading,
-              fontSize: '64px',
-              fontWeight: 400,
-              background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
+          {/* Outer orbit ring */}
+          <div style={{
+            position: 'absolute', inset: 0, borderRadius: '50%',
+            border: '1px solid rgba(103,232,249,0.09)',
+            boxShadow: '0 0 48px rgba(45,212,191,0.07), 0 0 120px rgba(45,212,191,0.03)',
+          }} />
+          {/* Inner reticle ring */}
+          <div style={{
+            position: 'absolute', inset: '16px', borderRadius: '50%',
+            border: '0.5px solid rgba(103,232,249,0.14)',
+          }} />
+          <span style={{
+            fontFamily: fonts.heading,
+            fontSize: '56px',
+            fontWeight: 400,
+            background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            position: 'relative',
+            zIndex: 1,
+          }}>
             M
           </span>
         </motion.div>
+
+        {/* Wordmark */}
+        <div style={{
+          fontFamily: fonts.heading,
+          fontSize: '24px',
+          fontWeight: 700,
+          color: colors.text,
+          letterSpacing: '-0.05em',
+          marginBottom: '10px',
+        }}>
+          Meridian
+        </div>
 
         {/* Headline */}
         <h1
@@ -161,7 +164,7 @@ export default function WelcomePage() {
             fontWeight: 400,
             color: colors.text,
             textAlign: 'center',
-            marginBottom: '12px',
+            marginBottom: '10px',
             lineHeight: 1.2,
             letterSpacing: '-0.03em',
             whiteSpace: 'nowrap',
@@ -170,14 +173,14 @@ export default function WelcomePage() {
           Your biological intelligence system
         </h1>
 
-        {/* Subtext */}
+        {/* Subtitle */}
         <p
           style={{
             fontFamily: fonts.ui,
-            fontSize: '16px',
+            fontSize: '15px',
             color: colors.textSoft,
             textAlign: 'center',
-            marginBottom: '40px',
+            marginBottom: '36px',
             lineHeight: 1.75,
           }}
         >
@@ -185,97 +188,108 @@ export default function WelcomePage() {
           Get one clear priority every day.
         </p>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-          {/* Email Input */}
-          <div style={{ marginBottom: '16px' }}>
-            <input
-              type="email"
-              placeholder="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '16px 20px',
-                backgroundColor: colors.cardBg,
-                border: `1px solid ${colors.cardBorder}`,
-                borderRadius: '12px',
-                color: colors.text,
-                fontFamily: fonts.ui,
-                fontSize: '16px',
-                outline: 'none',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
+        {/* Glass form card */}
+        <div style={{
+          width: '100%',
+          backgroundColor: colors.cardBg,
+          border: `1px solid ${colors.cardBorder}`,
+          borderRadius: '24px',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 32px rgba(45,212,191,0.04)',
+          padding: '28px 24px 24px',
+        }}>
+          <form onSubmit={handleSubmit}>
+            {/* Email Input */}
+            <div style={{ marginBottom: '14px' }}>
+              <input
+                type="email"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '15px 18px',
+                  backgroundColor: 'rgba(6,19,22,0.6)',
+                  border: `1px solid ${colors.cardBorder}`,
+                  borderRadius: '12px',
+                  color: colors.text,
+                  fontFamily: fonts.ui,
+                  fontSize: '15px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                }}
+              />
+            </div>
 
-          {/* Password Input */}
-          <div style={{ marginBottom: '24px' }}>
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '16px 20px',
-                backgroundColor: colors.cardBg,
-                border: `1px solid ${colors.cardBorder}`,
-                borderRadius: '12px',
-                color: colors.text,
-                fontFamily: fonts.ui,
-                fontSize: '16px',
-                outline: 'none',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
+            {/* Password Input */}
+            <div style={{ marginBottom: '20px' }}>
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '15px 18px',
+                  backgroundColor: 'rgba(6,19,22,0.6)',
+                  border: `1px solid ${colors.cardBorder}`,
+                  borderRadius: '12px',
+                  color: colors.text,
+                  fontFamily: fonts.ui,
+                  fontSize: '15px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                }}
+              />
+            </div>
 
-          {/* Error Message */}
-          {error && (
-            <p
-              style={{
+            {/* Error Message */}
+            {error && (
+              <p style={{
                 color: '#EF4444',
                 fontSize: '14px',
                 textAlign: 'center',
                 marginBottom: '16px',
+              }}>
+                {error}
+              </p>
+            )}
+
+            {/* Submit Button — matches landing Get Started */}
+            <motion.button
+              type="submit"
+              disabled={loading}
+              whileHover={loading ? {} : { scale: 1.02 }}
+              whileTap={loading ? {} : { scale: 0.98 }}
+              style={{
+                width: '100%',
+                padding: '16px 24px',
+                background: loading
+                  ? `${colors.teal}60`
+                  : `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
+                border: 'none',
+                borderRadius: '14px',
+                color: colors.background,
+                fontFamily: fonts.ui,
+                fontSize: '16px',
+                fontWeight: 700,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                marginBottom: '0',
+                letterSpacing: '-0.01em',
+                boxShadow: loading
+                  ? 'none'
+                  : '0 0 24px rgba(45,212,191,0.3), 0 0 60px rgba(45,212,191,0.10), inset 0 1px 0 rgba(255,255,255,0.2)',
               }}
             >
-              {error}
-            </p>
-          )}
-
-          {/* Submit Button */}
-          <motion.button
-            type="submit"
-            disabled={loading}
-            whileHover={loading ? {} : { scale: 1.02 }}
-            whileTap={loading ? {} : { scale: 0.98 }}
-            style={{
-              width: '100%',
-              padding: '16px 24px',
-              background: loading
-                ? `${colors.teal}60`
-                : `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
-              border: 'none',
-              borderRadius: '12px',
-              color: colors.background,
-              fontFamily: fonts.ui,
-              fontSize: '16px',
-              fontWeight: 600,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              marginBottom: '16px',
-            }}
-          >
-            {loading ? 'Loading...' : isLogin ? 'Log in →' : 'Get started →'}
-          </motion.button>
-        </form>
+              {loading ? 'Loading...' : isLogin ? 'Log in →' : 'Get started →'}
+            </motion.button>
+          </form>
+        </div>
 
         {/* Login/Signup toggle */}
         <p
@@ -284,6 +298,7 @@ export default function WelcomePage() {
             fontSize: '14px',
             color: colors.textMuted,
             textAlign: 'center',
+            marginTop: '20px',
             marginBottom: '8px',
           }}
         >
