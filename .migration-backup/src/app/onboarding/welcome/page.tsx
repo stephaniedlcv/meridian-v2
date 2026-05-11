@@ -136,24 +136,23 @@ export default function WelcomePage() {
             position: 'absolute', inset: '18px', borderRadius: '50%',
             border: '0.5px solid rgba(103,232,249,0.14)',
           }} />
-          <span style={{
-            fontFamily: fonts.heading,
+          <div style={{
+            fontFamily: "var(--font-fraunces), serif",
             fontSize: '64px',
             fontWeight: 700,
             background: 'linear-gradient(135deg, #FFFFFF 0%, #67E8F9 40%, #2DD4BF 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
             position: 'relative',
             zIndex: 1,
           }}>
             M
-          </span>
+          </div>
         </motion.div>
 
         {/* Wordmark — exact match to root landing */}
         <div style={{
-          fontFamily: fonts.heading,
+          fontFamily: "var(--font-fraunces), serif",
           fontSize: '32px',
           fontWeight: 700,
           color: '#EAFBF7',
