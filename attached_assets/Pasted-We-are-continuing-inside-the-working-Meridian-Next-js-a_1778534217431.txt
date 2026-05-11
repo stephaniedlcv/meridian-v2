@@ -1,0 +1,186 @@
+We are continuing inside the working Meridian Next.js app.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Vercel production is working because Root Directory is set to .migration-backup.
+
+Do NOT restructure the repo.
+Do NOT move files out of .migration-backup.
+Do NOT touch root package files.
+Do NOT touch Vercel settings.
+Do NOT touch artifacts/.
+Do NOT publish to Replit.
+
+CURRENT LABS PRODUCT DIRECTION
+
+Meridian Labs should have three layers:
+
+1. Labs tab:
+Recent / actionable lab intelligence, focused on the last 12 months.
+
+2. History tab:
+Complete saved lab archive, all historical labs, organized clearly.
+
+3. Panel education:
+Simple user-friendly explanation of what each lab panel means.
+
+For this task, implement ONLY layer 2:
+
+HISTORY V2
+
+Current issue:
+The /labs/history page now shows saved biomarkers, but everything is mixed together. Users cannot easily understand which biomarkers belong to which lab panel.
+
+Goal:
+Upgrade /labs/history so saved labs are organized as:
+
+Year
+→ Month
+→ Collection Date
+→ Lab Panel / Category
+→ Biomarker details
+
+Modify ONLY this file:
+
+.migration-backup/src/app/labs/history/page.tsx
+
+Do not touch:
+- /labs/upload
+- /dashboard
+- /api/insight
+- OCR routes
+- confirm route
+- canonical dictionary
+- Supabase clients
+- database types
+- middleware
+- onboarding
+- NavBar
+- package.json
+- artifacts/
+- dependencies
+
+Functional requirements:
+1. Authenticate the current user as already implemented.
+2. Query all biomarkers_static rows for the logged-in user.
+3. Do not filter by date.
+4. Order by collected_at descending, then created_at descending.
+5. Group rows in frontend by:
+   - year from collected_at
+   - month from collected_at
+   - collection date
+   - inferred panel/category from marker_name
+
+Panel categories:
+- CBC
+- CMP
+- Lipid Panel
+- Thyroid
+- Glycemic
+- Kidney / Renal
+- Liver
+- Urinalysis
+- Vitamins & Nutrients
+- Hormones
+- Inflammation / Cardiac Risk
+- Other
+
+Panel inference:
+Create a local helper inside history/page.tsx only.
+
+Examples:
+
+CBC:
+WBC, White Blood Cell Count, RBC, Red Blood Cell Count, Hemoglobin, Hematocrit, MCV, MCH, MCHC, RDW, Platelet Count, Neutrophils, Lymphocytes, Monocytes, Eosinophils, Basophils
+
+Lipid Panel:
+Total Cholesterol, Cholesterol, HDL Cholesterol, LDL Cholesterol, VLDL Cholesterol, Triglycerides, Non-HDL Cholesterol, LDL/HDL Ratio
+
+CMP:
+Glucose, BUN, Creatinine, Sodium, Potassium, Chloride, Carbon Dioxide, Calcium, Protein Total, Albumin, Globulin, Albumin/Globulin Ratio, Bilirubin, Alkaline Phosphatase, AST, ALT, eGFR
+
+Thyroid:
+TSH, Thyroid Stimulating Hormone, Free T4, Free T3, T4, T3, TPO Antibodies
+
+Glycemic:
+Hemoglobin A1c, A1c, Insulin, Fasting Insulin, Glucose
+
+Kidney / Renal:
+Creatinine, BUN, eGFR, GFR, Urine Albumin, Microalbumin, Uric Acid
+
+Liver:
+AST, ALT, Alkaline Phosphatase, Bilirubin, Albumin, GGT
+
+Urinalysis:
+Urine pH, Specific Gravity, Protein Urine, Glucose Urine, Ketones, Blood Urine, Nitrites, Leukocytes, WBC Urine, RBC Urine, Bacteria
+
+Vitamins & Nutrients:
+Vitamin D, Vitamin B12, Folate, Ferritin, Iron, Magnesium
+
+Hormones:
+Cortisol, ACTH, Progesterone, Estradiol, Testosterone, DHEA, Insulin
+
+Inflammation / Cardiac Risk:
+CRP, hs-CRP, ESR, Homocysteine
+
+UI requirements:
+1. Keep Meridian visual language:
+   - dark biological OS background
+   - teal/cyan accents
+   - premium glassmorphism
+   - Fraunces for title
+   - Plus Jakarta Sans for UI
+   - mobile-first
+   - readable cards
+   - enough bottom padding for bottom nav
+
+2. Year sections should be clear.
+3. Month sections should be clear but not visually heavy.
+4. Collection date cards should show:
+   - collection date
+   - total biomarkers for that date
+   - number of panels detected
+
+5. Panel cards should be expandable/collapsible.
+6. Collapsed panel card should show:
+   - panel name
+   - number of biomarkers
+   - state summary if available:
+     Optimal / Watch / Attention / Critical counts
+   - “View details” or chevron
+
+7. Expanded panel should show biomarker rows:
+   - marker name
+   - value
+   - unit
+   - state badge
+   - reference range if available
+
+8. Empty state and error state must still work.
+
+Important:
+- Do not change database schema.
+- Do not add panel_type column.
+- Do not create new files.
+- Use local helper functions inside history/page.tsx only.
+- Keep this read-only.
+- No editing/deleting labs yet.
+- No charts yet.
+- No AI explanation yet in this task.
+
+After editing:
+1. Report exact file changed.
+2. Confirm no other files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /labs/history
+5. Confirm build passes.
+6. Explain how grouping works:
+   year → month → date → panel → biomarkers
+7. Do not commit.
+8. Do not push.
+9. Do not publish to Replit.
