@@ -10,6 +10,17 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
+const colors = {
+  background: '#061316',
+  teal: '#2DD4BF',
+  cyan: '#67E8F9',
+  text: '#EAFBF7',
+  textSoft: '#9ACBC1',
+  textMuted: '#5F8E85',
+  cardBg: 'rgba(232,248,245,0.055)',
+  cardBorder: 'rgba(103,232,249,0.13)',
+}
+
 type GoalValue =
   | 'bienestar'
   | 'optimizacion'
@@ -123,8 +134,8 @@ export default function GoalsPage() {
     <main
       style={{
         minHeight: '100vh',
-        background: '#061316',
-        color: '#EAFBF7',
+        background: colors.background,
+        color: colors.text,
         fontFamily: 'Plus Jakarta Sans, sans-serif',
         position: 'relative',
         overflow: 'hidden',
@@ -134,32 +145,26 @@ export default function GoalsPage() {
         padding: '48px 20px',
       }}
     >
-      <div
-        style={{
-          position: 'absolute',
-          width: 360,
-          height: 360,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(45,212,191,0.28), transparent 68%)',
-          top: -110,
-          left: -105,
-          filter: 'blur(80px)',
-          pointerEvents: 'none',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          width: 390,
-          height: 390,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(103,232,249,0.22), transparent 70%)',
-          right: -125,
-          bottom: -120,
-          filter: 'blur(80px)',
-          pointerEvents: 'none',
-        }}
-      />
+      {/* Ambient orbs — 3 layers matching landing/welcome */}
+      <div style={{
+        position: 'absolute', top: '-15%', left: '-10%',
+        width: '55%', height: '55%',
+        background: 'radial-gradient(circle, rgba(45,212,191,0.13) 0%, transparent 70%)',
+        filter: 'blur(90px)', pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '-15%', right: '-10%',
+        width: '55%', height: '55%',
+        background: 'radial-gradient(circle, rgba(103,232,249,0.11) 0%, transparent 70%)',
+        filter: 'blur(90px)', pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', top: '50%', left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '40%', height: '30%',
+        background: 'radial-gradient(circle, rgba(45,212,191,0.05) 0%, transparent 70%)',
+        filter: 'blur(60px)', pointerEvents: 'none',
+      }} />
 
       <motion.section
         initial={{ opacity: 0, y: 18 }}
@@ -167,67 +172,81 @@ export default function GoalsPage() {
         transition={{ duration: 0.65, ease: 'easeOut' }}
         style={{
           width: '100%',
-          maxWidth: 760,
+          maxWidth: '480px',
           position: 'relative',
           zIndex: 1,
         }}
       >
-        <div
-          style={{
-            border: '1px solid rgba(103,232,249,0.13)',
-            background: 'rgba(232,248,245,0.055)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            borderRadius: 28,
-            padding: '34px',
-            boxShadow: '0 24px 80px rgba(0,0,0,0.24)',
-          }}
-        >
-          <div style={{ marginBottom: 28 }}>
-            <p
-              style={{
-                margin: '0 0 12px',
-                color: '#2DD4BF',
-                fontSize: 13,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-              }}
-            >
-              Extended profile
-            </p>
-            <h1
-              style={{
-                margin: 0,
-                fontFamily: 'Fraunces, serif',
-                fontSize: 'clamp(34px, 5vw, 56px)',
-                lineHeight: 1.02,
-                letterSpacing: '-0.04em',
-                color: '#EAFBF7',
-              }}
-            >
+        {/* Premium pill chip — "Extended profile" */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginBottom: '24px',
+        }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '7px',
+            fontSize: '9px',
+            fontWeight: 800,
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            color: colors.teal,
+            padding: '5px 12px',
+            border: '1px solid rgba(45,212,191,0.25)',
+            borderRadius: '20px',
+            background: 'rgba(45,212,191,0.06)',
+          }}>
+            <div style={{
+              width: '4px', height: '4px', borderRadius: '50%',
+              background: colors.teal,
+              boxShadow: '0 0 6px rgba(45,212,191,0.9)',
+            }} />
+            Extended Profile · Step 2
+          </div>
+        </div>
+
+        {/* Glass card */}
+        <div style={{
+          border: `1px solid ${colors.cardBorder}`,
+          background: colors.cardBg,
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          borderRadius: '24px',
+          padding: '32px 28px 28px',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 48px rgba(45,212,191,0.06)',
+        }}>
+
+          {/* Heading block */}
+          <div style={{ marginBottom: '24px' }}>
+            <h1 style={{
+              margin: '0 0 10px',
+              fontFamily: 'var(--font-fraunces), serif',
+              fontSize: 'clamp(28px, 5vw, 40px)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.04em',
+              color: colors.text,
+              fontWeight: 700,
+            }}>
               What&apos;s your health goal?
             </h1>
-            <p
-              style={{
-                margin: '14px 0 0',
-                color: '#9ACBC1',
-                fontSize: 16,
-                lineHeight: 1.65,
-              }}
-            >
+            <p style={{
+              margin: 0,
+              color: colors.textSoft,
+              fontSize: '15px',
+              lineHeight: 1.65,
+            }}>
               This helps Meridian prioritize what matters most to you.
             </p>
           </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-              gap: 14,
-              marginBottom: 30,
-            }}
-          >
+          {/* Goal selection grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '12px',
+            marginBottom: '28px',
+          }}>
             {goals.map((goal) => {
               const selected = selectedGoal === goal.value
 
@@ -239,45 +258,41 @@ export default function GoalsPage() {
                   style={{
                     textAlign: 'left',
                     border: selected
-                      ? '1px solid rgba(45,212,191,0.92)'
-                      : '1px solid rgba(103,232,249,0.13)',
+                      ? '1px solid rgba(45,212,191,0.85)'
+                      : `1px solid ${colors.cardBorder}`,
                     background: selected
-                      ? 'rgba(45,212,191,0.14)'
-                      : 'rgba(232,248,245,0.055)',
-                    backdropFilter: 'blur(24px)',
-                    WebkitBackdropFilter: 'blur(24px)',
-                    color: '#EAFBF7',
-                    borderRadius: 18,
-                    padding: '18px 18px 17px',
+                      ? 'rgba(45,212,191,0.10)'
+                      : colors.cardBg,
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    color: colors.text,
+                    borderRadius: '16px',
+                    padding: '16px',
                     cursor: 'pointer',
-                    transition: 'border-color 180ms ease, background 180ms ease, transform 180ms ease',
-                    boxShadow: selected ? '0 0 0 1px rgba(45,212,191,0.16)' : 'none',
+                    transition: 'border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease',
+                    boxShadow: selected
+                      ? '0 0 0 1px rgba(45,212,191,0.15), 0 0 16px rgba(45,212,191,0.08)'
+                      : 'none',
                   }}
-                  onMouseEnter={(event) => {
-                    event.currentTarget.style.transform = 'translateY(-2px)'
-                  }}
-                  onMouseLeave={(event) => {
-                    event.currentTarget.style.transform = 'translateY(0)'
-                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}
                 >
-                  <span
-                    style={{
-                      display: 'block',
-                      fontSize: 15,
-                      fontWeight: 700,
-                      marginBottom: 6,
-                    }}
-                  >
+                  <span style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    marginBottom: '5px',
+                    color: selected ? colors.teal : colors.text,
+                    letterSpacing: '-0.01em',
+                  }}>
                     {goal.label}
                   </span>
-                  <span
-                    style={{
-                      display: 'block',
-                      color: selected ? '#9EEFE4' : '#9ACBC1',
-                      fontSize: 13,
-                      lineHeight: 1.45,
-                    }}
-                  >
+                  <span style={{
+                    display: 'block',
+                    color: selected ? '#9EEFE4' : colors.textSoft,
+                    fontSize: '12px',
+                    lineHeight: 1.45,
+                  }}>
                     {goal.subtext}
                   </span>
                 </button>
@@ -285,16 +300,18 @@ export default function GoalsPage() {
             })}
           </div>
 
-          <div style={{ display: 'grid', gap: 22 }}>
+          {/* Form fields */}
+          <div style={{ display: 'grid', gap: '20px' }}>
             <section>
               <label
                 htmlFor="birth-date"
                 style={{
                   display: 'block',
-                  color: '#EAFBF7',
-                  fontSize: 15,
+                  color: colors.text,
+                  fontSize: '14px',
                   fontWeight: 700,
-                  marginBottom: 8,
+                  marginBottom: '8px',
+                  letterSpacing: '-0.01em',
                 }}
               >
                 Date of birth
@@ -307,24 +324,23 @@ export default function GoalsPage() {
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  border: '1px solid rgba(103,232,249,0.13)',
-                  background: 'rgba(232,248,245,0.055)',
-                  color: '#EAFBF7',
-                  borderRadius: 14,
-                  padding: '15px 16px',
-                  fontSize: 15,
+                  border: `1px solid ${colors.cardBorder}`,
+                  background: 'rgba(6,19,22,0.6)',
+                  color: colors.text,
+                  borderRadius: '12px',
+                  padding: '14px 16px',
+                  fontSize: '15px',
                   outline: 'none',
                   fontFamily: 'Plus Jakarta Sans, sans-serif',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
                 }}
               />
-              <p
-                style={{
-                  margin: '8px 0 0',
-                  color: '#5F8E85',
-                  fontSize: 12,
-                  lineHeight: 1.45,
-                }}
-              >
+              <p style={{
+                margin: '7px 0 0',
+                color: colors.textMuted,
+                fontSize: '12px',
+                lineHeight: 1.45,
+              }}>
                 Used for age-adjusted reference ranges
               </p>
             </section>
@@ -334,13 +350,15 @@ export default function GoalsPage() {
                 htmlFor="medications"
                 style={{
                   display: 'block',
-                  color: '#EAFBF7',
-                  fontSize: 15,
+                  color: colors.text,
+                  fontSize: '14px',
                   fontWeight: 700,
-                  marginBottom: 8,
+                  marginBottom: '8px',
+                  letterSpacing: '-0.01em',
                 }}
               >
-                Current medications <span style={{ color: '#5F8E85', fontWeight: 500 }}>(optional)</span>
+                Current medications{' '}
+                <span style={{ color: colors.textMuted, fontWeight: 500 }}>(optional)</span>
               </label>
               <input
                 id="medications"
@@ -351,52 +369,41 @@ export default function GoalsPage() {
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  border: '1px solid rgba(103,232,249,0.13)',
-                  background: 'rgba(232,248,245,0.055)',
-                  color: '#EAFBF7',
-                  borderRadius: 14,
-                  padding: '15px 16px',
-                  fontSize: 15,
+                  border: `1px solid ${colors.cardBorder}`,
+                  background: 'rgba(6,19,22,0.6)',
+                  color: colors.text,
+                  borderRadius: '12px',
+                  padding: '14px 16px',
+                  fontSize: '15px',
                   outline: 'none',
                   fontFamily: 'Plus Jakarta Sans, sans-serif',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
                 }}
               />
-              <p
-                style={{
-                  margin: '8px 0 0',
-                  color: '#5F8E85',
-                  fontSize: 12,
-                  lineHeight: 1.45,
-                }}
-              >
-                Separate with commas. This helps us flag interactions.
-              </p>
-              <p
-                style={{
-                  margin: '4px 0 0',
-                  color: '#5F8E85',
-                  fontSize: 12,
-                  lineHeight: 1.45,
-                }}
-              >
-                Leave blank if none
+              <p style={{
+                margin: '7px 0 0',
+                color: colors.textMuted,
+                fontSize: '12px',
+                lineHeight: 1.45,
+              }}>
+                Separate with commas. This helps us flag interactions. Leave blank if none.
               </p>
             </section>
           </div>
 
+          {/* Error message */}
           {error ? (
-            <p
-              style={{
-                margin: '20px 0 0',
-                color: '#67E8F9',
-                fontSize: 13,
-                lineHeight: 1.5,
-              }}
-            >
+            <p style={{
+              margin: '18px 0 0',
+              color: '#EF4444',
+              fontSize: '13px',
+              lineHeight: 1.5,
+            }}>
               {error}
             </p>
           ) : null}
 
+          {/* CTA button */}
           <button
             type="button"
             disabled={!canContinue}
@@ -404,21 +411,25 @@ export default function GoalsPage() {
             style={{
               width: '100%',
               border: 'none',
-              borderRadius: 12,
+              borderRadius: '14px',
               padding: '16px 20px',
-              marginTop: 28,
+              marginTop: '24px',
               background: canContinue
                 ? 'linear-gradient(135deg, #2DD4BF 0%, #67E8F9 100%)'
-                : 'linear-gradient(135deg, rgba(45,212,191,0.32) 0%, rgba(103,232,249,0.26) 100%)',
+                : 'rgba(45,212,191,0.25)',
               color: '#061316',
               fontFamily: 'Plus Jakarta Sans, sans-serif',
-              fontSize: 15,
-              fontWeight: 800,
+              fontSize: '15px',
+              fontWeight: 700,
               cursor: canContinue ? 'pointer' : 'not-allowed',
-              boxShadow: canContinue ? '0 18px 38px rgba(45,212,191,0.20)' : 'none',
+              letterSpacing: '-0.01em',
+              boxShadow: canContinue
+                ? '0 0 24px rgba(45,212,191,0.35), 0 0 60px rgba(45,212,191,0.12), inset 0 1px 0 rgba(255,255,255,0.25)'
+                : 'none',
+              transition: 'box-shadow 200ms ease, background 200ms ease',
             }}
           >
-            {loading ? 'Saving...' : 'Continue'}
+            {loading ? 'Saving...' : 'Continue →'}
           </button>
         </div>
       </motion.section>
