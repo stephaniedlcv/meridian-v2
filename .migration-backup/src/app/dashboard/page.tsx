@@ -186,21 +186,24 @@ export default function DashboardPage() {
                 background: colors.teal,
                 boxShadow: `0 0 6px ${colors.teal}`,
               }} />
-              Active Session
+              Active Signal
             </div>
             <div style={{
-              fontFamily: fonts.heading,
+              fontFamily: 'var(--font-fraunces), serif',
               fontSize: '24px',
               fontWeight: 400,
               background: `linear-gradient(135deg, ${colors.teal}, ${colors.cyan})`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              marginBottom: '3px',
+              marginBottom: '4px',
             }}>
               Meridian
             </div>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: colors.text, marginBottom: '2px' }}>
+              Your body is speaking.
+            </div>
             <div style={{ fontSize: '13px', color: colors.textMuted }}>
-              Hi, {userName}
+              Let&apos;s see what changed today.
             </div>
           </div>
           <button
