@@ -1,0 +1,75 @@
+We are continuing inside the working Meridian Next.js app.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Vercel production is currently working because Root Directory is set to .migration-backup.
+
+Do NOT restructure the repo.
+Do NOT move files out of .migration-backup.
+Do NOT touch root package files.
+Do NOT touch Vercel settings.
+Do NOT touch artifacts/.
+Do NOT publish to Replit.
+
+Current bug:
+When the user taps Profile in the bottom nav, the /profile page opens but renders completely black.
+No nav, no content, no visible error state.
+
+Goal:
+Fix /profile so it never renders a blank black screen.
+
+First diagnose, then implement the smallest safe fix.
+
+Likely files to inspect:
+- .migration-backup/src/app/profile/page.tsx
+- any shared NavBar / bottom nav component used by dashboard/labs/history
+- routing target for Profile in the bottom nav
+
+Do not edit yet until you identify the exact issue.
+
+Diagnosis required:
+1. Identify the file responsible for /profile.
+2. Confirm whether /profile is empty, crashing, failing auth, or missing layout/nav.
+3. Confirm whether the bottom nav Profile link points to the correct route.
+4. Identify whether /profile should show a real profile page or a safe placeholder for now.
+5. Propose the smallest safe fix.
+
+Then implement only the approved-minimal fix:
+- /profile must render a visible page.
+- It should use the existing Meridian dark style.
+- It should include the bottom nav if other app pages include it.
+- If full profile functionality is not ready, render a clean placeholder:
+  “Profile”
+  “Your Meridian profile will appear here.”
+- Keep auth guard behavior consistent with the rest of the app if present.
+- Do not add new functionality.
+- Do not redesign.
+
+Rules:
+- Minimal fix only.
+- Do not touch labs/upload.
+- Do not touch labs/history.
+- Do not touch dashboard.
+- Do not touch onboarding.
+- Do not touch API routes.
+- Do not touch Supabase clients.
+- Do not touch database types.
+- Do not touch middleware.
+- Do not add dependencies.
+- Do not create files unless absolutely necessary and approved.
+- Do not commit.
+- Do not push.
+- Do not publish to Replit.
+
+After editing:
+1. Report every file changed.
+2. Confirm no other files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   - /profile
+5. Confirm build passes.
+6. Explain why /profile no longer renders black.
