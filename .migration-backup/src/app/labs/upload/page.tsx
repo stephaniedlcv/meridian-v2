@@ -73,6 +73,7 @@ export default function LabsUploadPage() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
+  const autoRedirectRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [bioProfile, setBioProfile] = useState<string>('female')
   const [uploading, setUploading] = useState(false)
@@ -200,8 +201,9 @@ export default function LabsUploadPage() {
       setSavedCount(data.saved_count)
       setConfirmed(true)
       setConfirming(false)
-      // Auto-navigate to dashboard after a short delay so the user sees the success state
-      setTimeout(() => router.push('/dashboard'), 2000)
+      // Auto-navigate to dashboard after a short delay so the user sees the success state.
+      // Stored in a ref so handleReset can cancel it if the user clicks "Upload another".
+      autoRedirectRef.current = setTimeout(() => router.push('/dashboard'), 2000)
     } catch {
       setError('Failed to save biomarkers')
       setConfirming(false)
@@ -209,6 +211,11 @@ export default function LabsUploadPage() {
   }
 
   function handleReset() {
+    // Cancel any pending auto-redirect to dashboard so "Upload another" stays on this page.
+    if (autoRedirectRef.current) {
+      clearTimeout(autoRedirectRef.current)
+      autoRedirectRef.current = null
+    }
     setStaged(null)
     setUnmatched([])
     setStats(null)
