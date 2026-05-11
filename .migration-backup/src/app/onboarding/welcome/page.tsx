@@ -34,10 +34,12 @@ function WelcomePageInner() {
   const [isLogin, setIsLogin] = useState(() => searchParams.get('mode') === 'login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [emailConfirmPending, setEmailConfirmPending] = useState(false)
 
   function switchMode(toLogin: boolean) {
     setIsLogin(toLogin)
     setError(null)
+    setEmailConfirmPending(false)
     router.replace(`/onboarding/welcome?mode=${toLogin ? 'login' : 'signup'}`)
   }
 
@@ -48,7 +50,7 @@ function WelcomePageInner() {
 
     try {
       if (isLogin) {
-        const { error: authError } = await supabase.auth.signInWithPassword({
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
@@ -56,11 +58,21 @@ function WelcomePageInner() {
           setError(authError.message)
           return
         }
-        router.push('/')
+        // Check whether this user has completed onboarding
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', authData.user!.id)
+          .single()
+        if (!profile || !profile.onboarding_completed) {
+          router.push('/onboarding/profile')
+        } else {
+          router.push('/')
+        }
         return
       }
 
-      const { error: authError } = await supabase.auth.signUp({
+      const { data: signUpData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -71,7 +83,13 @@ function WelcomePageInner() {
         setError(authError.message)
         return
       }
-      router.push('/onboarding/profile')
+      if (signUpData.session) {
+        // Session available immediately — email confirmation not required
+        router.push('/onboarding/profile')
+      } else {
+        // Email confirmation required — tell the user to check their inbox
+        setEmailConfirmPending(true)
+      }
     } finally {
       setLoading(false)
     }
@@ -233,6 +251,42 @@ function WelcomePageInner() {
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 32px rgba(45,212,191,0.04)',
           padding: '28px 24px 24px',
         }}>
+          {emailConfirmPending ? (
+            <div style={{ textAlign: 'center', padding: '8px 0' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '7px',
+                fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
+                textTransform: 'uppercase', color: colors.teal,
+                padding: '5px 14px', border: '1px solid rgba(45,212,191,0.28)',
+                borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
+                marginBottom: '20px',
+              }}>
+                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
+                Check your inbox
+              </div>
+              <p style={{ color: colors.text, fontSize: '15px', lineHeight: 1.65, marginBottom: '10px' }}>
+                We sent a confirmation link to <strong>{email}</strong>.
+              </p>
+              <p style={{ color: colors.textSoft, fontSize: '13px', lineHeight: 1.6, marginBottom: '20px' }}>
+                Click the link in that email to activate your account, then come back here to log in.
+              </p>
+              <button
+                type="button"
+                onClick={() => switchMode(true)}
+                style={{
+                  width: '100%', border: 'none', borderRadius: '14px',
+                  padding: '14px 20px',
+                  background: 'linear-gradient(135deg, #2DD4BF 0%, #67E8F9 100%)',
+                  color: '#061316', fontFamily: fonts.ui,
+                  fontSize: '15px', fontWeight: 700, cursor: 'pointer',
+                  letterSpacing: '-0.01em',
+                  boxShadow: '0 0 24px rgba(45,212,191,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                }}
+              >
+                Go to Log in →
+              </button>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit}>
             {/* Email Input */}
             <div style={{ marginBottom: '14px' }}>
@@ -322,6 +376,7 @@ function WelcomePageInner() {
               {loading ? 'Loading...' : isLogin ? 'Log in →' : 'Get started →'}
             </motion.button>
           </form>
+          )}
         </div>
 
         {/* Mode toggle */}

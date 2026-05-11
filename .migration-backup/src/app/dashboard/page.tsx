@@ -75,7 +75,7 @@ export default function DashboardPage() {
         .eq('id', user.id)
         .single()
 
-      if (profile && !profile.onboarding_completed) {
+      if (!profile || !profile.onboarding_completed) {
         router.push('/onboarding/profile')
         return
       }
