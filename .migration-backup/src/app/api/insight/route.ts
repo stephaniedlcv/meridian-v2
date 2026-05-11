@@ -213,17 +213,14 @@ export async function GET(request: NextRequest) {
     const userProfile = (profile.user_profile as string) || 'bienestar'
     const medications = (profile.medications as string[]) || []
 
-    // Get biomarkers
-    const oneYearAgo = new Date()
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
-
+    // Get biomarkers — no date cutoff so historical labs are always considered.
+    // The decision engine applies recency weighting; the API should not discard valid data.
     const { data: biomarkers, error: bioError } = await supabase
       .from('biomarkers_static')
       .select('*')
       .eq('user_id', userId)
       .eq('flag_error', false)
       .eq('validated', true)
-      .gte('collected_at', oneYearAgo.toISOString())
       .order('collected_at', { ascending: false })
 
     if (bioError) {

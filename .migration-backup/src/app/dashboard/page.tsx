@@ -82,36 +82,39 @@ export default function DashboardPage() {
 
       setUserName(profile?.full_name || user.email?.split('@')[0] || 'there')
 
+      // Lightweight biomarker count — runs before insight so any insight failure
+      // can still show the correct state rather than false no_data.
+      const { count: biomarkerCount } = await supabase
+        .from('biomarkers_static')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+      const hasBiomarkers = typeof biomarkerCount === 'number' && biomarkerCount > 0
+      console.log('[Meridian] user.id:', user.id, '| biomarker count:', biomarkerCount, '| hasBiomarkers:', hasBiomarkers)
+
       // Fetch insight
       try {
         const response = await fetch(`/api/insight?user_id=${user.id}`)
         const data = await response.json()
+        console.log('[Meridian] insight state:', data?.state, '| success:', data?.success)
 
-        if (data.success) {
-          if (data.state === 'no_data') {
-            // Insight found no biomarkers within its lookback window.
-            // Do a lightweight check to distinguish true no-data from labs-saved-but-outside-window.
-            const { count } = await supabase
-              .from('biomarkers_static')
-              .select('*', { count: 'exact', head: true })
-              .eq('user_id', user.id)
-            setState(count && count > 0 ? 'labs_saved' : 'no_data')
-          } else {
-            setState(data.state)
-            setInsight(data.insight)
-            setDominantMarker(data.dominant_marker)
-            setSafetyAlert(data.safety_alert)
-          }
+        if (data.success && data.state !== 'no_data') {
+          // Insight produced a real result — trust it.
+          setState(data.state)
+          setInsight(data.insight)
+          setDominantMarker(data.dominant_marker)
+          setSafetyAlert(data.safety_alert)
         } else {
-          // API returned an error (not a genuine no-data state).
-          // Log it clearly so production errors are visible in server/client logs.
-          console.error('[Meridian] Insight API error:', data.error || 'Unknown error', '| HTTP status:', response.status)
-          // Fall back to no_data so the UI still renders rather than hanging.
-          setState('no_data')
+          // Insight returned no_data, success:false, or an unexpected shape.
+          // Use the biomarker count to decide the real state.
+          const finalState = hasBiomarkers ? 'labs_saved' : 'no_data'
+          console.log('[Meridian] insight unavailable — final state:', finalState)
+          setState(finalState)
         }
       } catch (err) {
         console.error('[Meridian] Insight fetch/parse error:', err)
-        setState('no_data')
+        const finalState = hasBiomarkers ? 'labs_saved' : 'no_data'
+        console.log('[Meridian] insight error — final state:', finalState)
+        setState(finalState)
       }
 
       setLoading(false)
