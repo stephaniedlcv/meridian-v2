@@ -66,6 +66,8 @@ interface RecentBiomarker {
   state: string | null
   reference_range_min: number | null
   reference_range_max: number | null
+  optimal_range_min: number | null
+  optimal_range_max: number | null
   collected_at: string
   flag_error: boolean
 }
@@ -288,6 +290,220 @@ function markerDisplayName(slug: string): string {
   return NAME_OVERRIDES[slug] ?? slug.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 }
 
+// ── Interpretation copy ────────────────────────────────────────────────────────
+const INTERPRETATIONS: Record<string, string> = {
+  hdl:                'HDL helps transport cholesterol away from arteries. Patterns over time can provide context for cardiovascular health.',
+  ldl:                'LDL is one of the cholesterol transport markers Meridian tracks over time as part of lipid and cardiovascular context.',
+  triglycerides:      'Triglycerides reflect circulating blood fats and can provide context for metabolism and cardiovascular patterns.',
+  glucose_fasting:    'Glucose provides context on blood sugar regulation at the time of collection.',
+  hba1c:              'A1c gives context on longer-term glucose patterns over approximately the past few months.',
+  tsh:                'TSH gives context on thyroid signaling and metabolic regulation.',
+  egfr:               'eGFR gives context on kidney filtration patterns.',
+  creatinine:         'Creatinine provides context for kidney filtration and muscle-related metabolism.',
+  vitamin_b12:        'Vitamin B12 provides context for nutrient status, energy metabolism, and nervous system support.',
+  vitamin_d:          'Vitamin D provides context for immune function, bone health, and metabolic signaling.',
+  ferritin:           'Ferritin reflects stored iron levels and can provide context for energy and oxygen transport.',
+  hemoglobin:         'Hemoglobin carries oxygen through the blood and can provide context for energy and circulation.',
+  crp_hs:             'High-sensitivity CRP provides context for systemic inflammatory patterns over time.',
+  cortisol_am:        'Cortisol provides context on adrenal function and the body\'s stress response signaling.',
+  testosterone_total: 'Testosterone provides context for hormonal and metabolic signaling patterns.',
+}
+
+function getInterpretation(slug: string): string {
+  return INTERPRETATIONS[slug] ?? 'This biomarker adds context to your saved lab profile.'
+}
+
+// ── Biomarker Detail Sheet ─────────────────────────────────────────────────────
+function BiomarkerDetailSheet({
+  biomarker,
+  allBiomarkers,
+  onClose,
+}: {
+  biomarker: RecentBiomarker
+  allBiomarkers: RecentBiomarker[]
+  onClose: () => void
+}) {
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
+  const displayName = markerDisplayName(biomarker.marker_name)
+  const panel       = SLUG_TO_PANEL[biomarker.marker_name] ?? null
+  const s           = getStateStyles(biomarker.state ?? '')
+  const dotColor    = getStateColor(biomarker.state)
+  const hasRange    = isUsableRange(biomarker.reference_range_min, biomarker.reference_range_max)
+  const hasOptimal  = isUsableRange(biomarker.optimal_range_min, biomarker.optimal_range_max)
+  const interp      = getInterpretation(biomarker.marker_name)
+
+  const prev = allBiomarkers
+    .filter(b =>
+      b.marker_name === biomarker.marker_name &&
+      b.id !== biomarker.id &&
+      new Date(b.collected_at).getTime() <= new Date(biomarker.collected_at).getTime()
+    )
+    .sort((a, b) => new Date(b.collected_at).getTime() - new Date(a.collected_at).getTime())[0] ?? null
+
+  const delta = prev !== null ? Number((biomarker.value - prev.value).toFixed(2)) : null
+
+  function fmtDate(iso: string) {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+  }
+
+  const cardStyle = {
+    backgroundColor: colors.cardBg,
+    border: `1px solid ${colors.cardBorder}`,
+    borderRadius: '14px' as const,
+    padding: '14px 16px',
+    marginBottom: '10px',
+  }
+  const labelStyle = {
+    fontSize: '10px' as const,
+    color: colors.textMuted,
+    fontWeight: 700 as const,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.08em',
+    marginBottom: '8px',
+    marginTop: 0 as const,
+  }
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 100,
+          backgroundColor: 'rgba(6,19,22,0.78)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+        }}
+      />
+      {/* Bottom sheet */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 101,
+        maxHeight: '88vh', overflowY: 'auto',
+        backgroundColor: '#081A1E',
+        border: `1px solid ${dotColor}40`,
+        borderBottom: 'none',
+        borderRadius: '20px 20px 0 0',
+        fontFamily: fonts.ui,
+      }}>
+        {/* Handle */}
+        <div style={{ width: '36px', height: '4px', borderRadius: '2px', backgroundColor: 'rgba(103,232,249,0.2)', margin: '12px auto 0' }} />
+
+        {/* Header */}
+        <div style={{ padding: '14px 20px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {panel && (
+              <p style={{ fontSize: '11px', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 3px' }}>
+                {panel}
+              </p>
+            )}
+            <h2 style={{ fontFamily: fonts.heading, fontSize: '22px', fontWeight: 700, color: colors.text, lineHeight: 1.2, margin: 0 }}>
+              {displayName}
+            </h2>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, paddingTop: '4px' }}>
+            {biomarker.state && (
+              <span style={{ padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot, letterSpacing: '0.04em' }}>
+                {s.label}
+              </span>
+            )}
+            <button onClick={onClose} aria-label="Close" style={{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: 'rgba(103,232,249,0.07)', border: '1px solid rgba(103,232,249,0.15)', color: colors.textMuted, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: fonts.ui, lineHeight: '1' }}>
+              ✕
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '14px 20px 52px' }}>
+
+          {/* Value card */}
+          <div style={{ ...cardStyle, textAlign: 'center', padding: '20px 16px' }}>
+            <div>
+              <span style={{ fontFamily: fonts.heading, fontSize: '46px', fontWeight: 800, color: colors.text, lineHeight: 1 }}>
+                {biomarker.value}
+              </span>
+              {biomarker.unit && (
+                <span style={{ fontSize: '16px', color: colors.textMuted, marginLeft: '6px', fontWeight: 500 }}>
+                  {biomarker.unit}
+                </span>
+              )}
+            </div>
+            <p style={{ fontSize: '12px', color: colors.textMuted, marginTop: '6px', marginBottom: 0 }}>
+              Collected {fmtDate(biomarker.collected_at)}
+            </p>
+          </div>
+
+          {/* Range card */}
+          {(hasRange || hasOptimal) && (
+            <div style={cardStyle}>
+              <p style={labelStyle}>Range</p>
+              {hasRange && (
+                <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 4px' }}>
+                  Clinical: <span style={{ fontWeight: 600, color: colors.text }}>{biomarker.reference_range_min} – {biomarker.reference_range_max}</span>
+                  {biomarker.unit ? ` ${biomarker.unit}` : ''}
+                </p>
+              )}
+              {hasOptimal && (
+                <p style={{ fontSize: '13px', color: colors.teal, margin: '0 0 8px' }}>
+                  Optimal: <span style={{ fontWeight: 600 }}>{biomarker.optimal_range_min} – {biomarker.optimal_range_max}</span>
+                  {biomarker.unit ? ` ${biomarker.unit}` : ''}
+                </p>
+              )}
+              {hasRange && (
+                <BiomarkerRangeBar
+                  value={biomarker.value}
+                  refMin={biomarker.reference_range_min!}
+                  refMax={biomarker.reference_range_max!}
+                  state={biomarker.state}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Trend card */}
+          <div style={cardStyle}>
+            <p style={labelStyle}>Trend</p>
+            {prev ? (
+              <div>
+                <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 4px' }}>
+                  Previous: <span style={{ fontWeight: 700, color: colors.text }}>{prev.value}{prev.unit ? ` ${prev.unit}` : ''}</span>
+                  <span style={{ color: colors.textMuted }}>{' '}on {fmtDate(prev.collected_at)}</span>
+                </p>
+                {delta !== null && (
+                  <p style={{ fontSize: '13px', margin: 0, fontWeight: 600, color: delta > 0 ? '#FB923C' : delta < 0 ? '#2DD4BF' : colors.textMuted }}>
+                    {delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : ''}{delta} from previous
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>No previous result yet.</p>
+            )}
+          </div>
+
+          {/* About this marker */}
+          <div style={cardStyle}>
+            <p style={labelStyle}>About this marker</p>
+            <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.6, margin: 0 }}>{interp}</p>
+          </div>
+
+          {/* Context */}
+          <div style={{ ...cardStyle, marginBottom: 0 }}>
+            <p style={labelStyle}>Context</p>
+            <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: '0 0 5px' }}>Meridian uses this marker as one part of your broader biological context.</p>
+            <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: '0 0 5px' }}>Trends over time are usually more useful than one isolated result.</p>
+            <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>This is educational context only, not a diagnosis.</p>
+          </div>
+
+        </div>
+      </div>
+    </>
+  )
+}
+
 // ── Page component ─────────────────────────────────────────────────────────────
 export default function LabsUploadPage() {
   const router = useRouter()
@@ -315,6 +531,7 @@ export default function LabsUploadPage() {
   const [recentBiomarkers, setRecentBiomarkers] = useState<RecentBiomarker[]>([])
   const [hasAnyLabs, setHasAnyLabs] = useState(false)
   const [snapshotLoading, setSnapshotLoading] = useState(true)
+  const [selectedBiomarker, setSelectedBiomarker] = useState<RecentBiomarker | null>(null)
 
   // ── Auth + data fetch ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -340,7 +557,7 @@ export default function LabsUploadPage() {
 
       const { data: recent } = await supabase
         .from('biomarkers_static')
-        .select('id, marker_name, value, unit, state, reference_range_min, reference_range_max, collected_at, flag_error')
+        .select('id, marker_name, value, unit, state, reference_range_min, reference_range_max, optimal_range_min, optimal_range_max, collected_at, flag_error')
         .eq('user_id', user.id)
         .gte('collected_at', oneYearAgo.toISOString())
         .order('collected_at', { ascending: false })
@@ -467,6 +684,15 @@ export default function LabsUploadPage() {
       overflow: 'hidden',
       padding: '24px 20px 120px',
     }}>
+      {/* Detail sheet */}
+      {selectedBiomarker && (
+        <BiomarkerDetailSheet
+          biomarker={selectedBiomarker}
+          allBiomarkers={recentBiomarkers}
+          onClose={() => setSelectedBiomarker(null)}
+        />
+      )}
+
       {/* Ambient orbs */}
       <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '50%', height: '50%', background: `radial-gradient(circle, ${colors.teal}20 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '50%', height: '50%', background: `radial-gradient(circle, ${colors.cyan}20 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
@@ -868,7 +1094,8 @@ export default function LabsUploadPage() {
                             backgroundColor: 'rgba(232,248,245,0.055)',
                             border: `1px solid ${s.dot}30`,
                             borderRadius: '10px',
-                          }}>
+                            cursor: 'pointer',
+                          }} onClick={() => setSelectedBiomarker(b)}>
                             {/* Name + badge */}
                             <div style={{
                               display: 'flex',
