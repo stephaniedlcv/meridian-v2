@@ -109,6 +109,21 @@ const PANEL_ORDER = [
   'Hormones', 'Inflammation / Cardiac Risk', 'Other',
 ]
 
+const PANEL_EDUCATION: Record<string, string> = {
+  'CBC':                      'This panel helps Meridian understand blood cell patterns, oxygen-carrying capacity, and immune cell context.',
+  'CMP':                      'This panel gives context on metabolism, electrolytes, kidney markers, liver enzymes, and protein balance.',
+  'Lipid Panel':              'This panel helps Meridian understand cholesterol transport and cardiovascular risk signals over time.',
+  'Thyroid':                  'This panel gives context on thyroid signaling, metabolism, energy, and recovery patterns.',
+  'Glycemic':                 'This panel helps Meridian understand blood sugar regulation and longer-term glucose trends.',
+  'Kidney / Renal':           'This panel gives context on filtration, hydration balance, and kidney-related markers.',
+  'Liver':                    'This panel helps Meridian understand liver enzyme patterns and protein metabolism context.',
+  'Urinalysis':               'This panel adds context on hydration, kidney/urinary markers, and qualitative urine findings.',
+  'Vitamins & Nutrients':     'This panel helps Meridian understand nutrient status and possible support needs over time.',
+  'Hormones':                 'This panel gives context on hormonal signals that may relate to energy, recovery, cycle patterns, and stress.',
+  'Inflammation / Cardiac Risk': 'This panel helps Meridian understand inflammation and cardiovascular signal context.',
+  'Other':                    'This panel adds context to your broader biological profile.',
+}
+
 interface PanelSummary {
   panel: string
   count: number
@@ -818,11 +833,16 @@ export default function LabsUploadPage() {
                         gap: '10px',
                         flexWrap: 'wrap',
                       }}>
-                        {/* Panel name + count */}
-                        <div style={{ flex: 1, minWidth: '120px' }}>
-                          <span style={{ fontSize: '13px', fontWeight: 700, color: colors.text }}>{ps.panel}</span>
-                          <span style={{ fontSize: '11px', color: colors.textMuted, marginLeft: '6px' }}>
-                            {ps.count} {ps.count === 1 ? 'marker' : 'markers'}
+                        {/* Panel name + count + education */}
+                        <div style={{ flex: 1, minWidth: '160px' }}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 700, color: colors.text }}>{ps.panel}</span>
+                            <span style={{ fontSize: '11px', color: colors.textMuted }}>
+                              {ps.count} {ps.count === 1 ? 'marker' : 'markers'}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '11px', color: colors.textMuted, lineHeight: 1.45, display: 'block', marginTop: '3px' }}>
+                            {PANEL_EDUCATION[ps.panel] ?? 'This panel adds context to your saved lab profile.'}
                           </span>
                         </div>
 
