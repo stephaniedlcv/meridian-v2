@@ -10,6 +10,21 @@
       "static/chunks/main-app.js",
       "static/css/css-src_app_globals_css-node_modules_next_font_google_target_css-node_modules_next_font_googl-accfe3.css",
       "static/chunks/app/layout.js"
+    ],
+    "/onboarding/welcome/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/onboarding/welcome/page.js"
+    ],
+    "/onboarding/profile/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/onboarding/profile/page.js"
+    ],
+    "/onboarding/connect/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/onboarding/connect/page.js"
     ]
   }
 }
