@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
@@ -21,7 +21,7 @@ const fonts = {
   ui: '"Plus Jakarta Sans", sans-serif',
 }
 
-export default function WelcomePage() {
+function WelcomePageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createBrowserClient(
@@ -357,5 +357,13 @@ export default function WelcomePage() {
         </p>
       </motion.div>
     </div>
+  )
+}
+
+export default function WelcomePage() {
+  return (
+    <Suspense>
+      <WelcomePageInner />
+    </Suspense>
   )
 }
