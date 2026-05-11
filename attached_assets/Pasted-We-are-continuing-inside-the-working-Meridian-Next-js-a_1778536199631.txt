@@ -1,0 +1,180 @@
+We are continuing inside the working Meridian Next.js app.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Vercel production is working because Root Directory is set to .migration-backup.
+
+Do NOT restructure the repo.
+Do NOT move files out of .migration-backup.
+Do NOT touch root package files.
+Do NOT touch Vercel settings.
+Do NOT touch artifacts/.
+Do NOT publish to Replit.
+
+CURRENT LABS PRODUCT DIRECTION
+
+Meridian Labs should have three layers:
+
+1. Labs tab:
+Recent / actionable lab intelligence, focused on the last 12 months.
+
+2. History tab:
+Complete saved lab archive, all historical labs, organized by year → month → date → panel.
+
+3. Panel education:
+Simple user-friendly explanation of what each lab panel means.
+
+For this task, implement ONLY layer 1:
+
+LABS TAB V1 — RECENT LAB SNAPSHOT
+
+Current issue:
+The Labs tab currently behaves mostly like an upload-only screen. Users can upload labs, but they do not get a useful recent lab overview from the Labs tab itself.
+
+Goal:
+Upgrade /labs/upload so it still supports uploading PDFs, but also shows recent saved lab context from the last 12 months.
+
+Modify ONLY this file:
+
+.migration-backup/src/app/labs/upload/page.tsx
+
+Do not touch:
+- /labs/history
+- dashboard
+- api/insight
+- OCR routes
+- confirm route
+- canonical dictionary
+- Supabase clients
+- database types
+- middleware
+- onboarding
+- NavBar
+- package.json
+- artifacts/
+- dependencies
+
+Functional requirements:
+1. Preserve all existing upload, OCR, review, confirm, and reset behavior.
+2. Preserve auth guard.
+3. Preserve current upload flow.
+4. Add a read-only recent labs summary above the upload area.
+5. Query biomarkers_static for the logged-in user.
+6. Filter recent labs to collected_at within the last 12 months.
+7. Order by collected_at descending, then created_at descending.
+8. If recent biomarkers exist, show a “Recent Lab Snapshot” section.
+9. If no recent biomarkers exist but older biomarkers exist, show a gentle empty-recent state:
+   “No recent labs in the last 12 months.”
+   “Your older lab history is still saved in History.”
+10. If no biomarkers exist at all, keep the current upload-first experience.
+
+Recent Lab Snapshot UI:
+Show:
+- Section chip: RECENT LAB SNAPSHOT
+- Latest collection date
+- Total recent biomarkers
+- Number of recent panels detected
+- Status summary:
+  Optimal / Watch / Attention / Critical counts
+- Top attention markers if any exist
+- Recent panel cards grouped by inferred panel
+
+Panel grouping:
+Use a local helper inside upload/page.tsx only.
+Do not import from history unless already available.
+Do not create a new file.
+
+Use these panel categories:
+- CBC
+- CMP
+- Lipid Panel
+- Thyroid
+- Glycemic
+- Kidney / Renal
+- Liver
+- Urinalysis
+- Vitamins & Nutrients
+- Hormones
+- Inflammation / Cardiac Risk
+- Other
+
+Panel cards should show:
+- panel name
+- number of biomarkers
+- small state summary
+- latest date for that panel
+- a “View History” link/button that routes to /labs/history
+
+Important:
+Do not make this a full historical archive. Labs tab is only for recent / active lab context.
+Full archive remains /labs/history.
+
+Suggested copy:
+Main recent section title:
+Recent Lab Snapshot
+
+Subtitle:
+Your latest saved labs from the last 12 months.
+
+If recent labs exist:
+“Meridian is tracking your most recent lab signals here.”
+
+If no recent labs but older labs exist:
+“No recent labs in the last 12 months.”
+“Your older results are saved in Lab History.”
+
+If no labs at all:
+Keep the upload-first layout as currently designed.
+
+Upload area:
+Keep the upload card/button visible.
+If recent labs exist, place upload as:
+Upload New Lab
+or
+Upload another lab PDF
+
+Do not remove upload.
+
+UI requirements:
+1. Use Meridian visual language:
+   - dark biological OS background
+   - teal/cyan accents
+   - premium glassmorphism
+   - Fraunces title
+   - Plus Jakarta Sans UI
+   - mobile-first
+   - readable spacing
+   - enough bottom padding for bottom nav
+
+2. Do not overcrowd the page.
+3. Recent snapshot should feel like a summary, not a full table.
+4. Use compact cards.
+5. Keep the upload CTA clear and easy to find.
+6. Bottom nav must not cover content.
+
+Logic requirements:
+- Do not change save payload.
+- Do not change OCR request.
+- Do not change confirm request.
+- Do not change canonical dictionary.
+- Do not change dashboard logic.
+- Do not change History.
+- Do not change database schema.
+
+After editing:
+1. Report exact file changed.
+2. Confirm no other files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /labs/upload
+5. Confirm build passes.
+6. Explain how Labs tab now differs from History:
+   Labs = recent / active last 12 months
+   History = complete archive
+7. Do not commit.
+8. Do not push.
+9. Do not publish to Replit.

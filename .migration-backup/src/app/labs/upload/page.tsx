@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
 
+// ── Design tokens ──────────────────────────────────────────────────────────────
 const colors = {
   background: '#061316',
   teal: '#2DD4BF',
@@ -31,6 +32,7 @@ const fonts = {
   ui: '"Plus Jakarta Sans", sans-serif',
 }
 
+// ── Upload-flow interfaces (unchanged) ────────────────────────────────────────
 interface StagedBiomarker {
   slug: string
   name: string
@@ -55,16 +57,143 @@ interface UnmatchedMarker {
   unit: string
 }
 
+// ── Recent-snapshot interface ──────────────────────────────────────────────────
+interface RecentBiomarker {
+  id: string
+  marker_name: string
+  value: number
+  unit: string
+  state: string | null
+  reference_range_min: number | null
+  reference_range_max: number | null
+  collected_at: string
+  flag_error: boolean
+}
+
+// ── Panel inference (local, not imported from history) ─────────────────────────
+const SLUG_TO_PANEL: Record<string, string> = {
+  tsh: 'Thyroid', free_t4: 'Thyroid', free_t3: 'Thyroid', total_t3: 'Thyroid',
+  wbc: 'CBC', rbc: 'CBC', hemoglobin: 'CBC', hematocrit: 'CBC',
+  mcv: 'CBC', mch: 'CBC', mchc: 'CBC', rdw: 'CBC',
+  platelet_count: 'CBC', platelet_count_abs: 'CBC',
+  neutrophils_pct: 'CBC', neutrophils_abs: 'CBC',
+  lymphocytes_pct: 'CBC', lymphocytes_abs: 'CBC',
+  monocytes_pct: 'CBC', monocytes_abs: 'CBC',
+  eosinophils_pct: 'CBC', eosinophils_abs: 'CBC',
+  basophils_pct: 'CBC', basophils_abs: 'CBC',
+  immature_granulocytes_pct: 'CBC', immature_granulocytes_abs: 'CBC',
+  hba1c: 'Glycemic', insulin_fasting: 'Glycemic',
+  total_cholesterol: 'Lipid Panel', hdl: 'Lipid Panel', ldl: 'Lipid Panel',
+  vldl: 'Lipid Panel', triglycerides: 'Lipid Panel', non_hdl: 'Lipid Panel',
+  ldl_hdl_ratio: 'Lipid Panel', chol_hdl_ratio: 'Lipid Panel',
+  testosterone_total: 'Hormones', cortisol_am: 'Hormones', dhea_s: 'Hormones',
+  crp_hs: 'Inflammation / Cardiac Risk', homocysteine: 'Inflammation / Cardiac Risk',
+  vitamin_d: 'Vitamins & Nutrients', vitamin_b12: 'Vitamins & Nutrients',
+  folate: 'Vitamins & Nutrients', magnesium: 'Vitamins & Nutrients', ferritin: 'Vitamins & Nutrients',
+  creatinine: 'Kidney / Renal', bun: 'Kidney / Renal', bun_creatinine_ratio: 'Kidney / Renal',
+  egfr: 'Kidney / Renal', egfr_african_american: 'Kidney / Renal', egfr_non_african_american: 'Kidney / Renal',
+  ast: 'Liver', alt: 'Liver', alkaline_phosphatase: 'Liver',
+  bilirubin_total: 'Liver', albumin: 'Liver', globulin: 'Liver',
+  ag_ratio: 'Liver', total_protein: 'Liver',
+  glucose_fasting: 'CMP', sodium: 'CMP', potassium: 'CMP',
+  chloride: 'CMP', co2: 'CMP', calcium: 'CMP', anion_gap: 'CMP',
+}
+
+function inferPanel(slug: string): string {
+  return SLUG_TO_PANEL[slug] ?? 'Other'
+}
+
+const PANEL_ORDER = [
+  'CBC', 'Lipid Panel', 'CMP', 'Kidney / Renal', 'Liver',
+  'Glycemic', 'Thyroid', 'Vitamins & Nutrients',
+  'Hormones', 'Inflammation / Cardiac Risk', 'Other',
+]
+
+interface PanelSummary {
+  panel: string
+  count: number
+  latestDate: string
+  latestDateLabel: string
+  stateCounts: { Optimal: number; Watch: number; Attention: number; Critical: number }
+}
+
+function buildPanelSummaries(rows: RecentBiomarker[]): PanelSummary[] {
+  const map = new Map<string, { items: RecentBiomarker[]; latestDate: string }>()
+  for (const row of rows) {
+    const panel = inferPanel(row.marker_name)
+    if (!map.has(panel)) map.set(panel, { items: [], latestDate: row.collected_at })
+    const entry = map.get(panel)!
+    entry.items.push(row)
+    if (row.collected_at > entry.latestDate) entry.latestDate = row.collected_at
+  }
+  return Array.from(map.entries())
+    .map(([panel, { items, latestDate }]) => ({
+      panel,
+      count: items.length,
+      latestDate,
+      latestDateLabel: formatDateShort(latestDate),
+      stateCounts: {
+        Optimal: items.filter(i => i.state === 'Optimal').length,
+        Watch: items.filter(i => i.state === 'Watch').length,
+        Attention: items.filter(i => i.state === 'Attention').length,
+        Critical: items.filter(i => i.state === 'Critical').length,
+      },
+    }))
+    .sort((a, b) => {
+      const ai = PANEL_ORDER.indexOf(a.panel)
+      const bi = PANEL_ORDER.indexOf(b.panel)
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
+    })
+}
+
+// ── Date helpers ───────────────────────────────────────────────────────────────
+function formatDateShort(iso: string): string {
+  const [y, m, d] = iso.split('T')[0].split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+  })
+}
+
+function formatDateLong(iso: string): string {
+  const [y, m, d] = iso.split('T')[0].split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+  })
+}
+
+// ── State style helpers ────────────────────────────────────────────────────────
 function getStateStyles(state: string) {
   switch (state) {
-    case 'Optimal': return { bg: colors.optimal, border: colors.optimalBorder, label: 'Optimal', dot: '#2DD4BF' }
-    case 'Watch': return { bg: colors.watch, border: colors.watchBorder, label: 'Watch', dot: '#FACC15' }
-    case 'Attention': return { bg: colors.attention, border: colors.attentionBorder, label: 'Attention', dot: '#FB923C' }
-    case 'Critical': return { bg: colors.critical, border: colors.criticalBorder, label: 'Critical', dot: '#F87171' }
-    default: return { bg: colors.cardBg, border: colors.cardBorder, label: 'Unknown', dot: colors.textMuted }
+    case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   label: 'Optimal',   dot: '#2DD4BF' }
+    case 'Watch':     return { bg: colors.watch,      border: colors.watchBorder,     label: 'Watch',     dot: '#FACC15' }
+    case 'Attention': return { bg: colors.attention,  border: colors.attentionBorder, label: 'Attention', dot: '#FB923C' }
+    case 'Critical':  return { bg: colors.critical,   border: colors.criticalBorder,  label: 'Critical',  dot: '#F87171' }
+    default:          return { bg: colors.cardBg,     border: colors.cardBorder,      label: 'Unknown',   dot: colors.textMuted }
   }
 }
 
+// ── Marker display names ───────────────────────────────────────────────────────
+const NAME_OVERRIDES: Record<string, string> = {
+  egfr: 'eGFR', egfr_african_american: 'eGFR (African American)', egfr_non_african_american: 'eGFR (Non-African American)',
+  ldl_hdl_ratio: 'LDL/HDL Ratio', chol_hdl_ratio: 'Cholesterol/HDL Ratio', non_hdl: 'Non-HDL Cholesterol',
+  hba1c: 'Hemoglobin A1c', crp_hs: 'hs-CRP', dhea_s: 'DHEA-S', bun: 'BUN',
+  bun_creatinine_ratio: 'BUN/Creatinine Ratio', wbc: 'WBC', rbc: 'RBC',
+  mcv: 'MCV', mch: 'MCH', mchc: 'MCHC', rdw: 'RDW',
+  co2: 'CO₂ (Bicarbonate)', ast: 'AST', alt: 'ALT', tsh: 'TSH',
+  ag_ratio: 'A/G Ratio', free_t4: 'Free T4', free_t3: 'Free T3', total_t3: 'Total T3',
+  cortisol_am: 'Cortisol AM', testosterone_total: 'Total Testosterone',
+  insulin_fasting: 'Fasting Insulin', glucose_fasting: 'Fasting Glucose',
+  vitamin_d: 'Vitamin D', vitamin_b12: 'Vitamin B12',
+  alkaline_phosphatase: 'Alkaline Phosphatase', bilirubin_total: 'Total Bilirubin',
+  total_protein: 'Total Protein', total_cholesterol: 'Total Cholesterol',
+  hdl: 'HDL Cholesterol', ldl: 'LDL Cholesterol', vldl: 'VLDL Cholesterol',
+}
+
+function markerDisplayName(slug: string): string {
+  return NAME_OVERRIDES[slug] ?? slug.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+}
+
+// ── Page component ─────────────────────────────────────────────────────────────
 export default function LabsUploadPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -73,6 +202,7 @@ export default function LabsUploadPage() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
+  // ── Existing upload-flow state (unchanged) ───────────────────────────────────
   const [userId, setUserId] = useState<string | null>(null)
   const [bioProfile, setBioProfile] = useState<string>('female')
   const [uploading, setUploading] = useState(false)
@@ -86,6 +216,12 @@ export default function LabsUploadPage() {
   const [savedCount, setSavedCount] = useState(0)
   const [labDate, setLabDate] = useState<string>('')
 
+  // ── Recent snapshot state ────────────────────────────────────────────────────
+  const [recentBiomarkers, setRecentBiomarkers] = useState<RecentBiomarker[]>([])
+  const [hasAnyLabs, setHasAnyLabs] = useState(false)
+  const [snapshotLoading, setSnapshotLoading] = useState(true)
+
+  // ── Auth + data fetch ────────────────────────────────────────────────────────
   useEffect(() => {
     async function checkAuth() {
       const { data: { user } } = await supabase.auth.getUser()
@@ -95,32 +231,51 @@ export default function LabsUploadPage() {
       }
       setUserId(user.id)
 
+      // Biological profile (unchanged)
       const { data: profile } = await supabase
         .from('profiles')
         .select('biological_profile')
         .eq('id', user.id)
         .single()
+      if (profile?.biological_profile) setBioProfile(profile.biological_profile)
 
-      if (profile?.biological_profile) {
-        setBioProfile(profile.biological_profile)
+      // Recent labs: last 12 months
+      const oneYearAgo = new Date()
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+
+      const { data: recent } = await supabase
+        .from('biomarkers_static')
+        .select('id, marker_name, value, unit, state, reference_range_min, reference_range_max, collected_at, flag_error')
+        .eq('user_id', user.id)
+        .gte('collected_at', oneYearAgo.toISOString())
+        .order('collected_at', { ascending: false })
+        .order('created_at', { ascending: false })
+
+      const recentRows = recent || []
+      setRecentBiomarkers(recentRows)
+
+      if (recentRows.length > 0) {
+        setHasAnyLabs(true)
+      } else {
+        // Check if any labs exist at all (for the "older labs" empty state)
+        const { count } = await supabase
+          .from('biomarkers_static')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+        setHasAnyLabs((count ?? 0) > 0)
       }
+
+      setSnapshotLoading(false)
     }
     checkAuth()
   }, [router, supabase])
 
+  // ── Upload handlers (all unchanged) ─────────────────────────────────────────
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-
-    if (file.type !== 'application/pdf') {
-      setError('Please upload a PDF file')
-      return
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      setError('File too large. Maximum 10MB.')
-      return
-    }
+    if (file.type !== 'application/pdf') { setError('Please upload a PDF file'); return }
+    if (file.size > 10 * 1024 * 1024) { setError('File too large. Maximum 10MB.'); return }
 
     setFileName(file.name)
     setError(null)
@@ -132,40 +287,19 @@ export default function LabsUploadPage() {
       const reader = new FileReader()
       reader.onload = async () => {
         const base64 = (reader.result as string).split(',')[1]
-
         const response = await fetch('/api/ocr', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            pdf_base64: base64,
-            user_id: userId,
-            biological_profile: bioProfile,
-          }),
+          body: JSON.stringify({ pdf_base64: base64, user_id: userId, biological_profile: bioProfile }),
         })
-
         const data = await response.json()
-
-        if (!data.success) {
-          setError(data.error || 'Failed to process PDF')
-          setUploading(false)
-          return
-        }
-
+        if (!data.success) { setError(data.error || 'Failed to process PDF'); setUploading(false); return }
         setStaged(data.staged_biomarkers)
         setUnmatched(data.unmatched || [])
-        setStats({
-          extracted: data.total_extracted,
-          matched: data.total_matched,
-          errors: data.total_errors,
-        })
-        if (data.lab_date) {
-          setLabDate(data.lab_date)
-        } else {
-          setLabDate(new Date().toISOString().split('T')[0])
-        }
+        setStats({ extracted: data.total_extracted, matched: data.total_matched, errors: data.total_errors })
+        setLabDate(data.lab_date || new Date().toISOString().split('T')[0])
         setUploading(false)
       }
-
       reader.readAsDataURL(file)
     } catch {
       setError('Failed to read file')
@@ -177,7 +311,6 @@ export default function LabsUploadPage() {
     if (!staged || !userId) return
     setConfirming(true)
     setError(null)
-
     try {
       const response = await fetch('/api/ocr/confirm', {
         method: 'POST',
@@ -188,15 +321,8 @@ export default function LabsUploadPage() {
           collected_at: labDate ? new Date(labDate).toISOString() : new Date().toISOString(),
         }),
       })
-
       const data = await response.json()
-
-      if (!data.success) {
-        setError(data.error || 'Failed to save biomarkers')
-        setConfirming(false)
-        return
-      }
-
+      if (!data.success) { setError(data.error || 'Failed to save biomarkers'); setConfirming(false); return }
       setSavedCount(data.saved_count)
       setConfirmed(true)
       setConfirming(false)
@@ -218,101 +344,87 @@ export default function LabsUploadPage() {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
+  // ── Derived snapshot data ────────────────────────────────────────────────────
+  const hasRecentLabs = recentBiomarkers.length > 0
+  const panelSummaries = hasRecentLabs ? buildPanelSummaries(recentBiomarkers) : []
+  const latestDate = hasRecentLabs ? recentBiomarkers[0].collected_at : null
+  const totalStateCounts = {
+    Optimal:   recentBiomarkers.filter(b => b.state === 'Optimal').length,
+    Watch:     recentBiomarkers.filter(b => b.state === 'Watch').length,
+    Attention: recentBiomarkers.filter(b => b.state === 'Attention').length,
+    Critical:  recentBiomarkers.filter(b => b.state === 'Critical').length,
+  }
+  const topAttentionMarkers = recentBiomarkers
+    .filter(b => b.state === 'Critical' || b.state === 'Attention')
+    .sort((a, b) => (a.state === 'Critical' && b.state !== 'Critical' ? -1 : 1))
+    .slice(0, 4)
+
+  // Whether the active upload flow is in progress
+  const inUploadFlow = uploading || !!staged || confirmed
+
+  // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: colors.background,
-        fontFamily: fonts.ui,
-        position: 'relative',
-        overflow: 'hidden',
-        padding: '24px 24px 100px',
-      }}
-    >
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: colors.background,
+      fontFamily: fonts.ui,
+      position: 'relative',
+      overflow: 'hidden',
+      padding: '24px 20px 120px',
+    }}>
       {/* Ambient orbs */}
       <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '50%', height: '50%', background: `radial-gradient(circle, ${colors.teal}20 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '50%', height: '50%', background: `radial-gradient(circle, ${colors.cyan}20 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
 
-      <div style={{ maxWidth: '720px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1 style={{ fontFamily: fonts.heading, fontSize: '32px', fontWeight: 400, color: colors.text, marginBottom: '8px' }}>
-            Upload your labs
-          </h1>
-          <p style={{ fontSize: '16px', color: colors.textSoft, marginBottom: '32px', lineHeight: 1.6 }}>
-            Upload a PDF from your lab provider. Meridian will extract your biomarkers automatically.
-          </p>
-        </motion.div>
+      <div style={{ maxWidth: '680px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
 
-        {/* Upload Area */}
-        {!staged && !uploading && !confirmed && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/pdf"
-              onChange={handleFileSelect}
-              style={{ display: 'none' }}
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                width: '100%',
-                padding: '60px 24px',
-                backgroundColor: colors.cardBg,
-                border: `2px dashed ${colors.cardBorder}`,
-                borderRadius: '16px',
-                cursor: 'pointer',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '16px',
-                transition: 'border-color 0.2s ease',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.teal }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.cardBorder }}
-            >
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={colors.teal} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="12" y1="18" x2="12" y2="12" />
-                <line x1="9" y1="15" x2="12" y2="12" />
-                <line x1="15" y1="15" x2="12" y2="12" />
-              </svg>
-              <span style={{ fontSize: '16px', fontWeight: 600, color: colors.text }}>
-                Choose PDF file
-              </span>
-              <span style={{ fontSize: '14px', color: colors.textMuted }}>
-                Max 10MB · PDF only
-              </span>
-            </button>
+        {/* ── Page header ── */}
+        {!inUploadFlow && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <h1 style={{
+              fontFamily: fonts.heading,
+              fontSize: 'clamp(26px, 5vw, 32px)',
+              fontWeight: 400,
+              color: colors.text,
+              marginBottom: '6px',
+              lineHeight: 1.2,
+            }}>
+              {hasRecentLabs ? 'Labs' : 'Upload your labs'}
+            </h1>
+            <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: '28px', lineHeight: 1.6 }}>
+              {hasRecentLabs
+                ? 'Meridian is tracking your most recent lab signals here.'
+                : 'Upload a PDF from your lab provider. Meridian will extract your biomarkers automatically.'}
+            </p>
+          </motion.div>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════════════
+            ACTIVE UPLOAD FLOW (unchanged — loading / staging / success)
+            ════════════════════════════════════════════════════════════════════ */}
+
+        {/* Upload header shown during flow */}
+        {inUploadFlow && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <h1 style={{ fontFamily: fonts.heading, fontSize: '28px', fontWeight: 400, color: colors.text, marginBottom: '8px' }}>
+              Upload your labs
+            </h1>
+            <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: '28px', lineHeight: 1.6 }}>
+              Upload a PDF from your lab provider. Meridian will extract your biomarkers automatically.
+            </p>
           </motion.div>
         )}
 
         {/* Loading State */}
         {uploading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            style={{
-              padding: '60px 24px',
-              backgroundColor: colors.cardBg,
-              border: `1px solid ${colors.cardBorder}`,
-              borderRadius: '16px',
-              backdropFilter: 'blur(24px)',
-              textAlign: 'center',
-            }}
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{
+            padding: '60px 24px',
+            backgroundColor: colors.cardBg,
+            border: `1px solid ${colors.cardBorder}`,
+            borderRadius: '16px',
+            backdropFilter: 'blur(24px)',
+            textAlign: 'center',
+          }}>
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
@@ -329,16 +441,13 @@ export default function LabsUploadPage() {
 
         {/* Error */}
         {error && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            style={{ color: colors.error, fontSize: '14px', textAlign: 'center', marginTop: '16px' }}
-          >
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            style={{ color: colors.error, fontSize: '14px', textAlign: 'center', marginTop: '16px' }}>
             {error}
           </motion.p>
         )}
 
-        {/* Staging Modal */}
+        {/* Staging review */}
         <AnimatePresence>
           {staged && !confirmed && (
             <motion.div
@@ -348,9 +457,7 @@ export default function LabsUploadPage() {
               transition={{ duration: 0.5 }}
             >
               {/* Stats bar */}
-              <div style={{
-                display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap',
-              }}>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
                 <div style={{ padding: '12px 20px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '12px', backdropFilter: 'blur(24px)' }}>
                   <span style={{ fontSize: '24px', fontWeight: 700, color: colors.teal }}>{stats?.matched}</span>
                   <span style={{ fontSize: '13px', color: colors.textMuted, marginLeft: '8px' }}>markers found</span>
@@ -375,16 +482,9 @@ export default function LabsUploadPage() {
 
               {/* Lab Date */}
               <div style={{
-                padding: '16px 20px',
-                backgroundColor: colors.cardBg,
-                border: `1px solid ${colors.cardBorder}`,
-                borderRadius: '12px',
-                marginBottom: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '12px',
-                flexWrap: 'wrap',
+                padding: '16px 20px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`,
+                borderRadius: '12px', marginBottom: '20px', display: 'flex', alignItems: 'center',
+                justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap',
               }}>
                 <div>
                   <span style={{ fontSize: '13px', color: colors.textMuted, display: 'block', marginBottom: '4px' }}>Collection Date</span>
@@ -397,14 +497,9 @@ export default function LabsUploadPage() {
                   value={labDate}
                   onChange={(e) => setLabDate(e.target.value)}
                   style={{
-                    padding: '8px 12px',
-                    backgroundColor: 'rgba(6,19,22,0.5)',
-                    border: `1px solid ${colors.cardBorder}`,
-                    borderRadius: '8px',
-                    color: colors.text,
-                    fontFamily: fonts.ui,
-                    fontSize: '14px',
-                    outline: 'none',
+                    padding: '8px 12px', backgroundColor: 'rgba(6,19,22,0.5)',
+                    border: `1px solid ${colors.cardBorder}`, borderRadius: '8px',
+                    color: colors.text, fontFamily: fonts.ui, fontSize: '14px', outline: 'none',
                   }}
                 />
               </div>
@@ -423,12 +518,8 @@ export default function LabsUploadPage() {
                         padding: '16px 20px',
                         backgroundColor: b.flag_error ? colors.critical : s.bg,
                         border: `1px solid ${b.flag_error ? colors.criticalBorder : s.border}`,
-                        borderRadius: '12px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                        gap: '8px',
+                        borderRadius: '12px', display: 'flex', justifyContent: 'space-between',
+                        alignItems: 'center', flexWrap: 'wrap', gap: '8px',
                       }}
                     >
                       <div style={{ flex: 1, minWidth: '150px' }}>
@@ -442,18 +533,12 @@ export default function LabsUploadPage() {
                           </span>
                         )}
                         {b.flag_error && (
-                          <span style={{ fontSize: '12px', color: '#FCA5A5' }}>
-                            {b.error_reason}
-                          </span>
+                          <span style={{ fontSize: '12px', color: '#FCA5A5' }}>{b.error_reason}</span>
                         )}
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: '20px', fontWeight: 700, color: colors.text }}>
-                          {b.value}
-                        </span>
-                        <span style={{ fontSize: '13px', color: colors.textMuted, marginLeft: '4px' }}>
-                          {b.unit}
-                        </span>
+                        <span style={{ fontSize: '20px', fontWeight: 700, color: colors.text }}>{b.value}</span>
+                        <span style={{ fontSize: '13px', color: colors.textMuted, marginLeft: '4px' }}>{b.unit}</span>
                         <div style={{ fontSize: '12px', color: s.dot, fontWeight: 600, marginTop: '2px' }}>
                           {b.flag_error ? 'ERROR' : s.label}
                         </div>
@@ -472,12 +557,9 @@ export default function LabsUploadPage() {
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {unmatched.map((u, i) => (
                       <span key={i} style={{
-                        padding: '6px 12px',
-                        backgroundColor: colors.cardBg,
-                        border: `1px solid ${colors.cardBorder}`,
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                        color: colors.textMuted,
+                        padding: '6px 12px', backgroundColor: colors.cardBg,
+                        border: `1px solid ${colors.cardBorder}`, borderRadius: '8px',
+                        fontSize: '12px', color: colors.textMuted,
                       }}>
                         {u.name}: {u.value} {u.unit}
                       </span>
@@ -494,15 +576,10 @@ export default function LabsUploadPage() {
                   whileHover={confirming || !labDate ? {} : { scale: 1.02 }}
                   whileTap={confirming || !labDate ? {} : { scale: 0.98 }}
                   style={{
-                    flex: 1,
-                    padding: '16px 24px',
+                    flex: 1, padding: '16px 24px',
                     background: confirming || !labDate ? `${colors.teal}60` : `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
-                    border: 'none',
-                    borderRadius: '12px',
-                    color: colors.background,
-                    fontFamily: fonts.ui,
-                    fontSize: '16px',
-                    fontWeight: 600,
+                    border: 'none', borderRadius: '12px', color: colors.background,
+                    fontFamily: fonts.ui, fontSize: '16px', fontWeight: 600,
                     cursor: confirming || !labDate ? 'not-allowed' : 'pointer',
                   }}
                 >
@@ -511,14 +588,9 @@ export default function LabsUploadPage() {
                 <button
                   onClick={handleReset}
                   style={{
-                    padding: '16px 24px',
-                    backgroundColor: colors.cardBg,
-                    border: `1px solid ${colors.cardBorder}`,
-                    borderRadius: '12px',
-                    color: colors.textMuted,
-                    fontFamily: fonts.ui,
-                    fontSize: '16px',
-                    cursor: 'pointer',
+                    padding: '16px 24px', backgroundColor: colors.cardBg,
+                    border: `1px solid ${colors.cardBorder}`, borderRadius: '12px',
+                    color: colors.textMuted, fontFamily: fonts.ui, fontSize: '16px', cursor: 'pointer',
                   }}
                 >
                   Cancel
@@ -535,11 +607,8 @@ export default function LabsUploadPage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
             style={{
-              padding: '48px 24px',
-              backgroundColor: colors.optimal,
-              border: `1px solid ${colors.optimalBorder}`,
-              borderRadius: '16px',
-              textAlign: 'center',
+              padding: '48px 24px', backgroundColor: colors.optimal,
+              border: `1px solid ${colors.optimalBorder}`, borderRadius: '16px', textAlign: 'center',
             }}
           >
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>✓</div>
@@ -557,13 +626,8 @@ export default function LabsUploadPage() {
                 style={{
                   padding: '12px 24px',
                   background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
-                  border: 'none',
-                  borderRadius: '12px',
-                  color: colors.background,
-                  fontFamily: fonts.ui,
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
+                  border: 'none', borderRadius: '12px', color: colors.background,
+                  fontFamily: fonts.ui, fontSize: '14px', fontWeight: 600, cursor: 'pointer',
                 }}
               >
                 Upload another PDF
@@ -571,14 +635,9 @@ export default function LabsUploadPage() {
               <button
                 onClick={() => router.push('/dashboard')}
                 style={{
-                  padding: '12px 24px',
-                  backgroundColor: colors.cardBg,
-                  border: `1px solid ${colors.cardBorder}`,
-                  borderRadius: '12px',
-                  color: colors.textSoft,
-                  fontFamily: fonts.ui,
-                  fontSize: '14px',
-                  cursor: 'pointer',
+                  padding: '12px 24px', backgroundColor: colors.cardBg,
+                  border: `1px solid ${colors.cardBorder}`, borderRadius: '12px',
+                  color: colors.textSoft, fontFamily: fonts.ui, fontSize: '14px', cursor: 'pointer',
                 }}
               >
                 Back to home
@@ -586,6 +645,355 @@ export default function LabsUploadPage() {
             </div>
           </motion.div>
         )}
+
+        {/* ════════════════════════════════════════════════════════════════════
+            RECENT LAB SNAPSHOT — only shown when not in an upload flow
+            ════════════════════════════════════════════════════════════════════ */}
+        {!inUploadFlow && !snapshotLoading && (
+          <>
+            {/* ── Has recent labs ── */}
+            {hasRecentLabs && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                style={{ marginBottom: '32px' }}
+              >
+                {/* Section chip */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                  <span style={{
+                    fontSize: '10px', fontWeight: 800, letterSpacing: '0.12em',
+                    color: colors.teal, textTransform: 'uppercase',
+                    padding: '4px 10px',
+                    backgroundColor: `${colors.teal}18`,
+                    border: `1px solid ${colors.teal}40`,
+                    borderRadius: '20px',
+                  }}>
+                    Recent Lab Snapshot
+                  </span>
+                  <span style={{ fontSize: '12px', color: colors.textMuted }}>
+                    Last 12 months
+                  </span>
+                </div>
+
+                {/* Summary bar */}
+                <div style={{
+                  padding: '16px 20px',
+                  backgroundColor: colors.cardBg,
+                  border: `1px solid ${colors.cardBorder}`,
+                  borderRadius: '14px',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  marginBottom: '12px',
+                  display: 'flex',
+                  gap: '20px',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                }}>
+                  <div>
+                    <span style={{ fontSize: '11px', color: colors.textMuted, display: 'block', marginBottom: '2px' }}>Latest collection</span>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>
+                      {latestDate ? formatDateLong(latestDate) : '—'}
+                    </span>
+                  </div>
+                  <div style={{ width: '1px', height: '32px', backgroundColor: colors.cardBorder, flexShrink: 0 }} />
+                  <div>
+                    <span style={{ fontSize: '11px', color: colors.textMuted, display: 'block', marginBottom: '2px' }}>Biomarkers</span>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{recentBiomarkers.length}</span>
+                  </div>
+                  <div style={{ width: '1px', height: '32px', backgroundColor: colors.cardBorder, flexShrink: 0 }} />
+                  <div>
+                    <span style={{ fontSize: '11px', color: colors.textMuted, display: 'block', marginBottom: '2px' }}>Panels</span>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{panelSummaries.length}</span>
+                  </div>
+                </div>
+
+                {/* State summary bar */}
+                <div style={{
+                  display: 'flex',
+                  gap: '8px',
+                  flexWrap: 'wrap',
+                  marginBottom: '16px',
+                }}>
+                  {totalStateCounts.Optimal > 0 && (
+                    <span style={{
+                      padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+                      backgroundColor: colors.optimal, border: `1px solid ${colors.optimalBorder}`, color: '#2DD4BF',
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                    }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />
+                      {totalStateCounts.Optimal} Optimal
+                    </span>
+                  )}
+                  {totalStateCounts.Watch > 0 && (
+                    <span style={{
+                      padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+                      backgroundColor: colors.watch, border: `1px solid ${colors.watchBorder}`, color: '#FACC15',
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                    }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#FACC15', display: 'inline-block' }} />
+                      {totalStateCounts.Watch} Watch
+                    </span>
+                  )}
+                  {totalStateCounts.Attention > 0 && (
+                    <span style={{
+                      padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+                      backgroundColor: colors.attention, border: `1px solid ${colors.attentionBorder}`, color: '#FB923C',
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                    }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />
+                      {totalStateCounts.Attention} Attention
+                    </span>
+                  )}
+                  {totalStateCounts.Critical > 0 && (
+                    <span style={{
+                      padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+                      backgroundColor: colors.critical, border: `1px solid ${colors.criticalBorder}`, color: '#F87171',
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                    }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#F87171', display: 'inline-block' }} />
+                      {totalStateCounts.Critical} Critical
+                    </span>
+                  )}
+                </div>
+
+                {/* Top attention markers */}
+                {topAttentionMarkers.length > 0 && (
+                  <div style={{ marginBottom: '16px' }}>
+                    <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+                      Needs attention
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {topAttentionMarkers.map(b => {
+                        const s = getStateStyles(b.state ?? '')
+                        return (
+                          <div key={b.id} style={{
+                            padding: '10px 14px',
+                            backgroundColor: s.bg,
+                            border: `1px solid ${s.border}`,
+                            borderRadius: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '8px',
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                              <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: s.dot, flexShrink: 0 }} />
+                              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>
+                                {markerDisplayName(b.marker_name)}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                              <span style={{ fontSize: '15px', fontWeight: 700, color: colors.text }}>{b.value}</span>
+                              {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
+                              <span style={{
+                                padding: '2px 7px', borderRadius: '5px', fontSize: '10px', fontWeight: 700,
+                                backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot,
+                                letterSpacing: '0.04em',
+                              }}>
+                                {s.label}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Panel cards */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {panelSummaries.map(ps => {
+                    const sc = ps.stateCounts
+                    return (
+                      <div key={ps.panel} style={{
+                        padding: '12px 16px',
+                        backgroundColor: colors.cardBg,
+                        border: `1px solid ${colors.cardBorder}`,
+                        borderRadius: '12px',
+                        backdropFilter: 'blur(24px)',
+                        WebkitBackdropFilter: 'blur(24px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        flexWrap: 'wrap',
+                      }}>
+                        {/* Panel name + count */}
+                        <div style={{ flex: 1, minWidth: '120px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: colors.text }}>{ps.panel}</span>
+                          <span style={{ fontSize: '11px', color: colors.textMuted, marginLeft: '6px' }}>
+                            {ps.count} {ps.count === 1 ? 'marker' : 'markers'}
+                          </span>
+                        </div>
+
+                        {/* State dots */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          {sc.Optimal > 0 && (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#2DD4BF' }}>
+                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />{sc.Optimal}
+                            </span>
+                          )}
+                          {sc.Watch > 0 && (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FACC15' }}>
+                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FACC15', display: 'inline-block' }} />{sc.Watch}
+                            </span>
+                          )}
+                          {sc.Attention > 0 && (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FB923C' }}>
+                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />{sc.Attention}
+                            </span>
+                          )}
+                          {sc.Critical > 0 && (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#F87171' }}>
+                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#F87171', display: 'inline-block' }} />{sc.Critical}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Latest date */}
+                        <span style={{ fontSize: '11px', color: colors.textMuted, flexShrink: 0 }}>
+                          {ps.latestDateLabel}
+                        </span>
+
+                        {/* View History link */}
+                        <button
+                          onClick={() => router.push('/labs/history')}
+                          style={{
+                            padding: '4px 10px',
+                            backgroundColor: 'transparent',
+                            border: `1px solid ${colors.cardBorder}`,
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            color: colors.textSoft,
+                            fontFamily: fonts.ui,
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                          }}
+                        >
+                          History →
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── No recent labs, but older labs exist ── */}
+            {!hasRecentLabs && hasAnyLabs && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                style={{
+                  padding: '20px 20px',
+                  backgroundColor: colors.cardBg,
+                  border: `1px solid ${colors.cardBorder}`,
+                  borderRadius: '14px',
+                  marginBottom: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div>
+                  <p style={{ fontSize: '14px', fontWeight: 600, color: colors.textSoft, marginBottom: '2px' }}>
+                    No recent labs in the last 12 months.
+                  </p>
+                  <p style={{ fontSize: '12px', color: colors.textMuted }}>
+                    Your older results are saved in Lab History.
+                  </p>
+                </div>
+                <button
+                  onClick={() => router.push('/labs/history')}
+                  style={{
+                    padding: '8px 14px',
+                    backgroundColor: 'transparent',
+                    border: `1px solid ${colors.cardBorder}`,
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: colors.textSoft,
+                    fontFamily: fonts.ui,
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  View History →
+                </button>
+              </motion.div>
+            )}
+
+            {/* ════════════════════════════════════════════════════════════════
+                UPLOAD AREA — always shown when not in active upload flow
+                ════════════════════════════════════════════════════════════════ */}
+
+            {/* Upload section heading (only shown when recent labs exist, to distinguish the CTA) */}
+            {hasRecentLabs && (
+              <p style={{
+                fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em',
+                color: colors.textMuted, textTransform: 'uppercase', marginBottom: '10px',
+              }}>
+                Upload New Lab
+              </p>
+            )}
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: hasRecentLabs ? 0.2 : 0.15 }}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileSelect}
+                style={{ display: 'none' }}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  width: '100%',
+                  padding: hasRecentLabs ? '28px 24px' : '60px 24px',
+                  backgroundColor: colors.cardBg,
+                  border: `2px dashed ${colors.cardBorder}`,
+                  borderRadius: '16px',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  display: 'flex',
+                  flexDirection: hasRecentLabs ? 'row' : 'column',
+                  alignItems: 'center',
+                  justifyContent: hasRecentLabs ? 'center' : 'center',
+                  gap: '14px',
+                  transition: 'border-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.teal }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.cardBorder }}
+              >
+                <svg width={hasRecentLabs ? 24 : 48} height={hasRecentLabs ? 24 : 48} viewBox="0 0 24 24" fill="none" stroke={colors.teal} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="12" y1="18" x2="12" y2="12" />
+                  <line x1="9" y1="15" x2="12" y2="12" />
+                  <line x1="15" y1="15" x2="12" y2="12" />
+                </svg>
+                <div style={{ textAlign: hasRecentLabs ? 'left' : 'center' }}>
+                  <span style={{ fontSize: hasRecentLabs ? '14px' : '16px', fontWeight: 600, color: colors.text, display: 'block' }}>
+                    {hasRecentLabs ? 'Upload another lab PDF' : 'Choose PDF file'}
+                  </span>
+                  <span style={{ fontSize: '13px', color: colors.textMuted, display: 'block', marginTop: '2px' }}>
+                    Max 10MB · PDF only
+                  </span>
+                </div>
+              </button>
+            </motion.div>
+          </>
+        )}
+
       </div>
       <NavBar />
     </div>
