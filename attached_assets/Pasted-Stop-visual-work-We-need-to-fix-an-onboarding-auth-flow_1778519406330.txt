@@ -1,0 +1,45 @@
+Stop visual work. We need to fix an onboarding auth flow bug.
+
+Current production bug:
+1. When a new user clicks Get Started and signs up, the account is created but the app stays on /onboarding/welcome instead of moving to the onboarding flow.
+2. When the same user logs in, the app sends them directly to the lab upload/dashboard area instead of continuing onboarding.
+3. A brand-new user should not go to labs before completing onboarding.
+
+Expected behavior:
+- Get Started from landing opens /onboarding/welcome?mode=signup.
+- Successful signup should redirect to /onboarding/profile.
+- Log In from landing opens /onboarding/welcome?mode=login.
+- Successful login should check the user profile:
+  - If onboarding_completed is true: go to /dashboard or the current intended logged-in destination.
+  - If onboarding_completed is false/null/missing: go to /onboarding/profile.
+- A newly created account should have a profiles row created or updated safely.
+- A new user should not be sent directly to /labs/upload unless onboarding_completed is true or they explicitly complete onboarding/connect.
+
+Inspect first, then report before editing.
+
+Files likely involved:
+- .migration-backup/src/app/onboarding/welcome/page.tsx
+- .migration-backup/src/components/MeridianApp.tsx
+- .migration-backup/src/app/onboarding/profile/page.tsx
+- .migration-backup/src/app/onboarding/goals/page.tsx
+- .migration-backup/src/app/onboarding/connect/page.tsx
+- any Supabase/profile helper only if already used
+
+Do not touch:
+- visual styling unless required by code movement
+- API routes
+- database types
+- middleware unless you find the redirect is controlled there
+- artifacts/
+- package.json
+
+Diagnosis required:
+1. Inspect the signup handler in /onboarding/welcome.
+2. Inspect the login handler in /onboarding/welcome.
+3. Inspect where onboarding_completed is checked.
+4. Inspect whether a profiles row is created on signup.
+5. Inspect whether newly signed-up users are redirected after signup.
+6. Inspect why login sends a new user to lab upload.
+7. Report the exact current redirect logic.
+8. Propose the smallest safe fix.
+9. Do not edit yet. Wait for approval.
