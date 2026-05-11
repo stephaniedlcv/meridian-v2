@@ -157,12 +157,14 @@ export default function WelcomePage() {
         <h1
           style={{
             fontFamily: fonts.heading,
-            fontSize: '32px',
+            fontSize: '26px',
             fontWeight: 400,
             color: colors.text,
             textAlign: 'center',
             marginBottom: '12px',
             lineHeight: 1.2,
+            letterSpacing: '-0.03em',
+            whiteSpace: 'nowrap',
           }}
         >
           Your biological intelligence system
@@ -176,10 +178,11 @@ export default function WelcomePage() {
             color: colors.textSoft,
             textAlign: 'center',
             marginBottom: '40px',
-            lineHeight: 1.6,
+            lineHeight: 1.75,
           }}
         >
-          Connect your labs and wearables. Get one clear priority every day.
+          Connect your labs and wearables.<br />
+          Get one clear priority every day.
         </p>
 
         {/* Form */}
