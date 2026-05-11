@@ -1,0 +1,129 @@
+We are continuing after successful Vercel deploys. Everything is currently running well.
+
+Next task:
+Polish /onboarding/profile so it visually matches the upgraded Meridian onboarding flow.
+
+Modify ONLY this file:
+
+.migration-backup/src/app/onboarding/profile/page.tsx
+
+Use these screens as the visual source of truth:
+- /onboarding/welcome
+- /onboarding/goals
+- /onboarding/connect
+
+Goal:
+Make /onboarding/profile feel like Step 1 of the same premium Meridian onboarding system.
+
+Required visual-only changes:
+
+1. Same page structure as goals/connect:
+- centered page container
+- step chip above the card
+- main glass card/container
+- title inside the card
+- subtitle under title
+- biological profile selection cards
+- CTA button
+
+2. Add a premium step chip:
+BIOLOGICAL PROFILE · STEP 1
+
+The chip must match goals/connect:
+- same fontSize
+- same letterSpacing
+- same padding
+- same border
+- same glowing dot
+- same teal/cyan color system
+
+3. Same background system:
+- #061316 base
+- 3 soft ambient orbs
+- same teal/cyan atmospheric glow as welcome/goals/connect
+- no harsh brightness
+- no new colors
+
+4. Same main glass card system:
+- maxWidth around 480px
+- background rgba(232,248,245,0.055)
+- border rgba(103,232,249,0.13)
+- borderRadius around 24px
+- backdrop blur
+- inner top-edge highlight
+- faint teal/cyan bloom
+
+5. Same title typography:
+Use:
+- fontFamily: "var(--font-fraunces), serif"
+- fontSize: clamp(24px, 4vw, 30px)
+- fontWeight: 700
+- lineHeight: 1.08
+- letterSpacing: -0.04em
+- color: #EAFBF7
+
+Keep the title on one line on desktop if possible.
+
+6. Improve biological profile selection cards:
+- premium glassmorphism
+- same option card language as goals/connect
+- subtle teal/cyan border
+- stronger selected-state glow
+- clear selected state
+- no heavy neon
+- no flat/basic card look
+
+7. CTA button:
+- match goals/connect/welcome
+- borderRadius: 14px
+- fontWeight: 700
+- teal/cyan gradient
+- same glow system
+- same width behavior
+
+8. Preserve all logic exactly:
+Do not change:
+- Supabase calls
+- auth guard
+- handleContinue
+- router.push
+- field names
+- state names
+- biological_profile values
+- selection behavior
+
+Critical rules:
+- Visual-only edits.
+- Do not touch /onboarding/welcome.
+- Do not touch /onboarding/goals.
+- Do not touch /onboarding/connect.
+- Do not touch API routes.
+- Do not touch Supabase clients.
+- Do not touch database types.
+- Do not touch middleware.
+- Do not touch artifacts/.
+- Do not touch package.json.
+- Do not create files.
+- Do not add dependencies.
+- Inline styles only.
+- Do not commit.
+- Do not push.
+- Do not publish to Replit.
+
+After editing:
+1. Report every file changed.
+2. Confirm no other files changed.
+3. Summarize exactly how /onboarding/profile now matches the rest of onboarding:
+   - layout
+   - alignment
+   - typography
+   - background
+   - card system
+   - chip system
+   - CTA system
+4. Run:
+   cd .migration-backup && npm run build
+5. Test:
+   - /onboarding/profile
+6. Confirm build passes.
+7. Stop and wait for my review.

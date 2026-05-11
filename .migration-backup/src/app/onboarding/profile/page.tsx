@@ -16,11 +16,6 @@ const colors = {
   cardBorder: 'rgba(103,232,249,0.13)',
 }
 
-const fonts = {
-  heading: '"Fraunces", serif',
-  ui: '"Plus Jakarta Sans", sans-serif',
-}
-
 type BiologyType = 'female' | 'male' | null
 
 export default function ProfilePage() {
@@ -36,9 +31,7 @@ export default function ProfilePage() {
   useEffect(() => {
     async function checkUser() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/onboarding/welcome')
-      }
+      if (!user) { router.push('/onboarding/welcome') }
     }
     checkUser()
   }, [router, supabase])
@@ -46,7 +39,6 @@ export default function ProfilePage() {
   const handleContinue = async () => {
     if (!selected) return
     setLoading(true)
-
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser()
       if (userError || !user) {
@@ -54,17 +46,11 @@ export default function ProfilePage() {
         router.push('/onboarding/welcome')
         return
       }
-
       const { error } = await supabase
         .from('profiles')
         .update({ biological_profile: selected })
         .eq('id', user.id)
-
-      if (error) {
-        console.error(error)
-        return
-      }
-
+      if (error) { console.error(error); return }
       router.push('/onboarding/goals')
     } finally {
       setLoading(false)
@@ -72,216 +58,171 @@ export default function ProfilePage() {
   }
 
   const SelectionCard = ({
-    type,
-    title,
-    subtitle,
+    type, title, subtitle,
   }: {
     type: BiologyType
     title: string
     subtitle: string
   }) => {
     const isSelected = selected === type
-
     return (
-      <motion.button
+      <button
         onClick={() => setSelected(type)}
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
         style={{
           width: '100%',
-          padding: '24px',
-          backgroundColor: isSelected
-            ? `${colors.teal}10`
-            : colors.cardBg,
-          border: `1px solid ${isSelected ? colors.teal : colors.cardBorder}`,
+          padding: '16px',
+          backgroundColor: isSelected ? 'rgba(45,212,191,0.10)' : colors.cardBg,
+          border: isSelected ? '1px solid rgba(45,212,191,0.85)' : `1px solid ${colors.cardBorder}`,
           borderRadius: '16px',
           cursor: 'pointer',
           textAlign: 'left',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          transition: 'all 0.2s ease',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          transition: 'border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease',
+          boxShadow: isSelected ? '0 0 0 1px rgba(45,212,191,0.15), 0 0 16px rgba(45,212,191,0.08)' : 'none',
         }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)' }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}
       >
-        <h3
-          style={{
-            fontFamily: fonts.ui,
-            fontSize: '18px',
-            fontWeight: 600,
-            color: colors.text,
-            marginBottom: '8px',
-          }}
-        >
+        <span style={{
+          display: 'block',
+          fontSize: '14px',
+          fontWeight: 700,
+          marginBottom: '5px',
+          color: isSelected ? colors.teal : colors.text,
+          letterSpacing: '-0.01em',
+          fontFamily: 'Plus Jakarta Sans, sans-serif',
+        }}>
           {title}
-        </h3>
-        <p
-          style={{
-            fontFamily: fonts.ui,
-            fontSize: '14px',
-            color: colors.textSoft,
-            lineHeight: 1.5,
-          }}
-        >
+        </span>
+        <span style={{
+          display: 'block',
+          color: isSelected ? '#9EEFE4' : colors.textSoft,
+          fontSize: '12px',
+          lineHeight: 1.45,
+          fontFamily: 'Plus Jakarta Sans, sans-serif',
+        }}>
           {subtitle}
-        </p>
-      </motion.button>
+        </span>
+      </button>
     )
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: colors.background,
-        fontFamily: fonts.ui,
-        position: 'relative',
-        overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-      }}
-    >
-      {/* Ambient orbs */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '-20%',
-          left: '-10%',
-          width: '50%',
-          height: '50%',
-          background: `radial-gradient(circle, ${colors.teal}20 0%, transparent 70%)`,
-          filter: 'blur(80px)',
-          pointerEvents: 'none',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '-20%',
-          right: '-10%',
-          width: '50%',
-          height: '50%',
-          background: `radial-gradient(circle, ${colors.cyan}20 0%, transparent 70%)`,
-          filter: 'blur(80px)',
-          pointerEvents: 'none',
-        }}
-      />
+    <main style={{
+      minHeight: '100vh',
+      background: colors.background,
+      color: colors.text,
+      fontFamily: 'Plus Jakarta Sans, sans-serif',
+      position: 'relative',
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '48px 20px',
+    }}>
+      {/* Ambient orbs — 3 layers matching goals/connect/welcome/landing */}
+      <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(45,212,191,0.13) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '-15%', right: '-10%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(103,232,249,0.11) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '40%', height: '30%', background: 'radial-gradient(circle, rgba(45,212,191,0.05) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
+      <motion.section
+        initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        style={{
-          width: '100%',
-          maxWidth: '480px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          position: 'relative',
-          zIndex: 1,
-        }}
+        transition={{ duration: 0.65, ease: 'easeOut' }}
+        style={{ width: '100%', maxWidth: '480px', position: 'relative', zIndex: 1 }}
       >
-        {/* Headline */}
-        <h1
-          style={{
-            fontFamily: fonts.heading,
-            fontSize: '32px',
-            fontWeight: 400,
-            color: colors.text,
-            textAlign: 'center',
-            marginBottom: '12px',
-            lineHeight: 1.2,
-          }}
-        >
-          Set your biological profile
-        </h1>
-
-        {/* Subtext */}
-        <p
-          style={{
-            fontFamily: fonts.ui,
-            fontSize: '16px',
-            color: colors.textSoft,
-            textAlign: 'center',
-            marginBottom: '8px',
-            lineHeight: 1.6,
-          }}
-        >
-          Meridian uses this for accurate reference ranges.
-        </p>
-        <p
-          style={{
-            fontFamily: fonts.ui,
-            fontSize: '14px',
-            color: colors.textMuted,
-            textAlign: 'center',
-            marginBottom: '40px',
-            lineHeight: 1.6,
-          }}
-        >
-          This is about your biology — not your identity.
-        </p>
-
-        {/* Selection Cards */}
-        <div
-          style={{
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            marginBottom: '32px',
-          }}
-        >
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <SelectionCard
-              type="female"
-              title="Female biology"
-              subtitle="Includes menstrual cycle tracking and female hormonal ranges"
-            />
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <SelectionCard
-              type="male"
-              title="Male biology"
-              subtitle="Includes male hormonal ranges and PSA tracking"
-            />
-          </motion.div>
+        {/* Step chip */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '7px',
+            fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
+            textTransform: 'uppercase', color: colors.teal,
+            padding: '5px 14px', border: '1px solid rgba(45,212,191,0.28)',
+            borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
+          }}>
+            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
+            Biological Profile · Step 1
+          </div>
         </div>
 
-        {/* Continue Button */}
-        <motion.button
-          onClick={handleContinue}
-          disabled={!selected || loading}
-          whileHover={selected && !loading ? { scale: 1.02 } : {}}
-          whileTap={selected && !loading ? { scale: 0.98 } : {}}
-          style={{
-            width: '100%',
-            padding: '16px 24px',
-            background: selected && !loading
-              ? `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`
-              : colors.cardBg,
-            border: selected && !loading ? 'none' : `1px solid ${colors.cardBorder}`,
-            borderRadius: '12px',
-            color: selected && !loading ? colors.background : colors.textMuted,
-            fontFamily: fonts.ui,
-            fontSize: '16px',
-            fontWeight: 600,
-            cursor: selected && !loading ? 'pointer' : 'not-allowed',
-            transition: 'all 0.3s ease',
-          }}
-        >
-          {loading ? 'Loading...' : 'Continue →'}
-        </motion.button>
-      </motion.div>
-    </div>
+        {/* Glass card */}
+        <div style={{
+          border: `1px solid ${colors.cardBorder}`,
+          background: colors.cardBg,
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          borderRadius: '24px',
+          padding: '32px 28px 28px',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 48px rgba(45,212,191,0.06)',
+        }}>
+
+          {/* Heading */}
+          <div style={{ marginBottom: '24px' }}>
+            <h1 style={{
+              margin: '0 0 10px',
+              fontFamily: 'var(--font-fraunces), serif',
+              fontSize: 'clamp(24px, 4vw, 30px)',
+              lineHeight: 1.08,
+              letterSpacing: '-0.04em',
+              color: colors.text,
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+            }}>
+              Set your biological profile
+            </h1>
+            <p style={{ margin: '0 0 6px', color: colors.textSoft, fontSize: '15px', lineHeight: 1.65 }}>
+              Meridian uses this for accurate reference ranges.
+            </p>
+            <p style={{ margin: 0, color: colors.textMuted, fontSize: '12px', lineHeight: 1.5 }}>
+              This is about your biology — not your identity.
+            </p>
+          </div>
+
+          {/* Selection cards */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+              <SelectionCard
+                type="female"
+                title="Female biology"
+                subtitle="Includes menstrual cycle tracking and female hormonal ranges"
+              />
+            </motion.div>
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
+              <SelectionCard
+                type="male"
+                title="Male biology"
+                subtitle="Includes male hormonal ranges and PSA tracking"
+              />
+            </motion.div>
+          </div>
+
+          {/* CTA */}
+          <button
+            type="button"
+            disabled={!selected || loading}
+            onClick={handleContinue}
+            style={{
+              width: '100%', border: 'none', borderRadius: '14px',
+              padding: '16px 20px',
+              background: selected && !loading
+                ? 'linear-gradient(135deg, #2DD4BF 0%, #67E8F9 100%)'
+                : 'rgba(45,212,191,0.25)',
+              color: '#061316',
+              fontFamily: 'Plus Jakarta Sans, sans-serif',
+              fontSize: '15px', fontWeight: 700,
+              cursor: selected && !loading ? 'pointer' : 'not-allowed',
+              letterSpacing: '-0.01em',
+              boxShadow: selected && !loading
+                ? '0 0 24px rgba(45,212,191,0.35), 0 0 60px rgba(45,212,191,0.12), inset 0 1px 0 rgba(255,255,255,0.25)'
+                : 'none',
+              transition: 'box-shadow 200ms ease, background 200ms ease',
+            }}
+          >
+            {loading ? 'Loading...' : 'Continue →'}
+          </button>
+        </div>
+      </motion.section>
+    </main>
   )
 }
