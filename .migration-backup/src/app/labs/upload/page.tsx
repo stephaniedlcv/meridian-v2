@@ -211,33 +211,45 @@ function BiomarkerRangeBar({ value, refMin, refMax, state }: RangeBarProps) {
   const dotColor = getStateColor(state)
 
   return (
-    <div style={{ width: '100%', paddingTop: '8px', paddingBottom: '2px' }}>
-      {/* Track — full width represents the reference range Low→High */}
+    <div style={{ width: '100%', paddingTop: '6px' }}>
+      {/* Track — gradient communicates Low → Optimal → High */}
       <div style={{
         position: 'relative',
-        height: '6px',
-        borderRadius: '4px',
+        height: '8px',
+        borderRadius: '6px',
         width: '100%',
-        background: 'linear-gradient(to right, rgba(103,232,249,0.06) 0%, rgba(103,232,249,0.22) 50%, rgba(103,232,249,0.06) 100%)',
+        background: 'linear-gradient(to right, rgba(248,113,113,0.40) 0%, rgba(251,146,60,0.30) 22%, rgba(45,212,191,0.50) 50%, rgba(251,146,60,0.30) 78%, rgba(248,113,113,0.40) 100%)',
+        overflow: 'visible',
       }}>
-        {/* Value dot — clearly visible on dark background */}
+        {/* Value dot — state-colored ring, dark center */}
         <div style={{
           position: 'absolute',
           top: '50%',
           left: `${dotPct}%`,
           transform: 'translate(-50%, -50%)',
-          width: '12px',
-          height: '12px',
+          width: '16px',
+          height: '16px',
           borderRadius: '50%',
-          backgroundColor: dotColor,
-          border: '2px solid rgba(6,19,22,0.9)',
-          boxShadow: `0 0 8px ${dotColor}`,
+          backgroundColor: 'rgba(6,19,22,0.92)',
+          border: `3px solid ${dotColor}`,
+          boxShadow: `0 0 10px ${dotColor}BB, 0 0 4px ${dotColor}60`,
           zIndex: 2,
         }} />
       </div>
-      {/* Low / High labels */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
+      {/* Low · reference range pill · High */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '5px' }}>
         <span style={{ fontSize: '9px', color: 'rgba(95,142,133,0.7)', letterSpacing: '0.04em' }}>Low</span>
+        <span style={{
+          fontSize: '9px',
+          color: 'rgba(154,203,193,0.65)',
+          backgroundColor: 'rgba(103,232,249,0.05)',
+          border: '1px solid rgba(103,232,249,0.10)',
+          borderRadius: '20px',
+          padding: '1px 7px',
+          letterSpacing: '0.02em',
+        }}>
+          Ref {refMin}–{refMax}
+        </span>
         <span style={{ fontSize: '9px', color: 'rgba(95,142,133,0.7)', letterSpacing: '0.04em' }}>High</span>
       </div>
     </div>
@@ -811,10 +823,10 @@ export default function LabsUploadPage() {
                   {totalStateCounts.Watch > 0 && (
                     <span style={{
                       padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
-                      backgroundColor: colors.watch, border: `1px solid ${colors.watchBorder}`, color: '#FACC15',
+                      backgroundColor: colors.watch, border: `1px solid ${colors.watchBorder}`, color: '#FCD34D',
                       display: 'flex', alignItems: 'center', gap: '5px',
                     }}>
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#FACC15', display: 'inline-block' }} />
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#FCD34D', display: 'inline-block' }} />
                       {totalStateCounts.Watch} Watch
                     </span>
                   )}
@@ -852,35 +864,34 @@ export default function LabsUploadPage() {
                         const showBar = isUsableRange(b.reference_range_min, b.reference_range_max)
                         return (
                           <div key={b.id} style={{
-                            padding: '10px 14px',
-                            backgroundColor: s.bg,
-                            border: `1px solid ${s.border}`,
+                            padding: '12px 14px',
+                            backgroundColor: 'rgba(232,248,245,0.055)',
+                            border: `1px solid ${s.dot}30`,
                             borderRadius: '10px',
                           }}>
-                            {/* Name + value row */}
+                            {/* Name + badge */}
                             <div style={{
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               gap: '8px',
+                              marginBottom: '8px',
                             }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                                <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: s.dot, flexShrink: 0 }} />
-                                <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>
-                                  {markerDisplayName(b.marker_name)}
-                                </span>
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                                <span style={{ fontSize: '15px', fontWeight: 700, color: colors.text }}>{b.value}</span>
-                                {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
-                                <span style={{
-                                  padding: '2px 7px', borderRadius: '5px', fontSize: '10px', fontWeight: 700,
-                                  backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot,
-                                  letterSpacing: '0.04em',
-                                }}>
-                                  {s.label}
-                                </span>
-                              </div>
+                              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0 }}>
+                                {markerDisplayName(b.marker_name)}
+                              </span>
+                              <span style={{
+                                padding: '2px 8px', borderRadius: '5px', fontSize: '10px', fontWeight: 700,
+                                backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot,
+                                letterSpacing: '0.04em', flexShrink: 0,
+                              }}>
+                                {s.label}
+                              </span>
+                            </div>
+                            {/* Value */}
+                            <div style={{ marginBottom: showBar ? '4px' : '0' }}>
+                              <span style={{ fontSize: '22px', fontWeight: 800, color: colors.text, lineHeight: '1' }}>{b.value}</span>
+                              {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                             </div>
                             {/* Range bar */}
                             {showBar && (

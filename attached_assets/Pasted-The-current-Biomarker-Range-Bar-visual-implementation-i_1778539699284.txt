@@ -1,0 +1,166 @@
+The current Biomarker Range Bar visual implementation is too subtle and does not match the intended Meridian demo style.
+
+Reference direction:
+Use the demo-style biomarker cards:
+- larger biomarker value
+- clear status badge
+- visible horizontal range bar
+- gradient range track
+- circular result marker/dot
+- Low / High labels
+- small explanatory range pill/text
+- premium glass card
+- card border color based on biomarker state
+
+Goal:
+Upgrade the visual style of individual biomarker rows/cards that show range bars so they look closer to the demo.
+
+Modify ONLY if needed:
+
+1. .migration-backup/src/app/labs/history/page.tsx
+2. .migration-backup/src/app/labs/upload/page.tsx
+
+Do not touch:
+- OCR routes
+- confirm route
+- canonical dictionary
+- dashboard
+- Supabase clients
+- database types
+- middleware
+- onboarding
+- NavBar
+- package.json
+- artifacts/
+- dependencies
+
+Core rule:
+Only individual biomarkers with numeric value + usable reference range should receive the range card/bar treatment.
+
+Do NOT apply range bars to:
+- panel summary cards
+- collapsed panel headers
+- year/month/date headers
+- qualitative urine values
+- rows without numeric value
+- rows without reference_range_min/reference_range_max
+
+Visual requirements:
+
+1. Card border by state
+Individual biomarker cards/rows with a range bar should have a subtle border/glow based on state:
+
+Optimal:
+- border/glow teal
+- #2DD4BF
+
+Watch:
+- border/glow yellow
+- #FCD34D
+
+Attention:
+- border/glow orange
+- #FB923C
+
+Critical:
+- border/glow red
+- #F87171
+
+Keep the effect elegant, not neon-heavy.
+
+2. Range bar style
+Replace the muted thin bar with a more visible demo-style horizontal gradient bar.
+
+Suggested gradient logic:
+- For most biomarkers:
+  red/orange/yellow/teal/yellow/orange/red style is acceptable if it communicates low → optimal → high.
+- If using a simpler style:
+  low side muted red/orange
+  optimal segment teal/green
+  high side yellow/orange/red
+- The important part: the bar should be clearly visible and premium.
+
+3. Dot / circle marker
+The user’s result marker must be a clear circular dot:
+- 16px to 18px diameter
+- white or dark inner center is acceptable
+- outer ring should use the biomarker state color
+- add subtle glow using the state color
+- dot must sit on top of the bar
+- dot position must use:
+  percent = ((value - refMin) / (refMax - refMin)) * 100
+  clamp 0–100
+
+4. Labels
+Show subtle Low and High labels below the bar.
+If optimal range exists, also show a compact pill such as:
+“Optimal 50–80”
+or
+“Normal 40–100 · optimal 50–80”
+
+If only reference range exists, show:
+“Reference 40–100”
+
+Keep copy compact.
+
+5. Layout in /labs/history
+When a panel is expanded, numeric biomarkers with range data should render as compact premium cards instead of plain list rows.
+
+Each card should show:
+- marker name
+- value + unit
+- status badge
+- range bar
+- Low / High labels
+- compact range pill/text if available
+
+Keep it mobile-friendly.
+Do not make cards too tall.
+Do not break the panel collapse behavior.
+
+6. Layout in /labs/upload
+In the Recent Lab Snapshot “Needs Attention” section, individual biomarker cards should use the same range bar style when range data exists.
+
+For Needs Attention cards:
+- keep the orange/red/yellow/teal state border
+- show the bar below the value line
+- keep cards compact
+
+7. Color mapping must remain:
+Optimal = #2DD4BF
+Watch = #FCD34D
+Attention = #FB923C
+Critical = #F87171
+Fallback = #67E8F9
+
+8. Do not fake range data
+If reference_range_min/reference_range_max are missing, do not show a bar.
+If optimal_range_min/optimal_range_max are missing, show only reference range.
+
+9. Do not make medical claims.
+This is only visualizing saved lab ranges.
+
+After editing:
+1. Report exact files changed.
+2. Confirm no other files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /labs/history
+   /labs/upload
+5. Confirm build passes.
+6. Confirm the visual style now matches the demo direction:
+   - visible gradient bar
+   - clear circular marker
+   - state-colored card border
+   - Low / High labels
+   - compact range pill/text
+7. Confirm color mapping:
+   Optimal teal
+   Watch yellow
+   Attention orange
+   Critical red
+8. Confirm bars still only appear for numeric biomarkers with usable range data.
+9. Do not commit.
+10. Do not push.
+11. Do not publish to Replit.
