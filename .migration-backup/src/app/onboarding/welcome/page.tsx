@@ -117,8 +117,8 @@ export default function WelcomePage() {
           transition={{ duration: 0.5, delay: 0.15 }}
           style={{
             position: 'relative',
-            width: '104px',
-            height: '104px',
+            width: '120px',
+            height: '120px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -129,18 +129,18 @@ export default function WelcomePage() {
           <div style={{
             position: 'absolute', inset: 0, borderRadius: '50%',
             border: '1px solid rgba(103,232,249,0.09)',
-            boxShadow: '0 0 48px rgba(45,212,191,0.07), 0 0 120px rgba(45,212,191,0.03)',
+            boxShadow: '0 0 56px rgba(45,212,191,0.07), 0 0 140px rgba(45,212,191,0.03)',
           }} />
           {/* Inner reticle ring */}
           <div style={{
-            position: 'absolute', inset: '16px', borderRadius: '50%',
+            position: 'absolute', inset: '18px', borderRadius: '50%',
             border: '0.5px solid rgba(103,232,249,0.14)',
           }} />
           <span style={{
             fontFamily: fonts.heading,
-            fontSize: '56px',
-            fontWeight: 400,
-            background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
+            fontSize: '62px',
+            fontWeight: 700,
+            background: 'linear-gradient(135deg, #FFFFFF 0%, #67E8F9 40%, #2DD4BF 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -154,13 +154,41 @@ export default function WelcomePage() {
         {/* Wordmark */}
         <div style={{
           fontFamily: fonts.heading,
-          fontSize: '24px',
+          fontSize: '30px',
           fontWeight: 700,
           color: colors.text,
           letterSpacing: '-0.05em',
-          marginBottom: '10px',
+          marginBottom: '8px',
         }}>
           Meridian
+        </div>
+
+        {/* Brand label */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '20px',
+        }}>
+          <div style={{
+            width: '5px', height: '5px', borderRadius: '50%',
+            background: colors.teal,
+            boxShadow: '0 0 8px rgba(45,212,191,0.9), 0 0 16px rgba(45,212,191,0.4)',
+          }} />
+          <div style={{
+            fontSize: '10px',
+            fontWeight: 700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: colors.textMuted,
+          }}>
+            Biological Intelligence System
+          </div>
+          <div style={{
+            width: '5px', height: '5px', borderRadius: '50%',
+            background: colors.teal,
+            boxShadow: '0 0 8px rgba(45,212,191,0.9), 0 0 16px rgba(45,212,191,0.4)',
+          }} />
         </div>
 
         {/* Headline */}
