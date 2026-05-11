@@ -319,11 +319,11 @@ function groupRows(rows: BiomarkerRow[]): YearGroup[] {
 // ── Range bar helpers ──────────────────────────────────────────────────────────
 function getStateColor(state: string | null): string {
   switch (state) {
-    case 'Optimal':   return '#2DD4BF'
-    case 'Watch':     return '#FACC15'
-    case 'Attention': return '#FB923C'
-    case 'Critical':  return '#F87171'
-    default:          return '#67E8F9'
+    case 'Optimal':   return '#2DD4BF'  // teal
+    case 'Watch':     return '#FCD34D'  // amber-yellow
+    case 'Attention': return '#FB923C'  // orange
+    case 'Critical':  return '#F87171'  // red
+    default:          return '#67E8F9'  // cyan fallback
   }
 }
 
@@ -345,46 +345,40 @@ interface RangeBarProps {
 }
 
 function BiomarkerRangeBar({ value, refMin, refMax, state }: RangeBarProps) {
-  const span   = refMax - refMin
-  const buffer = span * 0.25
-  const visMin = refMin - buffer
-  const visMax = refMax + buffer
-  const visSp  = visMax - visMin
-
-  const refStartPct = ((refMin - visMin) / visSp) * 100
-  const refEndPct   = ((refMax - visMin) / visSp) * 100
-  const rawPct      = ((value  - visMin) / visSp) * 100
-  const dotPct      = Math.max(0, Math.min(100, rawPct))
-  const dotColor    = getStateColor(state)
+  // Spec formula: 0% = at/below refMin (Low), 100% = at/above refMax (High)
+  const rawPct   = ((value - refMin) / (refMax - refMin)) * 100
+  const dotPct   = Math.max(0, Math.min(100, rawPct))
+  const dotColor = getStateColor(state)
 
   return (
     <div style={{ width: '100%', paddingTop: '8px', paddingBottom: '2px' }}>
-      <div style={{ position: 'relative', height: '6px', backgroundColor: 'rgba(103,232,249,0.07)', borderRadius: '4px', width: '100%' }}>
-        {/* Reference range band */}
-        <div style={{
-          position: 'absolute', top: 0, bottom: 0,
-          left: `${refStartPct}%`,
-          width: `${refEndPct - refStartPct}%`,
-          backgroundColor: 'rgba(103,232,249,0.20)',
-          borderRadius: '2px',
-        }} />
-        {/* Value dot */}
+      {/* Track — full width represents the reference range Low→High */}
+      <div style={{
+        position: 'relative',
+        height: '6px',
+        borderRadius: '4px',
+        width: '100%',
+        background: 'linear-gradient(to right, rgba(103,232,249,0.06) 0%, rgba(103,232,249,0.22) 50%, rgba(103,232,249,0.06) 100%)',
+      }}>
+        {/* Value dot — clearly visible on dark background */}
         <div style={{
           position: 'absolute',
           top: '50%',
           left: `${dotPct}%`,
           transform: 'translate(-50%, -50%)',
-          width: '10px',
-          height: '10px',
+          width: '12px',
+          height: '12px',
           borderRadius: '50%',
           backgroundColor: dotColor,
-          boxShadow: `0 0 5px ${dotColor}90`,
-          zIndex: 1,
+          border: '2px solid rgba(6,19,22,0.9)',
+          boxShadow: `0 0 8px ${dotColor}`,
+          zIndex: 2,
         }} />
       </div>
+      {/* Low / High labels */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
-        <span style={{ fontSize: '9px', color: 'rgba(95,142,133,0.65)', letterSpacing: '0.04em' }}>Low</span>
-        <span style={{ fontSize: '9px', color: 'rgba(95,142,133,0.65)', letterSpacing: '0.04em' }}>High</span>
+        <span style={{ fontSize: '9px', color: 'rgba(95,142,133,0.7)', letterSpacing: '0.04em' }}>Low</span>
+        <span style={{ fontSize: '9px', color: 'rgba(95,142,133,0.7)', letterSpacing: '0.04em' }}>High</span>
       </div>
     </div>
   )
@@ -394,7 +388,7 @@ function BiomarkerRangeBar({ value, refMin, refMax, state }: RangeBarProps) {
 function getStateStyle(state: string | null) {
   switch (state) {
     case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   dot: '#2DD4BF', label: 'Optimal' }
-    case 'Watch':     return { bg: colors.watch,     border: colors.watchBorder,     dot: '#FACC15', label: 'Watch' }
+    case 'Watch':     return { bg: colors.watch,     border: colors.watchBorder,     dot: '#FCD34D', label: 'Watch' }
     case 'Attention': return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'Attention' }
     case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  dot: '#F87171', label: 'Critical' }
     default:          return { bg: colors.cardBg,    border: colors.cardBorder,      dot: colors.textMuted, label: '—' }
