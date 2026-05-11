@@ -1,0 +1,147 @@
+We have a draft Meridian Biomarker Dictionary generated from external research, but do NOT import it wholesale.
+
+Use it only as reference.
+
+Current confirmed parser gaps from real uploads:
+1. NON HDL CALCULATE: 108 mg/dL
+2. LDL/HDL: 2.02
+3. GFR (CKD-EPI): 84 ML/MIN/1.73
+4. GFR AFRO-AMERICANS: 90 ML/MINS/1.73
+5. GFR NON AFRO-AMERICANS: 88.76 ML/MINS/1.73
+6. BLOOD GROUP:
+
+Important corrections:
+- LDL/HDL Ratio must NOT be treated as LDL Cholesterol. It is its own calculated ratio marker.
+- GFR African American and GFR Non-African American should be preserved as distinct markers when the lab reports them separately.
+- Blood group should NOT be saved as a biomarker unless there is a clear blood type value and the app has metadata support. For now, keep it out of biomarkers_static.
+
+Goal:
+Patch the existing biomarker normalization/mapping only for these confirmed gaps.
+
+Do not redesign UI.
+Do not change upload flow.
+Do not change dashboard.
+Do not change history.
+Do not change Supabase clients.
+Do not change database types.
+Do not add dependencies.
+Do not import a huge dictionary.
+Do not commit.
+Do not push.
+Do not publish.
+
+First inspect where biomarker recognition/mapping happens:
+- OCR route
+- confirm route
+- known marker list
+- normalization helper
+- biomarker dictionary
+
+Then implement the smallest safe mapping fix.
+
+Required canonical mappings:
+
+A. Non-HDL Cholesterol
+Aliases:
+- NON HDL CALCULATE
+- NON HDL CALCULATED
+- NON HDL
+- NON-HDL
+- NON HDL CHOLESTEROL
+- NON-HDL CHOLESTEROL
+- NON HDL C
+- NON-HDL C
+
+Canonical marker_name:
+Non-HDL Cholesterol
+
+Unit:
+mg/dL
+
+B. LDL/HDL Ratio
+Aliases:
+- LDL/HDL
+- LDL / HDL
+- LDL HDL
+- LDL HDL RATIO
+- LDL/HDL RATIO
+- LDL TO HDL RATIO
+- LDL CHOLESTEROL / HDL CHOLESTEROL
+
+Canonical marker_name:
+LDL/HDL Ratio
+
+Unit:
+ratio or empty string if unitless is the current convention.
+
+C. eGFR / GFR
+Aliases:
+- GFR
+- EGFR
+- E-GFR
+- ESTIMATED GFR
+- ESTIMATED GLOMERULAR FILTRATION RATE
+- GFR CKD-EPI
+- GFR (CKD-EPI)
+- EGFR CKD-EPI
+- EGFR (CKD-EPI)
+
+Canonical marker_name:
+eGFR
+
+Unit:
+mL/min/1.73 m²
+
+D. Race-adjusted legacy eGFR labels
+Aliases:
+- GFR AFRO-AMERICANS
+- GFR AFRO AMERICANS
+- GFR AFRICAN AMERICAN
+- GFR AFRICAN-AMERICAN
+
+Canonical marker_name:
+eGFR African American
+
+Aliases:
+- GFR NON AFRO-AMERICANS
+- GFR NON AFRO AMERICANS
+- GFR NON AFRICAN AMERICAN
+- GFR NON-AFRICAN AMERICAN
+- GFR NON AFRICAN-AMERICAN
+- GFR NON-AFRICAN-AMERICAN
+
+Canonical marker_name:
+eGFR Non-African American
+
+Unit:
+mL/min/1.73 m²
+
+Normalize unit variants:
+- ML/MIN/1.73
+- ML/MINS/1.73
+- ML/MIN/1.73M2
+- ML/MINS/1.73M2
+- mL/min/1.73
+- mL/min/1.73m2
+- mL/min/1.73 m2
+- mL/min/1.73 m²
+
+E. Blood Group
+Do not save “BLOOD GROUP:” as a biomarker when there is no value.
+Do not force blood type into biomarkers_static.
+Leave as not saved for now unless a metadata table exists, which it currently should not be added in this task.
+
+After editing:
+1. Report exact files changed.
+2. Confirm no other files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test parsing if possible with:
+   - NON HDL CALCULATE: 108 mg/dL
+   - LDL/HDL: 2.02
+   - GFR (CKD-EPI): 84 ML/MIN/1.73
+   - GFR AFRO-AMERICANS: 90 ML/MINS/1.73
+   - GFR NON AFRO-AMERICANS: 88.76 ML/MINS/1.73
+   - BLOOD GROUP:
+5. Confirm build passes.
+6. Explain the canonical mappings used.
