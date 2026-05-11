@@ -87,7 +87,20 @@ export default function ProfilePage() {
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
         }}>
-          <div style={{ fontSize: '40px', marginBottom: '16px' }}>◎</div>
+          <div style={{
+            fontFamily: 'var(--font-fraunces), serif',
+            fontSize: '48px',
+            fontWeight: 700,
+            letterSpacing: '-0.04em',
+            lineHeight: 1,
+            marginBottom: '16px',
+            background: 'linear-gradient(135deg, #FFFFFF 0%, #67E8F9 40%, #2DD4BF 100%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            color: 'transparent',
+            WebkitTextFillColor: 'transparent',
+            filter: 'drop-shadow(0 0 12px rgba(45,212,191,0.45))',
+          }}>M</div>
           <p style={{ fontSize: '16px', color: colors.textSoft, marginBottom: '6px', fontWeight: 600 }}>
             Coming soon
           </p>
