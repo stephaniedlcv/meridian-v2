@@ -1,0 +1,149 @@
+The Biomarker Detail Sheet / Range Bar implementation is closer, but still incomplete.
+
+Current issues seen in production preview:
+
+1. In /labs/upload Needs Attention:
+- eGFR shows a range bar correctly.
+- Chloride shows a range bar correctly.
+- HDL Cholesterol appears as a biomarker card but does NOT show a range bar.
+- Some biomarker cards do not open/expand into the detail sheet.
+
+2. Product requirement:
+Every individual biomarker card/row must be tappable and open the Biomarker Detail Sheet, even if it does not have enough range data for a bar.
+
+The range bar should appear only when range data exists.
+But the detail sheet should open for ALL individual biomarker rows/cards.
+
+Modify ONLY if needed:
+
+1. .migration-backup/src/app/labs/history/page.tsx
+2. .migration-backup/src/app/labs/upload/page.tsx
+
+Do not touch:
+- OCR routes
+- confirm route
+- canonical dictionary
+- dashboard
+- Supabase clients
+- database types
+- middleware
+- onboarding
+- NavBar
+- package.json
+- artifacts/
+- dependencies
+
+First diagnose and report:
+
+A. Range bar missing
+For HDL Cholesterol and any other Needs Attention biomarker without a bar, report:
+- marker_name
+- value
+- unit
+- reference_range_min
+- reference_range_max
+- optimal_range_min
+- optimal_range_max
+- state
+- shouldRenderRangeBar result
+
+If reference_range_min/reference_range_max are null, say clearly:
+“Range bar is hidden because range fields are missing in saved data.”
+
+Do NOT fake ranges in UI.
+
+If ranges exist but the bar is hidden, fix the render condition.
+
+B. Detail sheet not opening everywhere
+Inspect both pages and confirm:
+- Every individual biomarker row/card has an onClick or button handler that sets selectedBiomarker.
+- Disabled/flagged/qualitative/no-range biomarkers should still open the detail sheet.
+- Panel summary cards should NOT open a biomarker detail sheet.
+- Collapsed panel headers should only expand/collapse panels.
+
+Required behavior:
+
+1. /labs/history
+Inside expanded panels:
+- Every individual biomarker row/card should be tappable.
+- Tapping opens Biomarker Detail Sheet.
+- If the biomarker has usable numeric range data, show the range bar in the row/card and in the sheet.
+- If it does not have usable range data, still open the sheet, but show:
+  “Range data not available for this result.”
+
+2. /labs/upload
+In Needs Attention:
+- Every individual biomarker card should be tappable.
+- Tapping opens Biomarker Detail Sheet.
+- If the biomarker has usable numeric range data, show the range bar in the card and in the sheet.
+- If it does not have usable range data, still open the sheet, but show:
+  “Range data not available for this result.”
+
+3. Range bar rule
+Show the range bar only when:
+- value is numeric
+- reference_range_min is numeric
+- reference_range_max is numeric
+- reference_range_min < reference_range_max
+- flag_error is not true
+
+Do NOT require optimal range.
+If optimal range exists, show optimal segment.
+If optimal range is missing, show only reference range.
+
+4. Detail sheet should show for all biomarkers
+Even when range bar is hidden, the sheet should still show:
+- biomarker name
+- value + unit
+- status
+- collected date
+- panel/category
+- interpretation fallback
+- context fallback
+- message if range data is not available
+
+5. Visual affordance
+Make tappable biomarker rows/cards feel tappable:
+- cursor pointer on desktop
+- subtle hover/active effect if already used
+- optional small “View details” or chevron if it does not overcrowd mobile
+
+6. Do not add routes.
+7. Do not add dependencies.
+8. Do not create files.
+9. Keep inline styles only.
+10. Keep Meridian visual style.
+
+Important:
+Do not show bars on:
+- panel summary cards
+- collapsed panel headers
+- year/month/date headers
+- qualitative values without numeric range
+- rows with missing range fields
+
+But DO allow those individual biomarkers to open the detail sheet.
+
+After editing:
+1. Report exact files changed.
+2. Confirm no other files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /labs/history
+   /labs/upload
+5. Confirm build passes.
+6. Confirm:
+   - eGFR opens detail sheet
+   - HDL Cholesterol opens detail sheet
+   - Chloride opens detail sheet
+   - Any biomarker without a bar still opens detail sheet
+   - Biomarkers with valid range data show the bar
+   - Biomarkers without valid range data show “Range data not available”
+7. Report whether HDL lacked a bar because:
+   A. missing range data
+   B. render condition bug
+   C. styling issue
+8. Do not commit.
+9. Do not push.
+10. Do not publish to Replit.

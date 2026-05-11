@@ -556,32 +556,36 @@ function BiomarkerDetailSheet({
             </p>
           </div>
 
-          {/* Range card */}
-          {(hasRange || hasOptimal) && (
-            <div style={cardStyle}>
-              <p style={labelStyle}>Range</p>
-              {hasRange && (
-                <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 4px' }}>
-                  Clinical: <span style={{ fontWeight: 600, color: colors.text }}>{biomarker.reference_range_min} – {biomarker.reference_range_max}</span>
-                  {biomarker.unit ? ` ${biomarker.unit}` : ''}
-                </p>
-              )}
-              {hasOptimal && (
-                <p style={{ fontSize: '13px', color: colors.teal, margin: '0 0 8px' }}>
-                  Optimal: <span style={{ fontWeight: 600 }}>{biomarker.optimal_range_min} – {biomarker.optimal_range_max}</span>
-                  {biomarker.unit ? ` ${biomarker.unit}` : ''}
-                </p>
-              )}
-              {hasRange && (
-                <BiomarkerRangeBar
-                  value={biomarker.value}
-                  refMin={biomarker.reference_range_min!}
-                  refMax={biomarker.reference_range_max!}
-                  state={biomarker.state}
-                />
-              )}
-            </div>
-          )}
+          {/* Range card — always rendered */}
+          <div style={cardStyle}>
+            <p style={labelStyle}>Range</p>
+            {(hasRange || hasOptimal) ? (
+              <>
+                {hasRange && (
+                  <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 4px' }}>
+                    Clinical: <span style={{ fontWeight: 600, color: colors.text }}>{biomarker.reference_range_min} – {biomarker.reference_range_max}</span>
+                    {biomarker.unit ? ` ${biomarker.unit}` : ''}
+                  </p>
+                )}
+                {hasOptimal && (
+                  <p style={{ fontSize: '13px', color: colors.teal, margin: '0 0 8px' }}>
+                    Optimal: <span style={{ fontWeight: 600 }}>{biomarker.optimal_range_min} – {biomarker.optimal_range_max}</span>
+                    {biomarker.unit ? ` ${biomarker.unit}` : ''}
+                  </p>
+                )}
+                {hasRange && (
+                  <BiomarkerRangeBar
+                    value={biomarker.value}
+                    refMin={biomarker.reference_range_min!}
+                    refMax={biomarker.reference_range_max!}
+                    state={biomarker.state}
+                  />
+                )}
+              </>
+            ) : (
+              <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>Range data not available for this result.</p>
+            )}
+          </div>
 
           {/* Trend card */}
           <div style={cardStyle}>
@@ -1067,6 +1071,7 @@ export default function LabsHistoryPage() {
                                             {s.label}
                                           </span>
                                         )}
+                                        <span style={{ fontSize: '14px', color: colors.textMuted, opacity: 0.45, lineHeight: 1 }}>›</span>
                                       </div>
                                     </div>
                                   )
