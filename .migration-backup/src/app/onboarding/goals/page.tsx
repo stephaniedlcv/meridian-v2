@@ -333,6 +333,7 @@ export default function GoalsPage() {
                   outline: 'none',
                   fontFamily: 'Plus Jakarta Sans, sans-serif',
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                  colorScheme: 'dark',
                 }}
               />
               <p style={{
