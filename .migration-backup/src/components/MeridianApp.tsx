@@ -165,7 +165,7 @@ export default function MeridianApp() {
         {/* Buttons */}
         <div style={{ display: "flex", gap: "12px" }}>
           <button
-            onClick={() => router.push("/onboarding/welcome")}
+            onClick={() => router.push("/onboarding/welcome?mode=signup")}
             style={{
               padding: "15px 32px",
               background: "linear-gradient(135deg, #2DD4BF 0%, #67E8F9 100%)",
@@ -183,7 +183,7 @@ export default function MeridianApp() {
             Get Started
           </button>
           <button
-            onClick={() => router.push("/onboarding/welcome")}
+            onClick={() => router.push("/onboarding/welcome?mode=login")}
             style={{
               padding: "15px 32px",
               background: "rgba(232,248,245,0.055)",

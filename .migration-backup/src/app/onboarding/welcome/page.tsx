@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 
 const colors = {
@@ -23,6 +23,7 @@ const fonts = {
 
 export default function WelcomePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -30,9 +31,15 @@ export default function WelcomePage() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isLogin, setIsLogin] = useState(false)
+  const [isLogin, setIsLogin] = useState(() => searchParams.get('mode') === 'login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  function switchMode(toLogin: boolean) {
+    setIsLogin(toLogin)
+    setError(null)
+    router.replace(`/onboarding/welcome?mode=${toLogin ? 'login' : 'signup'}`)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -103,7 +110,7 @@ export default function WelcomePage() {
           zIndex: 1,
         }}
       >
-        {/* Logo halo — matches refined MeridianApp treatment */}
+        {/* Logo halo */}
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -260,7 +267,7 @@ export default function WelcomePage() {
               </p>
             )}
 
-            {/* Submit Button — matches landing Get Started */}
+            {/* Submit Button */}
             <motion.button
               type="submit"
               disabled={loading}
@@ -279,7 +286,6 @@ export default function WelcomePage() {
                 fontSize: '16px',
                 fontWeight: 700,
                 cursor: loading ? 'not-allowed' : 'pointer',
-                marginBottom: '0',
                 letterSpacing: '-0.01em',
                 boxShadow: loading
                   ? 'none'
@@ -291,7 +297,7 @@ export default function WelcomePage() {
           </form>
         </div>
 
-        {/* Login/Signup toggle */}
+        {/* Mode toggle */}
         <p
           style={{
             fontFamily: fonts.ui,
@@ -304,14 +310,8 @@ export default function WelcomePage() {
         >
           {isLogin ? "Don't have an account? " : 'Already have an account? '}
           <span
-            onClick={() => {
-              setIsLogin((prev) => !prev)
-              setError(null)
-            }}
-            style={{
-              color: colors.teal,
-              cursor: 'pointer',
-            }}
+            onClick={() => switchMode(!isLogin)}
+            style={{ color: colors.teal, cursor: 'pointer' }}
           >
             {isLogin ? 'Sign up' : 'Log in'}
           </span>
