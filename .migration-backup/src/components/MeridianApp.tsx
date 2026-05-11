@@ -38,20 +38,22 @@ export default function MeridianApp() {
         {/* Ambient orbs */}
         <div style={{ position: "absolute", top: "-20%", left: "-15%", width: "55%", height: "55%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", filter: "blur(80px)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", bottom: "-20%", right: "-15%", width: "55%", height: "55%", background: "radial-gradient(circle, rgba(103,232,249,0.10) 0%, transparent 70%)", filter: "blur(80px)", pointerEvents: "none" }} />
-        {/* Logo glow container */}
-        <div style={{ position: "relative", width: "88px", height: "88px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {/* Logo halo */}
+        <div style={{ position: "relative", width: "112px", height: "112px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {/* Outer faint orbit ring */}
           <div style={{
             position: "absolute", inset: 0, borderRadius: "50%",
-            boxShadow: "0 0 0 1px rgba(103,232,249,0.18), 0 0 40px rgba(45,212,191,0.22), 0 0 90px rgba(45,212,191,0.08)",
+            border: "1px solid rgba(103,232,249,0.09)",
+            boxShadow: "0 0 48px rgba(45,212,191,0.08), 0 0 120px rgba(45,212,191,0.04)",
           }} />
+          {/* Inner reticle ring — closer to the M */}
           <div style={{
-            position: "absolute", inset: "10px", borderRadius: "50%",
-            border: "1px solid rgba(103,232,249,0.12)",
-            background: "radial-gradient(circle, rgba(45,212,191,0.07) 0%, transparent 70%)",
+            position: "absolute", inset: "16px", borderRadius: "50%",
+            border: "0.5px solid rgba(103,232,249,0.13)",
           }} />
           <div style={{
             fontFamily: "var(--font-fraunces), serif",
-            fontSize: "60px",
+            fontSize: "58px",
             fontWeight: 700,
             background: "linear-gradient(135deg, #FFFFFF 0%, #67E8F9 40%, #2DD4BF 100%)",
             WebkitBackgroundClip: "text",
@@ -85,26 +87,26 @@ export default function MeridianApp() {
       {/* Content */}
       <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "0px" }}>
 
-        {/* Logo glow container */}
+        {/* Logo halo */}
         <div style={{
           position: "relative",
-          width: "96px",
-          height: "96px",
+          width: "128px",
+          height: "128px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          marginBottom: "16px",
+          marginBottom: "20px",
         }}>
-          {/* Outer glow ring */}
+          {/* Outer orbit ring — ultra-thin, barely visible */}
           <div style={{
             position: "absolute", inset: 0, borderRadius: "50%",
-            boxShadow: "0 0 0 1px rgba(103,232,249,0.2), 0 0 40px rgba(45,212,191,0.25), 0 0 100px rgba(45,212,191,0.1)",
+            border: "1px solid rgba(103,232,249,0.09)",
+            boxShadow: "0 0 56px rgba(45,212,191,0.07), 0 0 140px rgba(45,212,191,0.03)",
           }} />
-          {/* Inner ring */}
+          {/* Inner reticle ring — sits close to the M */}
           <div style={{
-            position: "absolute", inset: "10px", borderRadius: "50%",
-            border: "1px solid rgba(103,232,249,0.14)",
-            background: "radial-gradient(circle, rgba(45,212,191,0.09) 0%, transparent 70%)",
+            position: "absolute", inset: "18px", borderRadius: "50%",
+            border: "0.5px solid rgba(103,232,249,0.14)",
           }} />
           <div style={{
             fontFamily: "var(--font-fraunces), serif",
