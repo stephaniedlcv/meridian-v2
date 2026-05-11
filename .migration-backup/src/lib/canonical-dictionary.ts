@@ -26,7 +26,12 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'tsh',
     name: 'TSH',
     unit: 'mIU/L',
-    aliases: ['tsh', 'thyrotropin', 't.s.h.', 'hormona tiroestimulante', 'thyroid stimulating hormone', 'tirotropina', 'serum tsh'],
+    aliases: [
+      'tsh', 'thyrotropin', 't.s.h.', 'serum tsh',
+      'thyroid stimulating hormone', 'hormona tiroestimulante', 'tirotropina',
+      // 3rd-generation assay variants — parens and commas stripped by normalizer
+      'tsh 3rd gen', 'tsh 3rd generation',
+    ],
     system: 'thyroid',
     riskProfile: 'u-shaped',
     normalF: { min: 0.4, max: 4.0 },
@@ -1083,6 +1088,12 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
 
 // Unit conversions
 export const UNIT_CONVERSIONS: Record<string, { from: string; to: string; multiply: number }[]> = {
+  // TSH unit variants — mIU/L, µIU/mL, uIU/mL, mcIU/mL are all numerically identical
+  tsh: [
+    { from: 'uiu/ml', to: 'mIU/L', multiply: 1 },
+    { from: 'µiu/ml', to: 'mIU/L', multiply: 1 },
+    { from: 'mciu/ml', to: 'mIU/L', multiply: 1 },
+  ],
   crp_hs: [{ from: 'mg/dL', to: 'mg/L', multiply: 10 }],
   glucose_fasting: [{ from: 'mmol/L', to: 'mg/dL', multiply: 18.018 }],
   vitamin_d: [{ from: 'nmol/L', to: 'ng/mL', multiply: 0.4 }],
