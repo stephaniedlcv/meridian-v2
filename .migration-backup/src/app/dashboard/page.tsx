@@ -93,9 +93,14 @@ export default function DashboardPage() {
           setDominantMarker(data.dominant_marker)
           setSafetyAlert(data.safety_alert)
         } else {
+          // API returned an error (not a genuine no-data state).
+          // Log it clearly so production errors are visible in server/client logs.
+          console.error('[Meridian] Insight API error:', data.error || 'Unknown error', '| HTTP status:', response.status)
+          // Fall back to no_data so the UI still renders rather than hanging.
           setState('no_data')
         }
-      } catch {
+      } catch (err) {
+        console.error('[Meridian] Insight fetch/parse error:', err)
         setState('no_data')
       }
 

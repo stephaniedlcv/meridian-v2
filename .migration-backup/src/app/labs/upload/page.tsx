@@ -200,6 +200,8 @@ export default function LabsUploadPage() {
       setSavedCount(data.saved_count)
       setConfirmed(true)
       setConfirming(false)
+      // Auto-navigate to dashboard after a short delay so the user sees the success state
+      setTimeout(() => router.push('/dashboard'), 2000)
     } catch {
       setError('Failed to save biomarkers')
       setConfirming(false)
