@@ -88,10 +88,20 @@ export default function DashboardPage() {
         const data = await response.json()
 
         if (data.success) {
-          setState(data.state)
-          setInsight(data.insight)
-          setDominantMarker(data.dominant_marker)
-          setSafetyAlert(data.safety_alert)
+          if (data.state === 'no_data') {
+            // Insight found no biomarkers within its lookback window.
+            // Do a lightweight check to distinguish true no-data from labs-saved-but-outside-window.
+            const { count } = await supabase
+              .from('biomarkers_static')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', user.id)
+            setState(count && count > 0 ? 'labs_saved' : 'no_data')
+          } else {
+            setState(data.state)
+            setInsight(data.insight)
+            setDominantMarker(data.dominant_marker)
+            setSafetyAlert(data.safety_alert)
+          }
         } else {
           // API returned an error (not a genuine no-data state).
           // Log it clearly so production errors are visible in server/client logs.
@@ -234,6 +244,12 @@ export default function DashboardPage() {
           {state === 'no_data' && (
             <NoDataBlock onUpload={() => router.push('/labs/upload')} />
           )}
+          {state === 'labs_saved' && (
+            <LabsSavedBlock
+              onHistory={() => router.push('/labs/history')}
+              onUpload={() => router.push('/labs/upload')}
+            />
+          )}
           {state === 'calibrating' && (
             <CalibratingBlock onUpload={() => router.push('/labs/upload')} />
           )}
@@ -359,6 +375,112 @@ function NoDataBlock({ onUpload }: { onUpload: () => void }) {
         <div style={{ marginTop: '10px', fontSize: '11px', color: colors.textMuted, textAlign: 'center' }}>
           Takes less than 60 seconds · Meridian interprets, you decide.
         </div>
+      </div>
+    </div>
+  )
+}
+
+function LabsSavedBlock({ onHistory, onUpload }: { onHistory: () => void; onUpload: () => void }) {
+  const steps = [
+    'Review your Lab History',
+    'Upload newer labs if available',
+    'Connect wearables when ready',
+  ]
+  return (
+    <div style={{
+      backgroundColor: colors.cardBg,
+      border: `1px solid ${colors.cardBorder}`,
+      borderRadius: '24px',
+      borderLeft: `3px solid ${colors.teal}`,
+      overflow: 'hidden',
+      backdropFilter: 'blur(28px)',
+      boxShadow: `0 0 0 1px ${colors.cardBorder}, 0 0 40px rgba(45,212,191,0.08), inset 0 1px 0 rgba(255,255,255,0.05)`,
+    }}>
+      <div style={{ padding: '28px 24px 20px' }}>
+        {/* Status chip */}
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+          textTransform: 'uppercase', color: colors.teal,
+          marginBottom: '16px', padding: '4px 10px',
+          border: `1px solid rgba(45,212,191,0.25)`, borderRadius: '20px',
+          background: 'rgba(45,212,191,0.06)',
+        }}>
+          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: `0 0 5px ${colors.teal}` }} />
+          Baseline Building
+        </div>
+        <h2 style={{
+          fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700,
+          color: colors.text, letterSpacing: '-0.04em', lineHeight: 1.15, marginBottom: '12px',
+        }}>
+          Labs received
+        </h2>
+        <p style={{ fontSize: '15px', color: colors.textSoft, lineHeight: 1.65, marginBottom: '12px' }}>
+          Meridian is building your biological baseline.
+        </p>
+        <p style={{ fontSize: '14px', color: colors.textMuted, lineHeight: 1.7 }}>
+          Your saved lab history is now part of your Meridian profile. Daily insights will become more precise as newer labs, wearable signals, and feedback are added.
+        </p>
+      </div>
+
+      {/* Action steps */}
+      <div style={{ padding: '0 24px 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {steps.map((step, i) => (
+          <div key={i} style={{
+            display: 'flex', gap: '12px', alignItems: 'center',
+            padding: '12px 16px',
+            backgroundColor: 'rgba(255,255,255,0.025)',
+            borderRadius: '14px',
+            border: `1px solid ${colors.cardBorder}`,
+          }}>
+            <div style={{
+              width: '22px', height: '22px', borderRadius: '8px', flexShrink: 0,
+              backgroundColor: 'rgba(45,212,191,0.12)', border: '1px solid rgba(45,212,191,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '11px', fontWeight: 800, color: colors.teal,
+            }}>
+              {i + 1}
+            </div>
+            <span style={{ fontSize: '14px', color: colors.text, lineHeight: 1.4 }}>{step}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* CTAs */}
+      <div style={{ padding: '0 24px 24px', display: 'flex', gap: '10px' }}>
+        <button
+          onClick={onHistory}
+          style={{
+            flex: 1, padding: '16px 20px', borderRadius: '16px', border: 'none',
+            background: `linear-gradient(135deg, ${colors.teal}, ${colors.cyan})`,
+            color: colors.background, fontSize: '15px', fontWeight: 800, cursor: 'pointer',
+            boxShadow: `0 0 24px rgba(45,212,191,0.3), inset 0 1px 0 rgba(255,255,255,0.2)`,
+            letterSpacing: '-0.01em',
+          }}
+        >
+          View Lab History →
+        </button>
+        <button
+          onClick={onUpload}
+          style={{
+            padding: '16px 18px', borderRadius: '16px',
+            border: `1px solid ${colors.cardBorder}`,
+            background: colors.cardBg, color: colors.textSoft,
+            fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+            backdropFilter: 'blur(16px)',
+          }}
+        >
+          Upload
+        </button>
+      </div>
+
+      {/* Trust line */}
+      <div style={{
+        padding: '14px 24px',
+        borderTop: `1px solid rgba(103,232,249,0.07)`,
+        fontSize: '11px', color: colors.textMuted, textAlign: 'center',
+      }}>
+        Based on your saved biomarkers · Meridian interprets, you decide.
       </div>
     </div>
   )
