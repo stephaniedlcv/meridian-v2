@@ -2,6 +2,8 @@
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
+/* Meridian global overrides */
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

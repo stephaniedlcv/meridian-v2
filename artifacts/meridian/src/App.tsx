@@ -1,26 +1,42 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
+import { useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import WelcomePage from "@/pages/WelcomePage";
+import DashboardPage from "@/pages/DashboardPage";
+import ProfilePageUser from "@/pages/ProfilePage";
+import ProfileSetupPage from "@/pages/onboarding/ProfilePage";
+import GoalsPage from "@/pages/onboarding/GoalsPage";
+import ConnectPage from "@/pages/onboarding/ConnectPage";
+import LabsUploadPage from "@/pages/labs/UploadPage";
+import LabsHistoryPage from "@/pages/labs/HistoryPage";
 import NotFound from "@/pages/not-found";
 
-const queryClient = new QueryClient();
-
-function Home() {
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Replit Agent is building...</h1>
-        <p className="mt-2 text-sm text-gray-600">Your app will appear here once it's ready.</p>
-      </div>
-    </div>
-  );
+function RootRedirect() {
+  const [, navigate] = useLocation();
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/onboarding/welcome", { replace: true });
+      }
+    });
+  }, [navigate]);
+  return null;
 }
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={RootRedirect} />
+      <Route path="/dashboard" component={DashboardPage} />
+      <Route path="/onboarding/welcome" component={WelcomePage} />
+      <Route path="/onboarding/profile" component={ProfileSetupPage} />
+      <Route path="/onboarding/goals" component={GoalsPage} />
+      <Route path="/onboarding/connect" component={ConnectPage} />
+      <Route path="/labs/upload" component={LabsUploadPage} />
+      <Route path="/labs/history" component={LabsHistoryPage} />
+      <Route path="/profile" component={ProfilePageUser} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -28,14 +44,9 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+      <Router />
+    </WouterRouter>
   );
 }
 
