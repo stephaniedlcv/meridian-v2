@@ -200,12 +200,11 @@ export default function DashboardPage() {
             </div>
             <div style={{
               fontFamily: 'var(--font-fraunces), serif',
-              fontSize: '24px',
-              fontWeight: 400,
-              background: `linear-gradient(135deg, ${colors.teal}, ${colors.cyan})`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              marginBottom: '4px',
+              fontSize: '32px',
+              fontWeight: 700,
+              color: '#EAFBF7',
+              letterSpacing: '-0.05em',
+              marginBottom: '10px',
             }}>
               Meridian
             </div>
