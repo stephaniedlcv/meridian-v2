@@ -110,15 +110,15 @@ export default function WelcomePage() {
           zIndex: 1,
         }}
       >
-        {/* Logo halo */}
+        {/* Logo halo — exact match to root landing */}
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.15 }}
           style={{
             position: 'relative',
-            width: '120px',
-            height: '120px',
+            width: '128px',
+            height: '128px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -138,7 +138,7 @@ export default function WelcomePage() {
           }} />
           <span style={{
             fontFamily: fonts.heading,
-            fontSize: '62px',
+            fontSize: '64px',
             fontWeight: 700,
             background: 'linear-gradient(135deg, #FFFFFF 0%, #67E8F9 40%, #2DD4BF 100%)',
             WebkitBackgroundClip: 'text',
@@ -151,28 +151,28 @@ export default function WelcomePage() {
           </span>
         </motion.div>
 
-        {/* Wordmark */}
+        {/* Wordmark — exact match to root landing */}
         <div style={{
           fontFamily: fonts.heading,
-          fontSize: '30px',
+          fontSize: '32px',
           fontWeight: 700,
-          color: colors.text,
+          color: '#EAFBF7',
           letterSpacing: '-0.05em',
-          marginBottom: '8px',
+          marginBottom: '10px',
         }}>
           Meridian
         </div>
 
-        {/* Brand label */}
+        {/* Brand label — exact match to root landing */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          marginBottom: '20px',
+          marginBottom: '48px',
         }}>
           <div style={{
             width: '5px', height: '5px', borderRadius: '50%',
-            background: colors.teal,
+            background: '#2DD4BF',
             boxShadow: '0 0 8px rgba(45,212,191,0.9), 0 0 16px rgba(45,212,191,0.4)',
           }} />
           <div style={{
@@ -180,13 +180,13 @@ export default function WelcomePage() {
             fontWeight: 700,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            color: colors.textMuted,
+            color: '#5F8E85',
           }}>
             Biological Intelligence System
           </div>
           <div style={{
             width: '5px', height: '5px', borderRadius: '50%',
-            background: colors.teal,
+            background: '#2DD4BF',
             boxShadow: '0 0 8px rgba(45,212,191,0.9), 0 0 16px rgba(45,212,191,0.4)',
           }} />
         </div>
@@ -199,7 +199,7 @@ export default function WelcomePage() {
             fontWeight: 400,
             color: colors.text,
             textAlign: 'center',
-            marginBottom: '10px',
+            marginBottom: '8px',
             lineHeight: 1.2,
             letterSpacing: '-0.03em',
             whiteSpace: 'nowrap',
@@ -215,7 +215,7 @@ export default function WelcomePage() {
             fontSize: '15px',
             color: colors.textSoft,
             textAlign: 'center',
-            marginBottom: '36px',
+            marginBottom: '24px',
             lineHeight: 1.75,
           }}
         >
