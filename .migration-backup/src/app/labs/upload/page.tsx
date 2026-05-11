@@ -176,6 +176,78 @@ function formatDateLong(iso: string): string {
   })
 }
 
+// ── Range bar helpers ──────────────────────────────────────────────────────────
+function getStateColor(state: string | null): string {
+  switch (state) {
+    case 'Optimal':   return '#2DD4BF'
+    case 'Watch':     return '#FACC15'
+    case 'Attention': return '#FB923C'
+    case 'Critical':  return '#F87171'
+    default:          return '#67E8F9'
+  }
+}
+
+function isUsableRange(min: number | null, max: number | null): boolean {
+  return (
+    min !== null && max !== null &&
+    typeof min === 'number' && typeof max === 'number' &&
+    !isNaN(min) && !isNaN(max) &&
+    isFinite(min) && isFinite(max) &&
+    min < max
+  )
+}
+
+interface RangeBarProps {
+  value: number
+  refMin: number
+  refMax: number
+  state: string | null
+}
+
+function BiomarkerRangeBar({ value, refMin, refMax, state }: RangeBarProps) {
+  const span   = refMax - refMin
+  const buffer = span * 0.25
+  const visMin = refMin - buffer
+  const visMax = refMax + buffer
+  const visSp  = visMax - visMin
+
+  const refStartPct = ((refMin - visMin) / visSp) * 100
+  const refEndPct   = ((refMax - visMin) / visSp) * 100
+  const rawPct      = ((value  - visMin) / visSp) * 100
+  const dotPct      = Math.max(0, Math.min(100, rawPct))
+  const dotColor    = getStateColor(state)
+
+  return (
+    <div style={{ width: '100%', paddingTop: '8px', paddingBottom: '2px' }}>
+      <div style={{ position: 'relative', height: '6px', backgroundColor: 'rgba(103,232,249,0.07)', borderRadius: '4px', width: '100%' }}>
+        <div style={{
+          position: 'absolute', top: 0, bottom: 0,
+          left: `${refStartPct}%`,
+          width: `${refEndPct - refStartPct}%`,
+          backgroundColor: 'rgba(103,232,249,0.20)',
+          borderRadius: '2px',
+        }} />
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: `${dotPct}%`,
+          transform: 'translate(-50%, -50%)',
+          width: '10px',
+          height: '10px',
+          borderRadius: '50%',
+          backgroundColor: dotColor,
+          boxShadow: `0 0 5px ${dotColor}90`,
+          zIndex: 1,
+        }} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
+        <span style={{ fontSize: '9px', color: 'rgba(95,142,133,0.65)', letterSpacing: '0.04em' }}>Low</span>
+        <span style={{ fontSize: '9px', color: 'rgba(95,142,133,0.65)', letterSpacing: '0.04em' }}>High</span>
+      </div>
+    </div>
+  )
+}
+
 // ── State style helpers ────────────────────────────────────────────────────────
 function getStateStyles(state: string) {
   switch (state) {
@@ -781,34 +853,48 @@ export default function LabsUploadPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {topAttentionMarkers.map(b => {
                         const s = getStateStyles(b.state ?? '')
+                        const showBar = isUsableRange(b.reference_range_min, b.reference_range_max)
                         return (
                           <div key={b.id} style={{
                             padding: '10px 14px',
                             backgroundColor: s.bg,
                             border: `1px solid ${s.border}`,
                             borderRadius: '10px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '8px',
                           }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                              <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: s.dot, flexShrink: 0 }} />
-                              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>
-                                {markerDisplayName(b.marker_name)}
-                              </span>
+                            {/* Name + value row */}
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '8px',
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                                <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: s.dot, flexShrink: 0 }} />
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>
+                                  {markerDisplayName(b.marker_name)}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                <span style={{ fontSize: '15px', fontWeight: 700, color: colors.text }}>{b.value}</span>
+                                {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
+                                <span style={{
+                                  padding: '2px 7px', borderRadius: '5px', fontSize: '10px', fontWeight: 700,
+                                  backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot,
+                                  letterSpacing: '0.04em',
+                                }}>
+                                  {s.label}
+                                </span>
+                              </div>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                              <span style={{ fontSize: '15px', fontWeight: 700, color: colors.text }}>{b.value}</span>
-                              {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
-                              <span style={{
-                                padding: '2px 7px', borderRadius: '5px', fontSize: '10px', fontWeight: 700,
-                                backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot,
-                                letterSpacing: '0.04em',
-                              }}>
-                                {s.label}
-                              </span>
-                            </div>
+                            {/* Range bar */}
+                            {showBar && (
+                              <BiomarkerRangeBar
+                                value={b.value}
+                                refMin={b.reference_range_min!}
+                                refMax={b.reference_range_max!}
+                                state={b.state}
+                              />
+                            )}
                           </div>
                         )
                       })}
