@@ -1,0 +1,104 @@
+We are continuing inside the working Meridian Next.js app.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Vercel production is currently working because Root Directory is set to .migration-backup.
+
+Do NOT restructure the repo.
+Do NOT move files out of .migration-backup.
+Do NOT touch root package files.
+Do NOT touch Vercel settings.
+Do NOT touch artifacts/.
+Do NOT publish to Replit.
+
+Current product issue:
+Labs appear to upload and save, but users cannot verify them because /labs/history is still a placeholder / coming soon screen.
+
+Product decision:
+Meridian must always save and show all confirmed labs in Lab History, regardless of whether the dashboard uses them for today’s insight.
+
+Saving data and generating today’s dashboard insight are separate concerns.
+
+Goal:
+Implement a real read-only Lab History page.
+
+Modify ONLY this file:
+
+.migration-backup/src/app/labs/history/page.tsx
+
+Do not touch:
+- /labs/upload
+- /api/insight
+- OCR routes
+- confirm routes
+- Supabase client files
+- database types
+- middleware
+- onboarding files
+- dashboard
+- package.json
+- artifacts/
+- dependencies
+
+Functional requirements:
+1. Authenticate the current user using the existing Supabase pattern in the app.
+2. Query biomarkers_static for the logged-in user.
+3. Show ALL saved biomarker rows for that user.
+4. Do not filter by collected_at date.
+5. Order by:
+   - collected_at descending
+   - created_at descending
+6. Group rows by collected_at date.
+7. For each collection date group, show:
+   - Collection date
+   - Number of biomarkers
+   - Biomarkers saved on that date
+8. For each biomarker, show available fields:
+   - marker_name
+   - value
+   - unit
+   - state if available
+   - reference_range_min / reference_range_max if available
+   - collected_at or created_at if useful
+9. If no biomarkers exist, show:
+   “No saved labs yet.”
+10. If the query fails, show a clear error state.
+11. Remove any “Coming soon” placeholder.
+12. Keep the page read-only.
+13. Do not add edit/delete/trends/charts yet.
+
+Design requirements:
+Match Meridian’s current visual direction:
+- dark biological OS background
+- teal/cyan accents
+- premium glassmorphism
+- Fraunces for title
+- Plus Jakarta Sans for UI text
+- mobile-first
+- readable cards
+- enough bottom padding so bottom nav does not cover content
+- consistent with the current onboarding/dashboard style
+
+Before editing:
+1. Inspect the current history page.
+2. Inspect biomarkers_static usage in the codebase.
+3. Confirm the exact column names available.
+4. Briefly report the implementation plan.
+
+Then implement only the history page.
+
+After editing:
+1. Report every file changed.
+2. Confirm no other files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   - /labs/history
+5. Confirm build passes.
+6. Explain how this page proves labs were saved.
+7. Do not commit.
+8. Do not push.
+9. Do not publish to Replit.
