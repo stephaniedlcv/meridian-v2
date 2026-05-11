@@ -187,15 +187,15 @@ export default function GoalsPage() {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '7px',
-            fontSize: '9px',
-            fontWeight: 800,
-            letterSpacing: '0.16em',
+            fontSize: '10px',
+            fontWeight: 700,
+            letterSpacing: '0.12em',
             textTransform: 'uppercase',
             color: colors.teal,
-            padding: '5px 12px',
-            border: '1px solid rgba(45,212,191,0.25)',
+            padding: '5px 14px',
+            border: '1px solid rgba(45,212,191,0.28)',
             borderRadius: '20px',
-            background: 'rgba(45,212,191,0.06)',
+            background: 'rgba(45,212,191,0.07)',
           }}>
             <div style={{
               width: '4px', height: '4px', borderRadius: '50%',
@@ -222,11 +222,12 @@ export default function GoalsPage() {
             <h1 style={{
               margin: '0 0 10px',
               fontFamily: 'var(--font-fraunces), serif',
-              fontSize: 'clamp(28px, 5vw, 40px)',
-              lineHeight: 1.05,
+              fontSize: 'clamp(24px, 4vw, 30px)',
+              lineHeight: 1.08,
               letterSpacing: '-0.04em',
               color: colors.text,
               fontWeight: 700,
+              whiteSpace: 'nowrap',
             }}>
               What&apos;s your health goal?
             </h1>

@@ -301,13 +301,15 @@ export default function ConnectPage() {
         {/* Headline */}
         <h1
           style={{
-            fontFamily: fonts.heading,
-            fontSize: '32px',
-            fontWeight: 400,
+            fontFamily: 'var(--font-fraunces), serif',
+            fontSize: 'clamp(24px, 4vw, 30px)',
+            fontWeight: 700,
             color: colors.text,
             textAlign: 'center',
             marginBottom: '12px',
-            lineHeight: 1.2,
+            lineHeight: 1.08,
+            letterSpacing: '-0.04em',
+            whiteSpace: 'nowrap',
           }}
         >
           Connect your data
