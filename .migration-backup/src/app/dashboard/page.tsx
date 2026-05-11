@@ -118,17 +118,28 @@ export default function DashboardPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        position: 'relative',
+        overflow: 'hidden',
       }}>
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-          style={{
-            width: '48px', height: '48px',
-            border: `3px solid ${colors.cardBorder}`,
-            borderTopColor: colors.teal,
-            borderRadius: '50%',
-          }}
-        />
+        <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '50%', height: '50%', background: `radial-gradient(circle, ${colors.teal}18 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '50%', height: '50%', background: `radial-gradient(circle, ${colors.cyan}14 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            position: 'absolute', inset: '-16px', borderRadius: '50%',
+            boxShadow: `0 0 0 1px rgba(103,232,249,0.12), 0 0 32px rgba(45,212,191,0.18)`,
+          }} />
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            style={{
+              width: '48px', height: '48px',
+              border: `2px solid ${colors.cardBorder}`,
+              borderTopColor: colors.teal,
+              borderRadius: '50%',
+              boxShadow: `0 0 16px rgba(45,212,191,0.2)`,
+            }}
+          />
+        </div>
       </div>
     )
   }
@@ -141,9 +152,10 @@ export default function DashboardPage() {
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Ambient orbs */}
-      <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '50%', height: '50%', background: `radial-gradient(circle, ${colors.teal}15 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '50%', height: '50%', background: `radial-gradient(circle, ${colors.cyan}15 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
+      {/* Ambient orbs — three layers for depth */}
+      <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '55%', height: '55%', background: `radial-gradient(circle, ${colors.teal}1E 0%, transparent 70%)`, filter: 'blur(90px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '55%', height: '55%', background: `radial-gradient(circle, ${colors.cyan}18 0%, transparent 70%)`, filter: 'blur(90px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '45%', left: '50%', transform: 'translateX(-50%)', width: '60%', height: '35%', background: `radial-gradient(circle, ${colors.cyan}0A 0%, transparent 70%)`, filter: 'blur(120px)', pointerEvents: 'none' }} />
 
       <div style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 24px 100px', position: 'relative', zIndex: 1 }}>
 
@@ -160,17 +172,29 @@ export default function DashboardPage() {
         >
           <div>
             <div style={{
+              fontSize: '9px', fontWeight: 700, letterSpacing: '0.16em',
+              textTransform: 'uppercase', color: colors.textMuted,
+              marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '6px',
+            }}>
+              <div style={{
+                width: '4px', height: '4px', borderRadius: '50%',
+                background: colors.teal,
+                boxShadow: `0 0 6px ${colors.teal}`,
+              }} />
+              Active Session
+            </div>
+            <div style={{
               fontFamily: fonts.heading,
               fontSize: '24px',
               fontWeight: 400,
               background: `linear-gradient(135deg, ${colors.teal}, ${colors.cyan})`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              marginBottom: '4px',
+              marginBottom: '3px',
             }}>
               Meridian
             </div>
-            <div style={{ fontSize: '14px', color: colors.textMuted }}>
+            <div style={{ fontSize: '13px', color: colors.textMuted }}>
               Hi, {userName}
             </div>
           </div>
@@ -180,11 +204,13 @@ export default function DashboardPage() {
               padding: '8px 16px',
               backgroundColor: colors.cardBg,
               border: `1px solid ${colors.cardBorder}`,
-              borderRadius: '8px',
+              borderRadius: '10px',
               color: colors.textMuted,
               fontSize: '13px',
               cursor: 'pointer',
               fontFamily: fonts.ui,
+              backdropFilter: 'blur(16px)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
             }}
           >
             Log out
@@ -229,14 +255,15 @@ export default function DashboardPage() {
               padding: '16px',
               backgroundColor: colors.cardBg,
               border: `1px solid ${colors.cardBorder}`,
-              borderRadius: '16px',
+              borderRadius: '18px',
               cursor: 'pointer',
-              backdropFilter: 'blur(24px)',
+              backdropFilter: 'blur(28px)',
               textAlign: 'center',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 20px rgba(45,212,191,0.04)',
             }}
           >
             <div style={{ fontSize: '20px', marginBottom: '6px' }}>🧪</div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>Upload Labs</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text, letterSpacing: '-0.01em' }}>Upload Labs</div>
           </button>
         </motion.div>
 
@@ -270,16 +297,27 @@ function NoDataBlock({ onUpload }: { onUpload: () => void }) {
       backgroundColor: colors.cardBg,
       border: `1px solid ${colors.cardBorder}`,
       borderRadius: '24px',
-      borderLeft: `4px solid ${colors.teal}`,
+      borderLeft: `3px solid ${colors.teal}`,
       overflow: 'hidden',
-      backdropFilter: 'blur(24px)',
+      backdropFilter: 'blur(28px)',
+      boxShadow: `0 0 0 1px ${colors.cardBorder}, 0 0 40px rgba(45,212,191,0.07), inset 0 1px 0 rgba(255,255,255,0.05)`,
     }}>
       <div style={{ padding: '28px 24px 20px' }}>
+        {/* Status chip */}
         <div style={{
-          fontSize: '10px', fontWeight: 800, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: colors.teal, marginBottom: '14px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+          textTransform: 'uppercase', color: colors.teal,
+          marginBottom: '16px',
+          padding: '4px 10px',
+          border: `1px solid rgba(45,212,191,0.25)`,
+          borderRadius: '20px',
+          background: 'rgba(45,212,191,0.06)',
         }}>
-          Getting started
+          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: `0 0 5px ${colors.teal}` }} />
+          Awaiting Biological Input
         </div>
         <h2 style={{
           fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700,
@@ -304,6 +342,8 @@ function NoDataBlock({ onUpload }: { onUpload: () => void }) {
             fontSize: '16px',
             fontWeight: 800,
             cursor: 'pointer',
+            boxShadow: `0 0 24px rgba(45,212,191,0.3), 0 0 60px rgba(45,212,191,0.1), inset 0 1px 0 rgba(255,255,255,0.2)`,
+            letterSpacing: '-0.01em',
           }}
         >
           Upload your first lab PDF →
@@ -322,16 +362,27 @@ function CalibratingBlock({ onUpload }: { onUpload: () => void }) {
       backgroundColor: colors.cardBg,
       border: `1px solid ${colors.cardBorder}`,
       borderRadius: '24px',
-      borderLeft: `4px solid ${colors.cyan}`,
+      borderLeft: `3px solid ${colors.cyan}`,
       overflow: 'hidden',
-      backdropFilter: 'blur(24px)',
+      backdropFilter: 'blur(28px)',
+      boxShadow: `0 0 0 1px ${colors.cardBorder}, 0 0 40px rgba(103,232,249,0.07), inset 0 1px 0 rgba(255,255,255,0.05)`,
     }}>
       <div style={{ padding: '28px 24px 20px' }}>
+        {/* Status chip */}
         <div style={{
-          fontSize: '10px', fontWeight: 800, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: colors.cyan, marginBottom: '14px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+          textTransform: 'uppercase', color: colors.cyan,
+          marginBottom: '16px',
+          padding: '4px 10px',
+          border: `1px solid rgba(103,232,249,0.25)`,
+          borderRadius: '20px',
+          background: 'rgba(103,232,249,0.06)',
         }}>
-          Calibrating
+          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.cyan, boxShadow: `0 0 5px ${colors.cyan}` }} />
+          Calibration State
         </div>
         <h2 style={{
           fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700,
@@ -356,6 +407,8 @@ function CalibratingBlock({ onUpload }: { onUpload: () => void }) {
             fontSize: '16px',
             fontWeight: 800,
             cursor: 'pointer',
+            boxShadow: `0 0 24px rgba(45,212,191,0.3), 0 0 60px rgba(45,212,191,0.1), inset 0 1px 0 rgba(255,255,255,0.2)`,
+            letterSpacing: '-0.01em',
           }}
         >
           Upload more labs →
@@ -373,20 +426,64 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
       backgroundColor: bc.bg,
       border: `1px solid ${bc.border}`,
       borderRadius: '24px',
-      borderLeft: `4px solid ${bc.accent}`,
+      borderLeft: `3px solid ${bc.accent}`,
       overflow: 'hidden',
-      backdropFilter: 'blur(24px)',
+      backdropFilter: 'blur(28px)',
+      boxShadow: `0 0 0 1px ${bc.border}, 0 0 48px ${bc.accent}12, inset 0 1px 0 rgba(255,255,255,0.06)`,
     }}>
       {/* Header */}
       <div style={{ padding: '28px 24px 20px', borderBottom: `1px solid ${colors.cardBorder}` }}>
+        {/* Top row: signal chip + status badge */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '14px',
+        }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+            textTransform: 'uppercase', color: bc.accent,
+            padding: '4px 10px',
+            border: `1px solid ${bc.accent}40`,
+            borderRadius: '20px',
+            background: `${bc.accent}0D`,
+          }}>
+            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: bc.accent, boxShadow: `0 0 6px ${bc.accent}` }} />
+            Biological Signal
+          </div>
+          <div style={{
+            fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em',
+            textTransform: 'uppercase', color: colors.textMuted,
+            padding: '3px 10px',
+            border: `1px solid ${colors.cardBorder}`,
+            borderRadius: '20px',
+            background: colors.cardBg,
+          }}>
+            Active
+          </div>
+        </div>
+
         {safetyAlert && (
           <div style={{
-            fontSize: '10px', fontWeight: 800, letterSpacing: '0.12em',
-            textTransform: 'uppercase', color: '#F87171', marginBottom: '10px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+            textTransform: 'uppercase', color: '#F87171',
+            marginBottom: '12px',
+            padding: '4px 10px',
+            border: '1px solid rgba(248,113,113,0.3)',
+            borderRadius: '20px',
+            background: 'rgba(248,113,113,0.07)',
           }}>
-            ⚠ Requires attention
+            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#F87171', boxShadow: '0 0 5px #F87171' }} />
+            ⚠ Requires Attention
           </div>
         )}
+
         <h2 style={{
           fontFamily: fonts.heading,
           fontSize: 'clamp(24px, 5vw, 36px)',
@@ -420,10 +517,10 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
       {/* Action Steps */}
       <div style={{ padding: '20px 24px' }}>
         <div style={{
-          fontSize: '10px', fontWeight: 800, letterSpacing: '0.12em',
+          fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
           textTransform: 'uppercase', color: bc.accent, marginBottom: '14px',
         }}>
-          Today&apos;s actions
+          Today&apos;s Priority
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {insight.action_steps.map((step, i) => (
@@ -435,16 +532,19 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
                 alignItems: 'flex-start',
                 padding: '14px 16px',
                 backgroundColor: 'rgba(255,255,255,0.025)',
-                borderRadius: '12px',
+                borderRadius: '14px',
                 border: `1px solid ${colors.cardBorder}`,
+                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.05), inset 0 0 0 1px ${bc.accent}08`,
               }}
             >
               <div style={{
                 width: '24px', height: '24px', borderRadius: '8px',
-                backgroundColor: `${bc.accent}20`,
+                backgroundColor: `${bc.accent}1A`,
+                border: `1px solid ${bc.accent}30`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '12px', fontWeight: 800, color: bc.accent,
                 flexShrink: 0,
+                boxShadow: `0 0 8px ${bc.accent}18`,
               }}>
                 {i + 1}
               </div>
@@ -455,15 +555,28 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
           ))}
         </div>
 
-        {/* Trust Line */}
+        {/* Confidence Trace */}
         <div style={{
-          marginTop: '16px',
-          fontSize: '11px',
-          color: colors.textMuted,
-          textAlign: 'center',
-          lineHeight: 1.5,
+          marginTop: '20px',
+          paddingTop: '16px',
+          borderTop: `1px solid rgba(103,232,249,0.07)`,
         }}>
-          {insight.trust_line}
+          <div style={{
+            fontSize: '9px', fontWeight: 700, letterSpacing: '0.14em',
+            textTransform: 'uppercase', color: colors.textMuted,
+            marginBottom: '6px',
+            textAlign: 'center',
+          }}>
+            Confidence Trace
+          </div>
+          <div style={{
+            fontSize: '11px',
+            color: colors.textMuted,
+            textAlign: 'center',
+            lineHeight: 1.5,
+          }}>
+            {insight.trust_line}
+          </div>
         </div>
       </div>
     </div>
