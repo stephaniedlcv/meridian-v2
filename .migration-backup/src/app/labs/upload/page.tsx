@@ -230,16 +230,17 @@ function BiomarkerRangeBar({ value, refMin, refMax, state }: RangeBarProps) {
 
   return (
     <div style={{ width: '100%', paddingTop: '6px' }}>
-      {/* Track — gradient communicates Low → Optimal → High */}
+      {/* Track — warm edges → teal/cyan center → warm edges */}
       <div style={{
         position: 'relative',
         height: '8px',
         borderRadius: '6px',
         width: '100%',
-        background: 'linear-gradient(to right, rgba(248,113,113,0.40) 0%, rgba(251,146,60,0.30) 22%, rgba(45,212,191,0.50) 50%, rgba(251,146,60,0.30) 78%, rgba(248,113,113,0.40) 100%)',
+        background: 'linear-gradient(to right, rgba(248,113,113,0.65) 0%, rgba(251,146,60,0.50) 20%, rgba(45,212,191,0.72) 50%, rgba(251,146,60,0.50) 80%, rgba(248,113,113,0.65) 100%)',
+        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)',
         overflow: 'visible',
       }}>
-        {/* Value dot — state-colored ring, dark center */}
+        {/* Value knob — solid state-color, no black center, premium polished */}
         <div style={{
           position: 'absolute',
           top: '50%',
@@ -248,9 +249,9 @@ function BiomarkerRangeBar({ value, refMin, refMax, state }: RangeBarProps) {
           width: '16px',
           height: '16px',
           borderRadius: '50%',
-          backgroundColor: 'rgba(6,19,22,0.92)',
-          border: `3px solid ${dotColor}`,
-          boxShadow: `0 0 10px ${dotColor}BB, 0 0 4px ${dotColor}60`,
+          backgroundColor: dotColor,
+          border: '2px solid rgba(255,255,255,0.22)',
+          boxShadow: `0 0 12px ${dotColor}CC, 0 0 5px ${dotColor}60, inset 0 1px 0 rgba(255,255,255,0.28)`,
           zIndex: 2,
         }} />
       </div>
@@ -651,9 +652,10 @@ function BiomarkerDetailSheet({
         borderBottom: 'none',
         borderRadius: '20px 20px 0 0',
         fontFamily: fonts.ui,
+        boxShadow: '0 -6px 48px rgba(0,0,0,0.50), 0 -1px 0 rgba(103,232,249,0.06)',
       }}>
         {/* Handle */}
-        <div style={{ width: '36px', height: '4px', borderRadius: '2px', backgroundColor: 'rgba(103,232,249,0.2)', margin: '12px auto 0' }} />
+        <div style={{ width: '40px', height: '4px', borderRadius: '2px', backgroundColor: 'rgba(103,232,249,0.28)', margin: '14px auto 0' }} />
 
         {/* Header */}
         <div style={{ padding: '14px 20px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
@@ -680,7 +682,7 @@ function BiomarkerDetailSheet({
         </div>
 
         {/* Body */}
-        <div style={{ padding: '14px 20px 52px' }}>
+        <div style={{ padding: '14px 20px max(52px, calc(env(safe-area-inset-bottom, 0px) + 32px))' }}>
 
           {/* Value card */}
           <div style={{ ...cardStyle, textAlign: 'center', padding: '20px 16px' }}>
@@ -726,7 +728,11 @@ function BiomarkerDetailSheet({
                 )}
               </>
             ) : (
-              <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>Range data not available for this result.</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0' }}>
+                <div style={{ flex: 1, height: '1px', background: `linear-gradient(to right, transparent, ${dotColor}28)` }} />
+                <span style={{ fontSize: '11px', color: colors.textMuted, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>No reference range on file</span>
+                <div style={{ flex: 1, height: '1px', background: `linear-gradient(to left, transparent, ${dotColor}28)` }} />
+              </div>
             )}
           </div>
 
@@ -1648,7 +1654,7 @@ export default function LabsUploadPage() {
                                     {showBar ? (
                                       <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} />
                                     ) : (
-                                      <p style={{ fontSize: '12px', color: colors.textMuted, margin: '4px 0 0' }}>No range data available.</p>
+                                      <div style={{ height: '3px', borderRadius: '2px', marginTop: '10px', background: `linear-gradient(90deg, transparent 0%, ${s.dot}38 35%, ${s.dot}55 65%, transparent 100%)` }} />
                                     )}
                                   </div>
                                 )
@@ -1701,8 +1707,10 @@ export default function LabsUploadPage() {
                                   <span style={{ fontSize: '22px', fontWeight: 800, color: colors.text, lineHeight: '1' }}>{b.value}</span>
                                   {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                 </div>
-                                {showBar && (
+                                {showBar ? (
                                   <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} />
+                                ) : (
+                                  <div style={{ height: '3px', borderRadius: '2px', marginTop: '10px', background: `linear-gradient(90deg, transparent 0%, ${s.dot}38 35%, ${s.dot}55 65%, transparent 100%)` }} />
                                 )}
                               </div>
                             )
