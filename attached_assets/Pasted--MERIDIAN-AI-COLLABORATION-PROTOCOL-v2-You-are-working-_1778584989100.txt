@@ -1,0 +1,159 @@
+# MERIDIAN — AI COLLABORATION PROTOCOL v2
+
+You are working on Meridian — a Health Intelligence System.
+Stack: Next.js 14 App Router · TypeScript · Supabase · Vercel
+
+## CRITICAL RULES
+- Modify ONLY the Labs snapshot rendering logic
+- Do NOT redesign the page
+- Do NOT change spacing system, typography, colors, gradients, glassmorphism, or animations
+- Do NOT touch History page
+- Do NOT add dependencies
+- Inline styles only
+- Preserve current filter functionality exactly as-is
+- Return COMPLETE modified file only
+
+---
+
+# TASK — Group Filtered Biomarkers By Source Panel
+
+The current Labs snapshot filters work correctly:
+
+- Optimal
+- Watch
+- Attention
+- Critical
+
+When a filter chip is active, biomarkers are currently rendered as one flat list.
+
+This loses clinical context.
+
+We now want filtered results grouped by their originating lab panel/source category.
+
+---
+
+# GOAL
+
+When a filter chip is active:
+
+Instead of:
+
+- Vitamin B12
+- Chloride
+- HDL Cholesterol
+
+Render:
+
+## Vitamins & Nutrients
+- Vitamin B12
+
+## CMP
+- Chloride
+
+## Lipid Panel
+- HDL Cholesterol
+
+---
+
+# IMPORTANT
+
+This grouping is ONLY for:
+- filtered views
+- active status chips
+
+DO NOT change:
+- default Labs snapshot rendering
+- History page
+- panel summary cards
+- deduplication logic
+- counts logic
+- filter toggle behavior
+
+---
+
+# IMPLEMENTATION REQUIREMENTS
+
+## 1. Build grouped filtered structure
+
+Create a derived grouped structure from the already-existing filtered biomarkers list.
+
+Group by:
+- panel_name
+OR
+- source_panel
+(whatever already exists in the data structure)
+
+Fallback:
+"Other"
+
+---
+
+## 2. Preserve ordering
+
+Keep current ordering rules:
+- Critical first
+- Attention second
+- Watch third
+- Optimal fourth
+
+Inside each group:
+- preserve current biomarker order
+
+DO NOT alphabetically sort unless already happening naturally.
+
+---
+
+## 3. Add section headers
+
+Each grouped section should render:
+
+- small uppercase subtle label
+- same visual language as existing section labels
+- no redesign
+
+Example style:
+- muted teal/gray
+- tracking spacing
+- margin-top between groups
+
+---
+
+## 4. Preserve biomarker cards exactly
+
+Do NOT redesign cards.
+
+Each biomarker card must remain:
+- clickable
+- same glow
+- same range bar
+- same spacing
+- same badge rendering
+- same detail sheet behavior
+
+---
+
+## 5. Empty states remain unchanged
+
+If no biomarkers match:
+"No biomarkers in this status for your recent snapshot."
+
+Keep existing card styling.
+
+---
+
+# EXPECTED RESULT
+
+When tapping:
+- Watch
+- Attention
+- Optimal
+- Critical
+
+User sees:
+- grouped biomarkers by source panel
+- same interactions
+- same visual system
+- more clinical clarity
+- more “Meridian intelligence” feel
+
+Return the COMPLETE modified file only.
