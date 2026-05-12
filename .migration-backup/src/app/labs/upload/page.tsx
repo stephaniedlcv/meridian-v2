@@ -324,6 +324,237 @@ function getInterpretation(slug: string): string {
   return INTERPRETATIONS[slug] ?? 'This biomarker adds context to your saved lab profile.'
 }
 
+// ── Micro-intelligence layer ───────────────────────────────────────────────────
+interface BiomarkerIntel { why: string; context: string }
+const BIOMARKER_CONTEXT: Record<string, BiomarkerIntel> = {
+  // ── Thyroid ─────────────────────────────────────────────────────────────────
+  tsh: {
+    why: 'TSH helps Meridian understand thyroid signaling, metabolic rate, and the body\'s energy regulation patterns over time.',
+    context: 'Meridian evaluates this alongside free T3, T4, cortisol, and metabolic markers for a fuller picture.',
+  },
+  free_t4: {
+    why: 'Free T4 reflects the available form of thyroxine and influences metabolism, temperature regulation, and sustained energy.',
+    context: 'This signal becomes more meaningful when combined with TSH and T3 trends over time.',
+  },
+  free_t3: {
+    why: 'Free T3 is the active thyroid hormone that drives cellular energy use and metabolic adaptation.',
+    context: 'Meridian tracks this alongside TSH and T4 to understand thyroid function as an integrated system.',
+  },
+  total_t3: {
+    why: 'Total T3 reflects the overall circulating level of the primary active thyroid hormone and contributes to metabolic context.',
+    context: 'Meridian evaluates thyroid markers as a cluster rather than interpreting any single value in isolation.',
+  },
+  // ── CBC ─────────────────────────────────────────────────────────────────────
+  wbc: {
+    why: 'White blood cell count helps Meridian understand immune activity and the body\'s response to physiological stress.',
+    context: 'Meridian evaluates this alongside differential markers and inflammatory signals for fuller immune context.',
+  },
+  rbc: {
+    why: 'Red blood cell count gives context on the blood\'s capacity to carry oxygen to tissues throughout the body.',
+    context: 'Meridian tracks this alongside hemoglobin, hematocrit, and ferritin for a complete oxygen-transport picture.',
+  },
+  hemoglobin: {
+    why: 'Hemoglobin carries oxygen through the bloodstream and is central to energy metabolism, endurance, and circulation.',
+    context: 'Meridian evaluates this alongside RBC, hematocrit, and ferritin to understand oxygen transport patterns.',
+  },
+  hematocrit: {
+    why: 'Hematocrit reflects the proportion of red blood cells in the blood and gives context on oxygen-carrying capacity.',
+    context: 'Meridian tracks this alongside hemoglobin and RBC as part of the complete blood picture.',
+  },
+  mcv: {
+    why: 'MCV measures average red blood cell size, which can provide context on nutrient status and cell production patterns.',
+    context: 'Meridian evaluates MCV alongside B12, folate, and iron markers for nutrient-related context.',
+  },
+  mch: {
+    why: 'MCH reflects the average amount of hemoglobin per red blood cell, giving context on cell quality and oxygen capacity.',
+    context: 'Meridian evaluates MCH as part of the complete blood cell picture rather than in isolation.',
+  },
+  mchc: {
+    why: 'MCHC reflects the concentration of hemoglobin within red blood cells, adding context on red cell quality.',
+    context: 'Meridian tracks MCHC alongside other CBC markers for a fuller picture of red blood cell health.',
+  },
+  rdw: {
+    why: 'RDW measures variation in red blood cell size, which can provide context on iron status and cell production patterns.',
+    context: 'Meridian evaluates RDW alongside CBC markers, ferritin, and B12 for nutrient and cell context.',
+  },
+  platelet_count: {
+    why: 'Platelets are involved in clotting and vascular repair. Meridian tracks counts as part of the blood cell profile.',
+    context: 'Meridian evaluates platelet count alongside other CBC and inflammatory markers for context.',
+  },
+  // ── Glycemic ────────────────────────────────────────────────────────────────
+  hba1c: {
+    why: 'A1c reflects average blood glucose exposure over approximately the past three months, helping Meridian understand glycemic patterns over time.',
+    context: 'Meridian evaluates this alongside fasting glucose and insulin to build a fuller metabolic picture.',
+  },
+  insulin_fasting: {
+    why: 'Fasting insulin provides context on how the body manages blood sugar between meals and signals metabolic efficiency.',
+    context: 'Meridian tracks this alongside glucose and A1c to understand insulin sensitivity patterns over time.',
+  },
+  glucose_fasting: {
+    why: 'Fasting glucose gives context on how the body manages blood sugar at rest and provides a metabolic baseline.',
+    context: 'Meridian evaluates this alongside A1c and insulin to understand glycemic patterns over time.',
+  },
+  // ── Lipid Panel ─────────────────────────────────────────────────────────────
+  total_cholesterol: {
+    why: 'Total cholesterol reflects the sum of all cholesterol in the blood and provides baseline context for cardiovascular patterns.',
+    context: 'Meridian evaluates total cholesterol alongside HDL, LDL, and triglycerides rather than as a standalone signal.',
+  },
+  hdl: {
+    why: 'HDL helps transport cholesterol and is often associated with cardiovascular and metabolic health patterns over time.',
+    context: 'Meridian evaluates HDL alongside LDL, triglycerides, and inflammation markers for cardiovascular context.',
+  },
+  ldl: {
+    why: 'LDL is one of the primary cholesterol transport markers and is tracked by Meridian as a long-term cardiovascular signal.',
+    context: 'Meridian evaluates LDL alongside HDL ratio, inflammation, and metabolic markers for fuller context.',
+  },
+  vldl: {
+    why: 'VLDL carries triglycerides through the bloodstream and can provide context for metabolic and cardiovascular patterns.',
+    context: 'Meridian tracks VLDL alongside triglycerides and other lipid markers as part of the broader cardiovascular picture.',
+  },
+  triglycerides: {
+    why: 'Triglycerides reflect circulating blood fats and provide context on metabolic health, energy storage, and diet patterns.',
+    context: 'Meridian evaluates triglycerides alongside HDL and insulin markers to understand metabolic context.',
+  },
+  non_hdl: {
+    why: 'Non-HDL cholesterol captures all potentially atherogenic particles and can be a useful cardiovascular signal over time.',
+    context: 'Meridian tracks this alongside LDL, triglycerides, and inflammatory markers for cardiovascular context.',
+  },
+  ldl_hdl_ratio: {
+    why: 'The LDL/HDL ratio provides context on the balance between protective and atherogenic cholesterol carriers.',
+    context: 'Meridian uses ratios as one layer of cardiovascular context alongside absolute lipid values.',
+  },
+  chol_hdl_ratio: {
+    why: 'The total cholesterol/HDL ratio is a cardiovascular signal that reflects the balance between all cholesterol and protective HDL.',
+    context: 'Meridian evaluates this ratio alongside absolute lipid values and inflammatory markers.',
+  },
+  // ── Hormones ────────────────────────────────────────────────────────────────
+  testosterone_total: {
+    why: 'Testosterone provides context on hormonal signaling patterns related to energy, recovery, muscle, and mood.',
+    context: 'Meridian evaluates this alongside cortisol, DHEA-S, and metabolic markers for hormonal system context.',
+  },
+  cortisol_am: {
+    why: 'Morning cortisol provides context on adrenal signaling and the body\'s stress response at the start of the day.',
+    context: 'Meridian evaluates cortisol alongside thyroid, glucose, and inflammatory markers for a fuller stress-recovery picture.',
+  },
+  dhea_s: {
+    why: 'DHEA-S is an adrenal precursor hormone that provides context on hormonal reserve and adrenal function over time.',
+    context: 'Meridian tracks this alongside cortisol and testosterone for hormonal system context.',
+  },
+  // ── Inflammation / Cardiac Risk ─────────────────────────────────────────────
+  crp_hs: {
+    why: 'High-sensitivity CRP helps Meridian understand low-grade systemic inflammation and cardiovascular risk signals over time.',
+    context: 'Meridian evaluates this alongside homocysteine, lipid, and metabolic markers for inflammation context.',
+  },
+  homocysteine: {
+    why: 'Homocysteine provides context on cardiovascular risk, B-vitamin metabolism, and methylation patterns.',
+    context: 'Meridian evaluates this alongside B12, folate, and inflammatory markers as part of cardiovascular context.',
+  },
+  // ── Vitamins & Nutrients ────────────────────────────────────────────────────
+  vitamin_d: {
+    why: 'Vitamin D influences immune signaling, recovery, mood regulation, and long-term musculoskeletal resilience.',
+    context: 'Meridian evaluates this alongside inflammatory markers and hormonal signals for broader context.',
+  },
+  vitamin_b12: {
+    why: 'Vitamin B12 supports nerve function, red blood cell formation, and energy metabolism at a cellular level.',
+    context: 'Meridian tracks B12 alongside folate, homocysteine, and CBC markers for nutrient context.',
+  },
+  folate: {
+    why: 'Folate is essential for cell division, DNA synthesis, and red blood cell production.',
+    context: 'Meridian evaluates folate alongside B12, homocysteine, and CBC markers for nutrient context.',
+  },
+  magnesium: {
+    why: 'Magnesium is involved in hundreds of enzymatic reactions and provides context on muscle, nerve, and energy regulation.',
+    context: 'Meridian tracks magnesium alongside electrolytes and metabolic markers for nutrient context.',
+  },
+  ferritin: {
+    why: 'Ferritin reflects stored iron levels and provides context on energy metabolism, oxygen transport, and immune function.',
+    context: 'Meridian evaluates ferritin alongside hemoglobin, RBC, and other CBC markers for iron-related context.',
+  },
+  // ── Kidney / Renal ──────────────────────────────────────────────────────────
+  creatinine: {
+    why: 'Creatinine reflects muscle metabolism and kidney filtration efficiency, and is a key marker in Meridian\'s renal context.',
+    context: 'Meridian evaluates creatinine alongside BUN, eGFR, and hydration signals for kidney context.',
+  },
+  bun: {
+    why: 'BUN reflects how well the kidneys are filtering protein waste from the blood and provides metabolic and hydration context.',
+    context: 'Meridian evaluates BUN alongside creatinine and eGFR for kidney function context.',
+  },
+  bun_creatinine_ratio: {
+    why: 'The BUN/creatinine ratio helps Meridian understand kidney function relative to muscle mass and hydration status.',
+    context: 'Meridian uses this ratio as part of the broader renal and hydration picture.',
+  },
+  egfr: {
+    why: 'eGFR estimates kidney filtration rate and is central to Meridian\'s understanding of long-term kidney health patterns.',
+    context: 'Meridian tracks eGFR over time alongside creatinine and BUN for comprehensive kidney context.',
+  },
+  egfr_african_american: {
+    why: 'This eGFR estimate accounts for biological variation in creatinine production and provides kidney filtration context.',
+    context: 'Meridian evaluates this alongside creatinine and BUN for kidney function context.',
+  },
+  egfr_non_african_american: {
+    why: 'eGFR estimates kidney filtration rate and is central to Meridian\'s understanding of long-term kidney health patterns.',
+    context: 'Meridian tracks eGFR over time alongside creatinine and BUN for comprehensive kidney context.',
+  },
+  // ── Liver ───────────────────────────────────────────────────────────────────
+  ast: {
+    why: 'AST reflects cellular stress in the liver and muscle and provides context for liver and tissue health patterns over time.',
+    context: 'Meridian evaluates AST alongside ALT and alkaline phosphatase for liver enzyme context.',
+  },
+  alt: {
+    why: 'ALT is a liver-specific enzyme that helps Meridian understand liver health and cellular stress patterns over time.',
+    context: 'Meridian evaluates ALT alongside AST and other liver markers for a fuller hepatic picture.',
+  },
+  alkaline_phosphatase: {
+    why: 'Alkaline phosphatase provides context on liver, bile duct, and bone health patterns.',
+    context: 'Meridian evaluates this alongside AST, ALT, and bilirubin for liver and tissue context.',
+  },
+  bilirubin_total: {
+    why: 'Bilirubin reflects red blood cell breakdown and liver processing, providing context on hepatic function.',
+    context: 'Meridian tracks bilirubin alongside liver enzymes and CBC markers for context.',
+  },
+  albumin: {
+    why: 'Albumin is a major blood protein that provides context on nutritional status, liver function, and protein metabolism.',
+    context: 'Meridian evaluates albumin alongside total protein, A/G ratio, and liver markers.',
+  },
+  globulin: {
+    why: 'Globulin reflects immune-related proteins and provides context on liver function and immune activity.',
+    context: 'Meridian evaluates globulin alongside albumin, total protein, and liver enzymes for context.',
+  },
+  total_protein: {
+    why: 'Total protein provides context on nutritional status, liver function, and the body\'s overall protein production capacity.',
+    context: 'Meridian evaluates this alongside albumin, globulin, and liver markers.',
+  },
+  ag_ratio: {
+    why: 'The albumin/globulin ratio provides context on the balance between key blood proteins and liver health patterns.',
+    context: 'Meridian evaluates this ratio alongside albumin, globulin, and liver enzyme markers.',
+  },
+  // ── CMP electrolytes ────────────────────────────────────────────────────────
+  sodium: {
+    why: 'Sodium helps Meridian understand fluid balance, electrolyte regulation, and kidney function.',
+    context: 'Meridian evaluates sodium alongside potassium, chloride, and CO2 as part of electrolyte balance.',
+  },
+  potassium: {
+    why: 'Potassium is critical for heart rhythm, muscle contraction, and cellular energy balance.',
+    context: 'Meridian tracks potassium alongside sodium and other electrolytes for cardiovascular and metabolic context.',
+  },
+  chloride: {
+    why: 'Chloride helps Meridian understand acid-base balance and electrolyte regulation.',
+    context: 'Meridian evaluates chloride alongside sodium, CO2, and other CMP markers.',
+  },
+  co2: {
+    why: 'CO2 (bicarbonate) provides context on acid-base balance and how well the body is managing metabolic waste.',
+    context: 'Meridian tracks CO2 alongside chloride and electrolytes for acid-base context.',
+  },
+  calcium: {
+    why: 'Calcium supports bone structure, muscle contraction, nerve signaling, and heart function.',
+    context: 'Meridian evaluates calcium alongside vitamin D and metabolic markers for mineral context.',
+  },
+  anion_gap: {
+    why: 'The anion gap provides context on acid-base balance and can signal metabolic shifts in the blood.',
+    context: 'Meridian evaluates the anion gap alongside other CMP markers for metabolic context.',
+  },
+}
+
 // ── Biomarker Detail Sheet ─────────────────────────────────────────────────────
 function BiomarkerDetailSheet({
   biomarker,
@@ -346,7 +577,7 @@ function BiomarkerDetailSheet({
   const dotColor    = getStateColor(biomarker.state)
   const hasRange    = isUsableRange(biomarker.reference_range_min, biomarker.reference_range_max)
   const hasOptimal  = isUsableRange(biomarker.optimal_range_min, biomarker.optimal_range_max)
-  const interp      = getInterpretation(biomarker.marker_name)
+  const intel       = BIOMARKER_CONTEXT[biomarker.marker_name]
 
   const prev = allBiomarkers
     .filter(b =>
@@ -499,18 +730,20 @@ function BiomarkerDetailSheet({
             )}
           </div>
 
-          {/* About this marker */}
+          {/* Why it matters */}
           <div style={cardStyle}>
-            <p style={labelStyle}>About this marker</p>
-            <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.6, margin: 0 }}>{interp}</p>
+            <p style={labelStyle}>Why it matters</p>
+            <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: 0 }}>
+              {intel?.why ?? 'This biomarker contributes to Meridian\'s understanding of your biological state.'}
+            </p>
           </div>
 
-          {/* Context */}
+          {/* Meridian context */}
           <div style={{ ...cardStyle, marginBottom: 0 }}>
-            <p style={labelStyle}>Context</p>
-            <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: '0 0 5px' }}>Meridian uses this marker as one part of your broader biological context.</p>
-            <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: '0 0 5px' }}>Trends over time are usually more useful than one isolated result.</p>
-            <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>This is educational context only, not a diagnosis.</p>
+            <p style={labelStyle}>Meridian context</p>
+            <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.65, margin: 0 }}>
+              {intel?.context ?? 'Meridian evaluates this signal alongside related biomarkers and recovery patterns.'}
+            </p>
           </div>
 
         </div>
