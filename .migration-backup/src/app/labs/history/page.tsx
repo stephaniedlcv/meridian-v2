@@ -653,6 +653,9 @@ export default function LabsHistoryPage() {
   // Tracks which panel cards are expanded: key = `${dateKey}::${panel}`
   const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set())
   const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerRow | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [deleteConfirmDate, setDeleteConfirmDate] = useState<string | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -661,6 +664,8 @@ export default function LabsHistoryPage() {
         router.push('/onboarding/welcome')
         return
       }
+
+      setUserId(user.id)
 
       const { data, error: fetchError } = await supabase
         .from('biomarkers_static')
@@ -689,6 +694,28 @@ export default function LabsHistoryPage() {
       else next.add(key)
       return next
     })
+  }
+
+  async function handleDeleteSession(dateKey: string) {
+    if (!userId) return
+    setDeleteLoading(true)
+    const nextDay = new Date(dateKey + 'T00:00:00Z')
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1)
+    const { error: deleteError } = await supabase
+      .from('biomarkers_static')
+      .delete()
+      .eq('user_id', userId)
+      .gte('collected_at', `${dateKey}T00:00:00.000Z`)
+      .lt('collected_at', nextDay.toISOString())
+    if (deleteError) {
+      console.error('[Meridian] Delete session error:', deleteError)
+      setDeleteLoading(false)
+      setDeleteConfirmDate(null)
+      return
+    }
+    setBiomarkers(prev => prev.filter(b => utcDateKey(b.collected_at) !== dateKey))
+    setDeleteConfirmDate(null)
+    setDeleteLoading(false)
   }
 
   const yearGroups = groupRows(biomarkers)
@@ -859,12 +886,86 @@ export default function LabsHistoryPage() {
                         {dateGroup.label}
                       </span>
                       {/* Counts */}
-                      <span style={{ fontSize: '12px', color: colors.textMuted }}>
+                      <span style={{ fontSize: '12px', color: colors.textMuted, flex: 1 }}>
                         {dateGroup.total} {dateGroup.total === 1 ? 'biomarker' : 'biomarkers'}
                         {' · '}
                         {dateGroup.panelCount} {dateGroup.panelCount === 1 ? 'panel' : 'panels'}
                       </span>
+                      {/* Delete session button */}
+                      <button
+                        onClick={() => setDeleteConfirmDate(
+                          deleteConfirmDate === dateGroup.dateKey ? null : dateGroup.dateKey
+                        )}
+                        style={{
+                          padding: '3px 9px',
+                          backgroundColor: 'transparent',
+                          border: `1px solid rgba(95,142,133,0.28)`,
+                          borderRadius: '6px',
+                          color: colors.textMuted,
+                          fontFamily: fonts.ui,
+                          fontSize: '11px',
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        Delete
+                      </button>
                     </div>
+
+                    {/* Delete confirmation */}
+                    {deleteConfirmDate === dateGroup.dateKey && (
+                      <div style={{
+                        marginBottom: '10px',
+                        padding: '12px 16px',
+                        backgroundColor: 'rgba(248,113,113,0.07)',
+                        border: '1px solid rgba(248,113,113,0.22)',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        flexWrap: 'wrap',
+                      }}>
+                        <span style={{ fontSize: '13px', color: colors.textSoft, flex: 1, lineHeight: 1.5 }}>
+                          Delete all {dateGroup.total} biomarkers from {dateGroup.label}? This cannot be undone.
+                        </span>
+                        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                          <button
+                            onClick={() => setDeleteConfirmDate(null)}
+                            style={{
+                              padding: '6px 14px',
+                              backgroundColor: 'transparent',
+                              border: `1px solid ${colors.cardBorder}`,
+                              borderRadius: '7px',
+                              color: colors.textMuted,
+                              fontFamily: fonts.ui,
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSession(dateGroup.dateKey)}
+                            disabled={deleteLoading}
+                            style={{
+                              padding: '6px 14px',
+                              backgroundColor: 'rgba(248,113,113,0.13)',
+                              border: '1px solid rgba(248,113,113,0.38)',
+                              borderRadius: '7px',
+                              color: '#F87171',
+                              fontFamily: fonts.ui,
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                            }}
+                          >
+                            {deleteLoading ? 'Deleting...' : 'Delete session'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* ── Panel cards ── */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

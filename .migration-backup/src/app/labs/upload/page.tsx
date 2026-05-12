@@ -530,6 +530,7 @@ export default function LabsUploadPage() {
   const [confirmed, setConfirmed] = useState(false)
   const [savedCount, setSavedCount] = useState(0)
   const [labDate, setLabDate] = useState<string>('')
+  const [duplicateWarning, setDuplicateWarning] = useState<{ count: number; slugs: string[] } | null>(null)
 
   // ── Recent snapshot state ────────────────────────────────────────────────────
   const [recentBiomarkers, setRecentBiomarkers] = useState<RecentBiomarker[]>([])
@@ -623,19 +624,17 @@ export default function LabsUploadPage() {
     }
   }
 
-  async function handleConfirm() {
+  async function doSave() {
     if (!staged || !userId) return
     setConfirming(true)
     setError(null)
+    setDuplicateWarning(null)
     try {
+      const collectedAt = labDate ? new Date(labDate).toISOString() : new Date().toISOString()
       const response = await fetch('/api/ocr/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: userId,
-          biomarkers: staged,
-          collected_at: labDate ? new Date(labDate).toISOString() : new Date().toISOString(),
-        }),
+        body: JSON.stringify({ user_id: userId, biomarkers: staged, collected_at: collectedAt }),
       })
       const data = await response.json()
       if (!data.success) { setError(data.error || 'Failed to save biomarkers'); setConfirming(false); return }
@@ -646,6 +645,41 @@ export default function LabsUploadPage() {
       setError('Failed to save biomarkers')
       setConfirming(false)
     }
+  }
+
+  async function handleConfirm(force = false) {
+    if (!staged || !userId) return
+    setError(null)
+
+    // ── Collection date validation ────────────────────────────────────────────
+    if (!labDate) { setError('Please set a collection date before saving.'); return }
+    const dateVal = new Date(labDate)
+    const today = new Date()
+    if (isNaN(dateVal.getTime())) { setError('Please enter a valid collection date.'); return }
+    if (dateVal > today) { setError('Collection date cannot be in the future.'); return }
+    if (dateVal.getFullYear() < 1900) { setError('Please enter a valid collection date (after 1900).'); return }
+
+    // ── Duplicate detection ───────────────────────────────────────────────────
+    if (!force) {
+      const nextDay = new Date(labDate + 'T00:00:00Z')
+      nextDay.setUTCDate(nextDay.getUTCDate() + 1)
+      const { data: existing } = await supabase
+        .from('biomarkers_static')
+        .select('marker_name')
+        .eq('user_id', userId)
+        .gte('collected_at', `${labDate}T00:00:00.000Z`)
+        .lt('collected_at', nextDay.toISOString())
+      if (existing && existing.length > 0) {
+        const existingSet = new Set(existing.map((r: { marker_name: string }) => r.marker_name))
+        const overlapping = staged.filter(b => !b.flag_error && existingSet.has(b.slug)).map(b => b.slug)
+        if (overlapping.length > 0) {
+          setDuplicateWarning({ count: overlapping.length, slugs: overlapping })
+          return
+        }
+      }
+    }
+
+    await doSave()
   }
 
   function handleReset() {
@@ -812,7 +846,7 @@ export default function LabsUploadPage() {
                 justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap',
               }}>
                 <div>
-                  <span style={{ fontSize: '13px', color: colors.textMuted, display: 'block', marginBottom: '4px' }}>Collection Date</span>
+                  <span style={{ fontSize: '13px', color: colors.textMuted, display: 'block', marginBottom: '4px' }}>Collection Date — correct if needed</span>
                   <span style={{ fontSize: '15px', color: colors.text, fontWeight: 600 }}>
                     {labDate ? new Date(labDate + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not detected'}
                   </span>
@@ -893,10 +927,52 @@ export default function LabsUploadPage() {
                 </div>
               )}
 
+              {/* Duplicate warning */}
+              {duplicateWarning && (
+                <div style={{
+                  padding: '16px 20px',
+                  backgroundColor: 'rgba(250,204,21,0.07)',
+                  border: '1px solid rgba(250,204,21,0.28)',
+                  borderRadius: '12px',
+                  marginBottom: '16px',
+                }}>
+                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#FCD34D', margin: '0 0 6px' }}>
+                    Possible duplicate detected
+                  </p>
+                  <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 14px', lineHeight: 1.5 }}>
+                    {duplicateWarning.count} {duplicateWarning.count === 1 ? 'biomarker' : 'biomarkers'} from this date may already exist in your history. You can cancel or save anyway.
+                  </p>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      onClick={() => setDuplicateWarning(null)}
+                      style={{
+                        padding: '8px 16px', borderRadius: '8px',
+                        border: '1px solid rgba(250,204,21,0.3)',
+                        backgroundColor: 'transparent', color: '#FCD34D',
+                        fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleConfirm(true)}
+                      style={{
+                        padding: '8px 16px', borderRadius: '8px',
+                        border: '1px solid rgba(250,204,21,0.3)',
+                        backgroundColor: 'rgba(250,204,21,0.1)', color: '#FCD34D',
+                        fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                      }}
+                    >
+                      Save anyway
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Action buttons */}
               <div style={{ display: 'flex', gap: '12px' }}>
                 <motion.button
-                  onClick={handleConfirm}
+                  onClick={() => handleConfirm()}
                   disabled={confirming || !labDate}
                   whileHover={confirming || !labDate ? {} : { scale: 1.02 }}
                   whileTap={confirming || !labDate ? {} : { scale: 0.98 }}

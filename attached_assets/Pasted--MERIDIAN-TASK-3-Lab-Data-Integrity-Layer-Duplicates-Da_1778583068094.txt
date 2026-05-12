@@ -1,0 +1,211 @@
+# MERIDIAN — TASK 3: Lab Data Integrity Layer (Duplicates + Date Correction)
+
+You are working on Meridian.
+
+Stack:
+- Next.js 14 App Router
+- Supabase
+- TypeScript
+- Vercel
+
+IMPORTANT:
+- The real app lives inside .migration-backup/
+- Do NOT move files
+- Do NOT restructure repo
+- Do NOT redesign the Labs UI
+- Do NOT add dependencies
+- Do NOT touch artifacts/
+- Do NOT implement full CRUD editing yet
+
+This task is ONLY about Phase 1 data integrity and trust hardening.
+
+---
+
+# PROBLEM
+
+Meridian now has:
+- stronger onboarding
+- better source panel grouping
+- stronger visual trust
+
+But there are critical data integrity risks:
+
+1. Duplicate labs can be saved multiple times.
+2. OCR/parser can assign incorrect collection dates.
+3. Users currently cannot correct mistakes.
+4. Incorrect dates corrupt timeline/history trust.
+
+This task is focused ONLY on:
+- duplicate protection
+- collection date correction
+- safe delete flow
+
+NOT advanced editing.
+
+---
+
+# GOALS
+
+Implement minimal but trustworthy Phase 1 correction/safety controls.
+
+---
+
+# REQUIRED FEATURES
+
+## 1. Collection Date Correction (P0)
+
+During lab review / confirmation flow:
+
+Users must be able to:
+- see the detected collection date
+- manually correct it BEFORE saving
+
+Requirements:
+- editable field
+- clearly labeled
+- preserve Meridian styling
+- validate reasonable date format
+- do NOT allow impossible dates
+- corrected date must persist to Supabase
+
+IMPORTANT:
+This is ONLY for collection date right now.
+Do NOT implement full biomarker editing.
+
+---
+
+# 2. Duplicate Detection Before Save (P0)
+
+Before saving confirmed biomarkers:
+
+Check for likely duplicates using combinations such as:
+- user_id
+- marker_slug
+- collected_at
+- source_panel
+- value
+
+Goal:
+prevent obvious duplicate uploads/saves.
+
+---
+
+## Expected behavior
+
+If likely duplicates are detected:
+
+Do NOT silently save duplicates.
+
+Instead show a clear warning such as:
+> “Some of these biomarkers may already exist in your history.”
+
+Allow user to:
+- cancel
+OR
+- continue intentionally
+
+Do NOT fully block saving yet.
+
+This is a soft protection layer for Phase 1.
+
+---
+
+# 3. Prevent accidental duplicate counts
+
+History counts and panel totals should NOT inflate incorrectly because of accidental duplicate uploads.
+
+If the same upload was repeated accidentally:
+- counts should remain trustworthy
+- snapshot/history should not look corrupted
+
+Implement the safest lightweight approach possible without major architecture changes.
+
+---
+
+# 4. Delete Lab Entry / Upload Session (P1)
+
+Add a lightweight delete capability.
+
+Minimum acceptable implementation:
+- delete an uploaded lab group/session
+- OR delete all biomarkers associated with one upload/date/panel
+
+Goal:
+allow recovery from:
+- wrong upload
+- wrong OCR date
+- corrupted extraction
+- accidental duplicate upload
+
+---
+
+## IMPORTANT
+
+Do NOT:
+- implement complex edit systems
+- edit individual biomarkers yet
+- redesign History UI
+- add audit logs yet
+- add full undo systems
+- add biological/source toggle yet
+
+This is ONLY:
+# Phase 1 trust hardening.
+
+---
+
+# UX PRINCIPLES
+
+Meridian should feel:
+- safe
+- recoverable
+- trustworthy
+
+Users should NEVER feel:
+> “One parser mistake permanently ruined my health history.”
+
+---
+
+# VALIDATION CASES
+
+## Case 1 — Duplicate upload
+
+Upload same PDF twice.
+
+Expected:
+- duplicate warning appears
+- user understands possible duplicate
+- history does not inflate uncontrollably
+
+---
+
+## Case 2 — Wrong OCR date
+
+Parser extracts wrong date.
+
+Expected:
+- user can manually correct before save
+- corrected date persists correctly
+- history timeline becomes accurate
+
+---
+
+## Case 3 — Accidental save
+
+User uploads incorrect lab.
+
+Expected:
+- user can delete that lab entry/session
+- history recovers cleanly
+
+---
+
+# RETURN FORMAT
+
+Return:
+1. Files changed
+2. Duplicate logic implemented
+3. Collection date correction implementation
+4. Delete flow implementation
+5. Any remaining edge cases
+6. Confirmation no files outside .migration-backup/ were modified
