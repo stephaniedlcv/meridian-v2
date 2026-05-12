@@ -76,10 +76,13 @@ interface RecentBiomarker {
 
 // ── Panel inference (local, not imported from history) ─────────────────────────
 const SLUG_TO_PANEL: Record<string, string> = {
-  tsh: 'Thyroid', free_t4: 'Thyroid', free_t3: 'Thyroid', total_t3: 'Thyroid',
+  // Phase 1 hardening: harmonized with history page ('Thyroid Panel' not 'Thyroid')
+  tsh: 'Thyroid Panel', free_t4: 'Thyroid Panel', free_t3: 'Thyroid Panel', total_t3: 'Thyroid Panel',
   wbc: 'CBC', rbc: 'CBC', hemoglobin: 'CBC', hematocrit: 'CBC',
   mcv: 'CBC', mch: 'CBC', mchc: 'CBC', rdw: 'CBC',
-  platelet_count: 'CBC', platelet_count_abs: 'CBC',
+  // Phase 1 hardening: added canonical 'platelets' + 'mpv' slugs alongside legacy aliases
+  platelets: 'CBC', platelet_count: 'CBC', platelet_count_abs: 'CBC',
+  mpv: 'CBC',
   neutrophils_pct: 'CBC', neutrophils_abs: 'CBC',
   lymphocytes_pct: 'CBC', lymphocytes_abs: 'CBC',
   monocytes_pct: 'CBC', monocytes_abs: 'CBC',
@@ -109,7 +112,7 @@ function inferPanel(slug: string): string {
 
 const PANEL_ORDER = [
   'CBC', 'Lipid Panel', 'CMP', 'Kidney / Renal', 'Liver',
-  'Glycemic', 'Thyroid', 'Vitamins & Nutrients',
+  'Glycemic', 'Thyroid Panel', 'Vitamins & Nutrients',
   'Hormones', 'Inflammation / Cardiac Risk', 'Other',
 ]
 
@@ -117,7 +120,7 @@ const PANEL_EDUCATION: Record<string, string> = {
   'CBC':                      'This panel helps Meridian understand blood cell patterns, oxygen-carrying capacity, and immune cell context.',
   'CMP':                      'This panel gives context on metabolism, electrolytes, kidney markers, liver enzymes, and protein balance.',
   'Lipid Panel':              'This panel helps Meridian understand cholesterol transport and cardiovascular risk signals over time.',
-  'Thyroid':                  'This panel gives context on thyroid signaling, metabolism, energy, and recovery patterns.',
+  'Thyroid Panel':            'This panel gives context on thyroid signaling, metabolism, energy, and recovery patterns.',
   'Glycemic':                 'This panel helps Meridian understand blood sugar regulation and longer-term glucose trends.',
   'Kidney / Renal':           'This panel gives context on filtration, hydration balance, and kidney-related markers.',
   'Liver':                    'This panel helps Meridian understand liver enzyme patterns and protein metabolism context.',

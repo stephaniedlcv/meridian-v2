@@ -1,6 +1,18 @@
 // MERIDIAN — Canonical Biomarker Dictionary v3
 // Fixes: LDL/VLDL confusion, added ratios, absolute counts, anion gap
 // Improved fuzzy matching with protected terms
+// Phase 1 hardening: expanded aliases, TSH/CBC/CMP/Thyroid/Vitamins/HbA1c normalization
+//
+// ── Future evolution hooks (NOT YET IMPLEMENTED) ─────────────────────────────
+// - Alias learning from pending_biomarkers admin review console
+// - Admin classification UI for resolving unmatched markers
+// - upload_session_id linkage for per-session alias traceability
+// - source_pdf_hash for deduplication across identical lab PDFs
+// - International lab format support (UK, European, Asian naming conventions)
+// - Multilingual alias expansion (Spanish, Portuguese, French, German, Japanese)
+// - Confidence scoring per alias match (exact > alias > partial > heuristic)
+// - Canonical dictionary version history for audit trails
+// ─────────────────────────────────────────────────────────────────────────────
 
 export type RiskProfile = 'linear-high' | 'linear-low' | 'u-shaped' | 'context'
 
@@ -52,7 +64,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'free_t4',
     name: 'Free T4',
     unit: 'ng/dL',
-    aliases: ['free t4', 'ft4', 'free thyroxine', 'free thyroxine ft4', 't4 libre', 'tiroxina libre', 't4 free', 'thyroxine free'],
+    aliases: ['free t4', 'ft4', 'free thyroxine', 'free thyroxine ft4', 't4 libre', 'tiroxina libre', 't4 free', 'thyroxine free',
+      // additional real-world lab report variants
+      't4 free thyroxine', 'thyroxine, free', 't4, free', 'free thyroxin', 't4 direct',
+    ],
     system: 'thyroid',
     riskProfile: 'u-shaped',
     normalF: { min: 0.8, max: 1.8 },
@@ -67,7 +82,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'free_t3',
     name: 'Free T3',
     unit: 'pg/mL',
-    aliases: ['free t3', 'ft3', 'triiodothyronine free', 't3 libre', 'triiodotironina libre', 't3 free'],
+    aliases: ['free t3', 'ft3', 'triiodothyronine free', 't3 libre', 'triiodotironina libre', 't3 free',
+      // additional real-world lab report variants
+      't3, free', 'triiodothyronine, free', 'free triiodothyronine', 't3 free serum', 't3 direct',
+    ],
     system: 'thyroid',
     riskProfile: 'u-shaped',
     normalF: { min: 2.0, max: 4.4 },
@@ -82,7 +100,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'total_t3',
     name: 'Total T3',
     unit: 'ng/mL',
-    aliases: ['total t3', 't3 total', 'triiodothyronine', 'triiodotironina'],
+    aliases: ['total t3', 't3 total', 'triiodothyronine', 'triiodotironina',
+      // additional real-world lab report variants
+      't3, total', 'total triiodothyronine', 't3 total serum', 'triiodothyronine total',
+    ],
     system: 'thyroid',
     riskProfile: 'u-shaped',
     normalF: { min: 0.6, max: 1.81 },
@@ -99,7 +120,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'hba1c',
     name: 'Hemoglobin A1c',
     unit: '%',
-    aliases: ['hba1c', 'a1c', 'glycated hemoglobin', 'hemoglobina glicosilada', 'glycated hb', 'hemoglobin a1c', 'hb a1c'],
+    aliases: ['hba1c', 'a1c', 'glycated hemoglobin', 'hemoglobina glicosilada', 'glycated hb', 'hemoglobin a1c', 'hb a1c',
+      // Phase 1 hardening — common real-world variants
+      'glycohemoglobin', 'glycohaemoglobin', 'hemoglobin a1c blood', 'glycated hemoglobin a1c', 'a1c blood',
+    ],
     system: 'metabolic',
     riskProfile: 'linear-high',
     normalF: { min: 4.0, max: 5.6 },
@@ -114,7 +138,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'glucose_fasting',
     name: 'Fasting Glucose',
     unit: 'mg/dL',
-    aliases: ['glucose', 'glucosa', 'glucose fasting', 'glucosa ayunas', 'blood sugar', 'glicemia', 'glucosa basal', 'fasting glucose', 'fasting blood sugar', 'blood glucose'],
+    aliases: ['glucose', 'glucosa', 'glucose fasting', 'glucosa ayunas', 'blood sugar', 'glicemia', 'glucosa basal', 'fasting glucose', 'fasting blood sugar', 'blood glucose',
+      // Phase 1 hardening — serum/plasma variants common on CMP printouts
+      'serum glucose', 'glucose serum', 'plasma glucose', 'glucose plasma', 'glucose blood', 'glucose, serum', 'glucose, plasma',
+    ],
     system: 'metabolic',
     riskProfile: 'u-shaped',
     normalF: { min: 70, max: 100 },
@@ -293,7 +320,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'ast',
     name: 'AST',
     unit: 'U/L',
-    aliases: ['ast', 'asat', 'sgot', 'aspartato aminotransferasa', 'aspartate aminotransferase'],
+    aliases: ['ast', 'asat', 'sgot', 'aspartato aminotransferasa', 'aspartate aminotransferase',
+      // Phase 1 hardening — common CMP printout variants
+      'got', 'ast serum', 'ast/sgot', 'aspartate transaminase',
+    ],
     system: 'liver',
     riskProfile: 'linear-high',
     normalF: { min: 5, max: 35 },
@@ -308,7 +338,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'alt',
     name: 'ALT',
     unit: 'U/L',
-    aliases: ['alt', 'alat', 'sgpt', 'alanina aminotransferasa', 'alanine aminotransferase'],
+    aliases: ['alt', 'alat', 'sgpt', 'alanina aminotransferasa', 'alanine aminotransferase',
+      // Phase 1 hardening — common CMP printout variants
+      'gpt', 'alt serum', 'alt/sgpt', 'alanine transaminase',
+    ],
     system: 'liver',
     riskProfile: 'linear-high',
     normalF: { min: 5, max: 35 },
@@ -323,7 +356,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'alkaline_phosphatase',
     name: 'Alkaline Phosphatase',
     unit: 'U/L',
-    aliases: ['alkaline phosphatase', 'alp', 'alk phos', 'fosfatasa alcalina', 'alkp'],
+    aliases: ['alkaline phosphatase', 'alp', 'alk phos', 'fosfatasa alcalina', 'alkp',
+      // Phase 1 hardening — real-world abbreviation variants
+      'alk p', 'alkaline phos', 'alk phosphatase', 'alkaline phosphatase serum', 'alp serum',
+    ],
     system: 'liver',
     riskProfile: 'u-shaped',
     normalF: { min: 35, max: 105 },
@@ -338,7 +374,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'bilirubin_total',
     name: 'Total Bilirubin',
     unit: 'mg/dL',
-    aliases: ['total bilirubin', 'bilirubin total', 'bilirrubina total', 'bilirubin', 'tbil'],
+    aliases: ['total bilirubin', 'bilirubin total', 'bilirrubina total', 'bilirubin', 'tbil',
+      // Phase 1 hardening — common CMP label variants
+      'tbili', 't bili', 'total bili', 'bilirubin, total', 'bilirubin total serum',
+    ],
     system: 'liver',
     riskProfile: 'linear-high',
     normalF: { min: 0.1, max: 1.2 },
@@ -353,7 +392,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'total_protein',
     name: 'Total Protein',
     unit: 'g/dL',
-    aliases: ['total protein', 'proteina total', 'protein total', 'tp'],
+    aliases: ['total protein', 'proteina total', 'protein total', 'tp',
+      // Phase 1 hardening — CMP printout variants
+      'protein serum', 'total protein serum', 'protein, total', 'protein total serum',
+    ],
     system: 'liver',
     riskProfile: 'u-shaped',
     normalF: { min: 6.0, max: 8.3 },
@@ -368,7 +410,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'albumin',
     name: 'Albumin',
     unit: 'g/dL',
-    aliases: ['albumin', 'albumina', 'alb', 'serum albumin'],
+    aliases: ['albumin', 'albumina', 'alb', 'serum albumin',
+      // Phase 1 hardening — CMP printout variants
+      'albumin blood', 'alb serum', 'albumin serum', 'albumin, serum',
+    ],
     system: 'liver',
     riskProfile: 'linear-low',
     normalF: { min: 3.5, max: 5.5 },
@@ -420,6 +465,8 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
       'filtrado glomerular', 'glomerular filtration rate',
       'estimated gfr', 'estimated glomerular filtration rate',
       'gfr ckd-epi', 'egfr ckd-epi',
+      // Phase 1 hardening — hyphen-stripped and additional CKD-EPI variants
+      'egfr ckd epi', 'gfr ckd epi', 'creatinine based egfr', 'egfr creatinine',
     ],
     system: 'kidney',
     riskProfile: 'linear-low',
@@ -478,7 +525,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'creatinine',
     name: 'Creatinine',
     unit: 'mg/dL',
-    aliases: ['creatinine', 'creatinina', 'creat', 's-creatinina', 'serum creatinine'],
+    aliases: ['creatinine', 'creatinina', 'creat', 's-creatinina', 'serum creatinine',
+      // Phase 1 hardening — CMP printout variants
+      'creatinine blood', 'creat serum', 'creatinine serum', 'creatinina serica',
+    ],
     system: 'kidney',
     riskProfile: 'linear-high',
     normalF: { min: 0.5, max: 1.1 },
@@ -493,7 +543,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'bun',
     name: 'BUN',
     unit: 'mg/dL',
-    aliases: ['bun', 'blood urea nitrogen', 'urea nitrogen', 'urea', 'nitrogeno ureico'],
+    aliases: ['bun', 'blood urea nitrogen', 'urea nitrogen', 'urea', 'nitrogeno ureico',
+      // Phase 1 hardening — CMP printout variants
+      'bun serum', 'urea nitrogen serum', 'bun blood', 'urea nitrogen blood',
+    ],
     system: 'kidney',
     riskProfile: 'u-shaped',
     normalF: { min: 6, max: 20 },
@@ -525,7 +578,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'sodium',
     name: 'Sodium',
     unit: 'mmol/L',
-    aliases: ['sodium', 'sodio', 'na+', 'serum sodium'],
+    aliases: ['sodium', 'sodio', 'na+', 'serum sodium',
+      // Phase 1 hardening — electrolyte shorthand and CMP printout variants
+      'na', 'sodium serum', 'sodium blood', 'na serum',
+    ],
     system: 'electrolytes',
     riskProfile: 'u-shaped',
     normalF: { min: 136, max: 145 },
@@ -540,7 +596,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'potassium',
     name: 'Potassium',
     unit: 'mmol/L',
-    aliases: ['potassium', 'potasio', 'k+', 'serum potassium'],
+    aliases: ['potassium', 'potasio', 'k+', 'serum potassium',
+      // Phase 1 hardening — electrolyte shorthand and CMP printout variants
+      'k', 'potassium serum', 'potassium blood', 'k serum',
+    ],
     system: 'electrolytes',
     riskProfile: 'u-shaped',
     normalF: { min: 3.5, max: 5.0 },
@@ -555,7 +614,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'chloride',
     name: 'Chloride',
     unit: 'mmol/L',
-    aliases: ['chloride', 'cloruro', 'cl-', 'serum chloride'],
+    aliases: ['chloride', 'cloruro', 'cl-', 'serum chloride',
+      // Phase 1 hardening — electrolyte shorthand and CMP printout variants
+      'cl', 'chloride serum', 'chloride blood', 'cl serum',
+    ],
     system: 'electrolytes',
     riskProfile: 'u-shaped',
     normalF: { min: 98, max: 106 },
@@ -570,7 +632,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'co2',
     name: 'CO2 (Bicarbonate)',
     unit: 'mmol/L',
-    aliases: ['co2', 'carbon dioxide', 'carbon dioxide total', 'bicarbonate', 'hco3', 'co2 total', 'total co2'],
+    aliases: ['co2', 'carbon dioxide', 'carbon dioxide total', 'bicarbonate', 'hco3', 'co2 total', 'total co2',
+      // Phase 1 hardening — common shorthand seen on CMP printouts
+      'bicarb', 'co2 serum', 'co2, bicarbonate', 'co2 bicarbonate', 'carbon dioxide serum',
+    ],
     system: 'electrolytes',
     riskProfile: 'u-shaped',
     normalF: { min: 20, max: 29 },
@@ -585,7 +650,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'calcium',
     name: 'Calcium',
     unit: 'mg/dL',
-    aliases: ['calcium', 'calcio', 'serum calcium', 'total calcium'],
+    aliases: ['calcium', 'calcio', 'serum calcium', 'total calcium',
+      // Phase 1 hardening — electrolyte shorthand and CMP printout variants
+      'ca', 'calcium blood', 'ca serum', 'calcium, total', 'calcium serum',
+    ],
     system: 'electrolytes',
     riskProfile: 'u-shaped',
     normalF: { min: 8.5, max: 10.5 },
@@ -651,7 +719,11 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'vitamin_d',
     name: 'Vitamin D',
     unit: 'ng/mL',
-    aliases: ['vitamin d', 'vitamina d', '25-oh vitamin d', '25-hydroxyvitamin d', 'calcidiol', 'vit d3', '25-oh vitamina d', 'cholecalciferol', 'vitamin d 25-hydroxy', 'vitamin d 25-oh'],
+    aliases: ['vitamin d', 'vitamina d', '25-oh vitamin d', '25-hydroxyvitamin d', 'calcidiol', 'vit d3', '25-oh vitamina d', 'cholecalciferol', 'vitamin d 25-hydroxy', 'vitamin d 25-oh',
+      // Phase 1 hardening — common abbreviated and alternate spellings
+      'vit d', 'vitamin d3', '25 oh vitamin d', '25 hydroxyvitamin d', '25-hydroxy vitamin d',
+      'vitamin d total', 'calcifediol', 'vitamin d 25 oh', 'd3 25-oh', '25(oh)vitamin d',
+    ],
     system: 'nutrients',
     riskProfile: 'linear-low',
     normalF: { min: 30, max: 100 },
@@ -666,7 +738,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'vitamin_b12',
     name: 'Vitamin B12',
     unit: 'pg/mL',
-    aliases: ['vitamin b12', 'vitamina b12', 'b12', 'cobalamin', 'cyanocobalamin', 'cobalamina', 'vitamin b-12', 'b-12', 'vit b12', 'vit b-12'],
+    aliases: ['vitamin b12', 'vitamina b12', 'b12', 'cobalamin', 'cyanocobalamin', 'cobalamina', 'vitamin b-12', 'b-12', 'vit b12', 'vit b-12',
+      // Phase 1 hardening — methylcobalamin form and spacing variants
+      'methylcobalamin', 'vitamin b 12', 'vit b 12', 'b12 serum', 'cobalamin serum',
+    ],
     system: 'nutrients',
     riskProfile: 'linear-low',
     normalF: { min: 200, max: 900 },
@@ -762,7 +837,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'hemoglobin',
     name: 'Hemoglobin',
     unit: 'g/dL',
-    aliases: ['hemoglobin', 'hemoglobina', 'hgb', 'hb'],
+    aliases: ['hemoglobin', 'hemoglobina', 'hgb', 'hb',
+      // Phase 1 hardening — UK spelling and blood qualifier variants
+      'haemoglobin', 'haemoglobina', 'hemoglobin blood',
+    ],
     system: 'blood',
     riskProfile: 'u-shaped',
     normalF: { min: 12.0, max: 16.0 },
@@ -777,7 +855,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'hematocrit',
     name: 'Hematocrit',
     unit: '%',
-    aliases: ['hematocrit', 'hematocrito', 'hct'],
+    aliases: ['hematocrit', 'hematocrito', 'hct',
+      // Phase 1 hardening — UK spelling and packed-cell volume equivalents
+      'haematocrit', 'pcv', 'packed cell volume',
+    ],
     system: 'blood',
     riskProfile: 'u-shaped',
     normalF: { min: 36, max: 46 },
@@ -792,7 +873,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'rbc',
     name: 'Red Blood Cells',
     unit: 'M/µL',
-    aliases: ['rbc', 'red blood cells', 'red blood cell count', 'eritrocitos', 'globulos rojos'],
+    aliases: ['rbc', 'red blood cells', 'red blood cell count', 'eritrocitos', 'globulos rojos',
+      // Phase 1 hardening — alternate clinical terms
+      'red cell count', 'erythrocytes', 'erythrocyte count',
+    ],
     system: 'blood',
     riskProfile: 'u-shaped',
     normalF: { min: 3.9, max: 5.0 },
@@ -807,7 +891,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'mcv',
     name: 'MCV',
     unit: 'fL',
-    aliases: ['mcv', 'mean corpuscular volume'],
+    aliases: ['mcv', 'mean corpuscular volume',
+      // Phase 1 hardening — "cell" vs "corpuscular" clinical synonym
+      'mean cell volume', 'mcv blood',
+    ],
     system: 'blood',
     riskProfile: 'u-shaped',
     normalF: { min: 80, max: 100 },
@@ -822,7 +909,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'mch',
     name: 'MCH',
     unit: 'pg',
-    aliases: ['mch', 'mean corpuscular hemoglobin'],
+    aliases: ['mch', 'mean corpuscular hemoglobin',
+      // Phase 1 hardening
+      'mean cell hemoglobin',
+    ],
     system: 'blood',
     riskProfile: 'u-shaped',
     normalF: { min: 27, max: 33 },
@@ -837,7 +927,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'mchc',
     name: 'MCHC',
     unit: 'g/dL',
-    aliases: ['mchc', 'mean corpuscular hemoglobin concentration'],
+    aliases: ['mchc', 'mean corpuscular hemoglobin concentration',
+      // Phase 1 hardening
+      'mean cell hemoglobin concentration',
+    ],
     system: 'blood',
     riskProfile: 'u-shaped',
     normalF: { min: 31, max: 37 },
@@ -852,7 +945,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'rdw',
     name: 'RDW',
     unit: '%',
-    aliases: ['rdw', 'red cell distribution width', 'rdw-cv'],
+    aliases: ['rdw', 'red cell distribution width', 'rdw-cv',
+      // Phase 1 hardening — SD variant and whitespace-normalized forms
+      'rdw-sd', 'rdw sd', 'rdw cv', 'red blood cell distribution width',
+    ],
     system: 'blood',
     riskProfile: 'linear-high',
     normalF: { min: 11.5, max: 14.5 },
@@ -867,7 +963,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'mpv',
     name: 'MPV',
     unit: 'fL',
-    aliases: ['mpv', 'mean platelet volume'],
+    aliases: ['mpv', 'mean platelet volume',
+      // Phase 1 hardening — abbreviated forms seen on CBC printouts
+      'mean platelet vol', 'platelet vol', 'platelet volume',
+    ],
     system: 'blood',
     riskProfile: 'u-shaped',
     normalF: { min: 7.5, max: 11.5 },
@@ -882,7 +981,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'platelets',
     name: 'Platelets',
     unit: 'K/µL',
-    aliases: ['platelets', 'plaquetas', 'platelet count', 'trombocitos', 'plt'],
+    aliases: ['platelets', 'plaquetas', 'platelet count', 'trombocitos', 'plt',
+      // Phase 1 hardening — common abbreviations and unit-qualified labels
+      'plts', 'platelet', 'thrombocytes', 'platelet #', 'plt count', 'blood platelets',
+    ],
     system: 'blood',
     riskProfile: 'u-shaped',
     normalF: { min: 150, max: 400 },
@@ -899,7 +1001,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'wbc',
     name: 'White Blood Cells',
     unit: 'K/µL',
-    aliases: ['wbc', 'white blood cells', 'leucocitos', 'globulos blancos', 'white blood cell count'],
+    aliases: ['wbc', 'white blood cells', 'leucocitos', 'globulos blancos', 'white blood cell count',
+      // Phase 1 hardening — clinical synonym variants
+      'white cell count', 'leukocytes', 'leukocyte count', 'total wbc',
+    ],
     system: 'immune',
     riskProfile: 'u-shaped',
     normalF: { min: 4.5, max: 11.0 },
@@ -1093,6 +1198,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
 }
 
 // Unit conversions
+// Rule: only add entries that are MATHEMATICALLY SAFE (multiply factor is exact or clinically accepted).
+// Do NOT add conversions for units where equivalence is context-dependent or uncertain.
+// Safe unit identity mappings (multiply: 1): mEq/L == mmol/L for monovalent electrolytes only.
+// Future: add mEq/L → mmol/L for sodium, potassium, chloride once safety-reviewed.
 export const UNIT_CONVERSIONS: Record<string, { from: string; to: string; multiply: number }[]> = {
   // TSH unit variants — mIU/L, µIU/mL, uIU/mL, mcIU/mL, mIU/mL are all numerically identical
   // in standard TSH lab reporting (physiological range ~0.4–4.0; mIU/mL used as mIU/L by labs)
@@ -1137,6 +1246,17 @@ export const UNIT_CONVERSIONS: Record<string, { from: string; to: string; multip
     { from: 'ml/mins/1.73m2', to: 'mL/min/1.73 m²', multiply: 1 },
     { from: 'ml/min/1.73 m2', to: 'mL/min/1.73 m²', multiply: 1 },
     { from: 'ml/min', to: 'mL/min/1.73 m²', multiply: 1 },
+  ],
+  // Platelet unit normalization — x10^3/µL and K/µL are numerically identical.
+  // Also handles lowercase and ASCII approximations printed by some lab systems.
+  platelets: [
+    { from: 'x10^3/ul',   to: 'K/µL', multiply: 1 },
+    { from: 'x10^3/µl',   to: 'K/µL', multiply: 1 },
+    { from: '10^3/ul',    to: 'K/µL', multiply: 1 },
+    { from: '10^3/µl',    to: 'K/µL', multiply: 1 },
+    { from: 'k/ul',       to: 'K/µL', multiply: 1 },
+    { from: '10e3/ul',    to: 'K/µL', multiply: 1 },
+    { from: 'thou/ul',    to: 'K/µL', multiply: 1 },
   ],
 }
 
