@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { motion } from 'framer-motion'
@@ -21,27 +21,26 @@ const colors = {
   cardBorder: 'rgba(103,232,249,0.13)',
 }
 
-type GoalValue =
-  | 'bienestar'
-  | 'optimizacion'
-  | 'rendimiento'
-  | 'condicion'
-  | 'primer_paso'
+const inputStyle: React.CSSProperties = {
+  width: '100%', boxSizing: 'border-box',
+  border: `1px solid ${colors.cardBorder}`,
+  background: 'rgba(6,19,22,0.6)',
+  color: colors.text, borderRadius: '12px',
+  padding: '14px 16px', fontSize: '15px', outline: 'none',
+  fontFamily: 'Plus Jakarta Sans, sans-serif',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+  colorScheme: 'dark',
+}
 
-const goals: Array<{ label: string; value: GoalValue; subtext: string }> = [
-  { label: 'General wellness',   value: 'bienestar',    subtext: 'Feel better day to day' },
-  { label: 'Optimization',       value: 'optimizacion', subtext: "Fine-tune what's already good" },
-  { label: 'Peak performance',   value: 'rendimiento',  subtext: 'Push physical and mental limits' },
-  { label: 'Specific condition', value: 'condicion',    subtext: 'Monitor a specific health concern' },
-  { label: 'Getting started',    value: 'primer_paso',  subtext: 'Just beginning my health journey' },
-]
-
-export default function GoalsPage() {
+export default function IdentityPage() {
   const router = useRouter()
-  const [userId, setUserId]           = useState<string | null>(null)
-  const [selectedGoal, setSelectedGoal] = useState<GoalValue | null>(null)
-  const [loading, setLoading]         = useState(false)
-  const [error, setError]             = useState('')
+
+  const [userId, setUserId]       = useState<string | null>(null)
+  const [fullName, setFullName]   = useState('')
+  const [birthDate, setBirthDate] = useState('')
+  const [medications, setMedications] = useState('')
+  const [loading, setLoading]     = useState(false)
+  const [error, setError]         = useState('')
 
   useEffect(() => {
     let isMounted = true
@@ -54,24 +53,27 @@ export default function GoalsPage() {
     return () => { isMounted = false }
   }, [router])
 
-  const canContinue = useMemo(() => {
-    return Boolean(userId && selectedGoal && !loading)
-  }, [loading, selectedGoal, userId])
-
   async function handleContinue() {
-    if (!userId || !selectedGoal) {
-      setError('Please choose your Meridian mode to continue.')
-      return
-    }
+    if (!userId) return
     setLoading(true)
     setError('')
+    const medicationArray = medications.split(',').map((s) => s.trim()).filter(Boolean)
+    // All fields optional — only include full_name if user typed something
+    const payload: Record<string, unknown> = {
+      birth_date: birthDate || null,
+      medications: medicationArray,
+    }
+    if (fullName.trim()) payload.full_name = fullName.trim()
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ user_profile: selectedGoal, onboarding_completed: true })
+      .update(payload)
       .eq('id', userId)
-    if (updateError) { setError(updateError.message); setLoading(false); return }
-    router.push('/')
+    setLoading(false)
+    if (updateError) { setError(updateError.message); return }
+    router.push('/onboarding/profile')
   }
+
+  const canContinue = !!userId && !loading
 
   return (
     <main style={{
@@ -107,7 +109,7 @@ export default function GoalsPage() {
             borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
-            Meridian Mode · Step 3
+            Personal Context · Step 1
           </div>
         </div>
 
@@ -131,75 +133,90 @@ export default function GoalsPage() {
               lineHeight: 1.08, letterSpacing: '-0.04em',
               color: colors.text, fontWeight: 700,
             }}>
-              Choose your Meridian mode
+              Personalize Meridian
             </h1>
             <p style={{ margin: '0 0 5px', color: colors.textSoft, fontSize: '15px', lineHeight: 1.6 }}>
-              Tell Meridian what kind of guidance should matter most right now.
+              Help Meridian understand your context before it interprets your signals.
             </p>
             <p style={{ margin: 0, color: colors.textMuted, fontSize: '13px', lineHeight: 1.5 }}>
-              You can change this later from Profile.
+              You can update this later from Profile.
             </p>
           </div>
 
           {/* Section label */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
             <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
-              Your Meridian mode
+              Your identity
             </span>
             <div style={{ flex: 1, height: '1px', background: colors.cardBorder }} />
           </div>
 
-          <p style={{ margin: '0 0 16px', color: colors.textSoft, fontSize: '14px', fontWeight: 600, letterSpacing: '-0.01em' }}>
-            What brings you to Meridian?
-          </p>
+          {/* Fields */}
+          <div style={{ display: 'grid', gap: '20px', marginBottom: '8px' }}>
 
-          {/* Goal cards */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '10px',
-            marginBottom: '4px',
-          }}>
-            {goals.map((goal) => {
-              const isSelected = selectedGoal === goal.value
-              return (
-                <button
-                  key={goal.value}
-                  type="button"
-                  onClick={() => setSelectedGoal(goal.value)}
-                  style={{
-                    textAlign: 'left',
-                    border: isSelected ? '1px solid rgba(45,212,191,0.85)' : `1px solid ${colors.cardBorder}`,
-                    background: isSelected ? 'rgba(45,212,191,0.10)' : colors.cardBg,
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    color: colors.text,
-                    borderRadius: '16px',
-                    padding: '16px',
-                    cursor: 'pointer',
-                    transition: 'border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease',
-                    boxShadow: isSelected ? '0 0 0 1px rgba(45,212,191,0.15), 0 0 16px rgba(45,212,191,0.08)' : 'none',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}
-                >
-                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '5px', color: isSelected ? colors.teal : colors.text, letterSpacing: '-0.01em' }}>
-                    {goal.label}
-                  </span>
-                  <span style={{ display: 'block', color: isSelected ? '#9EEFE4' : colors.textSoft, fontSize: '12px', lineHeight: 1.45 }}>
-                    {goal.subtext}
-                  </span>
-                </button>
-              )
-            })}
+            {/* Display name */}
+            <section>
+              <label htmlFor="display-name" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                Display name{' '}
+                <span style={{ color: colors.textMuted, fontWeight: 500 }}>(optional)</span>
+              </label>
+              <input
+                id="display-name"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="e.g. Stephanie"
+                style={inputStyle}
+              />
+              <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
+                This is how Meridian will address you inside the app.
+              </p>
+            </section>
+
+            {/* Date of birth */}
+            <section>
+              <label htmlFor="birth-date" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                Date of birth{' '}
+                <span style={{ color: colors.textMuted, fontWeight: 500 }}>(optional)</span>
+              </label>
+              <input
+                id="birth-date"
+                type="date"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+                style={inputStyle}
+              />
+              <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
+                Used for age-adjusted biological context.
+              </p>
+            </section>
+
+            {/* Medications */}
+            <section>
+              <label htmlFor="medications" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                Current medications{' '}
+                <span style={{ color: colors.textMuted, fontWeight: 500 }}>(optional)</span>
+              </label>
+              <input
+                id="medications"
+                type="text"
+                value={medications}
+                onChange={(e) => setMedications(e.target.value)}
+                placeholder="e.g. Levothyroxine, Metformin"
+                style={inputStyle}
+              />
+              <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
+                Separate with commas. Leave blank if none.
+              </p>
+            </section>
           </div>
 
           {/* Error */}
-          {error ? (
-            <p style={{ margin: '18px 0 0', color: '#EF4444', fontSize: '13px', lineHeight: 1.5 }}>
+          {error && (
+            <p style={{ margin: '12px 0 0', color: '#EF4444', fontSize: '13px', lineHeight: 1.5 }}>
               {error}
             </p>
-          ) : null}
+          )}
 
           {/* CTA */}
           <button

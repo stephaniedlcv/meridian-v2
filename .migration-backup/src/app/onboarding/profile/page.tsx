@@ -142,7 +142,7 @@ export default function ProfilePage() {
             borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
-            Biological Profile · Step 1
+            Biological Profile · Step 2
           </div>
         </div>
 

@@ -65,7 +65,7 @@ function WelcomePageInner() {
           .eq('id', authData.user!.id)
           .single()
         if (!profile || !profile.onboarding_completed) {
-          router.push('/onboarding/profile')
+          router.push('/onboarding/identity')
         } else {
           router.push('/')
         }
@@ -85,7 +85,7 @@ function WelcomePageInner() {
       }
       if (signUpData.session) {
         // Session available immediately — email confirmation not required
-        router.push('/onboarding/profile')
+        router.push('/onboarding/identity')
       } else {
         // Email confirmation required — tell the user to check their inbox
         setEmailConfirmPending(true)
