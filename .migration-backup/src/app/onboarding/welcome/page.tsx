@@ -84,7 +84,11 @@ function WelcomePageInner() {
         return
       }
       if (signUpData.session) {
-        // Session available immediately — email confirmation not required
+        // Session available immediately — seed the profiles row so all downstream
+        // onboarding steps have a row to update even if one step is skipped/fails.
+        await supabase
+          .from('profiles')
+          .upsert({ id: signUpData.user!.id }, { onConflict: 'id' })
         router.push('/onboarding/identity')
       } else {
         // Email confirmation required — tell the user to check their inbox

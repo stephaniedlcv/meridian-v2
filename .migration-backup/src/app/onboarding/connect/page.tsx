@@ -75,8 +75,7 @@ export default function ConnectPage() {
       }
       const { error } = await supabase
         .from('profiles')
-        .update({ onboarding_completed: true })
-        .eq('id', user.id)
+        .upsert({ id: user.id, onboarding_completed: true }, { onConflict: 'id' })
       if (error) { console.error(error); return }
     } finally {
       setLoading(false)

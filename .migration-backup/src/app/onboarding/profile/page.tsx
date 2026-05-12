@@ -27,6 +27,7 @@ export default function ProfilePage() {
 
   const [selected, setSelected] = useState<BiologyType>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     async function checkUser() {
@@ -46,11 +47,10 @@ export default function ProfilePage() {
         router.push('/onboarding/welcome')
         return
       }
-      const { error } = await supabase
+      const { error: saveError } = await supabase
         .from('profiles')
-        .update({ biological_profile: selected })
-        .eq('id', user.id)
-      if (error) { console.error(error); return }
+        .upsert({ id: user.id, biological_profile: selected }, { onConflict: 'id' })
+      if (saveError) { setError(saveError.message); return }
       router.push('/onboarding/goals')
     } finally {
       setLoading(false)
@@ -196,6 +196,13 @@ export default function ProfilePage() {
               />
             </motion.div>
           </div>
+
+          {/* Save error */}
+          {error ? (
+            <p style={{ margin: '0 0 14px', color: '#EF4444', fontSize: '13px', lineHeight: 1.5 }}>
+              {error}
+            </p>
+          ) : null}
 
           {/* CTA */}
           <button
