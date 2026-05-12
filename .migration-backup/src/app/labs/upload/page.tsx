@@ -55,6 +55,7 @@ interface UnmatchedMarker {
   name: string
   value: number
   unit: string
+  reference_range?: string
 }
 
 // ── Recent-snapshot interface ──────────────────────────────────────────────────
@@ -775,6 +776,9 @@ export default function LabsUploadPage() {
   const [savedCount, setSavedCount] = useState(0)
   const [labDate, setLabDate] = useState<string>('')
   const [duplicateWarning, setDuplicateWarning] = useState<{ count: number; slugs: string[] } | null>(null)
+  // Tracks which unmatched markers the user has dismissed in the current review flow.
+  // Ignored markers are not saved to pending_biomarkers. Reset on handleReset().
+  const [ignoredPending, setIgnoredPending] = useState<Set<number>>(new Set())
 
   // ── Recent snapshot state ────────────────────────────────────────────────────
   const [recentBiomarkers, setRecentBiomarkers] = useState<RecentBiomarker[]>([])
@@ -886,6 +890,30 @@ export default function LabsUploadPage() {
       setSavedCount(data.saved_count)
       setConfirmed(true)
       setConfirming(false)
+
+      // ── Save non-ignored pending markers ────────────────────────────────────
+      // Fire-and-forget: pending save failure must NOT block or surface errors
+      // to the user in the main confirm flow.
+      const pendingToSave = unmatched
+        .filter((_, i) => !ignoredPending.has(i))
+        .map(u => ({
+          raw_name:            u.name,
+          raw_value:           u.value,
+          raw_unit:            u.unit,
+          raw_reference_range: u.reference_range ?? null,
+        }))
+      if (pendingToSave.length > 0) {
+        fetch('/api/ocr/pending', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id:         userId,
+            markers:         pendingToSave,
+            collected_at:    collectedAt,
+            source_pdf_name: fileName,
+          }),
+        }).catch(err => console.error('[Meridian] Failed to save pending markers:', err))
+      }
     } catch {
       setError('Failed to save biomarkers')
       setConfirming(false)
@@ -936,6 +964,7 @@ export default function LabsUploadPage() {
     setConfirmed(false)
     setSavedCount(0)
     setLabDate('')
+    setIgnoredPending(new Set())
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -1170,22 +1199,88 @@ export default function LabsUploadPage() {
                 })}
               </div>
 
-              {/* Unmatched markers */}
-              {unmatched.length > 0 && (
+              {/* ── Pending Classification queue ─────────────────────────────
+                  Unrecognized markers are preserved here, not silently dropped.
+                  They will be saved to pending_biomarkers on confirm (unless ignored)
+                  and will never enter Labs snapshot, History, or counts.       */}
+              {unmatched.filter((_, i) => !ignoredPending.has(i)).length > 0 && (
                 <div style={{ marginBottom: '24px' }}>
-                  <p style={{ fontSize: '13px', color: colors.textMuted, marginBottom: '8px' }}>
-                    Not recognized (not saved):
-                  </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {unmatched.map((u, i) => (
-                      <span key={i} style={{
-                        padding: '6px 12px', backgroundColor: colors.cardBg,
-                        border: `1px solid ${colors.cardBorder}`, borderRadius: '8px',
-                        fontSize: '12px', color: colors.textMuted,
-                      }}>
-                        {u.name}: {u.value} {u.unit}
-                      </span>
-                    ))}
+                  {/* Section header */}
+                  <div style={{
+                    padding: '12px 16px',
+                    backgroundColor: 'rgba(103,232,249,0.035)',
+                    border: `1px solid ${colors.cardBorder}`,
+                    borderRadius: '12px',
+                    marginBottom: '8px',
+                  }}>
+                    <p style={{
+                      fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em',
+                      textTransform: 'uppercase', color: colors.textMuted,
+                      margin: '0 0 4px',
+                    }}>
+                      Pending Classification
+                    </p>
+                    <p style={{ fontSize: '12px', color: colors.textMuted, margin: 0, lineHeight: 1.55 }}>
+                      These markers were extracted but could not be confidently matched to Meridian&apos;s biomarker dictionary. They will be saved separately and will not affect your lab results, counts, or health signals.
+                    </p>
+                  </div>
+
+                  {/* Pending marker cards */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {unmatched.map((u, i) => {
+                      if (ignoredPending.has(i)) return null
+                      return (
+                        <div key={i} style={{
+                          padding: '11px 14px',
+                          backgroundColor: colors.cardBg,
+                          border: `1px solid ${colors.cardBorder}`,
+                          borderRadius: '10px',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          justifyContent: 'space-between',
+                          gap: '10px',
+                        }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textSoft, display: 'block', marginBottom: '2px' }}>
+                              {u.name}
+                            </span>
+                            <span style={{ fontSize: '13px', color: colors.textMuted }}>
+                              {u.value} {u.unit}
+                              {u.reference_range && (
+                                <span style={{ marginLeft: '8px', fontSize: '11px', opacity: 0.7 }}>
+                                  Ref: {u.reference_range}
+                                </span>
+                              )}
+                            </span>
+                            <span style={{ fontSize: '11px', color: colors.textMuted, opacity: 0.5, display: 'block', marginTop: '3px' }}>
+                              No confident match in dictionary
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => setIgnoredPending(prev => {
+                              const next = new Set(prev)
+                              next.add(i)
+                              return next
+                            })}
+                            style={{
+                              padding: '4px 10px',
+                              backgroundColor: 'transparent',
+                              border: `1px solid rgba(95,142,133,0.28)`,
+                              borderRadius: '6px',
+                              color: colors.textMuted,
+                              fontFamily: fonts.ui,
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              flexShrink: 0,
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            Ignore
+                          </button>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}

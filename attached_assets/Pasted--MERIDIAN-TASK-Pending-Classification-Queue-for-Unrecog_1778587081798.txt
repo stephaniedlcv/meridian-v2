@@ -1,0 +1,215 @@
+# MERIDIAN — TASK: Pending Classification Queue for Unrecognized Markers
+
+You are working on Meridian — a Health Intelligence System.
+
+Stack:
+- Next.js 14 App Router
+- TypeScript
+- Supabase
+- Vercel
+- Inline styles only
+
+IMPORTANT:
+- The real app lives inside `.migration-backup/`
+- Do NOT move files
+- Do NOT restructure repo
+- Do NOT redesign Labs
+- Do NOT add dependencies unless absolutely required
+- Do NOT touch artifacts/
+- Do NOT contaminate validated biomarker data
+- Do NOT add unverified markers to the canonical dictionary automatically
+
+---
+
+# GOAL
+
+When Meridian extracts markers that are not confidently recognized, they should NOT disappear and should NOT be saved as validated biomarkers.
+
+Instead, save them into a safe:
+
+Pending Classification Queue
+
+This protects data integrity while preserving potentially useful extracted information.
+
+---
+
+# CORE RULE
+
+Unrecognized or low-confidence markers must NOT enter:
+
+- Labs snapshot
+- History validated biomarker panels
+- intelligence engine
+- status counts
+- Needs Attention
+- dashboard signals
+
+They should be preserved separately as pending classification records.
+
+---
+
+# REQUIRED BEHAVIOR
+
+## 1. Detect unrecognized markers during upload review
+
+If a marker cannot be confidently mapped to a known canonical marker_slug:
+
+Set status:
+
+pending_classification
+
+Do NOT save it into validated biomarker results.
+
+---
+
+## 2. Save pending markers separately
+
+Create or use a separate storage structure for pending markers.
+
+Preferred table:
+
+pending_biomarkers
+
+Suggested fields:
+
+- id
+- user_id
+- raw_name
+- raw_value
+- raw_unit
+- raw_reference_range
+- source_panel
+- source_pdf_name, if available
+- collected_at
+- suggested_marker_slug, nullable
+- confidence_score, nullable
+- reason
+- status
+- created_at
+
+Status values may include:
+
+- pending_classification
+- ignored
+- mapped
+- rejected
+
+If creating a migration/table is needed, provide the SQL clearly.
+
+Do NOT alter canonical dictionary automatically.
+
+---
+
+## 3. Upload Review UI
+
+In the lab review flow, show unrecognized markers in a separate section:
+
+Pending Classification
+
+Copy example:
+
+“These markers were extracted but could not be confidently matched to Meridian’s biomarker dictionary.”
+
+Each pending marker card should show:
+
+- raw marker name
+- value
+- unit
+- reference range if available
+- source panel if available
+- confidence/reason if available
+
+---
+
+## 4. User actions
+
+For Phase 1, support minimal safe actions:
+
+### Save as pending
+Default behavior.
+
+### Ignore
+Allows user to dismiss a marker from the review flow.
+
+### Do NOT implement full custom marker creation yet
+Do NOT let the user add it directly to canonical biomarker dictionary.
+
+---
+
+## 5. AI validation behavior
+
+If there is already logic that suggests aliases:
+
+- show suggested match only if confidence is reasonable
+- do not auto-map without user confirmation
+- if confidence is low, keep as pending
+
+Example:
+
+Raw name:
+TSH-3 GENERATION ULTRA
+
+Suggested match:
+TSH
+
+If confidence is high, show:
+“Possible match: TSH”
+
+But do not silently save unless the existing review flow confirms it.
+
+---
+
+## 6. Validated biomarkers remain clean
+
+Only recognized and user-confirmed biomarkers should save into the main biomarkers table.
+
+Pending markers should not affect:
+
+- biomarker counts
+- panel counts
+- optimal/watch/attention/critical counts
+- dashboard active signal
+- Needs Attention
+- snapshot deduplication
+
+---
+
+## 7. Future-ready architecture
+
+Leave clear code comments that this queue will later support:
+
+- manual classification
+- alias review
+- custom user markers
+- canonical dictionary improvements
+- upload_session_id/source_pdf_hash linkage
+
+But do NOT implement those future systems now.
+
+---
+
+# ACCEPTANCE CRITERIA
+
+After this task:
+
+1. Unrecognized markers no longer disappear.
+2. Unrecognized markers do not enter validated biomarker tables.
+3. Pending markers are saved separately.
+4. Pending markers are visible in upload review.
+5. Pending markers do not affect Labs snapshot, History, Dashboard, or counts.
+6. User can ignore pending markers.
+7. Canonical dictionary is not modified automatically.
+8. No files outside `.migration-backup/` are modified.
+
+---
+
+# RETURN FORMAT
+
+Return:
+
+1. Files changed
+2. Whether a SQL migration/table was added
+3. Pending biomarker structure implemented
+4. Upload review behavior updated
+5. What is intentionally NOT implemented yet
+6. Confirmation no files outside `.migration-backup/` were modified
