@@ -404,7 +404,7 @@ function BiomarkerRangeBar({ value, refMin, refMax, state }: RangeBarProps) {
           borderRadius: '50%',
           backgroundColor: dotColor,
           border: '2px solid rgba(255,255,255,0.22)',
-          boxShadow: `0 0 12px ${dotColor}CC, 0 0 5px ${dotColor}60, inset 0 1px 0 rgba(255,255,255,0.28)`,
+          boxShadow: `0 0 10px ${dotColor}88, 0 0 4px ${dotColor}48, inset 0 1px 0 rgba(255,255,255,0.24)`,
           zIndex: 2,
         }} />
       </div>
@@ -783,7 +783,7 @@ export default function LabsHistoryPage() {
       fontFamily: fonts.ui,
       position: 'relative',
       overflow: 'hidden',
-      padding: '36px 20px 120px',
+      padding: '44px 20px 120px',
     }}>
       {/* Detail sheet */}
       {selectedBiomarker && (
@@ -806,14 +806,15 @@ export default function LabsHistoryPage() {
           fontSize: 'clamp(26px, 5vw, 32px)',
           fontWeight: 700,
           color: colors.text,
-          marginBottom: '6px',
+          marginBottom: '8px',
           lineHeight: 1.2,
         }}>
           Lab History
         </h1>
-        <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: '32px', lineHeight: 1.6 }}>
+        <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: '22px', lineHeight: 1.6 }}>
           All confirmed labs, organised by date and panel.
         </p>
+        <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(103,232,249,0.12) 40%, rgba(103,232,249,0.08) 60%, transparent)', marginBottom: '32px' }} />
 
         {/* ── Error state ── */}
         {error && (
@@ -851,14 +852,14 @@ export default function LabsHistoryPage() {
 
         {/* ── Year sections ── */}
         {yearGroups.map(yearGroup => (
-          <div key={yearGroup.year} style={{ marginBottom: '40px' }}>
+          <div key={yearGroup.year} style={{ marginBottom: '52px' }}>
 
             {/* Year header */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              marginBottom: '20px',
+              marginBottom: '24px',
             }}>
               <span style={{
                 fontFamily: fonts.heading,
@@ -874,7 +875,7 @@ export default function LabsHistoryPage() {
 
             {/* ── Month sections ── */}
             {yearGroup.months.map(monthGroup => (
-              <div key={monthGroup.monthKey} style={{ marginBottom: '28px' }}>
+              <div key={monthGroup.monthKey} style={{ marginBottom: '36px' }}>
 
                 {/* Month label */}
                 <p style={{
@@ -882,22 +883,22 @@ export default function LabsHistoryPage() {
                   fontWeight: 700,
                   color: colors.textMuted,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  marginBottom: '12px',
+                  letterSpacing: '0.04em',
+                  marginBottom: '16px',
                 }}>
                   {monthGroup.label}
                 </p>
 
                 {/* ── Date groups ── */}
                 {monthGroup.dates.map(dateGroup => (
-                  <div key={dateGroup.dateKey} style={{ marginBottom: '16px' }}>
+                  <div key={dateGroup.dateKey} style={{ marginBottom: '22px' }}>
 
                     {/* Date header row */}
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: '10px',
-                      marginBottom: '8px',
+                      marginBottom: '12px',
                       paddingLeft: '4px',
                     }}>
                       {/* Teal dot */}
@@ -1000,7 +1001,7 @@ export default function LabsHistoryPage() {
                     )}
 
                     {/* ── Panel cards ── */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {dateGroup.panels.map(panelGroup => {
                         const panelKey = `${dateGroup.dateKey}::${panelGroup.panel}`
                         const isOpen = expandedPanels.has(panelKey)
@@ -1104,7 +1105,7 @@ export default function LabsHistoryPage() {
                                 padding: '8px',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: '6px',
+                                gap: '8px',
                               }}>
                                 {panelGroup.items.map((b) => {
                                   const s = getStateStyle(b.state)
@@ -1116,8 +1117,9 @@ export default function LabsHistoryPage() {
                                         backgroundColor: 'rgba(232,248,245,0.055)',
                                         border: `1px solid ${s.dot}30`,
                                         borderRadius: '10px',
-                                        padding: '12px 14px',
+                                        padding: '14px 16px',
                                         cursor: 'pointer',
+                                        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.18)`,
                                       }} onClick={() => setSelectedBiomarker(b)}>
                                         {/* Name + badge */}
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', gap: '8px' }}>
@@ -1164,7 +1166,7 @@ export default function LabsHistoryPage() {
 
                                   return (
                                     <div key={b.id} style={{
-                                      padding: '10px 14px',
+                                      padding: '12px 14px',
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'space-between',
@@ -1174,6 +1176,7 @@ export default function LabsHistoryPage() {
                                       border: `1px solid ${colors.cardBorder}`,
                                       borderRadius: '8px',
                                       cursor: 'pointer',
+                                      boxShadow: '0 1px 4px rgba(0,0,0,0.14)',
                                     }} onClick={() => setSelectedBiomarker(b)}>
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: '130px' }}>
                                         <div style={{

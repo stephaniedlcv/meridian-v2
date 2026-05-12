@@ -252,7 +252,7 @@ function BiomarkerRangeBar({ value, refMin, refMax, state }: RangeBarProps) {
           borderRadius: '50%',
           backgroundColor: dotColor,
           border: '2px solid rgba(255,255,255,0.22)',
-          boxShadow: `0 0 12px ${dotColor}CC, 0 0 5px ${dotColor}60, inset 0 1px 0 rgba(255,255,255,0.28)`,
+          boxShadow: `0 0 10px ${dotColor}88, 0 0 4px ${dotColor}48, inset 0 1px 0 rgba(255,255,255,0.24)`,
           zIndex: 2,
         }} />
       </div>
@@ -1070,7 +1070,7 @@ export default function LabsUploadPage() {
       fontFamily: fonts.ui,
       position: 'relative',
       overflow: 'hidden',
-      padding: '36px 20px 120px',
+      padding: '44px 20px 120px',
     }}>
       {/* Detail sheet */}
       {selectedBiomarker && (
@@ -1096,16 +1096,17 @@ export default function LabsUploadPage() {
               fontSize: 'clamp(26px, 5vw, 32px)',
               fontWeight: 700,
               color: colors.text,
-              marginBottom: '6px',
+              marginBottom: '8px',
               lineHeight: 1.2,
             }}>
               {hasRecentLabs ? 'Labs' : 'Upload your labs'}
             </h1>
-            <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: '28px', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: '20px', lineHeight: 1.6 }}>
               {hasRecentLabs
                 ? 'Meridian is tracking your most recent lab signals here.'
                 : 'Upload a PDF from your lab provider. Meridian will extract your biomarkers automatically.'}
             </p>
+            <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(103,232,249,0.12) 40%, rgba(103,232,249,0.08) 60%, transparent)', marginBottom: '28px' }} />
           </motion.div>
         )}
 
@@ -1119,9 +1120,10 @@ export default function LabsUploadPage() {
             <h1 style={{ fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700, color: colors.text, marginBottom: '8px' }}>
               Upload your labs
             </h1>
-            <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: '28px', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: '20px', lineHeight: 1.6 }}>
               Upload a PDF from your lab provider. Meridian will extract your biomarkers automatically.
             </p>
+            <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(103,232,249,0.12) 40%, rgba(103,232,249,0.08) 60%, transparent)', marginBottom: '28px' }} />
           </motion.div>
         )}
 
@@ -1480,7 +1482,7 @@ export default function LabsUploadPage() {
                 {/* Section chip */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
                   <span style={{
-                    fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em',
+                    fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em',
                     color: colors.teal, textTransform: 'uppercase',
                     padding: '4px 10px',
                     backgroundColor: `${colors.teal}18`,
@@ -1612,7 +1614,7 @@ export default function LabsUploadPage() {
 
                   /* ── Status-filtered list ── */
                   <div style={{ marginBottom: '8px' }}>
-                    <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+                    <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '10px' }}>
                       {activeFilter} Biomarkers
                     </p>
                     {filteredBiomarkers.length > 0 ? (
@@ -1621,23 +1623,24 @@ export default function LabsUploadPage() {
                           <div key={panel} style={{ marginBottom: '14px' }}>
                             {/* Panel section header */}
                             <p style={{
-                              fontSize: '10px', fontWeight: 700, letterSpacing: '0.07em',
+                              fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em',
                               textTransform: 'uppercase', color: colors.textMuted,
-                              margin: '0 0 6px 2px',
+                              margin: '0 0 8px 2px',
                             }}>
                               {panel}
                             </p>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                               {markers.map(b => {
                                 const s = getStateStyles(b.state ?? '')
                                 const showBar = isUsableRange(b.reference_range_min, b.reference_range_max)
                                 return (
                                   <div key={b.id} style={{
-                                    padding: '12px 14px',
+                                    padding: '14px 16px',
                                     backgroundColor: 'rgba(232,248,245,0.055)',
                                     border: `1px solid ${s.dot}30`,
                                     borderRadius: '10px',
                                     cursor: 'pointer',
+                                    boxShadow: `inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.18)`,
                                   }} onClick={() => setSelectedBiomarker(b)}>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
                                       <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0 }}>
@@ -1680,20 +1683,21 @@ export default function LabsUploadPage() {
                     {/* ── Needs Attention (Critical → Attention → Watch) ── */}
                     {attentionMarkers.length > 0 && (
                       <div style={{ marginBottom: '16px' }}>
-                        <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+                        <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '10px' }}>
                           Needs attention
                         </p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                           {attentionMarkers.map(b => {
                             const s = getStateStyles(b.state ?? '')
                             const showBar = isUsableRange(b.reference_range_min, b.reference_range_max)
                             return (
                               <div key={b.id} style={{
-                                padding: '12px 14px',
+                                padding: '14px 16px',
                                 backgroundColor: 'rgba(232,248,245,0.055)',
                                 border: `1px solid ${s.dot}30`,
                                 borderRadius: '10px',
                                 cursor: 'pointer',
+                                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.18)`,
                               }} onClick={() => setSelectedBiomarker(b)}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
                                   <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0 }}>
@@ -1723,12 +1727,12 @@ export default function LabsUploadPage() {
                     )}
 
                     {/* ── Panel summary cards ── */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {panelSummaries.map(ps => {
                         const sc = ps.stateCounts
                         return (
                           <div key={ps.panel} style={{
-                            padding: '12px 16px',
+                            padding: '14px 18px',
                             backgroundColor: colors.cardBg,
                             border: `1px solid ${colors.cardBorder}`,
                             borderRadius: '12px',
@@ -1855,8 +1859,8 @@ export default function LabsUploadPage() {
             {/* Upload section heading (only shown when recent labs exist, to distinguish the CTA) */}
             {hasRecentLabs && (
               <p style={{
-                fontSize: '11px', fontWeight: 700, letterSpacing: '0.07em',
-                color: colors.textMuted, textTransform: 'uppercase', marginBottom: '10px',
+                fontSize: '11px', fontWeight: 700, letterSpacing: '0.04em',
+                color: colors.textMuted, textTransform: 'uppercase', marginBottom: '12px',
               }}>
                 Upload New Lab
               </p>
