@@ -48,16 +48,18 @@ interface BiomarkerRow {
 }
 
 // ── Panel inference ────────────────────────────────────────────────────────────
-// Maps marker slugs → panel category. First matching panel wins.
-// Order here does not affect priority; SLUG_TO_PANEL is a flat lookup.
+// Maps marker slugs → SOURCE PANEL (Phase 1 default History view).
+// Biological system grouping is preserved in canonical-dictionary.ts for the
+// intelligence layer; this map is ONLY for the History presentation layer.
+// Fallback: biological grouping → 'Other' (last resort).
 const SLUG_TO_PANEL: Record<string, string> = {
-  // Thyroid
-  tsh: 'Thyroid',
-  free_t4: 'Thyroid',
-  free_t3: 'Thyroid',
-  total_t3: 'Thyroid',
+  // ── Thyroid Panel ───────────────────────────────────────────────────────────
+  tsh: 'Thyroid Panel',
+  free_t4: 'Thyroid Panel',
+  free_t3: 'Thyroid Panel',
+  total_t3: 'Thyroid Panel',
 
-  // CBC — blood cell counts
+  // ── CBC (Complete Blood Count) ──────────────────────────────────────────────
   wbc: 'CBC',
   rbc: 'CBC',
   hemoglobin: 'CBC',
@@ -66,8 +68,12 @@ const SLUG_TO_PANEL: Record<string, string> = {
   mch: 'CBC',
   mchc: 'CBC',
   rdw: 'CBC',
+  // Platelet slugs — canonical dict uses 'platelets' and 'mpv'; keep legacy
+  // aliases 'platelet_count' / 'platelet_count_abs' for backward compatibility
+  platelets: 'CBC',
   platelet_count: 'CBC',
   platelet_count_abs: 'CBC',
+  mpv: 'CBC',
   neutrophils_pct: 'CBC',
   neutrophils_abs: 'CBC',
   lymphocytes_pct: 'CBC',
@@ -81,11 +87,7 @@ const SLUG_TO_PANEL: Record<string, string> = {
   immature_granulocytes_pct: 'CBC',
   immature_granulocytes_abs: 'CBC',
 
-  // Glycemic — metabolic glucose markers
-  hba1c: 'Glycemic',
-  insulin_fasting: 'Glycemic',
-
-  // Lipid Panel
+  // ── Lipid Panel ─────────────────────────────────────────────────────────────
   total_cholesterol: 'Lipid Panel',
   hdl: 'Lipid Panel',
   ldl: 'Lipid Panel',
@@ -95,41 +97,28 @@ const SLUG_TO_PANEL: Record<string, string> = {
   ldl_hdl_ratio: 'Lipid Panel',
   chol_hdl_ratio: 'Lipid Panel',
 
-  // Hormones
-  testosterone_total: 'Hormones',
-  cortisol_am: 'Hormones',
-  dhea_s: 'Hormones',
-
-  // Inflammation / Cardiac Risk
-  crp_hs: 'Inflammation / Cardiac Risk',
-  homocysteine: 'Inflammation / Cardiac Risk',
-
-  // Vitamins & Nutrients
-  vitamin_d: 'Vitamins & Nutrients',
-  vitamin_b12: 'Vitamins & Nutrients',
-  folate: 'Vitamins & Nutrients',
-  magnesium: 'Vitamins & Nutrients',
-  ferritin: 'Vitamins & Nutrients',
-
-  // Kidney / Renal — deduplicated from CMP
-  creatinine: 'Kidney / Renal',
-  bun: 'Kidney / Renal',
-  bun_creatinine_ratio: 'Kidney / Renal',
-  egfr: 'Kidney / Renal',
-  egfr_african_american: 'Kidney / Renal',
-  egfr_non_african_american: 'Kidney / Renal',
-
-  // Liver — deduplicated from CMP
-  ast: 'Liver',
-  alt: 'Liver',
-  alkaline_phosphatase: 'Liver',
-  bilirubin_total: 'Liver',
-  albumin: 'Liver',
-  globulin: 'Liver',
-  ag_ratio: 'Liver',
-  total_protein: 'Liver',
-
-  // CMP — remaining electrolytes & metabolic markers
+  // ── CMP (Comprehensive Metabolic Panel) ─────────────────────────────────────
+  // All CMP sub-components (kidney, liver, electrolytes, proteins, glycemic)
+  // are consolidated here. Biological sub-grouping (Liver, Kidney, etc.) is
+  // preserved in canonical-dictionary.ts for the intelligence layer only.
+  //
+  // Kidney / Renal sub-markers
+  creatinine: 'CMP',
+  bun: 'CMP',
+  bun_creatinine_ratio: 'CMP',
+  egfr: 'CMP',
+  egfr_african_american: 'CMP',
+  egfr_non_african_american: 'CMP',
+  // Liver sub-markers
+  ast: 'CMP',
+  alt: 'CMP',
+  alkaline_phosphatase: 'CMP',
+  bilirubin_total: 'CMP',
+  albumin: 'CMP',
+  globulin: 'CMP',
+  ag_ratio: 'CMP',
+  total_protein: 'CMP',
+  // Electrolytes & metabolic
   glucose_fasting: 'CMP',
   sodium: 'CMP',
   potassium: 'CMP',
@@ -137,21 +126,39 @@ const SLUG_TO_PANEL: Record<string, string> = {
   co2: 'CMP',
   calcium: 'CMP',
   anion_gap: 'CMP',
+
+  // ── Glycemic (standalone tests — not part of CMP) ───────────────────────────
+  hba1c: 'Glycemic',
+  insulin_fasting: 'Glycemic',
+
+  // ── Hormones ────────────────────────────────────────────────────────────────
+  testosterone_total: 'Hormones',
+  cortisol_am: 'Hormones',
+  dhea_s: 'Hormones',
+
+  // ── Inflammation / Cardiac Risk ─────────────────────────────────────────────
+  crp_hs: 'Inflammation / Cardiac Risk',
+  homocysteine: 'Inflammation / Cardiac Risk',
+
+  // ── Vitamins & Nutrients ────────────────────────────────────────────────────
+  vitamin_d: 'Vitamins & Nutrients',
+  vitamin_b12: 'Vitamins & Nutrients',
+  folate: 'Vitamins & Nutrients',
+  magnesium: 'Vitamins & Nutrients',
+  ferritin: 'Vitamins & Nutrients',
 }
 
 function inferPanel(slug: string): string {
   return SLUG_TO_PANEL[slug] ?? 'Other'
 }
 
-// Fixed panel display order within a date group
+// Fixed panel display order within a date group (source panel view)
 const PANEL_DISPLAY_ORDER = [
   'CBC',
   'Lipid Panel',
   'CMP',
-  'Kidney / Renal',
-  'Liver',
+  'Thyroid Panel',
   'Glycemic',
-  'Thyroid',
   'Vitamins & Nutrients',
   'Hormones',
   'Inflammation / Cardiac Risk',
