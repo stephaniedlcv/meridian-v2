@@ -53,8 +53,8 @@ const GOAL_SIGNALS: Record<UserProfile, string[]> = {
 }
 
 const BIO_MAP: Record<BiologicalProfile, string> = {
-  female: 'Female biology',
-  male: 'Male biology',
+  female: 'Female profile',
+  male: 'Male profile',
 }
 
 const ALL_GOALS: UserProfile[] = ['bienestar', 'optimizacion', 'rendimiento', 'condicion', 'primer_paso']
@@ -221,11 +221,11 @@ export default function ProfilePage() {
       <div style={{ position: 'fixed', bottom: '-20%', right: '-15%', width: '65%', height: '65%', background: 'radial-gradient(circle, rgba(103,232,249,0.08) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'fixed', top: '45%', left: '50%', transform: 'translate(-50%,-50%)', width: '45%', height: '30%', background: 'radial-gradient(circle, rgba(45,212,191,0.04) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
 
-      <div style={{ maxWidth: '540px', margin: '0 auto', padding: '0 20px 180px', position: 'relative', zIndex: 1 }}>
+      <div style={{ maxWidth: '540px', margin: '0 auto', padding: '0 20px 220px', position: 'relative', zIndex: 1 }}>
 
         {/* ════════════════════════════════ HERO ═══ */}
         <div style={{
-          paddingTop: '52px', paddingBottom: '36px',
+          paddingTop: '44px', paddingBottom: '26px',
           display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
           position: 'relative',
         }}>
@@ -242,14 +242,14 @@ export default function ProfilePage() {
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             fontSize: '10px', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: colors.teal,
             padding: '4px 13px', border: '1px solid rgba(45,212,191,0.22)', borderRadius: '20px',
-            background: 'rgba(45,212,191,0.06)', marginBottom: '28px', position: 'relative',
+            background: 'rgba(45,212,191,0.06)', marginBottom: '20px', position: 'relative',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
             Identity Core
           </div>
 
           {/* Avatar with orbital rings */}
-          <div style={{ position: 'relative', width: '180px', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
+          <div style={{ position: 'relative', width: '180px', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
             {/* Ring 3 — outermost */}
             <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1px solid rgba(45,212,191,0.055)' }} />
             {/* Ring 2 */}
@@ -324,13 +324,13 @@ export default function ProfilePage() {
           <h1 style={{
             fontFamily: fonts.heading, fontSize: 'clamp(28px, 7vw, 38px)',
             fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, color: colors.text,
-            margin: '18px 0 6px',
+            margin: '14px 0 5px',
           }}>
             {displayName}
           </h1>
 
           {/* Email */}
-          <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 20px', letterSpacing: '-0.01em' }}>
+          <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 16px', letterSpacing: '-0.01em' }}>
             {userEmail}
           </p>
 
@@ -665,10 +665,12 @@ function PassportRow({ label, value, emptyLabel, emptyHint, onAdd }: {
           )}
           {onAdd && (
             <button type="button" onClick={onAdd} style={{
-              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-              color: colors.teal, fontSize: '11px', fontWeight: 700, fontFamily: fonts.ui, letterSpacing: '-0.01em',
+              background: 'rgba(45,212,191,0.07)', border: '1px solid rgba(45,212,191,0.25)',
+              borderRadius: '20px', cursor: 'pointer', padding: '3px 10px',
+              color: colors.teal, fontSize: '11px', fontWeight: 700, fontFamily: fonts.ui,
+              letterSpacing: '-0.01em', display: 'inline-flex', alignItems: 'center', gap: '3px',
             }}>
-              Add
+              Complete identity <span style={{ fontSize: '13px', lineHeight: 1 }}>›</span>
             </button>
           )}
         </div>

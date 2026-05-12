@@ -1,0 +1,155 @@
+# MERIDIAN — PROFILE V2 FINAL POLISH
+
+We are polishing the Profile page after Phase 2.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Vercel production is working because Root Directory is set to .migration-backup.
+
+Do NOT restructure the repo.
+Do NOT move files out of .migration-backup.
+Do NOT touch root package files.
+Do NOT touch Vercel settings.
+Do NOT touch artifacts/.
+Do NOT publish to Replit.
+
+TASK:
+Apply final visual polish to /profile.
+
+Modify ONLY:
+
+.migration-backup/src/app/profile/page.tsx
+
+Do not touch:
+- dashboard
+- labs
+- history
+- upload
+- OCR routes
+- confirm route
+- canonical dictionary
+- Supabase clients
+- database types
+- middleware
+- onboarding
+- NavBar
+- package.json
+- artifacts/
+- dependencies
+
+Current state:
+Profile V2 looks good and has:
+- Identity Core hero
+- M avatar with orbital rings
+- Biological Passport / Identity Signals
+- Health Focus Mode
+- Data Constellation
+- Personalization Matrix
+- Control Layer
+
+Goal:
+Keep the current design direction, but make it more polished, compact, and intentional on mobile.
+
+Required polish:
+
+1. Compact the hero section slightly
+The top hero is beautiful but too tall on mobile.
+
+Reduce vertical spacing by about 10–15% between:
+- Identity Core chip
+- avatar/orbital M
+- Upload photo
+- Your Profile
+- email
+- chips
+
+Do not make it cramped.
+Keep the premium cinematic feel.
+
+2. Improve missing display name action
+Currently the Display Name area shows:
+“Not set yet”
+“Add”
+
+Make the action feel more intentional and premium.
+
+Use something like:
+- “Add name →”
+or
+- “Complete identity →”
+
+Style it as a small teal/cyan pill or premium inline CTA, not a loose text link.
+
+3. Refine biological profile chip language
+Current chip says:
+“Female biology”
+
+Change to a more Meridian/premium phrase:
+“Female profile”
+or
+“Female biological profile”
+
+Use whichever fits mobile better.
+Do not change the underlying value/logic.
+
+4. Improve bottom spacing
+Ensure bottom NavBar never covers content.
+
+Increase bottom padding if needed, around:
+paddingBottom: 220px
+
+The Control Layer and footer should remain readable above the bottom nav.
+
+5. Keep Data Constellation as-is for now
+Do not redesign the constellation in this task.
+Only adjust spacing if needed.
+
+6. Keep Personalization Matrix as-is
+Do not redesign it.
+Only adjust spacing if needed.
+
+7. Preserve all existing functionality
+- auth guard
+- local photo preview
+- edit flow if present
+- sign out
+- display name fallback logic
+- profile data reading
+- bottom nav
+
+8. Do not use email prefix as display name
+Display name priority must remain:
+1. preferred_name if available
+2. full_name if available
+3. “Your Profile”
+
+9. Keep visual style consistent
+- dark biological OS
+- glassmorphism
+- teal/cyan accents
+- Fraunces for identity/title
+- Plus Jakarta Sans for UI
+- premium, futuristic, clean
+- no emojis
+- no heavy neon
+
+After editing:
+1. Report exact file changed.
+2. Confirm no other files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /profile
+5. Confirm build passes.
+6. Confirm:
+   - hero is slightly more compact
+   - Display Name action is now a polished CTA
+   - biological profile chip wording is refined
+   - bottom nav does not cover content
+   - existing functionality still works
+7. Do not commit.
+8. Do not push.
+9. Do not publish to Replit.
