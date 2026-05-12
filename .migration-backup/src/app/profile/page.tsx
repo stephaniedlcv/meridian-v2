@@ -98,9 +98,17 @@ export default function ProfilePage() {
         .eq('id', user.id)
         .single()
 
-      // Guard: if onboarding is not complete, send user back to start.
+      // Guard: if onboarding is not complete, redirect to the exact missing step.
       if (!prof || !(prof as unknown as Record<string, unknown>).onboarding_completed) {
-        router.push('/onboarding/identity')
+        const r = prof as unknown as Record<string, unknown> | null
+        const nextStep = (!r?.full_name || !r?.birth_date)
+          ? '/onboarding/identity'
+          : !r?.biological_profile
+          ? '/onboarding/profile'
+          : !r?.user_profile
+          ? '/onboarding/goals'
+          : '/onboarding/connect'
+        router.push(nextStep)
         return
       }
 

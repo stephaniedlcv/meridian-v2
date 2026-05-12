@@ -23,16 +23,18 @@ export default function MeridianApp() {
       // Redirect to the exact step that is missing required data.
       const { data: profile } = await supabase
         .from('profiles')
-        .select('onboarding_completed, full_name, biological_profile, user_profile')
+        .select('onboarding_completed, full_name, birth_date, biological_profile, user_profile')
         .eq('id', user.id)
         .single();
       if (!profile || !profile.onboarding_completed) {
-        if (!profile?.full_name) {
+        if (!profile?.full_name || !profile?.birth_date) {
           router.push('/onboarding/identity');
         } else if (!profile?.biological_profile) {
           router.push('/onboarding/profile');
-        } else {
+        } else if (!profile?.user_profile) {
           router.push('/onboarding/goals');
+        } else {
+          router.push('/onboarding/connect');
         }
         return;
       }

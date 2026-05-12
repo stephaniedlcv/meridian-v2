@@ -855,11 +855,18 @@ export default function LabsUploadPage() {
       // Biological profile (unchanged)
       const { data: profile } = await supabase
         .from('profiles')
-        .select('biological_profile, onboarding_completed')
+        .select('biological_profile, onboarding_completed, full_name, birth_date, user_profile')
         .eq('id', user.id)
         .single()
       if (!profile?.onboarding_completed) {
-        router.push('/onboarding/identity')
+        const nextStep = (!profile?.full_name || !profile?.birth_date)
+          ? '/onboarding/identity'
+          : !profile?.biological_profile
+          ? '/onboarding/profile'
+          : !profile?.user_profile
+          ? '/onboarding/goals'
+          : '/onboarding/connect'
+        router.push(nextStep)
         return
       }
       if (profile?.biological_profile) setBioProfile(profile.biological_profile)

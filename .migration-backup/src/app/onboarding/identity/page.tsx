@@ -58,6 +58,9 @@ export default function IdentityPage() {
     async function checkAuth() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/onboarding/welcome'); return }
+      // Redirect completed users away — don't let them re-do onboarding.
+      const { data: prof } = await supabase.from('profiles').select('onboarding_completed').eq('id', user.id).single()
+      if (prof?.onboarding_completed) { router.push('/dashboard'); return }
       if (isMounted) setUserId(user.id)
     }
     checkAuth()

@@ -48,6 +48,9 @@ export default function GoalsPage() {
     async function checkAuth() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/onboarding/welcome'); return }
+      // Redirect completed users away — don't let them re-do onboarding.
+      const { data: prof } = await supabase.from('profiles').select('onboarding_completed').eq('id', user.id).single()
+      if (prof?.onboarding_completed) { router.push('/dashboard'); return }
       if (isMounted) setUserId(user.id)
     }
     checkAuth()
@@ -67,9 +70,9 @@ export default function GoalsPage() {
     setError('')
     const { error: updateError } = await supabase
       .from('profiles')
-      .upsert({ id: userId, user_profile: selectedGoal, onboarding_completed: true }, { onConflict: 'id' })
+      .upsert({ id: userId, user_profile: selectedGoal }, { onConflict: 'id' })
     if (updateError) { setError(updateError.message); setLoading(false); return }
-    router.push('/')
+    router.push('/onboarding/connect')
   }
 
   return (

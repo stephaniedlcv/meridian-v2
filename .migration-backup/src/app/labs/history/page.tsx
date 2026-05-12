@@ -692,11 +692,18 @@ export default function LabsHistoryPage() {
       // Guard: block access until onboarding is complete.
       const { data: profileCheck } = await supabase
         .from('profiles')
-        .select('onboarding_completed')
+        .select('onboarding_completed, full_name, birth_date, biological_profile, user_profile')
         .eq('id', user.id)
         .single()
       if (!profileCheck?.onboarding_completed) {
-        router.push('/onboarding/identity')
+        const nextStep = (!profileCheck?.full_name || !profileCheck?.birth_date)
+          ? '/onboarding/identity'
+          : !profileCheck?.biological_profile
+          ? '/onboarding/profile'
+          : !profileCheck?.user_profile
+          ? '/onboarding/goals'
+          : '/onboarding/connect'
+        router.push(nextStep)
         return
       }
 
