@@ -1,0 +1,133 @@
+# MERIDIAN — ONBOARDING PROFILE DATA COMPLETION
+
+We are improving the onboarding profile/goals screen so Profile does not start empty.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Do NOT restructure the repo.
+Do NOT touch artifacts.
+Do NOT publish to Replit.
+
+TASK:
+Update the onboarding screen that currently asks for:
+- user_profile / health focus options
+- Date of birth
+- Current medications
+- Continue button
+
+Goal:
+Collect the minimum identity/profile information Meridian needs so the Profile page can render useful data immediately.
+
+Likely file:
+.migration-backup/src/app/onboarding/goals/page.tsx
+
+If the exact file differs, inspect first and modify only the correct onboarding file.
+
+Modify ONLY that onboarding file.
+
+Do not touch:
+- dashboard
+- labs
+- history
+- profile
+- OCR routes
+- confirm route
+- canonical dictionary
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- artifacts/
+- dependencies
+
+REQUIREMENTS:
+
+1. Add a Display Name field near the top of the form.
+
+Label:
+Display name
+
+Placeholder:
+e.g. Stephanie
+
+Helper text:
+This is how Meridian will address you inside the app.
+
+2. Save Display Name into the existing profiles.full_name field.
+
+Important:
+Do NOT create or assume preferred_name exists unless it already exists in the database/types.
+For now, use full_name as the profile display name.
+
+3. Preserve existing fields:
+- user_profile / health focus mode
+- birth_date
+- medications
+
+4. Make Date of birth visually match the medications input.
+Fix the styling inconsistency:
+- same height or visually balanced height
+- same border radius
+- same background
+- same border
+- same font size
+- same padding
+- vertically centered value
+
+5. Update the Continue save logic so it saves:
+- full_name
+- user_profile
+- birth_date
+- medications
+
+Do not break biological_profile if it was collected in a previous onboarding step.
+Do not overwrite existing biological_profile with null.
+
+6. Validation:
+- Display name should be optional but encouraged.
+- Date of birth should be optional for now unless the existing flow already requires it.
+- Medications should remain optional.
+- User profile / health focus should remain required if it already is required.
+
+7. Copy:
+Add a short intro above the fields:
+
+“Help Meridian personalize your biological context.”
+
+Subcopy:
+“You can update this later from Profile.”
+
+8. Visual style:
+- Keep current Meridian onboarding visual language.
+- Dark glassmorphism.
+- Teal/cyan accents.
+- Premium mobile-first spacing.
+- Inline styles only.
+- No Tailwind.
+- No new dependencies.
+- No new files.
+
+9. Do not make onboarding too long.
+Keep it clean and focused.
+
+AFTER EDITING:
+1. Report exact file changed.
+2. Confirm no other files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test onboarding on mobile viewport.
+5. Confirm:
+   - Display Name appears
+   - Date of birth styling matches other inputs
+   - Continue still works
+   - full_name is saved
+   - user_profile is saved
+   - birth_date is saved
+   - medications are saved
+6. Do not commit.
+7. Do not push.
+8. Do not publish.

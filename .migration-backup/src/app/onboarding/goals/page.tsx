@@ -43,6 +43,7 @@ const goals: Array<{
 export default function GoalsPage() {
   const router = useRouter()
   const [userId, setUserId] = useState<string | null>(null)
+  const [fullName, setFullName] = useState('')
   const [selectedGoal, setSelectedGoal] = useState<GoalValue | null>(null)
   const [birthDate, setBirthDate] = useState('')
   const [medications, setMedications] = useState('')
@@ -72,9 +73,16 @@ export default function GoalsPage() {
     setLoading(true)
     setError('')
     const medicationArray = medications.split(',').map((item) => item.trim()).filter(Boolean)
+    // Build payload — only include full_name if the user typed something
+    const payload: Record<string, unknown> = {
+      user_profile: selectedGoal,
+      birth_date: birthDate,
+      medications: medicationArray,
+    }
+    if (fullName.trim()) payload.full_name = fullName.trim()
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ user_profile: selectedGoal, birth_date: birthDate, medications: medicationArray })
+      .update(payload)
       .eq('id', userId)
     if (updateError) { setError(updateError.message); setLoading(false); return }
     router.push('/onboarding/connect')
@@ -189,8 +197,52 @@ export default function GoalsPage() {
             })}
           </div>
 
+          {/* Intro copy */}
+          <div style={{
+            borderTop: `1px solid ${colors.cardBorder}`,
+            paddingTop: '24px',
+            marginBottom: '20px',
+          }}>
+            <p style={{ margin: '0 0 3px', fontSize: '15px', fontWeight: 700, color: colors.text, letterSpacing: '-0.01em' }}>
+              Help Meridian personalize your biological context.
+            </p>
+            <p style={{ margin: 0, fontSize: '13px', color: colors.textMuted, lineHeight: 1.5 }}>
+              You can update this later from Profile.
+            </p>
+          </div>
+
           {/* Form fields */}
           <div style={{ display: 'grid', gap: '20px' }}>
+
+            {/* Display name */}
+            <section>
+              <label htmlFor="display-name" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                Display name{' '}
+                <span style={{ color: colors.textMuted, fontWeight: 500 }}>(optional)</span>
+              </label>
+              <input
+                id="display-name"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="e.g. Stephanie"
+                style={{
+                  width: '100%', boxSizing: 'border-box',
+                  border: `1px solid ${colors.cardBorder}`,
+                  background: 'rgba(6,19,22,0.6)',
+                  color: colors.text, borderRadius: '12px',
+                  padding: '14px 16px', fontSize: '15px', outline: 'none',
+                  fontFamily: 'Plus Jakarta Sans, sans-serif',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                  colorScheme: 'dark',
+                }}
+              />
+              <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
+                This is how Meridian will address you inside the app.
+              </p>
+            </section>
+
+            {/* Date of birth */}
             <section>
               <label htmlFor="birth-date" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
                 Date of birth
@@ -212,10 +264,11 @@ export default function GoalsPage() {
                 }}
               />
               <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
-                Used for age-adjusted reference ranges
+                Used for age-adjusted reference ranges.
               </p>
             </section>
 
+            {/* Medications */}
             <section>
               <label htmlFor="medications" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
                 Current medications{' '}
@@ -235,10 +288,11 @@ export default function GoalsPage() {
                   padding: '14px 16px', fontSize: '15px', outline: 'none',
                   fontFamily: 'Plus Jakarta Sans, sans-serif',
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                  colorScheme: 'dark',
                 }}
               />
               <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
-                Separate with commas. This helps us flag interactions. Leave blank if none.
+                Separate with commas. Helps flag interactions. Leave blank if none.
               </p>
             </section>
           </div>
