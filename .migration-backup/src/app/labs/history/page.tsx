@@ -127,8 +127,12 @@ const SLUG_TO_PANEL: Record<string, string> = {
   calcium: 'CMP',
   anion_gap: 'CMP',
 
-  // ── Glycemic (standalone tests — not part of CMP) ───────────────────────────
-  hba1c: 'Glycemic',
+  // ── Hemoglobin A1c (source panel label matches lab PDF) ─────────────────────
+  // Biological category is 'Glycemic' (preserved in canonical-dictionary.ts).
+  // Phase 1 History source panel view uses the clinical source test name.
+  hba1c: 'Hemoglobin A1c',
+
+  // ── Glycemic (other standalone metabolic tests) ──────────────────────────────
   insulin_fasting: 'Glycemic',
 
   // ── Hormones ────────────────────────────────────────────────────────────────
@@ -158,6 +162,7 @@ const PANEL_DISPLAY_ORDER = [
   'Lipid Panel',
   'CMP',
   'Thyroid Panel',
+  'Hemoglobin A1c',
   'Glycemic',
   'Vitamins & Nutrients',
   'Hormones',
