@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
+import { getNextOnboardingStep } from "@/lib/onboarding";
 
 export default function MeridianApp() {
   const router = useRouter();
@@ -23,21 +24,11 @@ export default function MeridianApp() {
       // Redirect to the exact step that is missing required data.
       const { data: profile } = await supabase
         .from('profiles')
-        .select('onboarding_completed, full_name, birth_date, biological_profile, user_profile')
+        .select('full_name, birth_date, biological_profile, user_profile, onboarding_completed')
         .eq('id', user.id)
         .single();
-      if (!profile || !profile.onboarding_completed) {
-        if (!profile?.full_name || !profile?.birth_date) {
-          router.push('/onboarding/identity');
-        } else if (!profile?.biological_profile) {
-          router.push('/onboarding/profile');
-        } else if (!profile?.user_profile) {
-          router.push('/onboarding/goals');
-        } else {
-          router.push('/onboarding/connect');
-        }
-        return;
-      }
+      const nextStep = getNextOnboardingStep(profile);
+      if (nextStep) { router.push(nextStep); return; }
       router.push("/dashboard");
     }
     checkAuth();

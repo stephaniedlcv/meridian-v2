@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
+import { getNextOnboardingStep } from '@/lib/onboarding'
 
 const colors = {
   background: '#061316',
@@ -61,11 +62,12 @@ function WelcomePageInner() {
         // Check whether this user has completed onboarding
         const { data: profile } = await supabase
           .from('profiles')
-          .select('onboarding_completed')
+          .select('full_name, birth_date, biological_profile, user_profile, onboarding_completed')
           .eq('id', authData.user!.id)
           .single()
-        if (!profile || !profile.onboarding_completed) {
-          router.push('/onboarding/identity')
+        const nextStep = getNextOnboardingStep(profile)
+        if (nextStep) {
+          router.push(nextStep)
         } else {
           router.push('/')
         }

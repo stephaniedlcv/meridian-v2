@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
+import { getNextOnboardingStep } from '@/lib/onboarding'
 
 // ——— Design tokens ———
 const colors = {
@@ -98,19 +99,9 @@ export default function ProfilePage() {
         .eq('id', user.id)
         .single()
 
-      // Guard: if onboarding is not complete, redirect to the exact missing step.
-      if (!prof || !(prof as unknown as Record<string, unknown>).onboarding_completed) {
-        const r = prof as unknown as Record<string, unknown> | null
-        const nextStep = (!r?.full_name || !r?.birth_date)
-          ? '/onboarding/identity'
-          : !r?.biological_profile
-          ? '/onboarding/profile'
-          : !r?.user_profile
-          ? '/onboarding/goals'
-          : '/onboarding/connect'
-        router.push(nextStep)
-        return
-      }
+      // Guard: redirect to the exact missing onboarding step.
+      const nextStep = getNextOnboardingStep(prof)
+      if (nextStep) { router.push(nextStep); return }
 
       if (prof) {
         const raw = prof as unknown as Record<string, unknown>
@@ -173,10 +164,9 @@ export default function ProfilePage() {
     setSaving(true); setSaveStatus('idle')
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: editPreferredName.trim() || null, biological_profile: editBioProfile })
-      .eq('id', userId)
+      .upsert({ id: userId, full_name: editPreferredName.trim() || null, biological_profile: editBioProfile }, { onConflict: 'id' })
     setSaving(false)
-    if (error) { setSaveStatus('error'); return }
+    if (error) { console.error('saveIdentity failed:', error); setSaveStatus('error'); return }
     setProfile(p => ({ ...p, full_name: editPreferredName.trim() || null, biological_profile: editBioProfile }))
     setSaveStatus('success')
     setTimeout(() => { setEditingSection(null); setSaveStatus('idle') }, 900)
@@ -186,9 +176,9 @@ export default function ProfilePage() {
     if (!userId || !editUserProfile) return
     setSaving(true); setSaveStatus('idle')
     const { error } = await supabase
-      .from('profiles').update({ user_profile: editUserProfile }).eq('id', userId)
+      .from('profiles').upsert({ id: userId, user_profile: editUserProfile }, { onConflict: 'id' })
     setSaving(false)
-    if (error) { setSaveStatus('error'); return }
+    if (error) { console.error('saveFocus failed:', error); setSaveStatus('error'); return }
     setProfile(p => ({ ...p, user_profile: editUserProfile }))
     setSaveStatus('success')
     setTimeout(() => { setEditingSection(null); setSaveStatus('idle') }, 900)

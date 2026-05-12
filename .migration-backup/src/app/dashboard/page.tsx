@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
 import { getSafetyStatusForBiomarker } from '@/lib/safety-engine'
+import { getNextOnboardingStep } from '@/lib/onboarding'
 
 const colors = {
   background: '#061316',
@@ -79,18 +80,8 @@ export default function DashboardPage() {
         .eq('id', user.id)
         .single()
 
-      if (!profile || !profile.onboarding_completed) {
-        if (!profile?.full_name || !profile?.birth_date) {
-          router.push('/onboarding/identity')
-        } else if (!profile?.biological_profile) {
-          router.push('/onboarding/profile')
-        } else if (!profile?.user_profile) {
-          router.push('/onboarding/goals')
-        } else {
-          router.push('/onboarding/connect')
-        }
-        return
-      }
+      const nextStep = getNextOnboardingStep(profile)
+      if (nextStep) { router.push(nextStep); return }
 
       setUserName(profile?.full_name || 'there')
 

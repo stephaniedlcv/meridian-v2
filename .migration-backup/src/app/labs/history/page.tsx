@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
+import { getNextOnboardingStep } from '@/lib/onboarding'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const colors = {
@@ -695,17 +696,8 @@ export default function LabsHistoryPage() {
         .select('onboarding_completed, full_name, birth_date, biological_profile, user_profile')
         .eq('id', user.id)
         .single()
-      if (!profileCheck?.onboarding_completed) {
-        const nextStep = (!profileCheck?.full_name || !profileCheck?.birth_date)
-          ? '/onboarding/identity'
-          : !profileCheck?.biological_profile
-          ? '/onboarding/profile'
-          : !profileCheck?.user_profile
-          ? '/onboarding/goals'
-          : '/onboarding/connect'
-        router.push(nextStep)
-        return
-      }
+      const nextStep = getNextOnboardingStep(profileCheck)
+      if (nextStep) { router.push(nextStep); return }
 
       const { data, error: fetchError } = await supabase
         .from('biomarkers_static')

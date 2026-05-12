@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
+import { getNextOnboardingStep } from '@/lib/onboarding'
 
 const colors = {
   background: '#061316',
@@ -49,14 +50,20 @@ export default function ConnectPage() {
 
   const [selected, setSelected] = useState<ConnectionOption[]>([])
   const [loading, setLoading] = useState(false)
+  const [completeError, setCompleteError] = useState('')
 
   useEffect(() => {
     async function checkUser() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/onboarding/welcome'); return }
-      // If already completed, go straight to dashboard.
-      const { data: prof } = await supabase.from('profiles').select('onboarding_completed').eq('id', user.id).single()
-      if (prof?.onboarding_completed) { router.push('/dashboard'); return }
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('full_name, birth_date, biological_profile, user_profile, onboarding_completed')
+        .eq('id', user.id)
+        .single()
+      const nextStep = getNextOnboardingStep(prof)
+      if (nextStep === null) { router.push('/dashboard'); return }
+      if (nextStep !== '/onboarding/connect') { router.push(nextStep); return }
     }
     checkUser()
   }, [router, supabase])
@@ -67,32 +74,40 @@ export default function ConnectPage() {
     )
   }
 
-  const completeOnboarding = async () => {
+  const completeOnboarding = async (): Promise<boolean> => {
     setLoading(true)
+    setCompleteError('')
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser()
       if (userError || !user) {
-        console.error(userError)
+        console.error('completeOnboarding: auth error', userError)
         router.push('/onboarding/welcome')
-        return
+        return false
       }
       const { error } = await supabase
         .from('profiles')
         .upsert({ id: user.id, onboarding_completed: true }, { onConflict: 'id' })
-      if (error) { console.error(error); return }
+      if (error) {
+        console.error('completeOnboarding: upsert failed', error)
+        setCompleteError('Unable to save your progress. Please try again.')
+        return false
+      }
+      return true
     } finally {
       setLoading(false)
     }
   }
 
   const handleContinue = async () => {
-    await completeOnboarding()
+    const ok = await completeOnboarding()
+    if (!ok) return
     if (selected.includes('lab')) { router.push('/labs/upload'); return }
     router.push('/')
   }
 
   const handleSkip = async () => {
-    await completeOnboarding()
+    const ok = await completeOnboarding()
+    if (!ok) return
     router.push('/')
   }
 
@@ -252,6 +267,13 @@ export default function ConnectPage() {
               <ConnectionCard option="apple" icon={<HeartIcon />} title="Connect Apple Health" subtitle="Activity, HRV, heart rate" />
             </motion.div>
           </div>
+
+          {/* Save error */}
+          {completeError ? (
+            <p style={{ margin: '0 0 14px', color: '#EF4444', fontSize: '13px', lineHeight: 1.5 }}>
+              {completeError}
+            </p>
+          ) : null}
 
           {/* CTA */}
           <button

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { motion } from 'framer-motion'
+import { getNextOnboardingStep } from '@/lib/onboarding'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -48,9 +49,14 @@ export default function GoalsPage() {
     async function checkAuth() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/onboarding/welcome'); return }
-      // Redirect completed users away — don't let them re-do onboarding.
-      const { data: prof } = await supabase.from('profiles').select('onboarding_completed').eq('id', user.id).single()
-      if (prof?.onboarding_completed) { router.push('/dashboard'); return }
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('full_name, birth_date, biological_profile, user_profile, onboarding_completed')
+        .eq('id', user.id)
+        .single()
+      const nextStep = getNextOnboardingStep(prof)
+      if (nextStep === null) { router.push('/dashboard'); return }
+      if (nextStep !== '/onboarding/goals') { router.push(nextStep); return }
       if (isMounted) setUserId(user.id)
     }
     checkAuth()

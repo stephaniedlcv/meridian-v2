@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
 import { getSafetyStatusForBiomarker } from '@/lib/safety-engine'
+import { getNextOnboardingStep } from '@/lib/onboarding'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const colors = {
@@ -858,17 +859,8 @@ export default function LabsUploadPage() {
         .select('biological_profile, onboarding_completed, full_name, birth_date, user_profile')
         .eq('id', user.id)
         .single()
-      if (!profile?.onboarding_completed) {
-        const nextStep = (!profile?.full_name || !profile?.birth_date)
-          ? '/onboarding/identity'
-          : !profile?.biological_profile
-          ? '/onboarding/profile'
-          : !profile?.user_profile
-          ? '/onboarding/goals'
-          : '/onboarding/connect'
-        router.push(nextStep)
-        return
-      }
+      const nextStep = getNextOnboardingStep(profile)
+      if (nextStep) { router.push(nextStep); return }
       if (profile?.biological_profile) setBioProfile(profile.biological_profile)
 
       // Recent labs: last 12 months
