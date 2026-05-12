@@ -1,0 +1,67 @@
+# MERIDIAN — BLOCKER BUG: User Can Reach Profile Without Persisted Onboarding Data
+
+The previous persistence fixes did NOT resolve the issue.
+
+Current behavior:
+A brand-new user can reach /profile, but Profile still shows:
+- Not set yet
+- Biology pending
+- Focus not set
+
+This means one or more of these is true:
+1. onboarding steps are being skipped
+2. route guards allow /profile before required profile fields exist
+3. signup creates Auth user but no valid profiles row
+4. onboarding saves are failing silently
+5. profile fetch reads from Supabase correctly, but required fields were never written
+
+DO NOT focus only on Profile UI.
+
+Fix the full onboarding persistence + route guard flow.
+
+Required fields before onboarding is considered complete:
+- profiles.full_name
+- profiles.birth_date
+- profiles.biological_profile
+- profiles.user_profile
+
+Rules:
+- onboarding_completed must be true ONLY if all required fields exist.
+- If any required field is missing, redirect user back to the correct onboarding step.
+- Do NOT allow /profile, /dashboard, /labs, or /history as completed app state if onboarding is incomplete.
+- Do NOT use localStorage as source of truth.
+- Do NOT use email prefix as name.
+- Supabase profiles row is the source of truth.
+
+Investigate:
+1. /onboarding/welcome signup redirect
+2. /onboarding/identity save + redirect
+3. /onboarding/profile save + redirect
+4. /onboarding/goals save + redirect
+5. app route guards / middleware
+6. profile row creation
+7. profiles table RLS preventing insert/upsert
+8. Supabase errors being swallowed
+9. whether the app is querying the correct Supabase project/env
+
+Add explicit console/error handling temporarily if needed.
+
+Acceptance criteria:
+1. New signup cannot land in Profile incomplete.
+2. New signup creates profiles row.
+3. Identity step writes full_name + birth_date.
+4. Biology step writes biological_profile.
+5. Goals step writes user_profile.
+6. onboarding_completed true only after all required fields exist.
+7. Profile shows saved values after refresh.
+8. Logout/login preserves values.
+9. If profile data is missing, app redirects to onboarding instead of showing incomplete Profile.
+10. Build passes.
+11. No files outside `.migration-backup/` modified.
+
+Return:
+- exact root cause
+- whether RLS was involved
+- whether route guard was involved
+- files changed
+- build result

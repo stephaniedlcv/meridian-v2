@@ -75,16 +75,22 @@ export default function DashboardPage() {
       // Get profile (biological_profile needed for hemoglobin Safety Engine threshold)
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, onboarding_completed, biological_profile')
+        .select('full_name, onboarding_completed, biological_profile, user_profile')
         .eq('id', user.id)
         .single()
 
       if (!profile || !profile.onboarding_completed) {
-        router.push('/onboarding/profile')
+        if (!profile?.full_name) {
+          router.push('/onboarding/identity')
+        } else if (!profile?.biological_profile) {
+          router.push('/onboarding/profile')
+        } else {
+          router.push('/onboarding/goals')
+        }
         return
       }
 
-      setUserName(profile?.full_name || user.email?.split('@')[0] || 'there')
+      setUserName(profile?.full_name || 'there')
 
       // Lightweight biomarker count — runs before insight so any insight failure
       // can still show the correct state rather than false no_data.

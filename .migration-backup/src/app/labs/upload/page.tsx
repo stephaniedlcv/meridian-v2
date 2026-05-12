@@ -855,9 +855,13 @@ export default function LabsUploadPage() {
       // Biological profile (unchanged)
       const { data: profile } = await supabase
         .from('profiles')
-        .select('biological_profile')
+        .select('biological_profile, onboarding_completed')
         .eq('id', user.id)
         .single()
+      if (!profile?.onboarding_completed) {
+        router.push('/onboarding/identity')
+        return
+      }
       if (profile?.biological_profile) setBioProfile(profile.biological_profile)
 
       // Recent labs: last 12 months

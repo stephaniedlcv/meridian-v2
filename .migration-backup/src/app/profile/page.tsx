@@ -94,9 +94,15 @@ export default function ProfilePage() {
 
       const { data: prof } = await supabase
         .from('profiles')
-        .select('full_name, biological_profile, user_profile, birth_date, avatar_url, medications')
+        .select('full_name, biological_profile, user_profile, birth_date, avatar_url, medications, onboarding_completed')
         .eq('id', user.id)
         .single()
+
+      // Guard: if onboarding is not complete, send user back to start.
+      if (!prof || !(prof as unknown as Record<string, unknown>).onboarding_completed) {
+        router.push('/onboarding/identity')
+        return
+      }
 
       if (prof) {
         const raw = prof as unknown as Record<string, unknown>

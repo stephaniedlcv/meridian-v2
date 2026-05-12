@@ -689,6 +689,17 @@ export default function LabsHistoryPage() {
 
       setUserId(user.id)
 
+      // Guard: block access until onboarding is complete.
+      const { data: profileCheck } = await supabase
+        .from('profiles')
+        .select('onboarding_completed')
+        .eq('id', user.id)
+        .single()
+      if (!profileCheck?.onboarding_completed) {
+        router.push('/onboarding/identity')
+        return
+      }
+
       const { data, error: fetchError } = await supabase
         .from('biomarkers_static')
         .select('id, marker_name, value, unit, state, reference_range_min, reference_range_max, optimal_range_min, optimal_range_max, collected_at, created_at, flag_error')

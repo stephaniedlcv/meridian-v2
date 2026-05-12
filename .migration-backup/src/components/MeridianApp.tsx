@@ -15,11 +15,28 @@ export default function MeridianApp() {
 
     async function checkAuth() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        router.push("/dashboard");
+      if (!user) {
+        setChecking(false);
         return;
       }
-      setChecking(false);
+      // Guard: check onboarding completion before allowing app access.
+      // Redirect to the exact step that is missing required data.
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed, full_name, biological_profile, user_profile')
+        .eq('id', user.id)
+        .single();
+      if (!profile || !profile.onboarding_completed) {
+        if (!profile?.full_name) {
+          router.push('/onboarding/identity');
+        } else if (!profile?.biological_profile) {
+          router.push('/onboarding/profile');
+        } else {
+          router.push('/onboarding/goals');
+        }
+        return;
+      }
+      router.push("/dashboard");
     }
     checkAuth();
   }, [router]);
