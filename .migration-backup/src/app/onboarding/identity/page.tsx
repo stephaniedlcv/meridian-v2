@@ -39,6 +39,8 @@ const dateInputStyle: React.CSSProperties = {
   WebkitAppearance: 'none',
   appearance: 'none',
   minHeight: '52px',
+  textAlign: 'left',
+  display: 'block',
 }
 
 export default function IdentityPage() {

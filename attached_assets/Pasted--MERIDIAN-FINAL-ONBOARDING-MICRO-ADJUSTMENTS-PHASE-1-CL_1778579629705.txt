@@ -1,0 +1,135 @@
+# MERIDIAN — FINAL ONBOARDING MICRO-ADJUSTMENTS (PHASE 1 CLOSE)
+
+You are working on Meridian.
+
+Stack:
+- Next.js 14 App Router
+- Supabase
+- TypeScript
+- Vercel
+
+IMPORTANT:
+- The real app lives inside .migration-backup/
+- Do NOT move files
+- Do NOT restructure repo
+- Do NOT redesign onboarding
+- Do NOT add dependencies
+- Only apply the targeted refinements below
+
+The onboarding flow is now mostly complete.
+
+This task is ONLY for final Phase 1 polish + consistency fixes.
+
+---
+
+# TASKS
+
+## 1. Fix Date of Birth input alignment (IMPORTANT)
+
+The Date of Birth field still looks visually inconsistent on iPhone/Safari.
+
+Current issue:
+- text appears centered
+- field feels like a native date picker button
+- does not visually match the other inputs
+
+Required:
+- left-align the date text
+- match Display Name and Medications inputs
+- same padding
+- same font size
+- same vertical alignment
+- same height
+- same border radius
+- same background
+- same border styling
+
+Normalize Safari date input behavior as much as possible WITHOUT redesigning the form.
+
+The DOB field should visually feel like a Meridian input, not a default browser control.
+
+---
+
+## 2. Dashboard empty-state label fix
+
+Current label:
+AWAITING BIOLOGICAL INPUT
+
+This is no longer accurate after onboarding is completed.
+
+Replace with:
+
+AWAITING BIOMARKER DATA
+
+Do NOT change the rest of the card design.
+
+---
+
+## 3. Verify onboarding persistence integrity
+
+Validate the FULL onboarding flow:
+
+welcome
+→ identity
+→ biological profile
+→ Meridian mode
+→ dashboard
+
+Confirm:
+- redirects work correctly
+- onboarding_completed only becomes true after Step 3
+- refresh/reload does not break state
+- logout/login preserves onboarding data
+- profile reads real Supabase values
+
+---
+
+## 4. Profile verification
+
+After onboarding completion, /profile must correctly display:
+- display name
+- email
+- biological profile
+- Meridian mode
+- age context
+- medication context
+
+No placeholders or pending states should remain after onboarding.
+
+---
+
+## 5. Selected state consistency
+
+Verify selected-state styling consistency between:
+- Biological Profile cards
+- Meridian Mode cards
+
+Ensure:
+- active state is visually obvious
+- glow/border treatment is consistent
+- CTA activates clearly after selection
+
+No redesigns.
+
+---
+
+# IMPORTANT
+
+Do NOT:
+- redesign onboarding
+- change copywriting structure
+- add new screens
+- add wearable onboarding back
+- touch labs/history/dashboard logic outside the empty-state label
+
+This is a polish + stabilization pass only.
+
+---
+
+# RETURN FORMAT
+
+Return:
+1. Files changed
+2. What was fixed
+3. Any remaining issues
+4. Confirmation no files outside .migration-backup/ were modified

@@ -343,7 +343,7 @@ function NoDataBlock({ onUpload }: { onUpload: () => void }) {
           background: 'rgba(45,212,191,0.06)',
         }}>
           <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: `0 0 5px ${colors.teal}` }} />
-          Awaiting Biological Input
+          Awaiting Biomarker Data
         </div>
         <h2 style={{
           fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700,
