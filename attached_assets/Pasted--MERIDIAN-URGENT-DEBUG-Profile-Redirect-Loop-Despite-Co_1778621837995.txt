@@ -1,0 +1,86 @@
+# MERIDIAN — URGENT DEBUG: Profile Redirect Loop Despite Complete Profile Row
+
+Problem:
+Supabase is now saving the profile correctly.
+
+Confirmed in public.profiles:
+- id matches auth.uid()
+- full_name = Stephanie
+- birth_date = 1991-01-24
+- biological_profile = female
+- medications exists
+- safety_status = active
+- user_profile = optimizacion
+- onboarding_completed = TRUE
+
+But clicking Profile in the app still causes a redirect loop instead of loading /profile.
+
+This is no longer a Supabase/RLS/persistence issue.
+This is a frontend guard / resolver / routing issue.
+
+CRITICAL RULES:
+- Do NOT modify Supabase schema
+- Do NOT touch OCR/labs/dashboard logic
+- Do NOT redesign UI
+- Do NOT refactor broadly
+- Fix only the exact redirect loop cause
+- Real app lives in `.migration-backup/`
+
+Inspect:
+- `.migration-backup/src/lib/onboarding.ts`
+- `.migration-backup/src/app/profile/page.tsx`
+- any shared navigation/bottom nav code if Profile tab triggers route
+- any protected route guard logic used by Profile
+
+Required checks:
+1. Confirm Profile query selects:
+   - full_name
+   - birth_date
+   - biological_profile
+   - user_profile
+   - onboarding_completed
+
+2. Confirm the exact object passed to `getNextOnboardingStep(profile)`.
+
+3. Confirm `getNextOnboardingStep(profile)` returns `null` when:
+   - full_name exists
+   - birth_date exists
+   - biological_profile exists
+   - user_profile exists
+   - onboarding_completed === true
+
+4. Check if `onboarding_completed` is being interpreted incorrectly:
+   - boolean true vs string "TRUE"
+   - missing from select
+   - nested object mismatch
+
+5. Check if Profile is redirecting even when `nextStep === null`.
+
+6. Check if useEffect dependencies or router.replace calls are causing repeated redirects.
+
+7. Add temporary console logs if needed:
+   - user.id
+   - profile row returned
+   - Supabase error
+   - nextStep
+   - current route
+   - redirect target
+
+Fix only the exact cause.
+
+Expected behavior:
+- Completed profile row should load `/profile`.
+- `getNextOnboardingStep(profile)` should return null.
+- Profile tab should not redirect completed users.
+- Incomplete users should still redirect to correct onboarding step.
+- No infinite loop.
+- Build passes.
+- No files outside `.migration-backup/` modified.
+
+Return:
+1. Root cause
+2. Fields selected by Profile query
+3. What `getNextOnboardingStep()` was returning before fix
+4. Exact fix made
+5. Files changed
+6. Build result

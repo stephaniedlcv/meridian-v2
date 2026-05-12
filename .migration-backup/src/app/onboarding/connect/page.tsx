@@ -41,12 +41,18 @@ const HeartIcon = () => (
   </svg>
 )
 
+// Supabase client at module level — stable reference, never changes between renders.
+// Matches the pattern used by identity/page.tsx and goals/page.tsx.
+// DO NOT move this inside the component: an in-component client would be a new
+// object reference every render, causing the useEffect (which depends on it) to
+// re-fire on every render and loop router.push calls for completed users.
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
 export default function ConnectPage() {
   const router = useRouter()
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
 
   const [selected, setSelected] = useState<ConnectionOption[]>([])
   const [loading, setLoading] = useState(false)
@@ -66,7 +72,9 @@ export default function ConnectPage() {
       if (nextStep !== '/onboarding/connect') { router.push(nextStep); return }
     }
     checkUser()
-  }, [router, supabase])
+  // supabase is now module-level (stable) — safe to omit from deps.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router])
 
   const toggleSelection = (option: ConnectionOption) => {
     setSelected((prev) =>

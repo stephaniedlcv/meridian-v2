@@ -100,7 +100,10 @@ export default function ProfilePage() {
         .single()
 
       // Guard: redirect to the exact missing onboarding step.
+      console.log('[Meridian/profile] user.id:', user.id)
+      console.log('[Meridian/profile] prof row:', JSON.stringify(prof))
       const nextStep = getNextOnboardingStep(prof)
+      console.log('[Meridian/profile] nextStep:', nextStep)
       if (nextStep) { router.push(nextStep); return }
 
       if (prof) {

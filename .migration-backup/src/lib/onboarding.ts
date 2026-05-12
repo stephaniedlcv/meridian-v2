@@ -18,6 +18,8 @@ export function getNextOnboardingStep(profile: unknown): string | null {
   if (!p.full_name || !p.birth_date) return '/onboarding/identity'
   if (!p.biological_profile) return '/onboarding/profile'
   if (!p.user_profile) return '/onboarding/goals'
-  if (p.onboarding_completed !== true) return '/onboarding/connect'
+  // Use loose truthiness (not strict === true) so boolean true, string "true",
+  // and any other truthy DB serialisation all pass the guard correctly.
+  if (!p.onboarding_completed) return '/onboarding/connect'
   return null
 }
