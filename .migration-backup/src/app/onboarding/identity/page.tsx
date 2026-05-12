@@ -21,26 +21,35 @@ const colors = {
   cardBorder: 'rgba(103,232,249,0.13)',
 }
 
-const inputStyle: React.CSSProperties = {
+const inputBase: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
   border: `1px solid ${colors.cardBorder}`,
   background: 'rgba(6,19,22,0.6)',
   color: colors.text, borderRadius: '12px',
   padding: '14px 16px', fontSize: '15px', outline: 'none',
   fontFamily: 'Plus Jakarta Sans, sans-serif',
+  lineHeight: '1.5',
   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
   colorScheme: 'dark',
+}
+
+// Date inputs need explicit appearance reset for Safari mobile
+const dateInputStyle: React.CSSProperties = {
+  ...inputBase,
+  WebkitAppearance: 'none',
+  appearance: 'none',
+  minHeight: '52px',
 }
 
 export default function IdentityPage() {
   const router = useRouter()
 
-  const [userId, setUserId]       = useState<string | null>(null)
-  const [fullName, setFullName]   = useState('')
-  const [birthDate, setBirthDate] = useState('')
+  const [userId, setUserId]           = useState<string | null>(null)
+  const [fullName, setFullName]       = useState('')
+  const [birthDate, setBirthDate]     = useState('')
   const [medications, setMedications] = useState('')
-  const [loading, setLoading]     = useState(false)
-  const [error, setError]         = useState('')
+  const [loading, setLoading]         = useState(false)
+  const [error, setError]             = useState('')
 
   useEffect(() => {
     let isMounted = true
@@ -53,27 +62,24 @@ export default function IdentityPage() {
     return () => { isMounted = false }
   }, [router])
 
+  // Display name and date of birth are required
+  const canContinue = !!userId && !loading && fullName.trim().length > 0 && !!birthDate
+
   async function handleContinue() {
     if (!userId) return
+    if (!fullName.trim()) { setError('Display name is required.'); return }
+    if (!birthDate) { setError('Date of birth is required.'); return }
     setLoading(true)
     setError('')
     const medicationArray = medications.split(',').map((s) => s.trim()).filter(Boolean)
-    // All fields optional — only include full_name if user typed something
-    const payload: Record<string, unknown> = {
-      birth_date: birthDate || null,
-      medications: medicationArray,
-    }
-    if (fullName.trim()) payload.full_name = fullName.trim()
     const { error: updateError } = await supabase
       .from('profiles')
-      .update(payload)
+      .update({ full_name: fullName.trim(), birth_date: birthDate, medications: medicationArray })
       .eq('id', userId)
     setLoading(false)
     if (updateError) { setError(updateError.message); return }
     router.push('/onboarding/profile')
   }
-
-  const canContinue = !!userId && !loading
 
   return (
     <main style={{
@@ -84,9 +90,9 @@ export default function IdentityPage() {
       position: 'relative',
       overflow: 'hidden',
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'center',
-      padding: '48px 20px',
+      padding: '80px 20px 100px',
     }}>
       {/* Ambient orbs */}
       <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(45,212,191,0.13) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
@@ -154,44 +160,42 @@ export default function IdentityPage() {
           {/* Fields */}
           <div style={{ display: 'grid', gap: '20px', marginBottom: '8px' }}>
 
-            {/* Display name */}
+            {/* Display name — required */}
             <section>
               <label htmlFor="display-name" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
-                Display name{' '}
-                <span style={{ color: colors.textMuted, fontWeight: 500 }}>(optional)</span>
+                Display name
               </label>
               <input
                 id="display-name"
                 type="text"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="e.g. Stephanie"
-                style={inputStyle}
+                onChange={(e) => { setFullName(e.target.value); if (error) setError('') }}
+                placeholder="Your preferred name"
+                style={inputBase}
               />
               <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
                 This is how Meridian will address you inside the app.
               </p>
             </section>
 
-            {/* Date of birth */}
+            {/* Date of birth — required */}
             <section>
               <label htmlFor="birth-date" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
-                Date of birth{' '}
-                <span style={{ color: colors.textMuted, fontWeight: 500 }}>(optional)</span>
+                Date of birth
               </label>
               <input
                 id="birth-date"
                 type="date"
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
-                style={inputStyle}
+                onChange={(e) => { setBirthDate(e.target.value); if (error) setError('') }}
+                style={dateInputStyle}
               />
               <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
                 Used for age-adjusted biological context.
               </p>
             </section>
 
-            {/* Medications */}
+            {/* Medications — optional */}
             <section>
               <label htmlFor="medications" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
                 Current medications{' '}
@@ -203,7 +207,7 @@ export default function IdentityPage() {
                 value={medications}
                 onChange={(e) => setMedications(e.target.value)}
                 placeholder="e.g. Levothyroxine, Metformin"
-                style={inputStyle}
+                style={inputBase}
               />
               <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
                 Separate with commas. Leave blank if none.
@@ -211,7 +215,7 @@ export default function IdentityPage() {
             </section>
           </div>
 
-          {/* Error */}
+          {/* Validation error */}
           {error && (
             <p style={{ margin: '12px 0 0', color: '#EF4444', fontSize: '13px', lineHeight: 1.5 }}>
               {error}

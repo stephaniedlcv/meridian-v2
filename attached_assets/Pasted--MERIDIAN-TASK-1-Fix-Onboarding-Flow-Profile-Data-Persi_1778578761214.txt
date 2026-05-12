@@ -1,0 +1,215 @@
+# MERIDIAN — TASK 1: Fix Onboarding Flow + Profile Data Persistence
+
+You are working on Meridian.
+
+Stack:
+- Next.js 14 App Router
+- Supabase
+- TypeScript
+- Vercel
+- Replit/GitHub workflow
+
+IMPORTANT:
+- The real project lives inside .migration-backup/
+- Do NOT move files outside .migration-backup
+- Do NOT restructure the repo
+- Do NOT touch artifacts/
+- Do NOT redesign the visual system
+- Do NOT add dependencies
+- Do NOT publish/deploy without approval
+
+## Goal
+
+Fix the Phase 1 onboarding flow so a new user can complete onboarding and then see their real saved data in /profile.
+
+## Correct onboarding flow
+
+The final flow must be:
+
+/onboarding/welcome
+→ /onboarding/identity
+→ /onboarding/profile
+→ /onboarding/goals
+→ /dashboard
+
+## Required behavior
+
+### 1. Welcome page
+
+The “Get started” button must route to:
+
+/onboarding/identity
+
+It must NOT route to /onboarding/profile.
+
+---
+
+### 2. Identity page
+
+/onboarding/identity must collect:
+
+- Display name — required
+- Date of birth — required
+- Current medications — optional
+
+Use this exact placeholder text for the name field:
+
+Your preferred name
+
+Do NOT use:
+- Stephanie
+- the user’s email prefix
+- any personal real name
+
+Save to Supabase:
+
+- profiles.full_name
+- profiles.birth_date
+- profiles.medications
+
+Do NOT mark onboarding completed here.
+
+After successful save, route to:
+
+/onboarding/profile
+
+---
+
+### 3. Identity validation
+
+Display name and date of birth are required.
+
+If either is missing, prevent continuing and show a clear inline error.
+
+Current medications remains optional.
+
+---
+
+### 4. Date input visual fix
+
+The Date of Birth input currently looks visually different from the other fields.
+
+Fix it so it matches the other inputs:
+
+- same height
+- same padding
+- same border radius
+- same background
+- same border
+- same font
+- vertically centered
+- mobile Safari normalized as much as possible using inline styles
+
+Do not introduce global CSS unless absolutely necessary.
+
+---
+
+### 5. Biological profile page
+
+/onboarding/profile must collect ONLY:
+
+- biological_profile
+
+Options:
+
+- Female biology
+- Male biology
+
+Save to Supabase:
+
+- profiles.biological_profile
+
+After successful save, route to:
+
+/onboarding/goals
+
+Do NOT mark onboarding completed here.
+
+---
+
+### 6. Profile page top spacing fix
+
+The /onboarding/profile screen currently has too much empty space above the chip/card.
+
+Fix the mobile spacing so the chip “BIOLOGICAL PROFILE · STEP 2” sits higher and visually aligns with the rest of onboarding.
+
+Reduce excessive top padding, margin, minHeight, or vertical centering causing the issue.
+
+Do NOT redesign the page.
+
+---
+
+### 7. Goals page
+
+/onboarding/goals must collect:
+
+- user_profile
+
+Options:
+
+- General wellness
+- Optimization
+- Peak performance
+- Specific condition
+- Getting started
+
+Save to Supabase:
+
+- profiles.user_profile
+- profiles.onboarding_completed = true
+
+After successful save, route to:
+
+/dashboard
+
+---
+
+### 8. Profile page data validation
+
+After onboarding is completed, /profile must read from Supabase and show real user data:
+
+- display name
+- email
+- biological profile
+- health focus mode / Meridian mode
+- age context if birth_date exists
+- medication context if medications exists
+
+After onboarding, /profile should NOT show:
+
+- “Biology pending”
+- “Focus not set”
+- “Not set yet”
+- fake placeholders
+- hardcoded user names
+
+If those still appear, fix the Supabase read/mapping logic.
+
+---
+
+## Acceptance criteria
+
+A new user can:
+
+1. Create account.
+2. Click “Get started”.
+3. Land on /onboarding/identity.
+4. Enter display name + date of birth + optional medications.
+5. Continue to /onboarding/profile.
+6. Select biological profile.
+7. Continue to /onboarding/goals.
+8. Select Meridian mode.
+9. Land on /dashboard.
+10. Open /profile.
+11. See real saved onboarding data.
+
+## Return format
+
+Before making changes, inspect the relevant files.
+
+Then return:
+
+1. List of files changed.
+2. Summary of what was fixed.
+3. Any remaining issues or assumptions.
+4. Confirmation that no files outside .migration-backup/ were changed.

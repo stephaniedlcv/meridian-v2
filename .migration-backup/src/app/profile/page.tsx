@@ -33,6 +33,7 @@ interface ProfileData {
   user_profile:       UserProfile | null
   avatar_url:         string | null   // may not exist in DB — handled gracefully
   birth_date:         string | null
+  medications:        string[] | null
 }
 
 // ——— Reference maps ———
@@ -73,7 +74,7 @@ export default function ProfilePage() {
   const [userEmail, setUserEmail]                 = useState('')
   const [profile, setProfile]                     = useState<ProfileData>({
     full_name: null, preferred_name: null, biological_profile: null,
-    user_profile: null, avatar_url: null, birth_date: null,
+    user_profile: null, avatar_url: null, birth_date: null, medications: null,
   })
   const [hasLabs, setHasLabs]                     = useState(false)
   const [photoPreview, setPhotoPreview]           = useState<string | null>(null)
@@ -94,7 +95,7 @@ export default function ProfilePage() {
 
       const { data: prof } = await supabase
         .from('profiles')
-        .select('full_name, biological_profile, user_profile, birth_date, preferred_name, avatar_url')
+        .select('full_name, biological_profile, user_profile, birth_date, preferred_name, avatar_url, medications')
         .eq('id', user.id)
         .single()
 
@@ -107,6 +108,7 @@ export default function ProfilePage() {
           user_profile:        typeof raw.user_profile === 'string' ? raw.user_profile as UserProfile : null,
           avatar_url:          typeof raw.avatar_url === 'string' ? raw.avatar_url : null,
           birth_date:          typeof raw.birth_date === 'string' ? raw.birth_date : null,
+          medications:         Array.isArray(raw.medications) ? raw.medications as string[] : null,
         })
       }
 
@@ -202,7 +204,7 @@ export default function ProfilePage() {
     { label: 'Age context',        description: 'Used for age-adjusted insight priority.',   status: profile.birth_date ? 'active' : 'pending' },
     { label: 'Lab history',        description: 'Used to refine trend interpretation.',       status: hasLabs ? 'active' : 'pending' },
     { label: 'Wearable signals',   description: 'Used to improve biological context.',        status: 'soon' },
-    { label: 'Medication context', description: 'Used to flag potential interactions.',       status: 'soon' },
+    { label: 'Medication context', description: 'Used to flag potential interactions.',       status: profile.medications && profile.medications.length > 0 ? 'active' : 'pending' },
     { label: 'Feedback loop',      description: 'Used to improve insight accuracy over time.',status: 'soon' },
   ]
 
