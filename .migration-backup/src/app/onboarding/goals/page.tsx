@@ -137,164 +137,178 @@ export default function GoalsPage() {
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 48px rgba(45,212,191,0.06)',
         }}>
 
-          {/* Heading */}
-          <div style={{ marginBottom: '24px' }}>
+          {/* ── Heading ── */}
+          <div style={{ marginBottom: '28px' }}>
             <h1 style={{
-              margin: '0 0 10px',
+              margin: '0 0 8px',
               fontFamily: 'var(--font-fraunces), serif',
               fontSize: 'clamp(24px, 4vw, 30px)',
               lineHeight: 1.08,
               letterSpacing: '-0.04em',
               color: colors.text,
               fontWeight: 700,
-              whiteSpace: 'nowrap',
             }}>
-              What&apos;s your health goal?
+              Personalize Meridian
             </h1>
-            <p style={{ margin: 0, color: colors.textSoft, fontSize: '15px', lineHeight: 1.65 }}>
-              This helps Meridian prioritize what matters most to you.
+            <p style={{ margin: '0 0 5px', color: colors.textSoft, fontSize: '15px', lineHeight: 1.6 }}>
+              Help Meridian understand your biological context and tailor your daily insights.
             </p>
-          </div>
-
-          {/* Goal cards */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '12px',
-            marginBottom: '28px',
-          }}>
-            {goals.map((goal) => {
-              const isSelected = selectedGoal === goal.value
-              return (
-                <button
-                  key={goal.value}
-                  type="button"
-                  onClick={() => setSelectedGoal(goal.value)}
-                  style={{
-                    textAlign: 'left',
-                    border: isSelected ? '1px solid rgba(45,212,191,0.85)' : `1px solid ${colors.cardBorder}`,
-                    background: isSelected ? 'rgba(45,212,191,0.10)' : colors.cardBg,
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    color: colors.text,
-                    borderRadius: '16px',
-                    padding: '16px',
-                    cursor: 'pointer',
-                    transition: 'border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease',
-                    boxShadow: isSelected ? '0 0 0 1px rgba(45,212,191,0.15), 0 0 16px rgba(45,212,191,0.08)' : 'none',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}
-                >
-                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '5px', color: isSelected ? colors.teal : colors.text, letterSpacing: '-0.01em' }}>
-                    {goal.label}
-                  </span>
-                  <span style={{ display: 'block', color: isSelected ? '#9EEFE4' : colors.textSoft, fontSize: '12px', lineHeight: 1.45 }}>
-                    {goal.subtext}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Intro copy */}
-          <div style={{
-            borderTop: `1px solid ${colors.cardBorder}`,
-            paddingTop: '24px',
-            marginBottom: '20px',
-          }}>
-            <p style={{ margin: '0 0 3px', fontSize: '15px', fontWeight: 700, color: colors.text, letterSpacing: '-0.01em' }}>
-              Help Meridian personalize your biological context.
-            </p>
-            <p style={{ margin: 0, fontSize: '13px', color: colors.textMuted, lineHeight: 1.5 }}>
+            <p style={{ margin: 0, color: colors.textMuted, fontSize: '13px', lineHeight: 1.5 }}>
               You can update this later from Profile.
             </p>
           </div>
 
-          {/* Form fields */}
-          <div style={{ display: 'grid', gap: '20px' }}>
+          {/* ── Section 1: Your identity ── */}
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+              <span style={{
+                fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
+                textTransform: 'uppercase', color: colors.textMuted,
+              }}>
+                Your identity
+              </span>
+              <div style={{ flex: 1, height: '1px', background: colors.cardBorder }} />
+            </div>
 
-            {/* Display name */}
-            <section>
-              <label htmlFor="display-name" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
-                Display name{' '}
-                <span style={{ color: colors.textMuted, fontWeight: 500 }}>(optional)</span>
-              </label>
-              <input
-                id="display-name"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="e.g. Stephanie"
-                style={{
-                  width: '100%', boxSizing: 'border-box',
-                  border: `1px solid ${colors.cardBorder}`,
-                  background: 'rgba(6,19,22,0.6)',
-                  color: colors.text, borderRadius: '12px',
-                  padding: '14px 16px', fontSize: '15px', outline: 'none',
-                  fontFamily: 'Plus Jakarta Sans, sans-serif',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
-                  colorScheme: 'dark',
-                }}
-              />
-              <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
-                This is how Meridian will address you inside the app.
-              </p>
-            </section>
+            <div style={{ display: 'grid', gap: '20px' }}>
+              {/* Display name */}
+              <section>
+                <label htmlFor="display-name" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                  Display name{' '}
+                  <span style={{ color: colors.textMuted, fontWeight: 500 }}>(optional)</span>
+                </label>
+                <input
+                  id="display-name"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="e.g. Stephanie"
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    border: `1px solid ${colors.cardBorder}`,
+                    background: 'rgba(6,19,22,0.6)',
+                    color: colors.text, borderRadius: '12px',
+                    padding: '14px 16px', fontSize: '15px', outline: 'none',
+                    fontFamily: 'Plus Jakarta Sans, sans-serif',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                    colorScheme: 'dark',
+                  }}
+                />
+                <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
+                  This is how Meridian will address you inside the app.
+                </p>
+              </section>
 
-            {/* Date of birth */}
-            <section>
-              <label htmlFor="birth-date" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
-                Date of birth
-              </label>
-              <input
-                id="birth-date"
-                type="date"
-                value={birthDate}
-                onChange={(event) => setBirthDate(event.target.value)}
-                style={{
-                  width: '100%', boxSizing: 'border-box',
-                  border: `1px solid ${colors.cardBorder}`,
-                  background: 'rgba(6,19,22,0.6)',
-                  color: colors.text, borderRadius: '12px',
-                  padding: '14px 16px', fontSize: '15px', outline: 'none',
-                  fontFamily: 'Plus Jakarta Sans, sans-serif',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
-                  colorScheme: 'dark',
-                }}
-              />
-              <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
-                Used for age-adjusted reference ranges.
-              </p>
-            </section>
+              {/* Date of birth */}
+              <section>
+                <label htmlFor="birth-date" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                  Date of birth
+                </label>
+                <input
+                  id="birth-date"
+                  type="date"
+                  value={birthDate}
+                  onChange={(event) => setBirthDate(event.target.value)}
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    border: `1px solid ${colors.cardBorder}`,
+                    background: 'rgba(6,19,22,0.6)',
+                    color: colors.text, borderRadius: '12px',
+                    padding: '14px 16px', fontSize: '15px', outline: 'none',
+                    fontFamily: 'Plus Jakarta Sans, sans-serif',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                    colorScheme: 'dark',
+                  }}
+                />
+                <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
+                  Used for age-adjusted biological context.
+                </p>
+              </section>
 
-            {/* Medications */}
-            <section>
-              <label htmlFor="medications" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
-                Current medications{' '}
-                <span style={{ color: colors.textMuted, fontWeight: 500 }}>(optional)</span>
-              </label>
-              <input
-                id="medications"
-                type="text"
-                value={medications}
-                onChange={(event) => setMedications(event.target.value)}
-                placeholder="e.g. Levothyroxine, Metformin"
-                style={{
-                  width: '100%', boxSizing: 'border-box',
-                  border: `1px solid ${colors.cardBorder}`,
-                  background: 'rgba(6,19,22,0.6)',
-                  color: colors.text, borderRadius: '12px',
-                  padding: '14px 16px', fontSize: '15px', outline: 'none',
-                  fontFamily: 'Plus Jakarta Sans, sans-serif',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
-                  colorScheme: 'dark',
-                }}
-              />
-              <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
-                Separate with commas. Helps flag interactions. Leave blank if none.
-              </p>
-            </section>
+              {/* Current medications */}
+              <section>
+                <label htmlFor="medications" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                  Current medications{' '}
+                  <span style={{ color: colors.textMuted, fontWeight: 500 }}>(optional)</span>
+                </label>
+                <input
+                  id="medications"
+                  type="text"
+                  value={medications}
+                  onChange={(event) => setMedications(event.target.value)}
+                  placeholder="e.g. Levothyroxine, Metformin"
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    border: `1px solid ${colors.cardBorder}`,
+                    background: 'rgba(6,19,22,0.6)',
+                    color: colors.text, borderRadius: '12px',
+                    padding: '14px 16px', fontSize: '15px', outline: 'none',
+                    fontFamily: 'Plus Jakarta Sans, sans-serif',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                    colorScheme: 'dark',
+                  }}
+                />
+                <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
+                  Separate with commas. Leave blank if none.
+                </p>
+              </section>
+            </div>
+          </div>
+
+          {/* ── Section 2: Your Meridian mode ── */}
+          <div style={{ marginBottom: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <span style={{
+                fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
+                textTransform: 'uppercase', color: colors.textMuted,
+              }}>
+                Your Meridian mode
+              </span>
+              <div style={{ flex: 1, height: '1px', background: colors.cardBorder }} />
+            </div>
+
+            <p style={{ margin: '0 0 14px', color: colors.textSoft, fontSize: '14px', fontWeight: 600, letterSpacing: '-0.01em' }}>
+              What brings you to Meridian?
+            </p>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '10px',
+            }}>
+              {goals.map((goal) => {
+                const isSelected = selectedGoal === goal.value
+                return (
+                  <button
+                    key={goal.value}
+                    type="button"
+                    onClick={() => setSelectedGoal(goal.value)}
+                    style={{
+                      textAlign: 'left',
+                      border: isSelected ? '1px solid rgba(45,212,191,0.85)' : `1px solid ${colors.cardBorder}`,
+                      background: isSelected ? 'rgba(45,212,191,0.10)' : colors.cardBg,
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      color: colors.text,
+                      borderRadius: '16px',
+                      padding: '16px',
+                      cursor: 'pointer',
+                      transition: 'border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease',
+                      boxShadow: isSelected ? '0 0 0 1px rgba(45,212,191,0.15), 0 0 16px rgba(45,212,191,0.08)' : 'none',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}
+                  >
+                    <span style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '5px', color: isSelected ? colors.teal : colors.text, letterSpacing: '-0.01em' }}>
+                      {goal.label}
+                    </span>
+                    <span style={{ display: 'block', color: isSelected ? '#9EEFE4' : colors.textSoft, fontSize: '12px', lineHeight: 1.45 }}>
+                      {goal.subtext}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {/* Error */}
