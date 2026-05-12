@@ -773,7 +773,7 @@ export default function LabsHistoryPage() {
       fontFamily: fonts.ui,
       position: 'relative',
       overflow: 'hidden',
-      padding: '24px 20px 120px',
+      padding: '36px 20px 120px',
     }}>
       {/* Detail sheet */}
       {selectedBiomarker && (
@@ -793,7 +793,7 @@ export default function LabsHistoryPage() {
         {/* ── Page header ── */}
         <h1 style={{
           fontFamily: fonts.heading,
-          fontSize: 'clamp(24px, 5vw, 30px)',
+          fontSize: 'clamp(26px, 5vw, 32px)',
           fontWeight: 700,
           color: colors.text,
           marginBottom: '6px',
@@ -872,7 +872,7 @@ export default function LabsHistoryPage() {
                   fontWeight: 700,
                   color: colors.textMuted,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
+                  letterSpacing: '0.07em',
                   marginBottom: '12px',
                 }}>
                   {monthGroup.label}

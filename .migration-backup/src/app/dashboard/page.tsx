@@ -220,7 +220,7 @@ export default function DashboardPage() {
         >
           <div>
             <div style={{
-              fontSize: '9px', fontWeight: 700, letterSpacing: '0.16em',
+              fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
               textTransform: 'uppercase', color: colors.textMuted,
               marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '6px',
             }}>
@@ -244,7 +244,7 @@ export default function DashboardPage() {
             <div style={{ fontSize: '14px', fontWeight: 600, color: colors.text, marginBottom: '2px' }}>
               Your body is speaking.
             </div>
-            <div style={{ fontSize: '13px', color: colors.textMuted }}>
+            <div style={{ fontSize: '14px', color: colors.textSoft }}>
               Let&apos;s see what changed today.
             </div>
           </div>
@@ -365,7 +365,7 @@ function NoDataBlock({ onUpload }: { onUpload: () => void }) {
           display: 'inline-flex',
           alignItems: 'center',
           gap: '6px',
-          fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+          fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
           textTransform: 'uppercase', color: colors.teal,
           marginBottom: '16px',
           padding: '4px 10px',
@@ -445,7 +445,7 @@ function LabsSavedBlock({
           {/* Safety chip */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
-            fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+            fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
             textTransform: 'uppercase', color: '#F87171',
             marginBottom: '16px', padding: '4px 10px',
             border: '1px solid rgba(248,113,113,0.28)', borderRadius: '20px',
@@ -507,7 +507,7 @@ function LabsSavedBlock({
         {/* Status chip */}
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: '6px',
-          fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+          fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
           textTransform: 'uppercase', color: colors.teal,
           marginBottom: '16px', padding: '4px 10px',
           border: `1px solid rgba(45,212,191,0.25)`, borderRadius: '20px',
@@ -610,7 +610,7 @@ function CalibratingBlock({ onUpload }: { onUpload: () => void }) {
           display: 'inline-flex',
           alignItems: 'center',
           gap: '6px',
-          fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+          fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
           textTransform: 'uppercase', color: colors.cyan,
           marginBottom: '16px',
           padding: '4px 10px',
@@ -681,7 +681,7 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+            fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
             textTransform: 'uppercase', color: bc.accent,
             padding: '4px 10px',
             border: `1px solid ${bc.accent}40`,
@@ -692,7 +692,7 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
             Biological Signal
           </div>
           <div style={{
-            fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em',
+            fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em',
             textTransform: 'uppercase', color: colors.textMuted,
             padding: '3px 10px',
             border: `1px solid ${colors.cardBorder}`,
@@ -708,7 +708,7 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+            fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
             textTransform: 'uppercase', color: '#F87171',
             marginBottom: '12px',
             padding: '4px 10px',
@@ -754,7 +754,7 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
       {/* Action Steps */}
       <div style={{ padding: '20px 24px' }}>
         <div style={{
-          fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+          fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
           textTransform: 'uppercase', color: bc.accent, marginBottom: '14px',
         }}>
           Today&apos;s Priority
@@ -799,7 +799,7 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
           borderTop: `1px solid rgba(103,232,249,0.07)`,
         }}>
           <div style={{
-            fontSize: '9px', fontWeight: 700, letterSpacing: '0.14em',
+            fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
             textTransform: 'uppercase', color: colors.textMuted,
             marginBottom: '6px',
             textAlign: 'center',

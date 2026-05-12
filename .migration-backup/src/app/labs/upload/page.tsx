@@ -1067,7 +1067,7 @@ export default function LabsUploadPage() {
       fontFamily: fonts.ui,
       position: 'relative',
       overflow: 'hidden',
-      padding: '24px 20px 120px',
+      padding: '36px 20px 120px',
     }}>
       {/* Detail sheet */}
       {selectedBiomarker && (
@@ -1091,7 +1091,7 @@ export default function LabsUploadPage() {
             <h1 style={{
               fontFamily: fonts.heading,
               fontSize: 'clamp(26px, 5vw, 32px)',
-              fontWeight: 400,
+              fontWeight: 700,
               color: colors.text,
               marginBottom: '6px',
               lineHeight: 1.2,
@@ -1113,7 +1113,7 @@ export default function LabsUploadPage() {
         {/* Upload header shown during flow */}
         {inUploadFlow && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <h1 style={{ fontFamily: fonts.heading, fontSize: '28px', fontWeight: 400, color: colors.text, marginBottom: '8px' }}>
+            <h1 style={{ fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700, color: colors.text, marginBottom: '8px' }}>
               Upload your labs
             </h1>
             <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: '28px', lineHeight: 1.6 }}>
@@ -1270,7 +1270,7 @@ export default function LabsUploadPage() {
                     marginBottom: '8px',
                   }}>
                     <p style={{
-                      fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em',
+                      fontSize: '10px', fontWeight: 700, letterSpacing: '0.07em',
                       textTransform: 'uppercase', color: colors.textMuted,
                       margin: '0 0 4px',
                     }}>
@@ -1477,7 +1477,7 @@ export default function LabsUploadPage() {
                 {/* Section chip */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
                   <span style={{
-                    fontSize: '10px', fontWeight: 800, letterSpacing: '0.12em',
+                    fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em',
                     color: colors.teal, textTransform: 'uppercase',
                     padding: '4px 10px',
                     backgroundColor: `${colors.teal}18`,
@@ -1609,7 +1609,7 @@ export default function LabsUploadPage() {
 
                   /* ── Status-filtered list ── */
                   <div style={{ marginBottom: '8px' }}>
-                    <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+                    <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
                       {activeFilter} Biomarkers
                     </p>
                     {filteredBiomarkers.length > 0 ? (
@@ -1618,7 +1618,7 @@ export default function LabsUploadPage() {
                           <div key={panel} style={{ marginBottom: '14px' }}>
                             {/* Panel section header */}
                             <p style={{
-                              fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em',
+                              fontSize: '10px', fontWeight: 700, letterSpacing: '0.07em',
                               textTransform: 'uppercase', color: colors.textMuted,
                               margin: '0 0 6px 2px',
                             }}>
@@ -1677,7 +1677,7 @@ export default function LabsUploadPage() {
                     {/* ── Needs Attention (Critical → Attention → Watch) ── */}
                     {attentionMarkers.length > 0 && (
                       <div style={{ marginBottom: '16px' }}>
-                        <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+                        <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
                           Needs attention
                         </p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -1852,7 +1852,7 @@ export default function LabsUploadPage() {
             {/* Upload section heading (only shown when recent labs exist, to distinguish the CTA) */}
             {hasRecentLabs && (
               <p style={{
-                fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em',
+                fontSize: '11px', fontWeight: 700, letterSpacing: '0.07em',
                 color: colors.textMuted, textTransform: 'uppercase', marginBottom: '10px',
               }}>
                 Upload New Lab

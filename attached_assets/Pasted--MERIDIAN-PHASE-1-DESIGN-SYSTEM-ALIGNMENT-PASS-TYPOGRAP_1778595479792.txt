@@ -1,0 +1,264 @@
+# MERIDIAN — PHASE 1 DESIGN SYSTEM ALIGNMENT PASS
+# TYPOGRAPHY · SPACING · READABILITY · VISUAL CONSISTENCY
+# REAL APP LIVES IN .migration-backup/
+# DO NOT TOUCH ANYTHING OUTSIDE .migration-backup/
+
+You are working on Meridian — a premium Health Intelligence System.
+
+IMPORTANT:
+This is NOT a redesign.
+This is NOT a new feature task.
+This is a SYSTEM CONSISTENCY + READABILITY PASS.
+
+Goal:
+Bring Labs, History, and Home into alignment with the calmer, more premium visual rhythm already emerging in Profile.
+
+The Profile page currently feels:
+- more breathable
+- more premium
+- more readable
+- more editorial
+- more balanced
+
+That visual language should become the standard.
+
+────────────────────
+CRITICAL RULES
+────────────────────
+
+- NO redesigns
+- NO layout restructuring
+- NO new dependencies
+- NO Tailwind migration
+- NO animation work
+- NO color palette changes
+- NO logic changes
+- NO OCR changes
+- NO database changes
+- NO API changes
+- NO state logic changes
+- NO changes outside .migration-backup/
+
+This is purely:
+- typography alignment
+- spacing consistency
+- readability refinement
+- visual rhythm normalization
+
+────────────────────
+PRIMARY OBJECTIVES
+────────────────────
+
+1. Normalize all page headers
+2. Normalize subtitles/body intro text
+3. Remove compressed/sci-fi typography feeling
+4. Improve readability for health app usage
+5. Increase visual breathing room
+6. Align all pages to ONE design language
+7. Preserve premium biotech aesthetic
+8. Preserve dark luxury feel
+9. Preserve current layout structure
+
+────────────────────
+TASK 1 — PAGE HEADER SYSTEM
+────────────────────
+
+Unify ALL major page titles across:
+- Home
+- Labs
+- History
+- Profile
+
+Headers must use:
+- same font family
+- same size
+- same weight
+- same line-height
+- same top spacing
+- same bottom spacing
+
+Current issue:
+- Labs and History headers are visually different
+- some appear bolder/heavier
+- spacing rhythm is inconsistent
+
+Use Profile page as the visual reference standard.
+
+DO NOT:
+- oversize headers
+- make headers dramatic
+- create hero-style typography
+
+Goal:
+Premium editorial health platform.
+
+────────────────────
+TASK 2 — SUBTITLE / INTRO TEXT READABILITY
+────────────────────
+
+Improve readability of all intro/subtitle text.
+
+Examples:
+- "Let's see what changed today."
+- "Meridian is tracking your most recent lab signals here."
+- "All confirmed labs, organised by date and panel."
+
+Current problem:
+Some text is:
+- too thin
+- too low contrast
+- too visually weak
+- difficult for users with visual fatigue
+
+Adjust:
+- font weight
+- opacity
+- spacing
+- line-height
+
+DO NOT:
+- make subtitles bright white
+- make them oversized
+- reduce elegance
+
+Goal:
+Readable without strain.
+
+────────────────────
+TASK 3 — SECTION LABEL TYPOGRAPHY
+────────────────────
+
+Normalize ALL small section labels/chips:
+Examples:
+- ACTIVE SIGNAL
+- RECENT LAB SNAPSHOT
+- NEEDS ATTENTION
+- BASELINE BUILDING
+- YEAR/MONTH LABELS
+
+Current issue:
+Some labels use:
+- excessive tracking
+- compressed appearance
+- sci-fi/HUD feeling
+
+Adjust:
+- reduce letter-spacing
+- slightly increase weight
+- align typography style with:
+  - Optimal
+  - Watch
+  - Attention chips
+
+Maintain:
+- all caps where appropriate
+- premium biotech feel
+
+Avoid:
+- military/HUD/sci-fi styling
+- compressed typography
+
+────────────────────
+TASK 4 — BREATHING ROOM / VERTICAL RHYTHM
+────────────────────
+
+Improve spacing consistency across:
+- page headers
+- intro text
+- section spacing
+- cards
+- biomarker groups
+- history groups
+
+Current issue:
+Profile breathes beautifully.
+Labs and History feel denser and more mechanical.
+
+DO:
+- slightly improve vertical spacing rhythm
+- normalize section gaps
+- improve visual flow
+
+DO NOT:
+- massively increase whitespace
+- create giant empty areas
+- change card structure
+
+Goal:
+Calm, premium, readable.
+
+────────────────────
+TASK 5 — HEALTH APP READABILITY STANDARD
+────────────────────
+
+This is a HEALTH product.
+
+Typography should support:
+- tired users
+- older users
+- users reading labs at night
+- visual fatigue
+- anxious users reviewing biomarkers
+
+Avoid:
+- ultra-thin fonts
+- low-opacity tiny labels
+- compressed tracking
+- hard-to-read micro typography
+
+Maintain:
+- premium feel
+- luxury biotech aesthetic
+- editorial quality
+
+Goal:
+Readable luxury.
+
+────────────────────
+TASK 6 — PRESERVE VISUAL IDENTITY
+────────────────────
+
+DO NOT turn Meridian into:
+- Apple Health clone
+- hospital portal
+- generic medical dashboard
+- boring enterprise SaaS
+
+Maintain:
+- dark atmosphere
+- subtle glow system
+- elegant typography
+- premium biotech feel
+- controlled color accents
+
+────────────────────
+FILES TO REVIEW
+────────────────────
+
+Inspect all relevant typography + spacing systems across:
+- Home
+- Labs
+- History
+- Profile
+
+Only change what is necessary.
+
+────────────────────
+OUTPUT REQUIREMENTS
+────────────────────
+
+After implementation provide:
+
+1. Files changed
+2. Exact typography/spacings normalized
+3. What was intentionally NOT changed
+4. Build result
+5. Confirmation that:
+   - no logic changed
+   - no APIs changed
+   - no OCR changed
+   - no DB changed
+   - no routes changed
+
+Do NOT over-engineer this.
+This is a refinement pass.
