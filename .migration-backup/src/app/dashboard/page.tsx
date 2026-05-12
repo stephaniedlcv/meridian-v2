@@ -99,6 +99,12 @@ export default function DashboardPage() {
       // Non-diagnostic, output suppression only. Does not write to DB.
       // Gates dashboard copy; also ensures safetyAlert is set when the insight
       // API is unavailable (labs_saved state).
+      //
+      // localCritical is hoisted to function scope so the insight success branch
+      // can use it directly — React state setters are async and hasCriticalMarker
+      // would not reflect the current value at that point.
+      let localCritical = false
+
       if (hasBiomarkers) {
         const { data: recentForSafety } = await supabase
           .from('biomarkers_static')
@@ -109,7 +115,7 @@ export default function DashboardPage() {
 
         if (recentForSafety && recentForSafety.length > 0) {
           const bioprofile = profile?.biological_profile ?? 'female'
-          const localCritical = recentForSafety.some(b =>
+          localCritical = recentForSafety.some(b =>
             getSafetyStatusForBiomarker(b.marker_name, b.value, b.unit ?? '', bioprofile).status === 'critical'
           )
           if (localCritical) {
@@ -128,10 +134,14 @@ export default function DashboardPage() {
 
         if (data.success && data.state !== 'no_data') {
           // Insight produced a real result — trust it.
+          // Safety precedence: local Safety Engine critical detection must
+          // always win. The insight API uses broader decision-engine thresholds
+          // and may return safety_alert:false even when the local engine has
+          // already confirmed a critical marker. OR ensures the badge never drops.
           setState(data.state)
           setInsight(data.insight)
           setDominantMarker(data.dominant_marker)
-          setSafetyAlert(data.safety_alert)
+          setSafetyAlert(localCritical || Boolean(data.safety_alert))
         } else {
           // Insight returned no_data, success:false, or an unexpected shape.
           // Use the biomarker count to decide the real state.

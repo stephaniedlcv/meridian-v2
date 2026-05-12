@@ -1,0 +1,144 @@
+# MERIDIAN — TASK: Dashboard Safety Precedence + pending_biomarkers Type Sync
+
+You are working on Meridian — a premium Health Intelligence System.
+
+Stack:
+- Next.js 14 App Router
+- TypeScript
+- Supabase
+- Vercel
+- Inline styles only
+
+IMPORTANT:
+- Real app lives inside `.migration-backup/`
+- Do NOT move files
+- Do NOT restructure repo
+- Do NOT redesign UI
+- Do NOT add dependencies
+- Do NOT touch artifacts/
+- Do NOT add new features
+- This is a Phase 1 stability/type-safety cleanup task
+
+GOAL:
+Fix two known Phase 1 reliability issues:
+
+1. Dashboard Safety Alert precedence can be overwritten incorrectly.
+2. `pending_biomarkers` exists at runtime but is missing from TypeScript database types.
+
+────────────────────
+TASK 1 — Dashboard Safety Alert Precedence
+────────────────────
+
+Problem:
+Dashboard currently runs a local Safety Engine check for critical biomarkers and sets:
+
+`hasCriticalMarker = true`
+`safetyAlert = true`
+
+But a later successful insight API response may call:
+
+`setSafetyAlert(data.safety_alert)`
+
+If `data.safety_alert` is false, it can overwrite the local critical marker safety state.
+
+This creates an inconsistency:
+- LabsSavedBlock still shows safety-first copy because it uses `hasCriticalMarker`
+- but SolvedBlock safety badge may disappear because `safetyAlert` was overwritten
+
+Required fix:
+Safety Engine local critical detection must always take precedence.
+
+If local Safety Engine finds any critical marker:
+- `safetyAlert` must remain true
+- later insight API response must NOT lower it to false
+
+Acceptable logic:
+- `setSafetyAlert(hasCriticalMarker || Boolean(data.safety_alert))`
+or equivalent safe precedence.
+
+Do NOT change:
+- Safety Engine thresholds
+- dashboard design
+- dashboard layout
+- insight API logic
+- lab queries unless needed for this bug
+
+────────────────────
+TASK 2 — Add pending_biomarkers to Database Types
+────────────────────
+
+Problem:
+`pending_biomarkers` is used by `/api/ocr/pending`, but missing from database TypeScript definitions.
+
+Add `pending_biomarkers` to the Supabase Database type file.
+
+Inspect actual usage first.
+
+Expected table fields may include:
+
+- id
+- user_id
+- raw_name
+- raw_value
+- raw_unit
+- raw_reference_range
+- source_panel
+- source_pdf_name
+- collected_at
+- suggested_marker_slug
+- confidence_score
+- reason
+- status
+- created_at
+
+Status values may include:
+- pending_classification
+- ignored
+- mapped
+- rejected
+
+Make fields nullable/optional according to how the code inserts them.
+
+Do NOT create or modify Supabase schema in this task.
+This is only TypeScript type synchronization.
+
+If exact schema cannot be fully confirmed from code:
+- add the safest type definition matching current inserts
+- document assumptions clearly
+
+────────────────────
+TASK 3 — Verify No Runtime Logic Changes
+────────────────────
+
+This task should not change runtime behavior except:
+- dashboard safety precedence fix
+
+Type sync should only improve type safety.
+
+────────────────────
+ACCEPTANCE CRITERIA
+────────────────────
+
+After implementation:
+
+1. Local critical marker detection cannot be overwritten by insight API response.
+2. Dashboard safety badge remains active if local Safety Engine finds critical marker.
+3. `pending_biomarkers` exists in Database types.
+4. Current pending route remains compatible.
+5. Build passes.
+6. No UI redesign.
+7. No files outside `.migration-backup/` modified.
+
+────────────────────
+RETURN FORMAT
+────────────────────
+
+Return:
+
+1. Files inspected
+2. Files changed
+3. Dashboard safety precedence fix summary
+4. `pending_biomarkers` type fields added
+5. Any schema assumptions
+6. Build result
+7. Confirmation no files outside `.migration-backup/` were modified

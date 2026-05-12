@@ -21,6 +21,41 @@ export type BiomarkerState = 'Optimal' | 'Watch' | 'Attention' | 'Critical';
 
 export type FeedbackEffectiveness = 'validated' | 'neutral' | 'failed';
 
+// Status values for the pending classification queue.
+// pending_classification — inserted by /api/ocr/pending; awaiting manual review
+// ignored              — dismissed by user on the upload review screen
+// mapped               — successfully aliased to a canonical marker slug
+// rejected             — confirmed as non-classifiable
+export type PendingBiomarkerStatus =
+  | 'pending_classification'
+  | 'ignored'
+  | 'mapped'
+  | 'rejected';
+
+// Row shape for pending_biomarkers.
+// Fields inserted by /api/ocr/pending (confirmed from route.ts):
+//   user_id, raw_name, raw_value, raw_unit, raw_reference_range,
+//   collected_at, source_pdf_name, status, reason
+// Fields assumed nullable — present in DB schema for future use but not yet
+// written by any current route: source_panel, suggested_marker_slug, confidence_score
+export type PendingBiomarker = {
+  id: string;
+  user_id: string;
+  raw_name: string;
+  raw_value: number;
+  raw_unit: string;
+  raw_reference_range: string | null;
+  collected_at: string;
+  source_pdf_name: string | null;
+  // Assumed nullable — reserved for future classification pipeline
+  source_panel: string | null;
+  suggested_marker_slug: string | null;
+  confidence_score: number | null;
+  reason: string | null;
+  status: PendingBiomarkerStatus;
+  created_at: string;
+};
+
 export type Profile = {
   id: string;
   full_name: string | null;
@@ -196,6 +231,42 @@ export type Database = {
           biometric_delta?: Json | null;
           effectiveness?: FeedbackEffectiveness;
           window_days?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      pending_biomarkers: {
+        Row: PendingBiomarker;
+        Insert: {
+          id?: string;
+          user_id: string;
+          raw_name: string;
+          raw_value: number;
+          raw_unit: string;
+          raw_reference_range?: string | null;
+          collected_at: string;
+          source_pdf_name?: string | null;
+          source_panel?: string | null;
+          suggested_marker_slug?: string | null;
+          confidence_score?: number | null;
+          reason?: string | null;
+          status: PendingBiomarkerStatus;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          raw_name?: string;
+          raw_value?: number;
+          raw_unit?: string;
+          raw_reference_range?: string | null;
+          collected_at?: string;
+          source_pdf_name?: string | null;
+          source_panel?: string | null;
+          suggested_marker_slug?: string | null;
+          confidence_score?: number | null;
+          reason?: string | null;
+          status?: PendingBiomarkerStatus;
           created_at?: string;
         };
         Relationships: [];
