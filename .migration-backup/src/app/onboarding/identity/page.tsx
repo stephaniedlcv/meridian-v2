@@ -76,8 +76,7 @@ export default function IdentityPage() {
     const medicationArray = medications.split(',').map((s) => s.trim()).filter(Boolean)
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ full_name: fullName.trim(), birth_date: birthDate, medications: medicationArray })
-      .eq('id', userId)
+      .upsert({ id: userId, full_name: fullName.trim(), birth_date: birthDate, medications: medicationArray }, { onConflict: 'id' })
     setLoading(false)
     if (updateError) { setError(updateError.message); return }
     router.push('/onboarding/profile')

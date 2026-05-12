@@ -28,7 +28,6 @@ type UserProfile = 'bienestar' | 'optimizacion' | 'rendimiento' | 'condicion' | 
 
 interface ProfileData {
   full_name:          string | null
-  preferred_name:     string | null   // may not exist in DB — handled gracefully
   biological_profile: BiologicalProfile | null
   user_profile:       UserProfile | null
   avatar_url:         string | null   // may not exist in DB — handled gracefully
@@ -73,7 +72,7 @@ export default function ProfilePage() {
   const [userId, setUserId]                       = useState('')
   const [userEmail, setUserEmail]                 = useState('')
   const [profile, setProfile]                     = useState<ProfileData>({
-    full_name: null, preferred_name: null, biological_profile: null,
+    full_name: null, biological_profile: null,
     user_profile: null, avatar_url: null, birth_date: null, medications: null,
   })
   const [hasLabs, setHasLabs]                     = useState(false)
@@ -95,7 +94,7 @@ export default function ProfilePage() {
 
       const { data: prof } = await supabase
         .from('profiles')
-        .select('full_name, biological_profile, user_profile, birth_date, preferred_name, avatar_url, medications')
+        .select('full_name, biological_profile, user_profile, birth_date, avatar_url, medications')
         .eq('id', user.id)
         .single()
 
@@ -103,7 +102,6 @@ export default function ProfilePage() {
         const raw = prof as unknown as Record<string, unknown>
         setProfile({
           full_name:           typeof raw.full_name === 'string' ? raw.full_name : null,
-          preferred_name:      typeof raw.preferred_name === 'string' ? raw.preferred_name : null,
           biological_profile:  (raw.biological_profile === 'female' || raw.biological_profile === 'male') ? raw.biological_profile : null,
           user_profile:        typeof raw.user_profile === 'string' ? raw.user_profile as UserProfile : null,
           avatar_url:          typeof raw.avatar_url === 'string' ? raw.avatar_url : null,
@@ -124,7 +122,7 @@ export default function ProfilePage() {
   }, [])
 
   // ——— Derived ———
-  const displayName = profile.preferred_name || profile.full_name || 'Your Profile'
+  const displayName = profile.full_name || 'Not set yet'
   const avatarSrc   = photoPreview || profile.avatar_url
 
   // ——— Photo handlers ———
@@ -144,7 +142,7 @@ export default function ProfilePage() {
 
   // ——— Edit handlers ———
   function startEditIdentity() {
-    setEditPreferredName(profile.preferred_name || profile.full_name || '')
+    setEditPreferredName(profile.full_name || '')
     setEditBioProfile(profile.biological_profile)
     setEditingSection('identity')
     setSaveStatus('idle')
@@ -161,19 +159,11 @@ export default function ProfilePage() {
     setSaving(true); setSaveStatus('idle')
     const { error } = await supabase
       .from('profiles')
-      .update({ preferred_name: editPreferredName || null, biological_profile: editBioProfile })
+      .update({ full_name: editPreferredName.trim() || null, biological_profile: editBioProfile })
       .eq('id', userId)
-    if (error) {
-      // preferred_name may not exist yet — fall back to bio profile only
-      const { error: fb } = await supabase
-        .from('profiles').update({ biological_profile: editBioProfile }).eq('id', userId)
-      setSaving(false)
-      if (fb) { setSaveStatus('error'); return }
-      setProfile(p => ({ ...p, biological_profile: editBioProfile }))
-    } else {
-      setSaving(false)
-      setProfile(p => ({ ...p, preferred_name: editPreferredName || null, biological_profile: editBioProfile }))
-    }
+    setSaving(false)
+    if (error) { setSaveStatus('error'); return }
+    setProfile(p => ({ ...p, full_name: editPreferredName.trim() || null, biological_profile: editBioProfile }))
     setSaveStatus('success')
     setTimeout(() => { setEditingSection(null); setSaveStatus('idle') }, 900)
   }
@@ -404,9 +394,9 @@ export default function ProfilePage() {
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <PassportRow
                 label="Display name"
-                value={profile.preferred_name || profile.full_name}
+                value={profile.full_name}
                 emptyLabel="Not set yet"
-                emptyHint="Add a preferred name for Meridian to use."
+                emptyHint="Enter your name in onboarding or tap Edit above."
                 onAdd={startEditIdentity}
               />
               <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
