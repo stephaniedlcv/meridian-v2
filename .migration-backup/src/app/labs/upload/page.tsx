@@ -949,6 +949,23 @@ export default function LabsUploadPage() {
       setConfirmed(true)
       setConfirming(false)
 
+      // ── Refresh snapshot so it's current when the user returns to idle state ─
+      if (userId) {
+        const refreshCutoff = new Date()
+        refreshCutoff.setFullYear(refreshCutoff.getFullYear() - 1)
+        const { data: refreshed } = await supabase
+          .from('biomarkers_static')
+          .select('id, marker_name, value, unit, state, reference_range_min, reference_range_max, optimal_range_min, optimal_range_max, collected_at, flag_error')
+          .eq('user_id', userId)
+          .gte('collected_at', refreshCutoff.toISOString())
+          .order('collected_at', { ascending: false })
+          .order('created_at', { ascending: false })
+        if (refreshed) {
+          setRecentBiomarkers(refreshed)
+          setHasAnyLabs(refreshed.length > 0)
+        }
+      }
+
       // ── Save non-ignored pending markers ────────────────────────────────────
       // Fire-and-forget: pending save failure must NOT block or surface errors
       // to the user in the main confirm flow.

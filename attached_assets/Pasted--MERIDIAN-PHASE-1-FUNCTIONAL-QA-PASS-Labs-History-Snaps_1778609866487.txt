@@ -1,0 +1,188 @@
+# MERIDIAN — PHASE 1 FUNCTIONAL QA PASS
+# Labs · History · Snapshot · Pending Queue · Safety Engine
+
+You are working on Meridian — a premium Health Intelligence System.
+
+IMPORTANT:
+- Real app lives inside `.migration-backup/`
+- Do NOT move files
+- Do NOT restructure repo
+- Do NOT redesign UI
+- Do NOT add dependencies
+- Do NOT touch artifacts/
+- Do NOT work on onboarding/auth in this task
+- Do NOT implement new features unless a small fix is required to prevent broken behavior
+
+This is a QA + bug-finding + small hardening pass.
+
+Goal:
+Validate that the main non-onboarding areas of Meridian are functioning correctly and not silently broken.
+
+Focus ONLY on:
+
+1. Labs upload flow
+2. OCR/review/save flow
+3. Pending classification queue
+4. Labs snapshot
+5. Status filters
+6. History archive
+7. Delete/correction flows
+8. Safety Engine behavior
+9. Dashboard truth states related to labs
+
+────────────────────
+TASK 1 — Labs Upload Flow QA
+────────────────────
+
+Inspect and verify:
+
+- PDF upload works
+- OCR route returns usable extracted markers
+- review screen renders extracted markers
+- recognized markers can be confirmed
+- unrecognized markers do not enter validated biomarker tables
+- pending markers are routed to pending classification
+- confirm/save does not silently fail
+- upload another PDF does not redirect unexpectedly
+- cancel flow works
+- errors are visible and calm
+
+Do not modify parser architecture unless a clear bug is found.
+
+────────────────────
+TASK 2 — Snapshot QA
+────────────────────
+
+Validate:
+
+- Labs snapshot shows latest unique biomarkers only
+- duplicate uploads do not inflate current snapshot
+- counts match visible biomarkers
+- Optimal / Watch / Attention / Critical chips filter correctly
+- active filter deselects correctly when tapped again
+- filtered results remain grouped by source panel
+- Needs Attention does not show duplicates
+- Needs Attention sorts:
+  1. Critical
+  2. Attention
+  3. Watch
+
+────────────────────
+TASK 3 — History QA
+────────────────────
+
+Validate:
+
+- History groups by year → month → date → source panel
+- expanded panels dedupe duplicate visible markers
+- panel counts match visible deduped markers
+- status dots/counts match visible markers
+- delete flow does not break archive structure
+- same-day multiple panels remain valid
+- History preserves archive behavior and does not behave like snapshot
+
+────────────────────
+TASK 4 — Pending Classification QA
+────────────────────
+
+Validate:
+
+- unknown/unmapped markers are saved separately
+- pending markers do not affect:
+  - Labs snapshot
+  - History
+  - Dashboard
+  - counts
+  - Needs Attention
+  - Safety Engine
+- ignored pending markers stay out of validated data
+- pending route errors do not block confirmed biomarker save
+
+If `pending_biomarkers` types are missing from TypeScript database types, flag this clearly.
+
+Do not implement admin classification console.
+
+────────────────────
+TASK 5 — Safety Engine QA
+────────────────────
+
+Validate:
+
+- critical values trigger Critical state only when units are compatible
+- missing/uncertain units do not force critical
+- critical biomarkers show Safety Note in detail sheet
+- critical biomarkers suppress optimization wording
+- critical markers appear above Attention/Watch
+- dashboard shows safety-first state if current critical marker exists
+- no diagnosis/treatment language appears
+
+Do not expand thresholds unless an obvious slug/unit mismatch is found.
+
+────────────────────
+TASK 6 — Dashboard Truth State QA
+────────────────────
+
+Validate dashboard behavior:
+
+- no labs → asks user to upload labs
+- labs saved → does not say “Upload your first lab PDF”
+- critical marker → safety-first state
+- normal labs → baseline/snapshot state
+- no fake intelligence
+- no contradictory copy
+
+Do not implement Dashboard V2.
+
+────────────────────
+TASK 7 — Report Findings Before Fixing Big Things
+────────────────────
+
+If you find a small, obvious bug:
+- fix it
+
+If you find a bigger architectural issue:
+- report it
+- do not refactor unless necessary
+
+Prioritize:
+- data integrity
+- no silent failures
+- no corrupted history
+- no false dashboard states
+- no broken save flows
+
+────────────────────
+ACCEPTANCE CRITERIA
+────────────────────
+
+After this task:
+
+1. Non-onboarding core flows are inspected.
+2. Any obvious small bugs are fixed.
+3. No new features are added.
+4. No UI redesign is done.
+5. Labs snapshot remains clean.
+6. History remains archival.
+7. Pending markers remain isolated.
+8. Safety Engine remains conservative.
+9. Build passes.
+10. No files outside `.migration-backup/` are modified.
+
+────────────────────
+RETURN FORMAT
+────────────────────
+
+Return:
+
+1. Files inspected
+2. Files changed, if any
+3. Labs upload QA findings
+4. Snapshot QA findings
+5. History QA findings
+6. Pending classification QA findings
+7. Safety Engine QA findings
+8. Dashboard truth-state findings
+9. Bugs fixed
+10. Remaining issues
+11. Build result
+12. Confirmation no files outside `.migration-backup/` were modified

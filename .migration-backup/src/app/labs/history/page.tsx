@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
 import { getNextOnboardingStep } from '@/lib/onboarding'
+import { getSafetyStatusForBiomarker } from '@/lib/safety-engine'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const colors = {
@@ -466,10 +467,12 @@ function getInterpretation(slug: string): string {
 function BiomarkerDetailSheet({
   biomarker,
   allBiomarkers,
+  bioProfile,
   onClose,
 }: {
   biomarker: BiomarkerRow
   allBiomarkers: BiomarkerRow[]
+  bioProfile: string
   onClose: () => void
 }) {
   useEffect(() => {
@@ -478,10 +481,23 @@ function BiomarkerDetailSheet({
     return () => window.removeEventListener('keydown', handleKey)
   }, [onClose])
 
+  // ── Safety Engine check ────────────────────────────────────────────────────
+  // Deterministic suppression gate (Phase 1). Suppresses optimization language
+  // and shows a calm Safety Note when the value meets critical thresholds.
+  // Does NOT alter stored state or produce any diagnosis.
+  const safetyResult = getSafetyStatusForBiomarker(
+    biomarker.marker_name,
+    biomarker.value,
+    biomarker.unit ?? '',
+    bioProfile,
+  )
+  const isCritical = safetyResult.status === 'critical' || biomarker.state === 'Critical'
+
   const displayName = formatMarkerDisplayName(biomarker.marker_name)
   const panel       = SLUG_TO_PANEL[biomarker.marker_name] ?? null
-  const s           = getStateStyle(biomarker.state)
-  const dotColor    = getStateColor(biomarker.state)
+  // If safety engine flags critical, always show Critical badge regardless of stored state
+  const s           = getStateStyle(isCritical ? 'Critical' : biomarker.state)
+  const dotColor    = isCritical ? '#F87171' : getStateColor(biomarker.state)
   const hasRange    = isUsableRange(biomarker.reference_range_min, biomarker.reference_range_max)
   const hasOptimal  = isUsableRange(biomarker.optimal_range_min, biomarker.optimal_range_max)
   const interp      = getInterpretation(biomarker.marker_name)
@@ -609,7 +625,7 @@ function BiomarkerDetailSheet({
                     value={biomarker.value}
                     refMin={biomarker.reference_range_min!}
                     refMax={biomarker.reference_range_max!}
-                    state={biomarker.state}
+                    state={isCritical ? 'Critical' : biomarker.state}
                   />
                 )}
               </>
@@ -642,19 +658,40 @@ function BiomarkerDetailSheet({
             )}
           </div>
 
-          {/* About this marker */}
-          <div style={cardStyle}>
-            <p style={labelStyle}>About this marker</p>
-            <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.6, margin: 0 }}>{interp}</p>
-          </div>
+          {/* About this marker — suppressed when critical */}
+          {!isCritical && (
+            <div style={cardStyle}>
+              <p style={labelStyle}>About this marker</p>
+              <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.6, margin: 0 }}>{interp}</p>
+            </div>
+          )}
 
-          {/* Context */}
-          <div style={{ ...cardStyle, marginBottom: 0 }}>
-            <p style={labelStyle}>Context</p>
-            <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: '0 0 5px' }}>Meridian uses this marker as one part of your broader biological context.</p>
-            <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: '0 0 5px' }}>Trends over time are usually more useful than one isolated result.</p>
-            <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>This is educational context only, not a diagnosis.</p>
-          </div>
+          {/* Safety Note (critical only) — replaces About + Context */}
+          {isCritical && (
+            <div style={{
+              ...cardStyle,
+              backgroundColor: 'rgba(248,113,113,0.07)',
+              border: '1px solid rgba(248,113,113,0.22)',
+            }}>
+              <p style={{ ...labelStyle, color: '#F87171' }}>Safety Note</p>
+              <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.6, margin: '0 0 8px' }}>
+                This result may require prompt medical review. Meridian will not generate optimisation guidance for this marker.
+              </p>
+              <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>
+                This is educational context only, not a diagnosis.
+              </p>
+            </div>
+          )}
+
+          {/* Context — suppressed when critical */}
+          {!isCritical && (
+            <div style={{ ...cardStyle, marginBottom: 0 }}>
+              <p style={labelStyle}>Context</p>
+              <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: '0 0 5px' }}>Meridian uses this marker as one part of your broader biological context.</p>
+              <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: '0 0 5px' }}>Trends over time are usually more useful than one isolated result.</p>
+              <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>This is educational context only, not a diagnosis.</p>
+            </div>
+          )}
 
         </div>
       </div>
@@ -673,6 +710,7 @@ export default function LabsHistoryPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [biomarkers, setBiomarkers] = useState<BiomarkerRow[]>([])
+  const [bioProfile, setBioProfile] = useState<string>('female')
   // Tracks which panel cards are expanded: key = `${dateKey}::${panel}`
   const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set())
   const [selectedBiomarker, setSelectedBiomarker] = useState<BiomarkerRow | null>(null)
@@ -698,6 +736,7 @@ export default function LabsHistoryPage() {
         .single()
       const nextStep = getNextOnboardingStep(profileCheck)
       if (nextStep) { router.push(nextStep); return }
+      if (profileCheck?.biological_profile) setBioProfile(profileCheck.biological_profile)
 
       const { data, error: fetchError } = await supabase
         .from('biomarkers_static')
@@ -741,6 +780,7 @@ export default function LabsHistoryPage() {
       .lt('collected_at', nextDay.toISOString())
     if (deleteError) {
       console.error('[Meridian] Delete session error:', deleteError)
+      setError('Could not delete this session. Please try again.')
       setDeleteLoading(false)
       setDeleteConfirmDate(null)
       return
@@ -790,6 +830,7 @@ export default function LabsHistoryPage() {
         <BiomarkerDetailSheet
           biomarker={selectedBiomarker}
           allBiomarkers={biomarkers}
+          bioProfile={bioProfile}
           onClose={() => setSelectedBiomarker(null)}
         />
       )}
