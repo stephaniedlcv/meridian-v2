@@ -17,7 +17,6 @@ const colors = {
   cardBorder: 'rgba(103,232,249,0.13)',
   inputBg: 'rgba(6,19,22,0.6)',
 }
-
 const fonts = {
   heading: '"Fraunces", serif',
   ui: '"Plus Jakarta Sans", sans-serif',
@@ -28,36 +27,29 @@ type BiologicalProfile = 'female' | 'male'
 type UserProfile = 'bienestar' | 'optimizacion' | 'rendimiento' | 'condicion' | 'primer_paso'
 
 interface ProfileData {
-  full_name: string | null
-  preferred_name: string | null   // may not yet exist in DB — handled gracefully
+  full_name:          string | null
+  preferred_name:     string | null   // may not exist in DB — handled gracefully
   biological_profile: BiologicalProfile | null
-  user_profile: UserProfile | null
-  avatar_url: string | null        // may not yet exist in DB — handled gracefully
-  birth_date: string | null
+  user_profile:       UserProfile | null
+  avatar_url:         string | null   // may not exist in DB — handled gracefully
+  birth_date:         string | null
 }
 
-// ——— Goal reference map ———
+// ——— Reference maps ———
 const GOAL_MAP: Record<UserProfile, { label: string; description: string }> = {
-  bienestar:    {
-    label: 'General Wellness',
-    description: 'Meridian tracks your everyday vitality and surfaces patterns that affect how you feel day to day.',
-  },
-  optimizacion: {
-    label: 'Optimization',
-    description: "You're already in good shape — Meridian helps fine-tune what's working and identify where you can push further.",
-  },
-  rendimiento:  {
-    label: 'Peak Performance',
-    description: 'Meridian prioritizes markers that affect physical and mental output, recovery, and resilience at the edge.',
-  },
-  condicion:    {
-    label: 'Specific Condition',
-    description: 'Meridian keeps close watch on the markers most relevant to your health concern and surfaces meaningful changes.',
-  },
-  primer_paso:  {
-    label: 'Getting Started',
-    description: "You're beginning your health journey. Meridian delivers clear, accessible insights without overwhelming detail.",
-  },
+  bienestar:    { label: 'General Wellness',   description: 'Meridian tracks everyday vitality and surfaces patterns that affect how you feel day to day.' },
+  optimizacion: { label: 'Optimization',       description: "You're in good shape — Meridian helps fine-tune what's working and identify where you can push further." },
+  rendimiento:  { label: 'Peak Performance',   description: 'Meridian prioritizes markers affecting physical and mental output, recovery, and resilience at the edge.' },
+  condicion:    { label: 'Specific Condition', description: 'Meridian keeps close watch on markers relevant to your health concern and surfaces meaningful changes.' },
+  primer_paso:  { label: 'Getting Started',    description: "You're beginning your health journey. Meridian delivers clear, accessible insights without overwhelming detail." },
+}
+
+const GOAL_SIGNALS: Record<UserProfile, string[]> = {
+  bienestar:    ['Wellness', 'Balance', 'Recovery'],
+  optimizacion: ['Labs', 'Trends', 'Efficiency'],
+  rendimiento:  ['Performance', 'Recovery', 'HRV'],
+  condicion:    ['Monitoring', 'Alerts', 'Trends'],
+  primer_paso:  ['Basics', 'Education', 'Progress'],
 }
 
 const BIO_MAP: Record<BiologicalProfile, string> = {
@@ -67,7 +59,7 @@ const BIO_MAP: Record<BiologicalProfile, string> = {
 
 const ALL_GOALS: UserProfile[] = ['bienestar', 'optimizacion', 'rendimiento', 'condicion', 'primer_paso']
 
-// ——— Main page ———
+// ——— Main component ———
 export default function ProfilePage() {
   const router = useRouter()
   const supabase = createBrowserClient(
@@ -76,18 +68,16 @@ export default function ProfilePage() {
   )
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Core state
-  const [pageLoading, setPageLoading]   = useState(true)
-  const [userId, setUserId]             = useState('')
-  const [userEmail, setUserEmail]       = useState('')
-  const [profile, setProfile]           = useState<ProfileData>({
+  const [pageLoading, setPageLoading]             = useState(true)
+  const [userId, setUserId]                       = useState('')
+  const [userEmail, setUserEmail]                 = useState('')
+  const [profile, setProfile]                     = useState<ProfileData>({
     full_name: null, preferred_name: null, biological_profile: null,
     user_profile: null, avatar_url: null, birth_date: null,
   })
-  const [hasLabs, setHasLabs]           = useState(false)
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [hasLabs, setHasLabs]                     = useState(false)
+  const [photoPreview, setPhotoPreview]           = useState<string | null>(null)
 
-  // Edit state
   const [editingSection, setEditingSection]       = useState<'identity' | 'focus' | null>(null)
   const [editPreferredName, setEditPreferredName] = useState('')
   const [editBioProfile, setEditBioProfile]       = useState<BiologicalProfile | null>(null)
@@ -109,15 +99,14 @@ export default function ProfilePage() {
         .single()
 
       if (prof) {
-        // Cast to unknown first to safely read fields that may not exist in the DB schema yet
         const raw = prof as unknown as Record<string, unknown>
         setProfile({
-          full_name:           typeof raw.full_name === 'string'           ? raw.full_name           : null,
-          preferred_name:      typeof raw.preferred_name === 'string'      ? raw.preferred_name      : null,
+          full_name:           typeof raw.full_name === 'string' ? raw.full_name : null,
+          preferred_name:      typeof raw.preferred_name === 'string' ? raw.preferred_name : null,
           biological_profile:  (raw.biological_profile === 'female' || raw.biological_profile === 'male') ? raw.biological_profile : null,
-          user_profile:        typeof raw.user_profile === 'string'        ? raw.user_profile as UserProfile : null,
-          avatar_url:          typeof raw.avatar_url === 'string'          ? raw.avatar_url          : null,
-          birth_date:          typeof raw.birth_date === 'string'          ? raw.birth_date          : null,
+          user_profile:        typeof raw.user_profile === 'string' ? raw.user_profile as UserProfile : null,
+          avatar_url:          typeof raw.avatar_url === 'string' ? raw.avatar_url : null,
+          birth_date:          typeof raw.birth_date === 'string' ? raw.birth_date : null,
         })
       }
 
@@ -126,7 +115,6 @@ export default function ProfilePage() {
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
       setHasLabs(typeof count === 'number' && count > 0)
-
       setPageLoading(false)
     }
     load()
@@ -144,13 +132,12 @@ export default function ProfilePage() {
     const reader = new FileReader()
     reader.onload = (ev) => { setPhotoPreview(ev.target?.result as string) }
     reader.readAsDataURL(file)
-    // TODO: upload to Supabase Storage and persist avatar_url in profiles when bucket is configured
+    // TODO: upload to Supabase Storage when bucket is configured
   }
-
   function handleRemovePhoto() {
     setPhotoPreview(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
-    // TODO: clear avatar_url in profiles table here
+    // TODO: clear avatar_url in profiles when Storage is configured
   }
 
   // ——— Edit handlers ———
@@ -160,55 +147,40 @@ export default function ProfilePage() {
     setEditingSection('identity')
     setSaveStatus('idle')
   }
-
   function startEditFocus() {
     setEditUserProfile(profile.user_profile)
     setEditingSection('focus')
     setSaveStatus('idle')
   }
-
-  function cancelEdit() {
-    setEditingSection(null)
-    setSaveStatus('idle')
-  }
+  function cancelEdit() { setEditingSection(null); setSaveStatus('idle') }
 
   async function saveIdentity() {
     if (!userId) return
-    setSaving(true)
-    setSaveStatus('idle')
-
-    // Try full update including preferred_name
+    setSaving(true); setSaveStatus('idle')
     const { error } = await supabase
       .from('profiles')
       .update({ preferred_name: editPreferredName || null, biological_profile: editBioProfile })
       .eq('id', userId)
-
     if (error) {
-      // preferred_name column may not exist yet — fall back to biological_profile only
-      const { error: fallback } = await supabase
-        .from('profiles')
-        .update({ biological_profile: editBioProfile })
-        .eq('id', userId)
+      // preferred_name may not exist yet — fall back to bio profile only
+      const { error: fb } = await supabase
+        .from('profiles').update({ biological_profile: editBioProfile }).eq('id', userId)
       setSaving(false)
-      if (fallback) { setSaveStatus('error'); return }
+      if (fb) { setSaveStatus('error'); return }
       setProfile(p => ({ ...p, biological_profile: editBioProfile }))
     } else {
       setSaving(false)
       setProfile(p => ({ ...p, preferred_name: editPreferredName || null, biological_profile: editBioProfile }))
     }
-
     setSaveStatus('success')
     setTimeout(() => { setEditingSection(null); setSaveStatus('idle') }, 900)
   }
 
   async function saveFocus() {
     if (!userId || !editUserProfile) return
-    setSaving(true)
-    setSaveStatus('idle')
+    setSaving(true); setSaveStatus('idle')
     const { error } = await supabase
-      .from('profiles')
-      .update({ user_profile: editUserProfile })
-      .eq('id', userId)
+      .from('profiles').update({ user_profile: editUserProfile }).eq('id', userId)
     setSaving(false)
     if (error) { setSaveStatus('error'); return }
     setProfile(p => ({ ...p, user_profile: editUserProfile }))
@@ -223,6 +195,17 @@ export default function ProfilePage() {
 
   if (pageLoading) return null
 
+  // ——— Personalization matrix rows (computed from live data) ———
+  type MatrixStatus = 'active' | 'pending' | 'soon'
+  const matrixRows: { label: string; description: string; status: MatrixStatus }[] = [
+    { label: 'Biological profile', description: 'Used to personalize lab reference ranges.', status: profile.biological_profile ? 'active' : 'pending' },
+    { label: 'Age context',        description: 'Used for age-adjusted insight priority.',   status: profile.birth_date ? 'active' : 'pending' },
+    { label: 'Lab history',        description: 'Used to refine trend interpretation.',       status: hasLabs ? 'active' : 'pending' },
+    { label: 'Wearable signals',   description: 'Used to improve biological context.',        status: 'soon' },
+    { label: 'Medication context', description: 'Used to flag potential interactions.',       status: 'soon' },
+    { label: 'Feedback loop',      description: 'Used to improve insight accuracy over time.',status: 'soon' },
+  ]
+
   // ——— Render ———
   return (
     <div style={{
@@ -236,138 +219,147 @@ export default function ProfilePage() {
       {/* Ambient orbs */}
       <div style={{ position: 'fixed', top: '-20%', left: '-15%', width: '65%', height: '65%', background: 'radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'fixed', bottom: '-20%', right: '-15%', width: '65%', height: '65%', background: 'radial-gradient(circle, rgba(103,232,249,0.08) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 0 }} />
-      <div style={{ position: 'fixed', top: '45%', left: '50%', transform: 'translate(-50%, -50%)', width: '45%', height: '30%', background: 'radial-gradient(circle, rgba(45,212,191,0.04) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'fixed', top: '45%', left: '50%', transform: 'translate(-50%,-50%)', width: '45%', height: '30%', background: 'radial-gradient(circle, rgba(45,212,191,0.04) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
 
-      <div style={{ maxWidth: '540px', margin: '0 auto', padding: '0 20px 120px', position: 'relative', zIndex: 1 }}>
+      <div style={{ maxWidth: '540px', margin: '0 auto', padding: '0 20px 180px', position: 'relative', zIndex: 1 }}>
 
-        {/* ═══════════════════════════════════════ HERO ══ */}
+        {/* ════════════════════════════════ HERO ═══ */}
         <div style={{
-          paddingTop: '52px',
-          paddingBottom: '36px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
+          paddingTop: '52px', paddingBottom: '36px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
           position: 'relative',
         }}>
-          {/* Glow behind avatar */}
+          {/* Cinematic glow behind avatar */}
           <div style={{
-            position: 'absolute',
-            top: '36px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '220px',
-            height: '220px',
-            background: 'radial-gradient(circle, rgba(45,212,191,0.17) 0%, transparent 68%)',
-            filter: 'blur(36px)',
-            pointerEvents: 'none',
+            position: 'absolute', top: '30px', left: '50%', transform: 'translateX(-50%)',
+            width: '280px', height: '280px',
+            background: 'radial-gradient(circle, rgba(45,212,191,0.14) 0%, rgba(103,232,249,0.06) 40%, transparent 70%)',
+            filter: 'blur(42px)', pointerEvents: 'none',
           }} />
 
           {/* Identity chip */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
-            fontSize: '10px', fontWeight: 700, letterSpacing: '0.13em',
-            textTransform: 'uppercase', color: colors.teal,
-            padding: '4px 13px',
-            border: '1px solid rgba(45,212,191,0.22)',
-            borderRadius: '20px',
-            background: 'rgba(45,212,191,0.06)',
-            marginBottom: '26px',
-            position: 'relative',
+            fontSize: '10px', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: colors.teal,
+            padding: '4px 13px', border: '1px solid rgba(45,212,191,0.22)', borderRadius: '20px',
+            background: 'rgba(45,212,191,0.06)', marginBottom: '28px', position: 'relative',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
-            Biological Identity
+            Identity Core
           </div>
 
-          {/* Avatar circle */}
-          <div style={{ position: 'relative', marginBottom: '16px' }}>
-            <div style={{
-              width: '96px', height: '96px', borderRadius: '50%',
-              border: '2px solid rgba(45,212,191,0.50)',
-              boxShadow: '0 0 0 5px rgba(45,212,191,0.07), 0 0 36px rgba(45,212,191,0.20)',
-              overflow: 'hidden',
-              background: 'linear-gradient(135deg, rgba(6,19,22,0.95) 0%, rgba(15,38,44,0.90) 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              {avatarSrc ? (
-                <img src={avatarSrc} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <span style={{
-                  fontFamily: fonts.heading,
-                  fontSize: '44px', fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1,
-                  background: 'linear-gradient(135deg, #EAFBF7 0%, #67E8F9 40%, #2DD4BF 100%)',
-                  backgroundClip: 'text', WebkitBackgroundClip: 'text',
-                  color: 'transparent', WebkitTextFillColor: 'transparent',
-                  filter: 'drop-shadow(0 0 10px rgba(45,212,191,0.45))',
-                  userSelect: 'none',
-                }}>
-                  {displayName !== 'Your Profile' ? displayName[0].toUpperCase() : 'M'}
-                </span>
-              )}
-            </div>
+          {/* Avatar with orbital rings */}
+          <div style={{ position: 'relative', width: '180px', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
+            {/* Ring 3 — outermost */}
+            <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1px solid rgba(45,212,191,0.055)' }} />
+            {/* Ring 2 */}
+            <div style={{ position: 'absolute', width: '148px', height: '148px', borderRadius: '50%', border: '1px solid rgba(45,212,191,0.10)' }} />
+            {/* Ring 1 — close to avatar */}
+            <div style={{ position: 'absolute', width: '118px', height: '118px', borderRadius: '50%', border: '1px solid rgba(45,212,191,0.19)' }} />
 
-            {/* Upload button on avatar */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              aria-label={avatarSrc ? 'Change photo' : 'Upload photo'}
-              style={{
-                position: 'absolute', bottom: '0', right: '-4px',
-                width: '28px', height: '28px', borderRadius: '50%',
-                background: 'rgba(45,212,191,0.14)',
-                border: '1.5px solid rgba(45,212,191,0.48)',
-                color: colors.teal, cursor: 'pointer',
+            {/* Avatar circle */}
+            <div style={{ position: 'relative', width: '96px', height: '96px', flexShrink: 0 }}>
+              <div style={{
+                width: '96px', height: '96px', borderRadius: '50%',
+                border: '2px solid rgba(45,212,191,0.52)',
+                boxShadow: '0 0 0 4px rgba(45,212,191,0.07), 0 0 32px rgba(45,212,191,0.22)',
+                overflow: 'hidden',
+                background: 'linear-gradient(135deg, rgba(6,19,22,0.95) 0%, rgba(15,38,44,0.90) 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '16px', fontWeight: 700, lineHeight: 1,
-                backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-              }}
-            >
-              +
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
+              }}>
+                {avatarSrc ? (
+                  <img src={avatarSrc} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{
+                    fontFamily: fonts.heading, fontSize: '44px', fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1,
+                    background: 'linear-gradient(135deg, #EAFBF7 0%, #67E8F9 40%, #2DD4BF 100%)',
+                    backgroundClip: 'text', WebkitBackgroundClip: 'text',
+                    color: 'transparent', WebkitTextFillColor: 'transparent',
+                    filter: 'drop-shadow(0 0 10px rgba(45,212,191,0.45))', userSelect: 'none',
+                  }}>
+                    {displayName !== 'Your Profile' ? displayName[0].toUpperCase() : 'M'}
+                  </span>
+                )}
+              </div>
+              {/* Upload button */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                aria-label={avatarSrc ? 'Change photo' : 'Upload photo'}
+                style={{
+                  position: 'absolute', bottom: 0, right: '-4px',
+                  width: '28px', height: '28px', borderRadius: '50%',
+                  background: 'rgba(45,212,191,0.14)', border: '1.5px solid rgba(45,212,191,0.48)',
+                  color: colors.teal, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '16px', fontWeight: 700, lineHeight: 1,
+                  backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+                }}
+              >+</button>
+              <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
+            </div>
           </div>
 
           {/* Photo action links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '22px', height: '18px' }}>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.teal, fontSize: '12px', fontWeight: 600, fontFamily: fonts.ui, letterSpacing: '-0.01em', padding: 0 }}
-            >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px', minHeight: '18px' }}>
+            <button onClick={() => fileInputRef.current?.click()} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.teal, fontSize: '12px', fontWeight: 600, fontFamily: fonts.ui, padding: 0 }}>
               {avatarSrc ? 'Change photo' : 'Upload photo'}
             </button>
             {avatarSrc && (
               <>
-                <span style={{ color: colors.textMuted, fontSize: '12px', userSelect: 'none' }}>·</span>
-                <button
-                  onClick={handleRemovePhoto}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.textMuted, fontSize: '12px', fontWeight: 600, fontFamily: fonts.ui, letterSpacing: '-0.01em', padding: 0 }}
-                >
+                <span style={{ color: colors.textMuted, fontSize: '12px' }}>·</span>
+                <button onClick={handleRemovePhoto} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.textMuted, fontSize: '12px', fontWeight: 600, fontFamily: fonts.ui, padding: 0 }}>
                   Remove
                 </button>
               </>
             )}
           </div>
+          {/* Local preview hint */}
+          {photoPreview && !profile.avatar_url && (
+            <p style={{ fontSize: '11px', color: colors.textMuted, margin: '4px 0 0', opacity: 0.7 }}>
+              Preview only — storage connection pending.
+            </p>
+          )}
 
-          {/* Name */}
+          {/* Display name */}
           <h1 style={{
-            fontFamily: fonts.heading,
-            fontSize: 'clamp(28px, 7vw, 38px)',
-            fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1,
-            color: colors.text,
-            margin: '0 0 7px',
+            fontFamily: fonts.heading, fontSize: 'clamp(28px, 7vw, 38px)',
+            fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1.1, color: colors.text,
+            margin: '18px 0 6px',
           }}>
             {displayName}
           </h1>
 
           {/* Email */}
-          <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0, letterSpacing: '-0.01em' }}>
+          <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 20px', letterSpacing: '-0.01em' }}>
             {userEmail}
           </p>
+
+          {/* Status chip row */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '7px' }}>
+            {/* Always: Profile active */}
+            <HeroChip active>Profile active</HeroChip>
+            {/* Bio */}
+            <HeroChip active={!!profile.biological_profile} dim={!profile.biological_profile}>
+              {profile.biological_profile ? BIO_MAP[profile.biological_profile] : 'Biology pending'}
+            </HeroChip>
+            {/* Focus */}
+            <HeroChip active={!!profile.user_profile} dim={!profile.user_profile}>
+              {profile.user_profile && GOAL_MAP[profile.user_profile]
+                ? GOAL_MAP[profile.user_profile].label
+                : 'Focus not set'}
+            </HeroChip>
+          </div>
         </div>
 
-        {/* ═══════════════════════════════════ IDENTITY CARD ══ */}
+        {/* ════════════════════════ BIOLOGICAL PASSPORT ═══ */}
         <div style={cardStyle}>
-          <div style={cardHeaderRow}>
-            <span style={cardLabel}>Identity</span>
+          {/* Passport header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={cardLabel}>Biological Passport</span>
+              <div style={{ width: '1px', height: '10px', background: colors.cardBorder }} />
+              <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: colors.textMuted, opacity: 0.6 }}>Identity signals</span>
+            </div>
             {editingSection !== 'identity' && (
               <SmallButton onClick={startEditIdentity}>Edit</SmallButton>
             )}
@@ -375,64 +367,70 @@ export default function ProfilePage() {
 
           {editingSection === 'identity' ? (
             <div>
-              {/* Display name */}
               <div style={{ marginBottom: '16px' }}>
                 <label style={fieldLabel}>Display name</label>
                 <input
-                  type="text"
-                  value={editPreferredName}
+                  type="text" value={editPreferredName}
                   onChange={e => setEditPreferredName(e.target.value)}
                   placeholder={profile.full_name || 'Enter your name'}
                   style={inputStyle}
                 />
-                <p style={fieldHint}>This is how Meridian addresses you.</p>
+                <p style={fieldHint}>This is how Meridian addresses you across your health experience.</p>
               </div>
-
-              {/* Biological profile */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={fieldLabel}>Biological profile</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {(['female', 'male'] as BiologicalProfile[]).map(bp => (
-                    <button
-                      key={bp}
-                      type="button"
-                      onClick={() => setEditBioProfile(bp)}
-                      style={{
-                        flex: 1, padding: '10px 14px', borderRadius: '10px',
-                        border: editBioProfile === bp ? '1px solid rgba(45,212,191,0.78)' : `1px solid ${colors.cardBorder}`,
-                        background: editBioProfile === bp ? 'rgba(45,212,191,0.10)' : colors.inputBg,
-                        color: editBioProfile === bp ? colors.teal : colors.textSoft,
-                        fontSize: '13px', fontWeight: 700, cursor: 'pointer',
-                        fontFamily: fonts.ui, letterSpacing: '-0.01em',
-                        transition: 'all 160ms ease',
-                      }}
-                    >
+                    <button key={bp} type="button" onClick={() => setEditBioProfile(bp)} style={{
+                      flex: 1, padding: '10px 14px', borderRadius: '10px',
+                      border: editBioProfile === bp ? '1px solid rgba(45,212,191,0.78)' : `1px solid ${colors.cardBorder}`,
+                      background: editBioProfile === bp ? 'rgba(45,212,191,0.10)' : colors.inputBg,
+                      color: editBioProfile === bp ? colors.teal : colors.textSoft,
+                      fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: fonts.ui,
+                      letterSpacing: '-0.01em', transition: 'all 160ms ease',
+                    }}>
                       {BIO_MAP[bp]}
                     </button>
                   ))}
                 </div>
-                <p style={fieldHint}>Used for accurate reference ranges. Not your identity.</p>
+                <p style={fieldHint}>Used for accurate reference ranges — not your identity.</p>
               </div>
-
               <SaveFeedback status={saveStatus} />
               <EditActions onCancel={cancelEdit} onSave={saveIdentity} saving={saving} saveLabel="Save changes" />
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <IdentityRow label="Display name"      value={profile.preferred_name || profile.full_name || '—'} />
-              <IdentityRow label="Email"             value={userEmail} />
-              <IdentityRow label="Biological profile" value={profile.biological_profile ? BIO_MAP[profile.biological_profile] : '—'} />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <PassportRow
+                label="Display name"
+                value={profile.preferred_name || profile.full_name}
+                emptyLabel="Not set yet"
+                emptyHint="Add a preferred name for Meridian to use."
+                onAdd={startEditIdentity}
+              />
+              <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
+              <PassportRow label="Email" value={userEmail} />
+              <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
+              <PassportRow
+                label="Biological profile"
+                value={profile.biological_profile ? BIO_MAP[profile.biological_profile] : null}
+                emptyLabel="Pending calibration"
+                emptyHint="Used to personalize lab interpretation."
+                onAdd={startEditIdentity}
+              />
               {profile.birth_date && (
-                <IdentityRow label="Date of birth" value={profile.birth_date} />
+                <>
+                  <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
+                  <PassportRow label="Date of birth" value={profile.birth_date} />
+                </>
               )}
             </div>
           )}
         </div>
 
-        {/* ═══════════════════════════════════ HEALTH FOCUS CARD ══ */}
+        {/* ════════════════════════════ HEALTH FOCUS ═══ */}
         <div style={cardStyle}>
-          <div style={cardHeaderRow}>
-            <span style={cardLabel}>Health Focus</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+            <span style={cardLabel}>Health Focus Mode</span>
             {editingSection !== 'focus' && (
               <SmallButton onClick={startEditFocus}>Adjust</SmallButton>
             )}
@@ -441,30 +439,24 @@ export default function ProfilePage() {
           {editingSection === 'focus' ? (
             <div>
               <p style={{ margin: '0 0 14px', fontSize: '13px', color: colors.textSoft, lineHeight: 1.6 }}>
-                Your health focus shapes how Meridian interprets your results and prioritizes insights.
+                Your health focus shapes how Meridian interprets results and prioritizes what matters.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
                 {ALL_GOALS.map(goal => {
                   const isSelected = editUserProfile === goal
                   const info = GOAL_MAP[goal]
                   return (
-                    <button
-                      key={goal}
-                      type="button"
-                      onClick={() => setEditUserProfile(goal)}
-                      style={{
-                        textAlign: 'left', padding: '12px 14px', borderRadius: '12px',
-                        border: isSelected ? '1px solid rgba(45,212,191,0.75)' : `1px solid ${colors.cardBorder}`,
-                        background: isSelected ? 'rgba(45,212,191,0.09)' : colors.inputBg,
-                        cursor: 'pointer', fontFamily: fonts.ui,
-                        transition: 'all 160ms ease',
-                      }}
-                    >
+                    <button key={goal} type="button" onClick={() => setEditUserProfile(goal)} style={{
+                      textAlign: 'left', padding: '12px 14px', borderRadius: '12px',
+                      border: isSelected ? '1px solid rgba(45,212,191,0.75)' : `1px solid ${colors.cardBorder}`,
+                      background: isSelected ? 'rgba(45,212,191,0.09)' : colors.inputBg,
+                      cursor: 'pointer', fontFamily: fonts.ui, transition: 'all 160ms ease',
+                    }}>
                       <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: isSelected ? colors.teal : colors.text, marginBottom: '3px', letterSpacing: '-0.01em' }}>
                         {info.label}
                       </span>
                       <span style={{ display: 'block', fontSize: '11px', color: isSelected ? '#9EEFE4' : colors.textMuted, lineHeight: 1.45 }}>
-                        {info.description.slice(0, 72)}…
+                        {info.description.slice(0, 74)}…
                       </span>
                     </button>
                   )
@@ -473,112 +465,110 @@ export default function ProfilePage() {
               <SaveFeedback status={saveStatus} />
               <EditActions onCancel={cancelEdit} onSave={saveFocus} saving={saving} saveLabel="Save focus" disabled={!editUserProfile} />
             </div>
-          ) : (
+          ) : profile.user_profile && GOAL_MAP[profile.user_profile] ? (
             <div>
-              {profile.user_profile && GOAL_MAP[profile.user_profile] ? (
-                <>
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    padding: '5px 12px',
-                    background: 'rgba(45,212,191,0.07)',
-                    border: '1px solid rgba(45,212,191,0.2)',
-                    borderRadius: '10px',
-                    marginBottom: '12px',
-                  }}>
-                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.8)', flexShrink: 0 }} />
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: colors.teal, letterSpacing: '-0.01em' }}>
-                      {GOAL_MAP[profile.user_profile].label}
-                    </span>
-                  </div>
-                  <p style={{ margin: 0, fontSize: '13px', color: colors.textSoft, lineHeight: 1.65 }}>
-                    {GOAL_MAP[profile.user_profile].description}
-                  </p>
-                </>
-              ) : (
-                <p style={{ margin: 0, fontSize: '13px', color: colors.textMuted, lineHeight: 1.6 }}>
-                  No health focus set. Tap Adjust to configure how Meridian personalizes your insights.
-                </p>
-              )}
+              {/* Mode label */}
+              <p style={{ fontFamily: fonts.heading, fontSize: '22px', fontWeight: 700, letterSpacing: '-0.03em', color: colors.text, margin: '0 0 8px', lineHeight: 1.1 }}>
+                {GOAL_MAP[profile.user_profile].label}
+              </p>
+              {/* Signal chips */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+                {GOAL_SIGNALS[profile.user_profile].map(sig => (
+                  <SignalChip key={sig}>{sig}</SignalChip>
+                ))}
+              </div>
+              {/* Description */}
+              <p style={{ margin: 0, fontSize: '13px', color: colors.textSoft, lineHeight: 1.65 }}>
+                {GOAL_MAP[profile.user_profile].description}
+              </p>
+            </div>
+          ) : (
+            /* Empty state */
+            <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
+              <p style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 700, color: colors.textSoft }}>No health focus set</p>
+              <p style={{ margin: '0 0 16px', fontSize: '13px', color: colors.textMuted, lineHeight: 1.55 }}>
+                Choose how Meridian should personalize your insights.
+              </p>
+              <SmallButton onClick={startEditFocus}>Set focus</SmallButton>
             </div>
           )}
         </div>
 
-        {/* ═══════════════════════════════ DATA SOURCES CARD ══ */}
+        {/* ════════════════════════ DATA CONSTELLATION ═══ */}
         <div style={cardStyle}>
-          <span style={{ ...cardLabel, display: 'block', marginBottom: '18px' }}>Connected Sources</span>
+          <span style={{ ...cardLabel, display: 'block', marginBottom: '6px' }}>Data Constellation</span>
+          <p style={{ margin: '0 0 18px', fontSize: '12px', color: colors.textMuted, lineHeight: 1.55 }}>
+            Meridian gets smarter as your biological signals connect.
+          </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <SourceRow
-              name="Lab Results"
-              description="Blood panels, metabolic markers, CBC"
-              status={hasLabs ? 'connected' : 'disconnected'}
-            />
-            <SourceRow
-              name="Wearables"
-              description="Continuous vitals, HRV, sleep data"
-              status="soon"
-            />
-            <SourceRow
-              name="Genetic Data"
-              description="SNP analysis, pharmacogenomics"
-              status="soon"
-            />
+            <ConstellationNode name="Lab Results"   description="Blood panels, metabolic markers, CBC"  status={hasLabs ? 'connected' : 'disconnected'} />
+            <ConstellationNode name="Wearables"     description="Continuous vitals, HRV, sleep data"    status="soon" />
+            <ConstellationNode name="Genetic Data"  description="SNP analysis, pharmacogenomics"         status="soon" />
+            <ConstellationNode name="Feedback Loop" description="Insight accuracy improves over time"    status="soon" />
           </div>
         </div>
 
-        {/* ═══════════════════════════════════ ACCOUNT CARD ══ */}
+        {/* ════════════════════ PERSONALIZATION MATRIX ═══ */}
         <div style={cardStyle}>
-          <span style={{ ...cardLabel, display: 'block', marginBottom: '18px' }}>Account</span>
+          <span style={{ ...cardLabel, display: 'block', marginBottom: '6px' }}>Personalization Matrix</span>
+          <p style={{ margin: '0 0 18px', fontSize: '12px', color: colors.textMuted, lineHeight: 1.55 }}>
+            Complete your profile to improve context over time. Meridian interprets. You decide.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {matrixRows.map((row, i) => (
+              <div key={row.label}>
+                <MatrixRowItem label={row.label} description={row.description} status={row.status} />
+                {i < matrixRows.length - 1 && (
+                  <div style={{ height: '1px', background: colors.cardBorder, margin: '0' }} />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ════════════════════════════ CONTROL LAYER ═══ */}
+        <div style={cardStyle}>
+          <span style={{ ...cardLabel, display: 'block', marginBottom: '4px' }}>Control Layer</span>
+          <p style={{ margin: '0 0 18px', fontSize: '12px', color: colors.textMuted, lineHeight: 1.5 }}>
+            Your Meridian experience, on your terms.
+          </p>
 
           <div>
-            {/* App preferences — placeholder */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '13px 0',
-              borderBottom: `1px solid ${colors.cardBorder}`,
-            }}>
-              <span style={{ fontSize: '14px', color: colors.textMuted, fontWeight: 600 }}>App preferences</span>
-              <span style={{
-                fontSize: '10px', color: colors.textMuted, fontWeight: 700,
-                letterSpacing: '0.06em', textTransform: 'uppercase',
-                background: 'rgba(95,142,133,0.10)',
-                border: '1px solid rgba(95,142,133,0.18)',
-                borderRadius: '6px', padding: '2px 8px',
-              }}>
-                Soon
-              </span>
-            </div>
-
+            {/* App preferences */}
+            <ControlRow label="App preferences" soon />
+            {/* Data sources */}
+            <ControlRow label="Data sources" soon />
+            {/* Privacy controls */}
+            <ControlRow label="Privacy controls" soon />
             {/* Sign out */}
             <button
               onClick={handleSignOut}
               style={{
-                width: '100%', textAlign: 'left',
+                width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer',
+                fontFamily: fonts.ui, padding: '13px 0',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '13px 0',
-                background: 'none', border: 'none',
-                cursor: 'pointer', fontFamily: fonts.ui,
               }}
             >
-              <span style={{ fontSize: '14px', color: '#F87171', fontWeight: 600 }}>Sign out</span>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: '#F87171' }}>Sign out</span>
               <span style={{ fontSize: '14px', color: colors.textMuted }}>›</span>
             </button>
           </div>
         </div>
 
         {/* Footer */}
-        <p style={{ textAlign: 'center', fontSize: '11px', color: colors.textMuted, marginTop: '12px', opacity: 0.4, letterSpacing: '0.04em' }}>
+        <p style={{ textAlign: 'center', fontSize: '11px', color: colors.textMuted, marginTop: '16px', opacity: 0.35, letterSpacing: '0.04em' }}>
           Meridian · Health Intelligence System
         </p>
 
       </div>
-
       <NavBar />
     </div>
   )
 }
 
-// ═══════════════════════════════════════ SHARED STYLES ══
+// ════════════════════════════════ SHARED STYLES ═══
 
 const cardStyle: React.CSSProperties = {
   background: colors.cardBg,
@@ -591,11 +581,6 @@ const cardStyle: React.CSSProperties = {
   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
 }
 
-const cardHeaderRow: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  marginBottom: '18px',
-}
-
 const cardLabel: React.CSSProperties = {
   fontSize: '10px', fontWeight: 700,
   letterSpacing: '0.10em', textTransform: 'uppercase',
@@ -604,74 +589,115 @@ const cardLabel: React.CSSProperties = {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
-  background: colors.inputBg,
-  border: `1px solid ${colors.cardBorder}`,
-  borderRadius: '10px',
-  padding: '11px 14px',
-  color: colors.text,
-  fontSize: '14px',
-  fontFamily: fonts.ui,
-  outline: 'none',
-  colorScheme: 'dark',
+  background: colors.inputBg, border: `1px solid ${colors.cardBorder}`,
+  borderRadius: '10px', padding: '11px 14px',
+  color: colors.text, fontSize: '14px', fontFamily: fonts.ui,
+  outline: 'none', colorScheme: 'dark',
 }
 
 const fieldLabel: React.CSSProperties = {
-  display: 'block',
-  fontSize: '11px', fontWeight: 700,
-  color: colors.textMuted,
-  letterSpacing: '0.06em', textTransform: 'uppercase',
-  marginBottom: '7px',
+  display: 'block', fontSize: '11px', fontWeight: 700,
+  color: colors.textMuted, letterSpacing: '0.06em',
+  textTransform: 'uppercase', marginBottom: '7px',
 }
 
 const fieldHint: React.CSSProperties = {
-  margin: '5px 0 0',
-  fontSize: '11px', color: colors.textMuted, lineHeight: 1.45,
+  margin: '5px 0 0', fontSize: '11px', color: colors.textMuted, lineHeight: 1.45,
 }
 
-// ═══════════════════════════════════════ SUB-COMPONENTS ══
+// ════════════════════════════════ SUB-COMPONENTS ═══
 
 function SmallButton({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        background: 'rgba(45,212,191,0.07)',
-        border: '1px solid rgba(45,212,191,0.20)',
-        borderRadius: '8px',
-        color: colors.teal,
-        fontSize: '11px', fontWeight: 700,
-        cursor: 'pointer',
-        padding: '4px 11px',
-        fontFamily: fonts.ui,
-        letterSpacing: '-0.01em',
-      }}
-    >
+    <button type="button" onClick={onClick} style={{
+      background: 'rgba(45,212,191,0.07)', border: '1px solid rgba(45,212,191,0.20)',
+      borderRadius: '8px', color: colors.teal, fontSize: '11px', fontWeight: 700,
+      cursor: 'pointer', padding: '4px 11px', fontFamily: fonts.ui, letterSpacing: '-0.01em',
+    }}>
       {children}
     </button>
   )
 }
 
-function IdentityRow({ label, value }: { label: string; value: string }) {
+function HeroChip({ children, active, dim }: { children: React.ReactNode; active?: boolean; dim?: boolean }) {
   return (
-    <div>
-      <span style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: colors.textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '3px' }}>
-        {label}
-      </span>
-      <span style={{ display: 'block', fontSize: '15px', fontWeight: 600, color: colors.text, letterSpacing: '-0.01em' }}>
-        {value}
+    <div style={{
+      display: 'inline-flex', alignItems: 'center', gap: '5px',
+      padding: '4px 10px', borderRadius: '20px',
+      background: active ? 'rgba(45,212,191,0.08)' : 'rgba(95,142,133,0.07)',
+      border: active ? '1px solid rgba(45,212,191,0.20)' : '1px solid rgba(95,142,133,0.18)',
+    }}>
+      {active && (
+        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 5px rgba(45,212,191,0.8)', flexShrink: 0 }} />
+      )}
+      <span style={{
+        fontSize: '11px', fontWeight: 700,
+        color: active ? colors.teal : (dim ? colors.textMuted : colors.textSoft),
+        letterSpacing: '-0.01em',
+      }}>
+        {children}
       </span>
     </div>
   )
 }
 
-function SourceRow({ name, description, status }: {
+function PassportRow({ label, value, emptyLabel, emptyHint, onAdd }: {
+  label: string
+  value: string | null | undefined
+  emptyLabel?: string
+  emptyHint?: string
+  onAdd?: () => void
+}) {
+  return (
+    <div>
+      <span style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: colors.textMuted, letterSpacing: '0.09em', textTransform: 'uppercase', marginBottom: '5px' }}>
+        {label}
+      </span>
+      {value ? (
+        <span style={{ fontSize: '15px', fontWeight: 600, color: colors.text, letterSpacing: '-0.01em' }}>{value}</span>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '14px', fontWeight: 600, color: colors.textMuted, fontStyle: 'italic' }}>
+            {emptyLabel ?? 'Not set'}
+          </span>
+          {emptyHint && (
+            <span style={{ fontSize: '11px', color: colors.textMuted, opacity: 0.7 }}>{emptyHint}</span>
+          )}
+          {onAdd && (
+            <button type="button" onClick={onAdd} style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              color: colors.teal, fontSize: '11px', fontWeight: 700, fontFamily: fonts.ui, letterSpacing: '-0.01em',
+            }}>
+              Add
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SignalChip({ children }: { children: React.ReactNode }) {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: '5px',
+      padding: '3px 9px', borderRadius: '8px',
+      background: 'rgba(45,212,191,0.07)', border: '1px solid rgba(45,212,191,0.18)',
+      fontSize: '11px', fontWeight: 700, color: colors.teal, letterSpacing: '0.02em',
+    }}>
+      <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 4px rgba(45,212,191,0.8)' }} />
+      {children}
+    </span>
+  )
+}
+
+function ConstellationNode({ name, description, status }: {
   name: string
   description: string
   status: 'connected' | 'disconnected' | 'soon'
 }) {
   const cfg = {
-    connected:    { label: 'Connected',     color: '#2DD4BF', bg: 'rgba(45,212,191,0.08)',  border: 'rgba(45,212,191,0.22)',  dot: true  },
+    connected:    { label: 'Connected',     color: '#2DD4BF', bg: 'rgba(45,212,191,0.08)',  border: 'rgba(45,212,191,0.22)', dot: true },
     disconnected: { label: 'Not connected', color: '#5F8E85', bg: 'rgba(95,142,133,0.07)',  border: 'rgba(95,142,133,0.18)', dot: false },
     soon:         { label: 'Coming soon',   color: '#5F8E85', bg: 'rgba(95,142,133,0.07)',  border: 'rgba(95,142,133,0.18)', dot: false },
   }[status]
@@ -680,26 +706,85 @@ function SourceRow({ name, description, status }: {
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '12px 14px',
-      background: 'rgba(232,248,245,0.025)',
-      border: `1px solid ${colors.cardBorder}`,
+      background: status === 'connected' ? 'rgba(45,212,191,0.03)' : 'rgba(232,248,245,0.02)',
+      border: `1px solid ${status === 'connected' ? 'rgba(45,212,191,0.14)' : colors.cardBorder}`,
       borderRadius: '12px', gap: '12px',
     }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+        {/* Node dot indicator */}
+        <div style={{
+          width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
+          background: status === 'connected' ? 'rgba(45,212,191,0.3)' : 'rgba(95,142,133,0.2)',
+          border: status === 'connected' ? '1.5px solid rgba(45,212,191,0.7)' : '1.5px solid rgba(95,142,133,0.4)',
+          boxShadow: status === 'connected' ? '0 0 8px rgba(45,212,191,0.4)' : 'none',
+        }} />
+        <div>
+          <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: colors.text, marginBottom: '1px' }}>{name}</span>
+          <span style={{ display: 'block', fontSize: '11px', color: colors.textMuted, lineHeight: 1.4 }}>{description}</span>
+        </div>
+      </div>
+      <div style={{
+        flexShrink: 0, padding: '3px 8px', borderRadius: '7px',
+        background: cfg.bg, border: `1px solid ${cfg.border}`,
+        display: 'flex', alignItems: 'center', gap: '4px',
+      }}>
+        {cfg.dot && <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: cfg.color, boxShadow: '0 0 5px rgba(45,212,191,0.8)' }} />}
+        <span style={{ fontSize: '10px', fontWeight: 700, color: cfg.color, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+          {cfg.label}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function MatrixRowItem({ label, description, status }: {
+  label: string
+  description: string
+  status: 'active' | 'pending' | 'soon'
+}) {
+  const cfg = {
+    active:  { label: 'Active',   color: '#2DD4BF', bg: 'rgba(45,212,191,0.07)',  border: 'rgba(45,212,191,0.20)' },
+    pending: { label: 'Pending',  color: '#FCD34D', bg: 'rgba(252,211,77,0.07)',  border: 'rgba(252,211,77,0.22)' },
+    soon:    { label: 'Soon',     color: '#5F8E85', bg: 'rgba(95,142,133,0.07)',  border: 'rgba(95,142,133,0.18)' },
+  }[status]
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', gap: '12px' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: colors.text, marginBottom: '2px' }}>{name}</span>
+        <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: status === 'active' ? colors.text : colors.textSoft, marginBottom: '2px' }}>
+          {label}
+        </span>
         <span style={{ display: 'block', fontSize: '11px', color: colors.textMuted, lineHeight: 1.4 }}>{description}</span>
       </div>
       <div style={{
         flexShrink: 0, padding: '3px 9px', borderRadius: '7px',
         background: cfg.bg, border: `1px solid ${cfg.border}`,
-        display: 'flex', alignItems: 'center', gap: '5px',
       }}>
-        {cfg.dot && (
-          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: cfg.color, boxShadow: '0 0 5px rgba(45,212,191,0.8)' }} />
-        )}
         <span style={{ fontSize: '10px', fontWeight: 700, color: cfg.color, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
           {cfg.label}
         </span>
       </div>
+    </div>
+  )
+}
+
+function ControlRow({ label, soon }: { label: string; soon?: boolean }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '13px 0', borderBottom: `1px solid ${colors.cardBorder}`,
+    }}>
+      <span style={{ fontSize: '14px', color: colors.textMuted, fontWeight: 600 }}>{label}</span>
+      {soon && (
+        <span style={{
+          fontSize: '10px', color: colors.textMuted, fontWeight: 700,
+          letterSpacing: '0.06em', textTransform: 'uppercase',
+          background: 'rgba(95,142,133,0.10)', border: '1px solid rgba(95,142,133,0.18)',
+          borderRadius: '6px', padding: '2px 8px',
+        }}>
+          Soon
+        </span>
+      )}
     </div>
   )
 }
@@ -723,31 +808,21 @@ function EditActions({ onCancel, onSave, saving, saveLabel, disabled }: {
   const inactive = saving || disabled
   return (
     <div style={{ display: 'flex', gap: '8px' }}>
-      <button
-        type="button"
-        onClick={onCancel}
-        style={{
-          flex: 1, padding: '10px', borderRadius: '10px',
-          background: 'transparent', border: `1px solid ${colors.cardBorder}`,
-          color: colors.textSoft, fontSize: '13px', fontWeight: 700,
-          cursor: 'pointer', fontFamily: fonts.ui,
-        }}
-      >
+      <button type="button" onClick={onCancel} style={{
+        flex: 1, padding: '10px', borderRadius: '10px',
+        background: 'transparent', border: `1px solid ${colors.cardBorder}`,
+        color: colors.textSoft, fontSize: '13px', fontWeight: 700,
+        cursor: 'pointer', fontFamily: fonts.ui,
+      }}>
         Cancel
       </button>
-      <button
-        type="button"
-        onClick={onSave}
-        disabled={!!inactive}
-        style={{
-          flex: 2, padding: '10px', borderRadius: '10px', border: 'none',
-          background: inactive ? 'rgba(45,212,191,0.22)' : 'linear-gradient(135deg, #2DD4BF 0%, #67E8F9 100%)',
-          color: '#061316', fontSize: '13px', fontWeight: 700,
-          cursor: inactive ? 'not-allowed' : 'pointer',
-          fontFamily: fonts.ui,
-          boxShadow: inactive ? 'none' : '0 0 18px rgba(45,212,191,0.28)',
-        }}
-      >
+      <button type="button" onClick={onSave} disabled={!!inactive} style={{
+        flex: 2, padding: '10px', borderRadius: '10px', border: 'none',
+        background: inactive ? 'rgba(45,212,191,0.22)' : 'linear-gradient(135deg, #2DD4BF 0%, #67E8F9 100%)',
+        color: '#061316', fontSize: '13px', fontWeight: 700,
+        cursor: inactive ? 'not-allowed' : 'pointer', fontFamily: fonts.ui,
+        boxShadow: inactive ? 'none' : '0 0 18px rgba(45,212,191,0.28)',
+      }}>
         {saving ? 'Saving…' : saveLabel}
       </button>
     </div>
