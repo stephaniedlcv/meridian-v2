@@ -117,9 +117,9 @@ export default function ProfilePage() {
       position: 'relative',
       overflow: 'hidden',
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'center',
-      padding: '48px 20px',
+      padding: '80px 20px 100px',
     }}>
       {/* Ambient orbs — 3 layers matching goals/connect/welcome/landing */}
       <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(45,212,191,0.13) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
