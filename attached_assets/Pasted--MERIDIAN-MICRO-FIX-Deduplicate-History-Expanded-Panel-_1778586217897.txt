@@ -1,0 +1,149 @@
+# MERIDIAN — MICRO FIX: Deduplicate History Expanded Panel Rendering
+
+You are working on Meridian.
+
+Stack:
+- Next.js 14 App Router
+- TypeScript
+- Supabase
+- Vercel
+
+IMPORTANT:
+- The real app lives inside `.migration-backup/`
+- Do NOT move files
+- Do NOT restructure repo
+- Do NOT redesign History
+- Do NOT add dependencies
+- Do NOT touch Labs snapshot
+- Do NOT change upload flow
+- Do NOT change parser logic
+
+---
+
+# PROBLEM
+
+History grouping is now much better, but when expanding a panel, duplicated biomarkers can still appear.
+
+Example seen in production:
+
+Under:
+`Vitamins & Nutrients`
+
+The same markers appear multiple times:
+- Vitamin D
+- Vitamin D
+- Vitamin D
+- Vitamin B12
+- Vitamin B12
+
+This means the expanded History panel rendering is still using raw rows instead of a deduplicated display set.
+
+---
+
+# GOAL
+
+Within each expanded History panel, display each biomarker only once per date/panel view.
+
+History can still preserve the full archive internally, but the expanded panel UI should not show accidental duplicate rows/cards for the same marker from the same date/panel.
+
+---
+
+# REQUIRED FIX
+
+## 1. Deduplicate markers inside expanded panel rendering
+
+Before rendering markers inside an expanded History panel, deduplicate by:
+
+Priority:
+1. `marker_slug` if available
+2. normalized `marker_name` fallback
+
+For duplicates within the same panel/date:
+- keep the most recent row by `created_at` if available
+- otherwise keep the first occurrence
+
+---
+
+# IMPORTANT
+
+Do NOT deduplicate across different dates.
+
+Do NOT remove historical results from the database.
+
+Do NOT change History’s year/month/date grouping.
+
+Do NOT change Labs snapshot logic.
+
+This is display-level deduplication only for expanded History panels.
+
+---
+
+# EXPECTED RESULT
+
+Before:
+Vitamins & Nutrients
+- Vitamin B12
+- Vitamin D
+- Vitamin D
+- Vitamin B12
+- Vitamin D
+
+After:
+Vitamins & Nutrients
+- Vitamin B12
+- Vitamin D
+
+---
+
+# COUNTS
+
+Panel marker counts in History should match the deduplicated visible markers when displaying a panel.
+
+If a panel shows:
+- Vitamin B12
+- Vitamin D
+
+Then panel count should be:
+`2 markers`
+
+Not:
+`5 markers`
+
+---
+
+# STATUS COUNTS
+
+Status count dots should also reflect the deduplicated visible markers for that panel.
+
+Example:
+If visible markers are:
+- Vitamin D = Watch
+- Vitamin B12 = Attention
+
+Then panel status counts should show:
+- Watch 1
+- Attention 1
+
+Not duplicated counts.
+
+---
+
+# EDGE CASES
+
+If the same marker appears twice with different values on the same date/panel:
+- keep the most recent `created_at`
+- do not show both in the expanded panel
+- no data deletion
+
+If this case needs deeper audit later, leave a clear comment in code.
+
+---
+
+# RETURN FORMAT
+
+Return:
+1. Files changed
+2. Deduplication logic implemented
+3. Count logic updated
+4. Confirmation this is display-level only
+5. Confirmation no files outside `.migration-backup/` were modified

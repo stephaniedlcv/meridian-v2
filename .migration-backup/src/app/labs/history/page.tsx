@@ -308,20 +308,36 @@ function groupRows(rows: BiomarkerRow[]): YearGroup[] {
             .map(([dateKey, panelMap]) => {
               const panels: PanelGroup[] = Array.from(panelMap.entries())
                 .sort(([a], [b]) => panelSortIndex(a) - panelSortIndex(b))
-                .map(([panel, items]) => ({
-                  panel,
-                  items,
-                  stateCounts: {
-                    Optimal: items.filter(i => i.state === 'Optimal').length,
-                    Watch: items.filter(i => i.state === 'Watch').length,
-                    Attention: items.filter(i => i.state === 'Attention').length,
-                    Critical: items.filter(i => i.state === 'Critical').length,
-                  },
-                }))
+                .map(([panel, items]) => {
+                  // Display-level dedup: within each panel/date, keep the most recent
+                  // created_at per marker_name. Underlying DB rows are never modified.
+                  // Note: if the same marker legitimately differs across two uploads on
+                  // the same date, the most recent created_at row wins. A future
+                  // session-ID column would allow per-upload disambiguation.
+                  const seen = new Map<string, BiomarkerRow>()
+                  for (const row of items) {
+                    const existing = seen.get(row.marker_name)
+                    if (!existing || row.created_at > existing.created_at) {
+                      seen.set(row.marker_name, row)
+                    }
+                  }
+                  const deduped = Array.from(seen.values())
+                  return {
+                    panel,
+                    items: deduped,
+                    stateCounts: {
+                      Optimal:   deduped.filter(i => i.state === 'Optimal').length,
+                      Watch:     deduped.filter(i => i.state === 'Watch').length,
+                      Attention: deduped.filter(i => i.state === 'Attention').length,
+                      Critical:  deduped.filter(i => i.state === 'Critical').length,
+                    },
+                  }
+                })
               return {
                 dateKey,
                 label: formatDateLabel(dateKey),
-                total: Array.from(panelMap.values()).reduce((s, m) => s + m.length, 0),
+                // total reflects deduped marker count so header badge matches what's shown
+                total: panels.reduce((s, p) => s + p.items.length, 0),
                 panelCount: panelMap.size,
                 panels,
               }
