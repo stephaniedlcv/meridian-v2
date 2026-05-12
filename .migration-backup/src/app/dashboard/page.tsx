@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
+import { getSafetyStatusForBiomarker } from '@/lib/safety-engine'
 
 const colors = {
   background: '#061316',
@@ -59,6 +60,9 @@ export default function DashboardPage() {
   const [insight, setInsight] = useState<GoldenInsight | null>(null)
   const [dominantMarker, setDominantMarker] = useState<string | null>(null)
   const [safetyAlert, setSafetyAlert] = useState(false)
+  // Safety Engine V1: set when any recent biomarker meets a critical threshold.
+  // Gates LabsSavedBlock copy and reinforces safetyAlert in SolvedBlock.
+  const [hasCriticalMarker, setHasCriticalMarker] = useState(false)
 
   useEffect(() => {
     async function loadDashboard() {
@@ -68,10 +72,10 @@ export default function DashboardPage() {
         return
       }
 
-      // Get profile
+      // Get profile (biological_profile needed for hemoglobin Safety Engine threshold)
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, onboarding_completed')
+        .select('full_name, onboarding_completed, biological_profile')
         .eq('id', user.id)
         .single()
 
@@ -90,6 +94,32 @@ export default function DashboardPage() {
         .eq('user_id', user.id)
       const hasBiomarkers = typeof biomarkerCount === 'number' && biomarkerCount > 0
       console.log('[Meridian] user.id:', user.id, '| biomarker count:', biomarkerCount, '| hasBiomarkers:', hasBiomarkers)
+
+      // ── Safety Engine V1 local check ────────────────────────────────────────
+      // Independently evaluates recent biomarkers against critical thresholds.
+      // Non-diagnostic, output suppression only. Does not write to DB.
+      // Gates dashboard copy; also ensures safetyAlert is set when the insight
+      // API is unavailable (labs_saved state).
+      if (hasBiomarkers) {
+        const { data: recentForSafety } = await supabase
+          .from('biomarkers_static')
+          .select('marker_name, value, unit')
+          .eq('user_id', user.id)
+          .order('collected_at', { ascending: false })
+          .limit(60)
+
+        if (recentForSafety && recentForSafety.length > 0) {
+          const bioprofile = profile?.biological_profile ?? 'female'
+          const localCritical = recentForSafety.some(b =>
+            getSafetyStatusForBiomarker(b.marker_name, b.value, b.unit ?? '', bioprofile).status === 'critical'
+          )
+          if (localCritical) {
+            setHasCriticalMarker(true)
+            setSafetyAlert(true)  // also ensures SolvedBlock shows the safety badge
+            console.log('[Meridian] Safety Engine V1: critical marker detected in local check')
+          }
+        }
+      }
 
       // Fetch insight
       try {
@@ -250,6 +280,7 @@ export default function DashboardPage() {
             <LabsSavedBlock
               onHistory={() => router.push('/labs/history')}
               onUpload={() => router.push('/labs/upload')}
+              hasCritical={hasCriticalMarker}
             />
           )}
           {state === 'calibrating' && (
@@ -382,12 +413,86 @@ function NoDataBlock({ onUpload }: { onUpload: () => void }) {
   )
 }
 
-function LabsSavedBlock({ onHistory, onUpload }: { onHistory: () => void; onUpload: () => void }) {
+function LabsSavedBlock({
+  onHistory,
+  onUpload,
+  hasCritical = false,
+}: {
+  onHistory: () => void
+  onUpload: () => void
+  hasCritical?: boolean
+}) {
   const steps = [
     'Review your Lab History',
     'Upload newer labs if available',
     'Connect wearables when ready',
   ]
+
+  // ── Safety Engine V1: safety-first copy when critical markers are present ──
+  // Non-diagnostic. No treatment language. Output suppression only.
+  if (hasCritical) {
+    return (
+      <div style={{
+        backgroundColor: 'rgba(248,113,113,0.05)',
+        border: '1px solid rgba(248,113,113,0.22)',
+        borderRadius: '24px',
+        borderLeft: '3px solid #F87171',
+        overflow: 'hidden',
+        backdropFilter: 'blur(28px)',
+        boxShadow: '0 0 0 1px rgba(248,113,113,0.12), 0 0 40px rgba(248,113,113,0.06), inset 0 1px 0 rgba(255,255,255,0.04)',
+      }}>
+        <div style={{ padding: '28px 24px 24px' }}>
+          {/* Safety chip */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            fontSize: '9px', fontWeight: 800, letterSpacing: '0.14em',
+            textTransform: 'uppercase', color: '#F87171',
+            marginBottom: '16px', padding: '4px 10px',
+            border: '1px solid rgba(248,113,113,0.28)', borderRadius: '20px',
+            background: 'rgba(248,113,113,0.07)',
+          }}>
+            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#F87171', boxShadow: '0 0 5px #F87171' }} />
+            Safety Review
+          </div>
+          <h2 style={{
+            fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700,
+            color: colors.text, letterSpacing: '-0.04em', lineHeight: 1.15, marginBottom: '12px',
+          }}>
+            Safety review recommended
+          </h2>
+          <p style={{ fontSize: '15px', color: colors.textSoft, lineHeight: 1.65, marginBottom: '10px' }}>
+            One or more recent biomarkers may require prompt medical review.
+          </p>
+          <p style={{ fontSize: '14px', color: colors.textMuted, lineHeight: 1.7 }}>
+            Meridian is limiting optimization guidance until these results are reviewed with a qualified healthcare professional.
+          </p>
+        </div>
+        <div style={{ padding: '0 24px 24px' }}>
+          <button
+            onClick={onHistory}
+            style={{
+              width: '100%', padding: '16px 20px', borderRadius: '16px', border: 'none',
+              background: 'linear-gradient(135deg, #F87171, #FB923C)',
+              color: '#fff', fontSize: '15px', fontWeight: 800, cursor: 'pointer',
+              boxShadow: '0 0 24px rgba(248,113,113,0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Review lab results →
+          </button>
+        </div>
+        <div style={{
+          padding: '14px 24px',
+          borderTop: 'rgba(248,113,113,0.1) solid 1px',
+          fontSize: '11px', color: colors.textMuted, textAlign: 'center',
+        }}>
+          Meridian interprets, you decide · Always consult a qualified professional.
+        </div>
+      </div>
+    )
+  }
+
+  // ── Default: baseline building copy ───────────────────────────────────────
   return (
     <div style={{
       backgroundColor: colors.cardBg,

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
+import { getSafetyStatusForBiomarker } from '@/lib/safety-engine'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const colors = {
@@ -560,10 +561,12 @@ const BIOMARKER_CONTEXT: Record<string, BiomarkerIntel> = {
 function BiomarkerDetailSheet({
   biomarker,
   allBiomarkers,
+  bioProfile,
   onClose,
 }: {
   biomarker: RecentBiomarker
   allBiomarkers: RecentBiomarker[]
+  bioProfile: string
   onClose: () => void
 }) {
   useEffect(() => {
@@ -572,10 +575,23 @@ function BiomarkerDetailSheet({
     return () => window.removeEventListener('keydown', handleKey)
   }, [onClose])
 
+  // ── Safety Engine check ────────────────────────────────────────────────────
+  // Deterministic suppression gate (Phase 1). Suppresses optimization language
+  // and shows a calm Safety Note when the value meets critical thresholds.
+  // Does NOT alter stored state or produce any diagnosis.
+  const safetyResult = getSafetyStatusForBiomarker(
+    biomarker.marker_name,
+    biomarker.value,
+    biomarker.unit ?? '',
+    bioProfile,
+  )
+  const isCritical = safetyResult.status === 'critical' || biomarker.state === 'Critical'
+
   const displayName = markerDisplayName(biomarker.marker_name)
   const panel       = SLUG_TO_PANEL[biomarker.marker_name] ?? null
-  const s           = getStateStyles(biomarker.state ?? '')
-  const dotColor    = getStateColor(biomarker.state)
+  // If safety engine flags critical, always show Critical badge regardless of stored state
+  const s           = getStateStyles(isCritical ? 'Critical' : (biomarker.state ?? ''))
+  const dotColor    = isCritical ? '#F87171' : getStateColor(biomarker.state)
   const hasRange    = isUsableRange(biomarker.reference_range_min, biomarker.reference_range_max)
   const hasOptimal  = isUsableRange(biomarker.optimal_range_min, biomarker.optimal_range_max)
   const intel       = BIOMARKER_CONTEXT[biomarker.marker_name]
@@ -731,21 +747,51 @@ function BiomarkerDetailSheet({
             )}
           </div>
 
-          {/* Why it matters */}
-          <div style={cardStyle}>
-            <p style={labelStyle}>Why it matters</p>
-            <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: 0 }}>
-              {intel?.why ?? 'This biomarker contributes to Meridian\'s understanding of your biological state.'}
-            </p>
-          </div>
+          {/* Safety Note (critical) OR Why it matters + Meridian context (normal) */}
+          {isCritical ? (
+            // ── Safety Engine suppression: optimization language hidden ──────
+            // Safety Engine V1: non-diagnostic, output suppression only.
+            // No diagnosis, no treatment advice, no medication references.
+            <div style={{
+              backgroundColor: 'rgba(248,113,113,0.07)',
+              border: '1px solid rgba(248,113,113,0.25)',
+              borderRadius: '14px',
+              padding: '14px 16px',
+              marginBottom: 0,
+            }}>
+              <p style={{
+                fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
+                letterSpacing: '0.08em', color: '#F87171',
+                marginBottom: '8px', marginTop: 0,
+              }}>
+                Safety Note
+              </p>
+              <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: '0 0 10px' }}>
+                This result may require prompt medical review. Meridian will not generate optimization guidance for this marker.
+              </p>
+              <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>
+                Review this result with a qualified healthcare professional, especially if it is unexpected or you are experiencing symptoms.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Why it matters */}
+              <div style={cardStyle}>
+                <p style={labelStyle}>Why it matters</p>
+                <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: 0 }}>
+                  {intel?.why ?? 'This biomarker contributes to Meridian\'s understanding of your biological state.'}
+                </p>
+              </div>
 
-          {/* Meridian context */}
-          <div style={{ ...cardStyle, marginBottom: 0 }}>
-            <p style={labelStyle}>Meridian context</p>
-            <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.65, margin: 0 }}>
-              {intel?.context ?? 'Meridian evaluates this signal alongside related biomarkers and recovery patterns.'}
-            </p>
-          </div>
+              {/* Meridian context */}
+              <div style={{ ...cardStyle, marginBottom: 0 }}>
+                <p style={labelStyle}>Meridian context</p>
+                <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.65, margin: 0 }}>
+                  {intel?.context ?? 'Meridian evaluates this signal alongside related biomarkers and recovery patterns.'}
+                </p>
+              </div>
+            </>
+          )}
 
         </div>
       </div>
@@ -1019,6 +1065,7 @@ export default function LabsUploadPage() {
         <BiomarkerDetailSheet
           biomarker={selectedBiomarker}
           allBiomarkers={recentBiomarkers}
+          bioProfile={bioProfile}
           onClose={() => setSelectedBiomarker(null)}
         />
       )}

@@ -1,0 +1,228 @@
+# MERIDIAN — TASK: Safety Engine V1 (Critical Result Suppression Layer)
+
+You are working on Meridian — a Health Intelligence System.
+
+Stack:
+- Next.js 14 App Router
+- TypeScript
+- Supabase
+- Vercel
+- Inline styles only
+
+IMPORTANT:
+- The real app lives inside `.migration-backup/`
+- Do NOT move files
+- Do NOT restructure repo
+- Do NOT redesign UI
+- Do NOT add dependencies
+- Do NOT touch artifacts/
+- Do NOT implement diagnosis
+- Do NOT implement treatment advice
+- Do NOT implement full medical triage
+- This is NOT a clinical decision engine
+- This is ONLY a Phase 1 safety suppression layer
+
+GOAL:
+Create Safety Engine V1.
+
+Meridian is now storing and displaying real lab data.
+
+Before adding deeper intelligence, Meridian must know when a result is potentially critical and suppress optimization-style language.
+
+CORE PRINCIPLE:
+When a biomarker appears potentially critical, Meridian should NOT show:
+- optimization guidance
+- performance framing
+- wellness coaching
+- casual next steps
+- overly confident interpretation
+
+Instead, Meridian should show calm safety language:
+“This result may require prompt medical review. Meridian will not generate optimization guidance for this marker.”
+
+REQUIRED IMPLEMENTATION:
+
+1. Create a Safety Engine utility
+
+Create or update a utility file such as:
+`/src/lib/safety-engine.ts`
+
+Implement a deterministic function such as:
+`getSafetyStatusForBiomarker()`
+
+It should accept:
+- marker_slug
+- value
+- unit
+- biological_profile when available
+
+It should return:
+- normal
+- critical
+- optional reason/message
+
+2. Add MVP critical thresholds
+
+Use a small curated MVP list only.
+
+Do NOT attempt to cover all biomarkers.
+
+Start with common high-risk markers:
+
+Glucose:
+- critically low: <= 55 mg/dL
+- critically high: >= 300 mg/dL
+
+Potassium:
+- critically low: <= 2.8 mmol/L or mEq/L
+- critically high: >= 6.0 mmol/L or mEq/L
+
+Sodium:
+- critically low: <= 125 mmol/L or mEq/L
+- critically high: >= 160 mmol/L or mEq/L
+
+Hemoglobin:
+- critically low:
+  - female biology: <= 7.0 g/dL
+  - male biology: <= 8.0 g/dL
+  - unknown profile: <= 7.0 g/dL
+
+Creatinine:
+- critically high: >= 5.0 mg/dL
+
+Platelets:
+- critically low: <= 20 x10^3/uL
+- support equivalent common unit patterns already used in the app
+
+3. Be conservative with units
+
+Only apply thresholds when units are clearly compatible.
+
+If unit is missing or incompatible:
+- do NOT force critical classification
+- do NOT invent conversions
+- return safe/default state
+
+For Phase 1:
+- no complex unit conversion
+- no aggressive assumptions
+
+4. Biomarker detail sheet behavior
+
+When a biomarker is critical:
+
+Hide or suppress:
+- optimization language
+- “Why it matters” optimization framing
+- Meridian context if it sounds wellness/performance-oriented
+
+Instead show:
+
+Section label:
+Safety Note
+
+Body copy:
+This result may require prompt medical review. Meridian will not generate optimization guidance for this marker.
+
+Optional secondary copy:
+Review this result with a qualified healthcare professional, especially if it is unexpected or you have symptoms.
+
+Do NOT say:
+- emergency
+- diagnosis
+- disease name
+- treatment instructions
+- medication advice
+
+5. Status badge behavior
+
+If Safety Engine returns critical:
+- marker status should display as Critical
+- use existing critical styling if already available
+- do NOT create alarming visual language
+- keep Meridian calm and premium
+
+6. Dashboard behavior
+
+If any latest snapshot biomarker is critical:
+
+Dashboard should NOT show casual optimization framing.
+
+Instead show a safety-first state.
+
+Example:
+
+Header:
+Safety review recommended
+
+Body:
+One or more recent biomarkers may require prompt medical review. Meridian is limiting optimization guidance until these results are reviewed.
+
+CTA:
+Review lab results
+
+Do NOT redesign dashboard.
+
+Only adjust conditional copy/state when critical markers exist.
+
+7. Labs snapshot behavior
+
+Critical biomarkers should:
+- appear in Critical count if supported
+- appear above Attention and Watch in Needs Attention
+- remain clickable
+- open detail sheet with Safety Note
+
+Severity ordering:
+1. Critical
+2. Attention
+3. Watch
+4. Optimal
+
+8. History behavior
+
+History should display Critical status normally.
+
+Do NOT alter archive grouping.
+
+Do NOT delete or modify historical data.
+
+9. No medical claims
+
+Add comments in code clarifying:
+
+Safety Engine V1 is:
+- deterministic
+- conservative
+- non-diagnostic
+- output suppression only
+
+It does NOT:
+- diagnose
+- triage
+- provide treatment
+- replace medical care
+
+ACCEPTANCE CRITERIA:
+
+After implementation:
+
+1. Critical thresholds are evaluated deterministically.
+2. Compatible units only trigger critical logic.
+3. Critical biomarker shows Critical state.
+4. Detail sheet shows Safety Note instead of optimization copy.
+5. Dashboard changes to safety-first copy if critical markers exist.
+6. Labs snapshot prioritizes Critical markers above Attention and Watch.
+7. History still works normally.
+8. No diagnosis/treatment language is introduced.
+9. No files outside `.migration-backup/` are modified.
+
+RETURN FORMAT:
+
+Return:
+1. Files changed
+2. Safety Engine utility created/updated
+3. Critical thresholds implemented
+4. Where critical suppression was applied
+5. Any assumptions or unsupported units
+6. Confirmation no files outside `.migration-backup/` were modified
