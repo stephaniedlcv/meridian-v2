@@ -163,6 +163,17 @@ function buildPanelSummaries(rows: RecentBiomarker[]): PanelSummary[] {
     })
 }
 
+function deduplicateByMarker(rows: RecentBiomarker[]): RecentBiomarker[] {
+  // Rows are already ordered collected_at DESC, created_at DESC.
+  // First occurrence of each marker_name is the most recent result.
+  const seen = new Set<string>()
+  return rows.filter(row => {
+    if (seen.has(row.marker_name)) return false
+    seen.add(row.marker_name)
+    return true
+  })
+}
+
 // ── Date helpers ───────────────────────────────────────────────────────────────
 function formatDateShort(iso: string): string {
   const [y, m, d] = iso.split('T')[0].split('-').map(Number)
@@ -537,6 +548,7 @@ export default function LabsUploadPage() {
   const [hasAnyLabs, setHasAnyLabs] = useState(false)
   const [snapshotLoading, setSnapshotLoading] = useState(true)
   const [selectedBiomarker, setSelectedBiomarker] = useState<RecentBiomarker | null>(null)
+  const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   // ── Auth + data fetch ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -695,19 +707,24 @@ export default function LabsUploadPage() {
   }
 
   // ── Derived snapshot data ────────────────────────────────────────────────────
-  const hasRecentLabs = recentBiomarkers.length > 0
-  const panelSummaries = hasRecentLabs ? buildPanelSummaries(recentBiomarkers) : []
-  const latestDate = hasRecentLabs ? recentBiomarkers[0].collected_at : null
+  // Deduplicate — rows ordered collected_at DESC so first occurrence = most recent
+  const snapshotBiomarkers = deduplicateByMarker(recentBiomarkers)
+  const hasRecentLabs = snapshotBiomarkers.length > 0
+  const panelSummaries = hasRecentLabs ? buildPanelSummaries(snapshotBiomarkers) : []
+  const latestDate = hasRecentLabs ? snapshotBiomarkers[0].collected_at : null
   const totalStateCounts = {
-    Optimal:   recentBiomarkers.filter(b => b.state === 'Optimal').length,
-    Watch:     recentBiomarkers.filter(b => b.state === 'Watch').length,
-    Attention: recentBiomarkers.filter(b => b.state === 'Attention').length,
-    Critical:  recentBiomarkers.filter(b => b.state === 'Critical').length,
+    Optimal:   snapshotBiomarkers.filter(b => b.state === 'Optimal').length,
+    Watch:     snapshotBiomarkers.filter(b => b.state === 'Watch').length,
+    Attention: snapshotBiomarkers.filter(b => b.state === 'Attention').length,
+    Critical:  snapshotBiomarkers.filter(b => b.state === 'Critical').length,
   }
-  const topAttentionMarkers = recentBiomarkers
-    .filter(b => b.state === 'Critical' || b.state === 'Attention')
-    .sort((a, b) => (a.state === 'Critical' && b.state !== 'Critical' ? -1 : 1))
-    .slice(0, 4)
+  const SEVERITY: Record<string, number> = { Critical: 0, Attention: 1, Watch: 2 }
+  const attentionMarkers = snapshotBiomarkers
+    .filter(b => b.state === 'Critical' || b.state === 'Attention' || b.state === 'Watch')
+    .sort((a, b) => (SEVERITY[a.state ?? ''] ?? 9) - (SEVERITY[b.state ?? ''] ?? 9))
+  const filteredBiomarkers = activeFilter
+    ? snapshotBiomarkers.filter(b => b.state === activeFilter)
+    : snapshotBiomarkers
 
   // Whether the active upload flow is in progress
   const inUploadFlow = uploading || !!staged || confirmed
@@ -1100,7 +1117,7 @@ export default function LabsUploadPage() {
                   <div style={{ width: '1px', height: '32px', backgroundColor: colors.cardBorder, flexShrink: 0 }} />
                   <div>
                     <span style={{ fontSize: '11px', color: colors.textMuted, display: 'block', marginBottom: '2px' }}>Biomarkers</span>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{recentBiomarkers.length}</span>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{snapshotBiomarkers.length}</span>
                   </div>
                   <div style={{ width: '1px', height: '32px', backgroundColor: colors.cardBorder, flexShrink: 0 }} />
                   <div>
@@ -1109,7 +1126,7 @@ export default function LabsUploadPage() {
                   </div>
                 </div>
 
-                {/* State summary bar */}
+                {/* Status filter chips — tap to filter, tap again to clear */}
                 <div style={{
                   display: 'flex',
                   gap: '8px',
@@ -1117,189 +1134,254 @@ export default function LabsUploadPage() {
                   marginBottom: '16px',
                 }}>
                   {totalStateCounts.Optimal > 0 && (
-                    <span style={{
-                      padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
-                      backgroundColor: colors.optimal, border: `1px solid ${colors.optimalBorder}`, color: '#2DD4BF',
-                      display: 'flex', alignItems: 'center', gap: '5px',
-                    }}>
+                    <button
+                      onClick={() => setActiveFilter(prev => prev === 'Optimal' ? null : 'Optimal')}
+                      style={{
+                        padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+                        backgroundColor: activeFilter === 'Optimal' ? 'rgba(45,212,191,0.22)' : colors.optimal,
+                        border: `1px solid ${activeFilter === 'Optimal' ? 'rgba(45,212,191,0.75)' : colors.optimalBorder}`,
+                        color: '#2DD4BF',
+                        display: 'flex', alignItems: 'center', gap: '5px',
+                        cursor: 'pointer', fontFamily: fonts.ui,
+                        boxShadow: activeFilter === 'Optimal' ? '0 0 8px rgba(45,212,191,0.28)' : 'none',
+                        outline: 'none',
+                      }}
+                    >
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />
                       {totalStateCounts.Optimal} Optimal
-                    </span>
+                    </button>
                   )}
                   {totalStateCounts.Watch > 0 && (
-                    <span style={{
-                      padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
-                      backgroundColor: colors.watch, border: `1px solid ${colors.watchBorder}`, color: '#FCD34D',
-                      display: 'flex', alignItems: 'center', gap: '5px',
-                    }}>
+                    <button
+                      onClick={() => setActiveFilter(prev => prev === 'Watch' ? null : 'Watch')}
+                      style={{
+                        padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+                        backgroundColor: activeFilter === 'Watch' ? 'rgba(250,204,21,0.18)' : colors.watch,
+                        border: `1px solid ${activeFilter === 'Watch' ? 'rgba(250,204,21,0.75)' : colors.watchBorder}`,
+                        color: '#FCD34D',
+                        display: 'flex', alignItems: 'center', gap: '5px',
+                        cursor: 'pointer', fontFamily: fonts.ui,
+                        boxShadow: activeFilter === 'Watch' ? '0 0 8px rgba(250,204,21,0.22)' : 'none',
+                        outline: 'none',
+                      }}
+                    >
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#FCD34D', display: 'inline-block' }} />
                       {totalStateCounts.Watch} Watch
-                    </span>
+                    </button>
                   )}
                   {totalStateCounts.Attention > 0 && (
-                    <span style={{
-                      padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
-                      backgroundColor: colors.attention, border: `1px solid ${colors.attentionBorder}`, color: '#FB923C',
-                      display: 'flex', alignItems: 'center', gap: '5px',
-                    }}>
+                    <button
+                      onClick={() => setActiveFilter(prev => prev === 'Attention' ? null : 'Attention')}
+                      style={{
+                        padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+                        backgroundColor: activeFilter === 'Attention' ? 'rgba(251,146,60,0.18)' : colors.attention,
+                        border: `1px solid ${activeFilter === 'Attention' ? 'rgba(251,146,60,0.75)' : colors.attentionBorder}`,
+                        color: '#FB923C',
+                        display: 'flex', alignItems: 'center', gap: '5px',
+                        cursor: 'pointer', fontFamily: fonts.ui,
+                        boxShadow: activeFilter === 'Attention' ? '0 0 8px rgba(251,146,60,0.22)' : 'none',
+                        outline: 'none',
+                      }}
+                    >
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />
                       {totalStateCounts.Attention} Attention
-                    </span>
+                    </button>
                   )}
                   {totalStateCounts.Critical > 0 && (
-                    <span style={{
-                      padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
-                      backgroundColor: colors.critical, border: `1px solid ${colors.criticalBorder}`, color: '#F87171',
-                      display: 'flex', alignItems: 'center', gap: '5px',
-                    }}>
+                    <button
+                      onClick={() => setActiveFilter(prev => prev === 'Critical' ? null : 'Critical')}
+                      style={{
+                        padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+                        backgroundColor: activeFilter === 'Critical' ? 'rgba(248,113,113,0.18)' : colors.critical,
+                        border: `1px solid ${activeFilter === 'Critical' ? 'rgba(248,113,113,0.75)' : colors.criticalBorder}`,
+                        color: '#F87171',
+                        display: 'flex', alignItems: 'center', gap: '5px',
+                        cursor: 'pointer', fontFamily: fonts.ui,
+                        boxShadow: activeFilter === 'Critical' ? '0 0 8px rgba(248,113,113,0.22)' : 'none',
+                        outline: 'none',
+                      }}
+                    >
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#F87171', display: 'inline-block' }} />
                       {totalStateCounts.Critical} Critical
-                    </span>
+                    </button>
                   )}
                 </div>
 
-                {/* Top attention markers */}
-                {topAttentionMarkers.length > 0 && (
-                  <div style={{ marginBottom: '16px' }}>
+                {/* Filtered view OR default (Needs Attention + Panel summary) */}
+                {activeFilter ? (
+
+                  /* ── Status-filtered list ── */
+                  <div style={{ marginBottom: '8px' }}>
                     <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
-                      Needs attention
+                      {activeFilter} Biomarkers
                     </p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {topAttentionMarkers.map(b => {
-                        const s = getStateStyles(b.state ?? '')
-                        const showBar = isUsableRange(b.reference_range_min, b.reference_range_max)
-                        return (
-                          <div key={b.id} style={{
-                            padding: '12px 14px',
-                            backgroundColor: 'rgba(232,248,245,0.055)',
-                            border: `1px solid ${s.dot}30`,
-                            borderRadius: '10px',
-                            cursor: 'pointer',
-                          }} onClick={() => setSelectedBiomarker(b)}>
-                            {/* Name + badge */}
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              gap: '8px',
-                              marginBottom: '8px',
-                            }}>
-                              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0 }}>
-                                {markerDisplayName(b.marker_name)}
-                              </span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                                <span style={{
-                                  padding: '2px 8px', borderRadius: '5px', fontSize: '10px', fontWeight: 700,
-                                  backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot,
-                                  letterSpacing: '0.04em',
-                                }}>
-                                  {s.label}
+                    {filteredBiomarkers.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {filteredBiomarkers.map(b => {
+                          const s = getStateStyles(b.state ?? '')
+                          const showBar = isUsableRange(b.reference_range_min, b.reference_range_max)
+                          return (
+                            <div key={b.id} style={{
+                              padding: '12px 14px',
+                              backgroundColor: 'rgba(232,248,245,0.055)',
+                              border: `1px solid ${s.dot}30`,
+                              borderRadius: '10px',
+                              cursor: 'pointer',
+                            }} onClick={() => setSelectedBiomarker(b)}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0 }}>
+                                  {markerDisplayName(b.marker_name)}
                                 </span>
-                                <span style={{ fontSize: '14px', color: colors.textMuted, opacity: 0.45, lineHeight: 1 }}>›</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                  <span style={{ padding: '2px 8px', borderRadius: '5px', fontSize: '10px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot, letterSpacing: '0.04em' }}>
+                                    {s.label}
+                                  </span>
+                                  <span style={{ fontSize: '14px', color: colors.textMuted, opacity: 0.45, lineHeight: 1 }}>›</span>
+                                </div>
                               </div>
+                              <div style={{ marginBottom: showBar ? '4px' : '0' }}>
+                                <span style={{ fontSize: '22px', fontWeight: 800, color: colors.text, lineHeight: '1' }}>{b.value}</span>
+                                {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
+                              </div>
+                              {showBar ? (
+                                <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} />
+                              ) : (
+                                <p style={{ fontSize: '12px', color: colors.textMuted, margin: '4px 0 0' }}>No range data available.</p>
+                              )}
                             </div>
-                            {/* Value */}
-                            <div style={{ marginBottom: showBar ? '4px' : '0' }}>
-                              <span style={{ fontSize: '22px', fontWeight: 800, color: colors.text, lineHeight: '1' }}>{b.value}</span>
-                              {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <div style={{ padding: '20px 16px', textAlign: 'center', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '10px' }}>
+                        <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>
+                          No biomarkers in this status for your recent snapshot.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                ) : (
+                  <>
+                    {/* ── Needs Attention (Critical → Attention → Watch) ── */}
+                    {attentionMarkers.length > 0 && (
+                      <div style={{ marginBottom: '16px' }}>
+                        <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+                          Needs attention
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {attentionMarkers.map(b => {
+                            const s = getStateStyles(b.state ?? '')
+                            const showBar = isUsableRange(b.reference_range_min, b.reference_range_max)
+                            return (
+                              <div key={b.id} style={{
+                                padding: '12px 14px',
+                                backgroundColor: 'rgba(232,248,245,0.055)',
+                                border: `1px solid ${s.dot}30`,
+                                borderRadius: '10px',
+                                cursor: 'pointer',
+                              }} onClick={() => setSelectedBiomarker(b)}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+                                  <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0 }}>
+                                    {markerDisplayName(b.marker_name)}
+                                  </span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                    <span style={{ padding: '2px 8px', borderRadius: '5px', fontSize: '10px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot, letterSpacing: '0.04em' }}>
+                                      {s.label}
+                                    </span>
+                                    <span style={{ fontSize: '14px', color: colors.textMuted, opacity: 0.45, lineHeight: 1 }}>›</span>
+                                  </div>
+                                </div>
+                                <div style={{ marginBottom: showBar ? '4px' : '0' }}>
+                                  <span style={{ fontSize: '22px', fontWeight: 800, color: colors.text, lineHeight: '1' }}>{b.value}</span>
+                                  {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
+                                </div>
+                                {showBar && (
+                                  <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} />
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ── Panel summary cards ── */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {panelSummaries.map(ps => {
+                        const sc = ps.stateCounts
+                        return (
+                          <div key={ps.panel} style={{
+                            padding: '12px 16px',
+                            backgroundColor: colors.cardBg,
+                            border: `1px solid ${colors.cardBorder}`,
+                            borderRadius: '12px',
+                            backdropFilter: 'blur(24px)',
+                            WebkitBackdropFilter: 'blur(24px)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            flexWrap: 'wrap',
+                          }}>
+                            <div style={{ flex: 1, minWidth: '160px' }}>
+                              <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 700, color: colors.text }}>{ps.panel}</span>
+                                <span style={{ fontSize: '11px', color: colors.textMuted }}>
+                                  {ps.count} {ps.count === 1 ? 'marker' : 'markers'}
+                                </span>
+                              </div>
+                              <span style={{ fontSize: '11px', color: colors.textMuted, lineHeight: 1.45, display: 'block', marginTop: '3px' }}>
+                                {PANEL_EDUCATION[ps.panel] ?? 'This panel adds context to your saved lab profile.'}
+                              </span>
                             </div>
-                            {/* Range bar */}
-                            {showBar && (
-                              <BiomarkerRangeBar
-                                value={b.value}
-                                refMin={b.reference_range_min!}
-                                refMax={b.reference_range_max!}
-                                state={b.state}
-                              />
-                            )}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              {sc.Optimal > 0 && (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#2DD4BF' }}>
+                                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />{sc.Optimal}
+                                </span>
+                              )}
+                              {sc.Watch > 0 && (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FACC15' }}>
+                                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FACC15', display: 'inline-block' }} />{sc.Watch}
+                                </span>
+                              )}
+                              {sc.Attention > 0 && (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FB923C' }}>
+                                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />{sc.Attention}
+                                </span>
+                              )}
+                              {sc.Critical > 0 && (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#F87171' }}>
+                                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#F87171', display: 'inline-block' }} />{sc.Critical}
+                                </span>
+                              )}
+                            </div>
+                            <span style={{ fontSize: '11px', color: colors.textMuted, flexShrink: 0 }}>
+                              {ps.latestDateLabel}
+                            </span>
+                            <button
+                              onClick={() => router.push('/labs/history')}
+                              style={{
+                                padding: '4px 10px',
+                                backgroundColor: 'transparent',
+                                border: `1px solid ${colors.cardBorder}`,
+                                borderRadius: '6px',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                color: colors.textSoft,
+                                fontFamily: fonts.ui,
+                                cursor: 'pointer',
+                                flexShrink: 0,
+                              }}
+                            >
+                              History →
+                            </button>
                           </div>
                         )
                       })}
                     </div>
-                  </div>
+                  </>
                 )}
-
-                {/* Panel cards */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {panelSummaries.map(ps => {
-                    const sc = ps.stateCounts
-                    return (
-                      <div key={ps.panel} style={{
-                        padding: '12px 16px',
-                        backgroundColor: colors.cardBg,
-                        border: `1px solid ${colors.cardBorder}`,
-                        borderRadius: '12px',
-                        backdropFilter: 'blur(24px)',
-                        WebkitBackdropFilter: 'blur(24px)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        flexWrap: 'wrap',
-                      }}>
-                        {/* Panel name + count + education */}
-                        <div style={{ flex: 1, minWidth: '160px' }}>
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 700, color: colors.text }}>{ps.panel}</span>
-                            <span style={{ fontSize: '11px', color: colors.textMuted }}>
-                              {ps.count} {ps.count === 1 ? 'marker' : 'markers'}
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '11px', color: colors.textMuted, lineHeight: 1.45, display: 'block', marginTop: '3px' }}>
-                            {PANEL_EDUCATION[ps.panel] ?? 'This panel adds context to your saved lab profile.'}
-                          </span>
-                        </div>
-
-                        {/* State dots */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          {sc.Optimal > 0 && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#2DD4BF' }}>
-                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />{sc.Optimal}
-                            </span>
-                          )}
-                          {sc.Watch > 0 && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FACC15' }}>
-                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FACC15', display: 'inline-block' }} />{sc.Watch}
-                            </span>
-                          )}
-                          {sc.Attention > 0 && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FB923C' }}>
-                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />{sc.Attention}
-                            </span>
-                          )}
-                          {sc.Critical > 0 && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#F87171' }}>
-                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#F87171', display: 'inline-block' }} />{sc.Critical}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Latest date */}
-                        <span style={{ fontSize: '11px', color: colors.textMuted, flexShrink: 0 }}>
-                          {ps.latestDateLabel}
-                        </span>
-
-                        {/* View History link */}
-                        <button
-                          onClick={() => router.push('/labs/history')}
-                          style={{
-                            padding: '4px 10px',
-                            backgroundColor: 'transparent',
-                            border: `1px solid ${colors.cardBorder}`,
-                            borderRadius: '6px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            color: colors.textSoft,
-                            fontFamily: fonts.ui,
-                            cursor: 'pointer',
-                            flexShrink: 0,
-                          }}
-                        >
-                          History →
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
               </motion.div>
             )}
 
