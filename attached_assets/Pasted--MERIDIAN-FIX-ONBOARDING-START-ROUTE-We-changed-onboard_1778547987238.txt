@@ -1,0 +1,88 @@
+# MERIDIAN — FIX ONBOARDING START ROUTE
+
+We changed onboarding order to:
+
+Step 1: /onboarding/identity
+Step 2: /onboarding/profile
+Step 3: /onboarding/goals
+
+Current issue:
+Clicking “Get started” still routes to the old Step 1 route, likely /onboarding/profile.
+
+This is wrong.
+
+Goal:
+The “Get started” button should send new users to:
+
+/onboarding/identity
+
+Then the flow should continue:
+identity → profile → goals → dashboard
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Do NOT restructure the repo.
+Do NOT touch artifacts.
+Do NOT publish to Replit.
+
+TASK:
+Find the route used by the “Get started” button on the welcome/signup/login screen and change it from the old onboarding start route to:
+
+/onboarding/identity
+
+Likely file:
+.migration-backup/src/app/onboarding/welcome/page.tsx
+
+If the route is controlled elsewhere inside onboarding, inspect and modify only the necessary onboarding file.
+
+Modify ONLY files inside:
+
+.migration-backup/src/app/onboarding/
+
+Do not touch:
+- dashboard
+- labs
+- history
+- profile page outside onboarding
+- OCR routes
+- confirm route
+- canonical dictionary
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- artifacts/
+- dependencies
+
+Requirements:
+1. “Get started” must route to /onboarding/identity.
+2. Login/signup success for a new or incomplete onboarding user should route to /onboarding/identity if that logic is inside onboarding/welcome.
+3. Do not change visual design.
+4. Do not change Supabase auth logic except the redirect path.
+5. Do not break existing login/signup.
+6. Preserve the new onboarding order:
+   /onboarding/identity
+   → /onboarding/profile
+   → /onboarding/goals
+   → /dashboard
+
+After editing:
+1. Report exact file changed.
+2. Confirm no files outside .migration-backup/src/app/onboarding/ changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /onboarding/welcome
+5. Confirm:
+   - clicking Get started routes to /onboarding/identity
+   - Step 1 is Personal Context / Identity
+   - Step 2 is Biological Profile
+   - Step 3 is Meridian Mode
+   - build passes
+6. Do not commit.
+7. Do not push.
+8. Do not publish.
