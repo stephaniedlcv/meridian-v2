@@ -382,7 +382,7 @@ const BIOMARKER_CONTEXT: Record<string, BiomarkerIntel> = {
     why: 'RDW measures variation in red blood cell size, which can provide context on iron status and cell production patterns.',
     context: 'Meridian evaluates RDW alongside CBC markers, ferritin, and B12 for nutrient and cell context.',
   },
-  platelet_count: {
+  platelets: {
     why: 'Platelets are involved in clotting and vascular repair. Meridian tracks counts as part of the blood cell profile.',
     context: 'Meridian evaluates platelet count alongside other CBC and inflammatory markers for context.',
   },
@@ -912,7 +912,7 @@ export default function LabsUploadPage() {
         setStaged(data.staged_biomarkers)
         setUnmatched(data.unmatched || [])
         setStats({ extracted: data.total_extracted, matched: data.total_matched, errors: data.total_errors })
-        setLabDate(data.lab_date || new Date().toISOString().split('T')[0])
+        setLabDate(data.lab_date || '')
         setUploading(false)
       }
       reader.readAsDataURL(file)

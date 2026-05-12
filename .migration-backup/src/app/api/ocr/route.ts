@@ -54,7 +54,7 @@ For each biomarker found, return:
 - name: the biomarker name exactly as written in the report
 - value: the numeric value (number only, no text)
 - unit: the unit of measurement exactly as written
-- reference_range: the reference range string if shown (e.g. "0.4-4.0")
+- reference_range: the reference range string if shown — include dash-style ranges (e.g. "0.4-4.0"), qualitative ranges (e.g. "< 2.0", "> 60", "<= 100"), or any other format exactly as written
 
 IMPORTANT: If a biomarker appears multiple times (e.g. from different sections), only include it ONCE — use the most specific or primary result.
 
@@ -71,9 +71,20 @@ Example output:
 
 function parseReferenceRange(rangeStr: string | undefined): { min: number | null; max: number | null } {
   if (!rangeStr) return { min: null, max: null }
+  // Numeric dash range: "0.4-4.0", "0.4–4.0", "0.4—4.0"
   const dashMatch = rangeStr.match(/([\d.]+)\s*[-–—]\s*([\d.]+)/)
   if (dashMatch) {
     return { min: parseFloat(dashMatch[1]), max: parseFloat(dashMatch[2]) }
+  }
+  // Qualitative upper bound: "< 2.5", "<= 2.5", "=< 2.5"
+  const ltMatch = rangeStr.match(/^[<＜]=?\s*([\d.]+)/)
+  if (ltMatch) {
+    return { min: null, max: parseFloat(ltMatch[1]) }
+  }
+  // Qualitative lower bound: "> 60", ">= 60", "=> 60"
+  const gtMatch = rangeStr.match(/^[>＞]=?\s*([\d.]+)/)
+  if (gtMatch) {
+    return { min: parseFloat(gtMatch[1]), max: null }
   }
   return { min: null, max: null }
 }

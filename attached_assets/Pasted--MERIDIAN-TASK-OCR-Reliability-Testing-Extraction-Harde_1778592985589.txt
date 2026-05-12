@@ -1,0 +1,203 @@
+# MERIDIAN — TASK: OCR Reliability Testing + Extraction Hardening (Phase 1)
+
+You are working on Meridian — a Health Intelligence System.
+
+Stack:
+- Next.js 14 App Router
+- TypeScript
+- Supabase
+- Vercel
+- Inline styles only
+
+IMPORTANT:
+- The real app lives inside `.migration-backup/`
+- Do NOT move files
+- Do NOT restructure repo
+- Do NOT redesign UI
+- Do NOT add dependencies
+- Do NOT touch artifacts/
+- Do NOT implement new product features
+- This is a QA + reliability hardening task
+
+GOAL:
+Stress-test Meridian’s lab upload/OCR pipeline and harden extraction reliability for Phase 1.
+
+Meridian already has:
+- OCR extraction
+- upload review
+- canonical dictionary
+- alias mapping
+- pending classification queue
+- source panel grouping
+- safety engine
+- history/snapshot deduplication
+
+Now validate and harden the pipeline against real-world lab edge cases.
+
+TASKS:
+
+1. Inspect current OCR extraction flow
+
+Review:
+- `/labs/upload`
+- OCR API route
+- confirm/save route
+- canonical dictionary
+- pending classification route
+- panel grouping logic
+- date extraction handling
+- unit parsing logic
+- reference range parsing logic
+
+Do not modify anything until you understand the current flow.
+
+2. Create an OCR reliability checklist
+
+Evaluate whether the current implementation handles:
+
+Marker recognition:
+- capitalization differences
+- punctuation differences
+- vendor prefixes
+- abbreviated markers
+- long-form marker names
+- aliases
+- bilingual/Spanish marker names if present
+
+Unit parsing:
+- mg/dL
+- g/dL
+- mmol/L
+- mEq/L
+- K/uL
+- K/µL
+- x10^3/uL
+- ng/mL
+- pg/mL
+- %
+- missing units
+- suspicious units
+
+Reference range parsing:
+- numeric ranges
+- ranges with spaces
+- ranges with symbols like <, >, <=, >=
+- missing ranges
+- non-numeric qualitative ranges
+- inverted or malformed ranges
+
+Date extraction:
+- collected date
+- report date
+- ordered date
+- received date
+- date of birth confusion
+- multiple dates on same PDF
+- future dates
+- old labs
+
+Multi-PDF same-day encounter behavior:
+- CBC + CMP + Lipid + Thyroid uploaded separately
+- same collection date
+- same user
+- no incorrect grouping
+- no destructive deduplication
+
+Pending classification behavior:
+- unknown markers do not enter validated biomarker tables
+- unknown markers are saved separately
+- ignored markers stay out of validated data
+- pending records do not affect counts, dashboard, history, or snapshot
+
+Safety engine behavior:
+- critical glucose
+- critical potassium
+- critical sodium
+- critical hemoglobin
+- critical creatinine
+- critical platelets
+- no diagnosis/treatment language
+
+3. Harden only obvious extraction weaknesses
+
+If you find small, safe fixes, implement them.
+
+Allowed fixes:
+- alias additions
+- safer normalization
+- panel mapping corrections
+- date selection precedence fixes
+- unit parsing cleanup
+- range parsing cleanup
+- pending classification routing fixes
+- obvious typo/slug fixes
+
+Do NOT implement:
+- new AI architecture
+- admin console
+- new database schema unless absolutely necessary
+- full medical ontology
+- new UI redesign
+- auto-generated optimal ranges
+- automatic canonical dictionary mutation
+
+4. Date extraction priority
+
+Collection date should be preferred over report date, ordered date, received date, or date of birth.
+
+If collection date is missing or uncertain:
+- allow manual correction in review
+- do not silently use DOB
+- do not silently use upload date if avoidable
+- do not create future-dated labs without validation
+
+5. Unit safety
+
+Do not perform unsafe conversions.
+
+Safe handling:
+- preserve raw unit if uncertain
+- normalize only mathematically identical units already supported
+- do not convert between different measurement systems unless explicitly safe and already supported
+
+6. Pending classification protection
+
+If a marker cannot be confidently mapped:
+- route to pending classification
+- do not save to validated biomarker table
+- do not affect snapshot/history/dashboard/counts
+
+7. Produce QA findings
+
+At the end, provide a structured QA summary:
+
+- What was inspected
+- What was already working
+- What was fixed
+- What still needs manual testing
+- What remains out of scope for Phase 1
+- Any recommended future tasks
+
+ACCEPTANCE CRITERIA:
+
+1. OCR flow inspected end-to-end.
+2. Common extraction weak points identified.
+3. Safe hardening fixes applied where appropriate.
+4. No validated data contamination from unknown markers.
+5. Date extraction does not confuse DOB/report date with collection date.
+6. Unit handling remains conservative.
+7. Safety engine behavior remains non-diagnostic.
+8. Build passes.
+9. No files outside `.migration-backup/` are modified.
+
+RETURN FORMAT:
+
+Return:
+1. Files inspected
+2. Files changed
+3. OCR/date/unit/range fixes implemented
+4. Alias or panel mapping updates
+5. Pending classification behavior verified
+6. Safety engine behavior verified
+7. Remaining manual QA checklist
+8. Confirmation no files outside `.migration-backup/` were modified
