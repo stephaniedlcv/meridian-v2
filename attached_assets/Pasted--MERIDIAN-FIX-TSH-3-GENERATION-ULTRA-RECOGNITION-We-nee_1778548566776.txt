@@ -1,0 +1,123 @@
+# MERIDIAN — FIX TSH 3 GENERATION ULTRA RECOGNITION
+
+We need to fix one confirmed biomarker recognition gap.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Do NOT restructure the repo.
+Do NOT touch artifacts.
+Do NOT publish to Replit.
+
+Current issue:
+The lab parser leaves this under “Not recognized (not saved)”:
+
+TSH-3 GENERATION ULTRA: 4.41 mIU/mL
+
+Goal:
+Recognize this as the existing TSH biomarker.
+
+Do NOT create a new marker.
+Do NOT create a separate “TSH 3 Generation Ultra” biomarker.
+This should map to the existing marker_slug:
+
+tsh
+
+Likely file:
+.migration-backup/src/lib/canonical-dictionary.ts
+
+Modify ONLY if needed:
+
+.migration-backup/src/lib/canonical-dictionary.ts
+
+Do not touch:
+- dashboard
+- labs UI
+- history
+- profile
+- onboarding
+- OCR routes unless absolutely necessary after diagnosis
+- confirm route
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- artifacts/
+- dependencies
+
+TASK:
+Add aliases to the existing TSH dictionary entry so these variants map to marker_slug "tsh":
+
+- TSH-3 GENERATION ULTRA
+- TSH 3 GENERATION ULTRA
+- TSH 3RD GENERATION ULTRA
+- TSH-3RD GENERATION ULTRA
+- TSH THIRD GENERATION ULTRA
+- TSH ULTRA
+- TSH 3 GEN ULTRA
+- TSH-3 GEN ULTRA
+
+Also ensure these normalized forms match:
+- tsh 3 generation ultra
+- tsh 3rd generation ultra
+- tsh third generation ultra
+- tsh ultra
+- tsh 3 gen ultra
+
+Unit handling:
+The incoming unit is:
+
+mIU/mL
+
+Current canonical TSH unit may be:
+mIU/L
+
+Important:
+mIU/mL is NOT the same as mIU/L numerically.
+1 mIU/mL = 1000 mIU/L.
+
+However many labs report TSH as:
+uIU/mL
+µIU/mL
+mIU/L
+
+These are numerically equivalent:
+1 uIU/mL = 1 mIU/L
+1 µIU/mL = 1 mIU/L
+
+So do NOT blindly convert mIU/mL to mIU/L unless the existing app already treats this lab’s unit format as a known OCR/unit artifact.
+
+First inspect existing UNIT_CONVERSIONS for tsh.
+
+If mIU/mL is not already handled:
+- Do not add a risky numeric conversion without reporting.
+- Prefer adding recognition for the marker first.
+- Report whether unit normalization needs a separate safe fix.
+
+Required behavior:
+TSH-3 GENERATION ULTRA: 4.41 mIU/mL should be recognized as:
+marker_slug: tsh
+canonical_name: TSH
+
+If unit normalization is safe under the existing conversion conventions, normalize consistently.
+If not safe, leave unit as reported and clearly report the unit concern.
+
+After editing:
+1. Report exact file changed.
+2. Confirm no other files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test matching for:
+   - TSH-3 GENERATION ULTRA
+   - TSH 3 GENERATION ULTRA
+   - TSH 3RD GENERATION ULTRA
+   - TSH ULTRA
+5. Confirm all map to marker_slug "tsh".
+6. Confirm no duplicate TSH marker was created.
+7. Confirm build passes.
+8. Do not commit.
+9. Do not push.
+10. Do not publish to Replit.

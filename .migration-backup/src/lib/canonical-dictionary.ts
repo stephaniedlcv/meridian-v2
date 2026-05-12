@@ -31,6 +31,12 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
       'thyroid stimulating hormone', 'hormona tiroestimulante', 'tirotropina',
       // 3rd-generation assay variants — parens and commas stripped by normalizer
       'tsh 3rd gen', 'tsh 3rd generation',
+      // "Ultra" / "3 Generation Ultra" variants (e.g. "TSH-3 GENERATION ULTRA")
+      'tsh ultra',
+      'tsh 3 gen ultra', 'tsh-3 gen ultra',
+      'tsh 3 generation ultra', 'tsh-3 generation ultra',
+      'tsh 3rd generation ultra', 'tsh-3rd generation ultra',
+      'tsh third generation ultra',
     ],
     system: 'thyroid',
     riskProfile: 'u-shaped',
@@ -1088,11 +1094,13 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
 
 // Unit conversions
 export const UNIT_CONVERSIONS: Record<string, { from: string; to: string; multiply: number }[]> = {
-  // TSH unit variants — mIU/L, µIU/mL, uIU/mL, mcIU/mL are all numerically identical
+  // TSH unit variants — mIU/L, µIU/mL, uIU/mL, mcIU/mL, mIU/mL are all numerically identical
+  // in standard TSH lab reporting (physiological range ~0.4–4.0; mIU/mL used as mIU/L by labs)
   tsh: [
-    { from: 'uiu/ml', to: 'mIU/L', multiply: 1 },
-    { from: 'µiu/ml', to: 'mIU/L', multiply: 1 },
+    { from: 'uiu/ml',  to: 'mIU/L', multiply: 1 },
+    { from: 'µiu/ml',  to: 'mIU/L', multiply: 1 },
     { from: 'mciu/ml', to: 'mIU/L', multiply: 1 },
+    { from: 'miu/ml',  to: 'mIU/L', multiply: 1 },
   ],
   crp_hs: [{ from: 'mg/dL', to: 'mg/L', multiply: 10 }],
   glucose_fasting: [{ from: 'mmol/L', to: 'mg/dL', multiply: 18.018 }],
