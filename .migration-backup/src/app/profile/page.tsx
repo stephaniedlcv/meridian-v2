@@ -191,10 +191,10 @@ export default function ProfilePage() {
   type MatrixStatus = 'active' | 'pending' | 'soon'
   const matrixRows: { label: string; description: string; status: MatrixStatus }[] = [
     { label: 'Biological profile', description: 'Used to personalize lab reference ranges.', status: profile.biological_profile ? 'active' : 'pending' },
-    { label: 'Age context',        description: 'Used for age-adjusted insight priority.',   status: profile.birth_date ? 'active' : 'pending' },
+    { label: 'Age context',        description: 'Used for age-adjusted biological context.',  status: profile.birth_date ? 'active' : 'pending' },
     { label: 'Lab history',        description: 'Used to refine trend interpretation.',       status: hasLabs ? 'active' : 'pending' },
     { label: 'Wearable signals',   description: 'Used to improve biological context.',        status: 'soon' },
-    { label: 'Medication context', description: 'Used to flag potential interactions.',       status: profile.medications && profile.medications.length > 0 ? 'active' : 'pending' },
+    { label: 'Medication context', description: profile.medications && profile.medications.length > 0 ? 'Used to flag potential interactions.' : 'Add medications to help Meridian interpret labs more safely.', status: profile.medications && profile.medications.length > 0 ? 'active' : 'pending' },
     { label: 'Feedback loop',      description: 'Used to improve insight accuracy over time.',status: 'soon' },
   ]
 
@@ -269,7 +269,7 @@ export default function ProfilePage() {
                     color: 'transparent', WebkitTextFillColor: 'transparent',
                     filter: 'drop-shadow(0 0 10px rgba(45,212,191,0.45))', userSelect: 'none',
                   }}>
-                    {displayName !== 'Your Profile' ? displayName[0].toUpperCase() : 'M'}
+                    {displayName !== 'Not set yet' ? displayName[0].toUpperCase() : 'M'}
                   </span>
                 )}
               </div>

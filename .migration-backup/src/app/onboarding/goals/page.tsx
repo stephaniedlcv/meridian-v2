@@ -67,8 +67,7 @@ export default function GoalsPage() {
     setError('')
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ user_profile: selectedGoal, onboarding_completed: true })
-      .eq('id', userId)
+      .upsert({ id: userId, user_profile: selectedGoal, onboarding_completed: true }, { onConflict: 'id' })
     if (updateError) { setError(updateError.message); setLoading(false); return }
     router.push('/')
   }
