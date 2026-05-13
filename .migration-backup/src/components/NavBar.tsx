@@ -71,21 +71,22 @@ function NavIcon({ id, isActive }: { id: string; isActive: boolean }) {
   }
 
   if (id === 'protocol') {
-    // Route Path P Mark — vertical stem + P-bowl arc + two circular route nodes.
-    // Bowl occupies top half (y 3.5→10); lower half is plain stem — reads as P, not S.
-    // Left branch at mid-stem connects to an off-axis route node.
+    // Clinical protocol card — portrait rounded-rect with a header row,
+    // one data row with a filled node (marking an active protocol step),
+    // and a shorter secondary row. Reads as structured/clinical at 20px.
+    // strokeWidth 1.5 is one step heavier than the route-path attempt,
+    // giving each element enough weight to survive at small render size.
     return (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-        {/* Vertical stem */}
-        <line x1="8" y1="3.5" x2="8" y2="16.5" />
-        {/* P bowl — arc from top of stem, curves right, returns to mid-stem */}
-        <path d="M 8,3.5 C 14,3.5 14,10 8,10" />
-        {/* Short horizontal branch to the left-side route node */}
-        <line x1="8" y1="10.5" x2="5.5" y2="10.5" />
-        {/* Lower route node — anchors bottom of vertical path */}
-        <circle cx="8" cy="16.5" r="1.4" fill={stroke} stroke="none" />
-        {/* Left route node — off-axis, connected through the stem branch */}
-        <circle cx="5.5" cy="10.5" r="1.4" fill={stroke} stroke="none" />
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        {/* Card outline */}
+        <rect x="3.5" y="2" width="13" height="16" rx="2" />
+        {/* Header row — full width, reads as a title/label */}
+        <line x1="6.5" y1="7" x2="13.5" y2="7" />
+        {/* Primary data row — leading node + line (active protocol marker) */}
+        <circle cx="6.5" cy="11" r="1.1" fill={stroke} stroke="none" />
+        <line x1="8.5" y1="11" x2="13.5" y2="11" />
+        {/* Secondary data row — shorter, no node (restrained hierarchy) */}
+        <line x1="6.5" y1="14.5" x2="11.5" y2="14.5" />
       </svg>
     )
   }
