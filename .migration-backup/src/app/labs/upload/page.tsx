@@ -798,7 +798,7 @@ function BiomarkerDetailSheet({
       <div
         onClick={onClose}
         style={{
-          position: 'fixed', inset: 0, zIndex: 100,
+          position: 'fixed', inset: 0, zIndex: 200,
           backgroundColor: 'rgba(6,19,22,0.78)',
           backdropFilter: 'blur(6px)',
           WebkitBackdropFilter: 'blur(6px)',
@@ -806,7 +806,7 @@ function BiomarkerDetailSheet({
       />
       {/* Bottom sheet */}
       <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 101,
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 201,
         maxHeight: '88vh', overflowY: 'auto',
         backgroundColor: '#081A1E',
         border: `1px solid ${dotColor}40`,
@@ -1010,8 +1010,8 @@ function HistoryDetailSheet({
 
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 100, backgroundColor: 'rgba(6,19,22,0.78)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} />
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 101, maxHeight: '88vh', overflowY: 'auto', backgroundColor: '#081A1E', border: `1px solid ${dotColor}40`, borderBottom: 'none', borderRadius: '20px 20px 0 0', fontFamily: fonts.ui, boxShadow: '0 -6px 48px rgba(0,0,0,0.50), 0 -1px 0 rgba(103,232,249,0.06)' }}>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, backgroundColor: 'rgba(6,19,22,0.78)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} />
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 201, maxHeight: '88vh', overflowY: 'auto', backgroundColor: '#081A1E', border: `1px solid ${dotColor}40`, borderBottom: 'none', borderRadius: '20px 20px 0 0', fontFamily: fonts.ui, boxShadow: '0 -6px 48px rgba(0,0,0,0.50), 0 -1px 0 rgba(103,232,249,0.06)' }}>
         <div style={{ width: '40px', height: '4px', borderRadius: '2px', backgroundColor: 'rgba(103,232,249,0.28)', margin: '14px auto 0' }} />
         <div style={{ padding: '14px 20px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -1937,7 +1937,7 @@ export default function LabsUploadPage() {
               </span>
             </p>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <motion.button
                 onClick={() => {
                   handleReset()

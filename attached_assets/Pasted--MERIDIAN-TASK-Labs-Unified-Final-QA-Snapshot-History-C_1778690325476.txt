@@ -1,0 +1,262 @@
+# MERIDIAN — TASK: Labs Unified Final QA
+# Snapshot · History · Counts · Detail Sheets · Multi-PDF Flow
+
+You are working on Meridian — a premium Health Intelligence System.
+
+Stack:
+- Next.js 14 App Router
+- TypeScript
+- Supabase
+- Vercel
+- Inline styles only
+
+IMPORTANT:
+- Real app lives inside `.migration-backup/`
+- Do NOT move files outside `.migration-backup/`
+- Do NOT restructure repo
+- Do NOT redesign the app
+- Do NOT add dependencies
+- Do NOT touch artifacts/
+- Do NOT touch onboarding/auth
+- Do NOT touch Supabase schema
+- Do NOT touch OCR extraction logic
+- Do NOT change Safety Engine thresholds
+- Do NOT implement new features
+- This is a Phase 1 Labs QA + small bugfix pass only
+
+GOAL:
+Validate that the unified Labs experience is clean, coherent, and stable after moving History inside Labs.
+
+Labs should now function as one complete lab intelligence area:
+
+- Snapshot = current/latest lab state
+- History = full confirmed archive
+- Upload flow = fast multi-PDF ingestion
+- Detail sheets = consistent biomarker context
+
+────────────────────
+TASK 1 — INSPECT UNIFIED LABS STRUCTURE
+────────────────────
+
+Inspect:
+
+- `.migration-backup/src/app/labs/upload/page.tsx`
+- `.migration-backup/src/app/labs/history/page.tsx`
+- `.migration-backup/src/components/NavBar.tsx`
+- any related dashboard CTA that routes to Labs History
+
+Confirm:
+
+1. Bottom nav is:
+   - Home
+   - Labs
+   - Protocol
+   - Profile
+
+2. History is not a bottom nav item.
+
+3. `/labs/upload` defaults to Snapshot.
+
+4. `/labs/upload?view=history` opens History.
+
+5. `/labs/history` redirects safely to `/labs/upload?view=history`.
+
+Do not refactor routes unless a bug is found.
+
+────────────────────
+TASK 2 — SNAPSHOT QA
+────────────────────
+
+Validate Snapshot behavior:
+
+- shows latest unique biomarkers only
+- dedupes by `marker_slug` if available
+- falls back to normalized marker name if needed
+- uses most recent collected_at per marker
+- counts match visible biomarkers
+- panel counts match visible snapshot panels
+- Optimal / Watch / Attention / Critical counts match visible data
+- filters work
+- tapping active filter clears it
+- filtered results remain grouped properly
+- Needs Attention avoids duplicates
+- Needs Attention sorts:
+  1. Critical
+  2. Attention
+  3. Watch
+
+Fix only small obvious bugs.
+
+────────────────────
+TASK 3 — HISTORY QA
+────────────────────
+
+Validate History behavior inside Labs:
+
+- grouped by year → month → date → panel
+- expands/collapses correctly
+- panel marker count matches visible deduped markers
+- status dots/counts match visible markers
+- duplicate visible markers are not shown within same panel/date
+- same-day multi-panel uploads remain separate valid panels
+- History preserves archive behavior
+- History does NOT behave like Snapshot
+- delete session flow still works
+- delete errors surface calmly
+- History view does not show confusing raw total counts
+
+Fix only small obvious bugs.
+
+────────────────────
+TASK 4 — SNAPSHOT | HISTORY TOGGLE QA
+────────────────────
+
+Validate the internal toggle:
+
+- active state is clear
+- inactive state is readable
+- toggle feels Meridian-native
+- not too bulky
+- not too generic
+- works on desktop and mobile
+- does not wrap badly on iPhone SE width
+- state changes do not cause weird scroll jumps
+- direct query param `?view=history` selects History
+
+Fix only small visual/behavior issues if needed.
+
+────────────────────
+TASK 5 — MULTI-PDF UPLOAD FLOW QA
+────────────────────
+
+Validate the updated success flow:
+
+After saving a lab:
+
+- success confirmation appears
+- close X dismisses success state
+- user remains on Labs Snapshot
+- View Labs dismisses success state and shows updated Snapshot
+- Upload another PDF resets upload state
+- Upload another PDF triggers file picker if possible
+- Snapshot refresh after save remains preserved
+- user is not routed to Home as primary flow
+- uploaded data is not lost
+
+Also validate same-day multi-panel behavior:
+
+- CBC + CMP + electrolytes + vitamins can be uploaded as separate PDFs
+- low overlap same-day panel warning is not too aggressive
+- user can continue saving legitimate same-day panels
+- high-overlap duplicate upload still shows stronger warning
+
+Fix only small flow bugs.
+
+────────────────────
+TASK 6 — DETAIL SHEET QA
+────────────────────
+
+Validate biomarker detail sheets from both Snapshot and History:
+
+- open correctly
+- close correctly
+- show biomarker name/value/unit
+- show clinical range if available
+- show optimal range only if available
+- do not invent ranges
+- show polished fallback if no range is available
+- show Safety Note if Critical
+- suppress optimization language if Critical
+- show non-diagnostic Meridian context otherwise
+- do not open full-screen in a broken/heavy way on mobile
+- do not overflow behind bottom nav
+
+Fix only small visual or behavior bugs.
+
+────────────────────
+TASK 7 — COPY + EMPTY STATE QA
+────────────────────
+
+Validate Labs copy and empty states:
+
+- no labs state invites upload clearly
+- Snapshot empty state is calm
+- History empty state is clear
+- filtered empty state is clear
+- duplicate warning copy is not alarming for same-day multi-panel uploads
+- upload success copy is calm and concise
+- no fake intelligence
+- no medical diagnosis language
+
+Fix only small copy issues.
+
+────────────────────
+TASK 8 — MOBILE QA
+────────────────────
+
+Validate Labs on small mobile viewport:
+
+- iPhone SE width
+- bottom nav does not cover content
+- toggle fits
+- cards do not overflow horizontally
+- buttons remain tappable
+- upload file area is reachable
+- success confirmation buttons fit
+- History accordions are usable
+- detail sheet scrolls correctly
+
+Fix only small CSS/spacing issues.
+
+────────────────────
+TASK 9 — REPORT ONLY BIGGER ISSUES
+────────────────────
+
+If you discover a bigger architectural issue, report it clearly but do not start a broad refactor.
+
+Examples:
+- upload_session_id needed
+- source_pdf_hash needed
+- deeper duplicate architecture
+- shared component extraction
+- major route architecture changes
+
+Do not implement these in this task.
+
+────────────────────
+ACCEPTANCE CRITERIA
+────────────────────
+
+After this task:
+
+1. Labs Snapshot works correctly.
+2. Labs History works correctly inside Labs.
+3. Bottom nav no longer includes History.
+4. Snapshot | History toggle works.
+5. Counts are honest and not confusing.
+6. Detail sheets work from both views.
+7. Multi-PDF upload flow works smoothly.
+8. Same-day multi-panel uploads are not treated as hard duplicates.
+9. Mobile layout is usable.
+10. No new features are added.
+11. Build passes.
+12. No files outside `.migration-backup/` modified.
+
+────────────────────
+RETURN FORMAT
+────────────────────
+
+Return:
+
+1. Files inspected
+2. Files changed, if any
+3. Snapshot QA findings
+4. History QA findings
+5. Toggle QA findings
+6. Multi-PDF upload flow findings
+7. Detail sheet QA findings
+8. Mobile QA findings
+9. Bugs fixed
+10. Bigger issues deferred
+11. Build result
+12. Confirmation no files outside `.migration-backup/` were modified
