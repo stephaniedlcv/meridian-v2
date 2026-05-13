@@ -1,0 +1,181 @@
+# MERIDIAN — PHASE 1 SMALL CLEANUP PASS
+# Remove debug tools · Favicon · Protocol placeholder · Connect coming soon cleanup
+
+You are working on Meridian — a premium Health Intelligence System.
+
+Stack:
+- Next.js 14 App Router
+- TypeScript
+- Supabase
+- Vercel
+- Inline styles only
+
+IMPORTANT:
+- Real app lives inside `.migration-backup/`
+- Do NOT move files outside `.migration-backup/`
+- Do NOT restructure repo
+- Do NOT redesign the app
+- Do NOT add dependencies
+- Do NOT touch artifacts/
+- Do NOT touch Supabase schema
+- Do NOT touch OCR
+- Do NOT touch Labs logic
+- Do NOT touch Safety Engine
+- Do NOT touch onboarding logic except Connect page visual/copy cleanup if needed
+- Do NOT touch `/api/insight` in this task
+- This is only a small cleanup pass
+
+GOAL:
+Close small Phase 1 cleanup items so the app has fewer visible/debug issues before deeper QA.
+
+────────────────────
+TASK 1 — REMOVE PROFILE DEBUG LOGS
+────────────────────
+
+Remove temporary diagnostic console logs from:
+
+`.migration-backup/src/app/profile/page.tsx`
+
+Remove logs such as:
+- `[Meridian/profile] SUPABASE_URL`
+- `[Meridian/profile] user.id`
+- `[Meridian/profile] user.email`
+- `[Meridian/profile] select string`
+- `[Meridian/profile] QUERY ERROR`
+- `[Meridian/profile] prof row`
+- `[Meridian/profile] nextStep`
+
+Do NOT remove real error handling.
+Do NOT break profile loading.
+Do NOT change profile UI.
+
+Expected:
+- Profile still loads correctly.
+- No temporary debug logs in browser console.
+
+────────────────────
+TASK 2 — REMOVE OR DISABLE TEMP DEBUG ROUTE
+────────────────────
+
+Remove the temporary debug route:
+
+`.migration-backup/src/app/debug/profile-health/page.tsx`
+
+Acceptable:
+- delete the debug page if safe
+OR
+- replace it with a simple “Not available” page
+OR
+- redirect to `/dashboard`
+
+Preferred:
+Remove the route entirely if no other code depends on it.
+
+Do NOT leave a public diagnostic page exposing runtime details.
+
+Expected:
+- `/debug/profile-health` no longer exposes auth/profile diagnostic data.
+
+────────────────────
+TASK 3 — FIX FAVICON 404
+────────────────────
+
+Browser console currently shows:
+
+`/favicon.ico 404`
+
+Fix this with the smallest safe implementation.
+
+Acceptable:
+- add a simple favicon file under the correct public/static location
+OR
+- add the correct metadata/icon reference if the asset already exists
+
+Do NOT redesign branding.
+Do NOT add image generation.
+Do NOT add external assets.
+
+If creating a minimal favicon:
+- keep it simple
+- Meridian “M” or plain dark/teal icon is fine
+- must stop favicon 404
+
+────────────────────
+TASK 4 — PROTOCOL PAGE PLACEHOLDER SANITY
+────────────────────
+
+Now that bottom nav includes Protocol, ensure `/protocol` exists and does not 404.
+
+If it already exists:
+- inspect it
+- keep it if acceptable
+
+If it does not exist:
+Create a simple premium placeholder page.
+
+Copy direction:
+- “Protocol”
+- “Your action layer is being calibrated.”
+- Short text explaining that Meridian will turn insights into structured next steps as more signals are added.
+- Keep it calm, premium, and non-medical.
+- No fake recommendations.
+- No functional protocol engine yet.
+
+Design:
+- Match Meridian dark/glassmorphism style
+- Include bottom nav
+- Mobile-friendly
+- No broad redesign
+
+This is a Phase 1 placeholder only.
+
+────────────────────
+TASK 5 — CONNECT PAGE COMING SOON CLEANUP
+────────────────────
+
+Inspect the Connect page.
+
+If Oura / Apple Health / wearables appear connectable but are not actually implemented:
+- make them visually and textually “Coming Soon”
+- avoid implying live integration works today
+- preserve the ability to complete onboarding
+
+Do NOT implement wearable integrations.
+Do NOT block onboarding.
+Do NOT change auth/onboarding flow logic.
+
+Expected:
+- Connect page manages alpha expectations honestly.
+- Wearables are not presented as fully functional if they are not.
+
+────────────────────
+ACCEPTANCE CRITERIA
+────────────────────
+
+After this task:
+
+1. Profile still loads.
+2. Temporary profile console logs are removed.
+3. `/debug/profile-health` no longer exposes diagnostics.
+4. Favicon 404 is gone.
+5. `/protocol` does not 404 and has a clean placeholder if needed.
+6. Connect page does not imply unsupported integrations are live.
+7. No `/api/insight` work was done.
+8. Build passes.
+9. No files outside `.migration-backup/` modified.
+
+────────────────────
+RETURN FORMAT
+────────────────────
+
+Return:
+
+1. Files inspected
+2. Files changed
+3. Debug cleanup completed
+4. Favicon fix
+5. Protocol page status
+6. Connect page cleanup
+7. What was intentionally not changed
+8. Build result
+9. Confirmation no files outside `.migration-backup/` were modified

@@ -17,7 +17,7 @@ const colors = {
   cardBorder: 'rgba(103,232,249,0.13)',
 }
 
-type ConnectionOption = 'lab' | 'oura' | 'apple'
+type ConnectionOption = 'lab'
 
 const FlaskIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={colors.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -269,10 +269,48 @@ export default function ConnectPage() {
               <ConnectionCard option="lab" icon={<FlaskIcon />} title="Upload lab PDF" subtitle="We'll extract your biomarkers" />
             </motion.div>
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
-              <ConnectionCard option="oura" icon={<CircleIcon />} title="Connect Oura" subtitle="HRV, sleep, temperature" />
+              <div style={{
+                width: '100%', padding: '16px',
+                backgroundColor: colors.cardBg,
+                border: `1px solid ${colors.cardBorder}`,
+                borderRadius: '16px', textAlign: 'left',
+                backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+                display: 'flex', alignItems: 'flex-start', gap: '16px',
+                opacity: 0.55, cursor: 'default',
+              }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', backgroundColor: 'rgba(45,212,191,0.08)', border: `1px solid ${colors.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <CircleIcon />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <h3 style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '14px', fontWeight: 700, color: colors.text, margin: 0, letterSpacing: '-0.01em' }}>Oura Ring</h3>
+                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted, padding: '2px 7px', borderRadius: '8px', border: `1px solid ${colors.cardBorder}`, background: 'rgba(232,248,245,0.04)', flexShrink: 0 }}>Coming soon</span>
+                  </div>
+                  <p style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '12px', color: colors.textMuted, lineHeight: 1.45, margin: 0 }}>HRV, sleep, and temperature — in a future update.</p>
+                </div>
+              </div>
             </motion.div>
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.4 }}>
-              <ConnectionCard option="apple" icon={<HeartIcon />} title="Connect Apple Health" subtitle="Activity, HRV, heart rate" />
+              <div style={{
+                width: '100%', padding: '16px',
+                backgroundColor: colors.cardBg,
+                border: `1px solid ${colors.cardBorder}`,
+                borderRadius: '16px', textAlign: 'left',
+                backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+                display: 'flex', alignItems: 'flex-start', gap: '16px',
+                opacity: 0.55, cursor: 'default',
+              }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', backgroundColor: 'rgba(45,212,191,0.08)', border: `1px solid ${colors.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <HeartIcon />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <h3 style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '14px', fontWeight: 700, color: colors.text, margin: 0, letterSpacing: '-0.01em' }}>Apple Health</h3>
+                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted, padding: '2px 7px', borderRadius: '8px', border: `1px solid ${colors.cardBorder}`, background: 'rgba(232,248,245,0.04)', flexShrink: 0 }}>Coming soon</span>
+                  </div>
+                  <p style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '12px', color: colors.textMuted, lineHeight: 1.45, margin: 0 }}>Activity, HRV, and heart rate — in a future update.</p>
+                </div>
+              </div>
             </motion.div>
           </div>
 

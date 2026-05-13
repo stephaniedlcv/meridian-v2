@@ -100,24 +100,7 @@ export default function ProfilePage() {
         .eq('id', user.id)
         .single()
 
-      // ── Diagnostics ────────────────────────────────────────────────────────
-      console.log('[Meridian/profile] SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-      console.log('[Meridian/profile] user.id:', user.id)
-      console.log('[Meridian/profile] user.email:', user.email)
-      console.log('[Meridian/profile] select string:', SELECT)
-      if (profError) {
-        console.log('[Meridian/profile] QUERY ERROR:', JSON.stringify({
-          code:    profError.code,
-          message: profError.message,
-          details: profError.details,
-          hint:    profError.hint,
-        }))
-      } else {
-        console.log('[Meridian/profile] prof row:', JSON.stringify(prof))
-      }
       const nextStep = getNextOnboardingStep(prof)
-      console.log('[Meridian/profile] nextStep:', nextStep)
-      // ── End diagnostics ───────────────────────────────────────────────────
 
       // Guard: redirect to the exact missing onboarding step.
       if (nextStep) { router.push(nextStep); return }
