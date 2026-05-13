@@ -563,11 +563,11 @@ function LabsSavedBlock({
       </div>
 
       {/* CTAs */}
-      <div style={{ padding: '0 24px 24px', display: 'flex', gap: '10px' }}>
+      <div style={{ padding: '0 24px 24px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
         <button
           onClick={onHistory}
           style={{
-            flex: 1, padding: '16px 20px', borderRadius: '16px', border: 'none',
+            flex: 1, minWidth: '160px', padding: '16px 20px', borderRadius: '16px', border: 'none',
             background: `linear-gradient(135deg, ${colors.teal}, ${colors.cyan})`,
             color: colors.background, fontSize: '15px', fontWeight: 800, cursor: 'pointer',
             boxShadow: `0 0 24px rgba(45,212,191,0.3), inset 0 1px 0 rgba(255,255,255,0.2)`,
