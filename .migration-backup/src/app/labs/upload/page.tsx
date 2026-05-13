@@ -1880,44 +1880,93 @@ export default function LabsUploadPage() {
         {/* Confirmation success */}
         {confirmed && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.4 }}
             style={{
-              padding: '48px 24px', backgroundColor: colors.optimal,
-              border: `1px solid ${colors.optimalBorder}`, borderRadius: '16px', textAlign: 'center',
+              position: 'relative',
+              padding: '28px 24px 24px',
+              backgroundColor: colors.optimal,
+              border: `1px solid ${colors.optimalBorder}`,
+              borderRadius: '16px',
             }}
           >
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>✓</div>
-            <h2 style={{ fontFamily: fonts.heading, fontSize: '24px', color: colors.text, marginBottom: '8px' }}>
-              {savedCount} biomarkers saved
-            </h2>
-            <p style={{ fontSize: '14px', color: colors.textSoft, marginBottom: '24px' }}>
-              Your lab results are now part of your health intelligence.
+            {/* Close button */}
+            <button
+              onClick={handleReset}
+              aria-label="Dismiss"
+              style={{
+                position: 'absolute', top: '14px', right: '14px',
+                width: '28px', height: '28px', borderRadius: '50%',
+                backgroundColor: 'rgba(45,212,191,0.10)',
+                border: '1px solid rgba(45,212,191,0.22)',
+                color: colors.textMuted, fontSize: '13px',
+                cursor: 'pointer', fontFamily: fonts.ui,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                lineHeight: '1',
+              }}
+            >
+              ✕
+            </button>
+
+            {/* Header row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+              <div style={{
+                width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
+                backgroundColor: 'rgba(45,212,191,0.18)',
+                border: '1px solid rgba(45,212,191,0.40)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '15px',
+              }}>
+                ✓
+              </div>
+              <div>
+                <h2 style={{ fontFamily: fonts.heading, fontSize: '20px', fontWeight: 700, color: colors.text, margin: 0, lineHeight: 1.2 }}>
+                  Lab saved
+                </h2>
+                <span style={{ fontSize: '12px', color: colors.textMuted }}>
+                  {savedCount} {savedCount === 1 ? 'biomarker' : 'biomarkers'} added to Snapshot
+                </span>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 20px', lineHeight: 1.6 }}>
+              Your confirmed biomarkers were added to your Lab Snapshot.{' '}
+              <span style={{ color: colors.textMuted }}>
+                Upload another PDF if this lab visit included more than one file.
+              </span>
             </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
               <motion.button
-                onClick={handleReset}
+                onClick={() => {
+                  handleReset()
+                  setTimeout(() => fileInputRef.current?.click(), 60)
+                }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 style={{
-                  padding: '12px 24px',
+                  flex: 1, padding: '12px 16px',
                   background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
-                  border: 'none', borderRadius: '12px', color: colors.background,
+                  border: 'none', borderRadius: '10px', color: colors.background,
                   fontFamily: fonts.ui, fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 Upload another PDF
               </motion.button>
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={handleReset}
                 style={{
-                  padding: '12px 24px', backgroundColor: colors.cardBg,
-                  border: `1px solid ${colors.cardBorder}`, borderRadius: '12px',
-                  color: colors.textSoft, fontFamily: fonts.ui, fontSize: '14px', cursor: 'pointer',
+                  flex: 1, padding: '12px 16px',
+                  backgroundColor: colors.cardBg,
+                  border: `1px solid ${colors.cardBorder}`,
+                  borderRadius: '10px',
+                  color: colors.textSoft, fontFamily: fonts.ui, fontSize: '14px',
+                  cursor: 'pointer', whiteSpace: 'nowrap',
                 }}
               >
-                Back to home
+                View Labs
               </button>
             </div>
           </motion.div>

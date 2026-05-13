@@ -1,0 +1,183 @@
+# MERIDIAN — TASK: Improve Multi-PDF Lab Upload Success Flow
+
+You are working on Meridian — a premium Health Intelligence System.
+
+Stack:
+- Next.js 14 App Router
+- TypeScript
+- Supabase
+- Vercel
+- Inline styles only
+
+IMPORTANT:
+- Real app lives inside `.migration-backup/`
+- Do NOT move files outside `.migration-backup/`
+- Do NOT redesign the app
+- Do NOT add dependencies
+- Do NOT touch Supabase schema
+- Do NOT touch OCR extraction logic
+- Do NOT touch Safety Engine logic
+- Do NOT touch onboarding/auth
+- This is a Labs upload UX flow improvement only
+
+PROBLEM:
+After a user uploads a lab PDF, reviews/confirms markers, and saves them, Meridian shows a success screen with actions like uploading another PDF or returning home.
+
+For users uploading multiple lab PDFs from the same routine lab visit, this is too slow and disruptive.
+
+GOAL:
+Make the post-save success state faster and more useful for multi-PDF uploads.
+
+Expected UX:
+After successful save, show a compact success confirmation that allows the user to:
+1. Close the success state and remain on Labs
+2. Upload another PDF immediately
+3. View the updated Labs Snapshot
+
+────────────────────
+TASK 1 — INSPECT CURRENT LAB UPLOAD SUCCESS FLOW
+────────────────────
+
+Inspect:
+
+- `.migration-backup/src/app/labs/upload/page.tsx`
+
+Find:
+- the state used after successful save
+- the success screen/component
+- the current “Upload another PDF” behavior
+- the current “Back to Home” or “View Labs” behavior
+- the file input handling function
+
+Do not change OCR or database save logic.
+
+────────────────────
+TASK 2 — ADD CLOSE BUTTON TO SUCCESS STATE
+────────────────────
+
+Add a small close button/icon to the success confirmation screen.
+
+Behavior:
+- Closing should dismiss the success state.
+- User should remain on the Labs page.
+- Labs should show the updated Snapshot view.
+- It should NOT route to Home.
+- It should NOT reset saved data.
+- It should NOT clear the refreshed snapshot.
+
+Visual:
+- subtle circular X button
+- top-right of success card/sheet
+- matches Meridian glass style
+- not visually loud
+
+────────────────────
+TASK 3 — IMPROVE “UPLOAD ANOTHER PDF” BEHAVIOR
+────────────────────
+
+Current issue:
+“Upload another PDF” appears to return to the Labs page rather than directly starting the file selection/upload flow.
+
+Required behavior:
+When user clicks “Upload another PDF” after successful save:
+- reset only the upload/review/success state needed for a new file
+- keep the user on Labs
+- trigger the PDF file picker directly if possible
+- if direct file picker cannot be triggered safely, scroll/focus to the upload box and make it immediately ready
+
+Important:
+The user should not feel like they are being sent back to the start of the app.
+
+Preferred:
+- Use the existing hidden file input ref if available.
+- Trigger `.click()` on the file input after resetting state.
+- Do not create duplicate inputs.
+
+────────────────────
+TASK 4 — ADD OR KEEP “VIEW LABS” ACTION
+────────────────────
+
+Add or keep a secondary action:
+
+“View Labs”
+
+Behavior:
+- dismiss success state
+- show Labs Snapshot
+- use refreshed recent biomarkers
+- do not route away
+
+If current button says “Back Home” or similar, replace it with “View Labs” unless there is a strong reason not to.
+
+Do NOT change Home routing elsewhere.
+
+────────────────────
+TASK 5 — PRESERVE DATA REFRESH
+────────────────────
+
+Important:
+Earlier fix made the snapshot refresh after save.
+
+Preserve that behavior.
+
+After saving a lab:
+- recentBiomarkers should refresh
+- counts should update
+- Labs Snapshot should show latest saved data
+- Upload another PDF should not wipe the refreshed snapshot
+
+────────────────────
+TASK 6 — MULTI-PDF UX COPY
+────────────────────
+
+Keep copy calm and concise.
+
+Suggested success copy:
+- “Lab saved”
+- “Your confirmed biomarkers were added to your Lab Snapshot.”
+- “Upload another PDF if this lab visit included more than one file.”
+
+Buttons:
+- Primary: “Upload another PDF”
+- Secondary: “View Labs”
+- Close: X
+
+Avoid:
+- “Return Home” as primary action
+- overly celebratory language
+- implying the entire lab visit is complete if the user may have more PDFs
+
+────────────────────
+ACCEPTANCE CRITERIA
+────────────────────
+
+After implementation:
+
+1. Lab save still works.
+2. Success confirmation appears after save.
+3. Success state has a close button.
+4. Close keeps user on Labs Snapshot.
+5. “Upload another PDF” starts a new upload immediately or focuses file selection.
+6. “View Labs” shows updated Snapshot.
+7. No routing to Home from the primary success flow.
+8. Snapshot refresh after save is preserved.
+9. OCR logic unchanged.
+10. Database save logic unchanged.
+11. Build passes.
+12. No files outside `.migration-backup/` modified.
+
+────────────────────
+RETURN FORMAT
+────────────────────
+
+Return:
+
+1. Files inspected
+2. Files changed
+3. Current success flow found
+4. Close behavior added
+5. Upload another PDF behavior
+6. View Labs behavior
+7. Confirmation snapshot refresh is preserved
+8. Build result
+9. Confirmation no files outside `.migration-backup/` were modified
