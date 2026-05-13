@@ -1,0 +1,145 @@
+# MERIDIAN — PROFILE STATUS CHIP ALIGNMENT FIX
+
+We are making Profile visually consistent with the main Meridian tab grammar.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Vercel production is working because Root Directory is set to .migration-backup.
+
+Do NOT restructure the repo.
+Do NOT move files out of .migration-backup.
+Do NOT touch root package files.
+Do NOT touch Vercel settings.
+Do NOT touch artifacts/.
+Do NOT publish to Replit.
+
+TASK:
+Move the Profile top status chip from centered alignment to left alignment.
+
+Current system grammar:
+- Dashboard chip: ACTIVE SIGNAL — left aligned
+- Labs chip: BIOMARKER SIGNALS — left aligned
+- Protocol chip: CALIBRATING — left aligned
+- Profile chip: IDENTITY CORE — currently centered
+
+Issue:
+The Profile chip is visually disconnected from the rest of the tab system because it is centered while the other module/status chips are left-aligned.
+
+Goal:
+Profile should follow the same system-level chip alignment as the other primary tabs.
+
+Modify ONLY:
+
+.migration-backup/src/app/profile/page.tsx
+
+Do not touch:
+- dashboard
+- labs
+- protocol
+- onboarding
+- OCR routes
+- confirm route
+- canonical dictionary
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- artifacts/
+- dependencies
+
+REQUIREMENTS:
+
+1. Move the IDENTITY CORE chip to the left
+
+The chip should be left-aligned with the main content container, matching the visual grammar of:
+- ACTIVE SIGNAL
+- BIOMARKER SIGNALS
+- CALIBRATING
+
+2. Keep the Profile hero content centered
+
+Do NOT left-align the avatar hero.
+
+Keep centered:
+- avatar / orbital rings
+- Upload photo
+- display name
+- email
+- profile chips under the name if currently centered
+
+The hierarchy should become:
+
+IDENTITY CORE chip — left aligned
+Avatar / orbital rings — centered
+Upload photo — centered
+Name — centered
+Email — centered
+Profile chips — centered
+Biological Passport card
+Rest of content
+
+3. Preserve chip styling
+
+Do not change the chip text.
+Do not change the base chip style unless needed for alignment.
+It should remain visually consistent with the other tab chips:
+- teal/cyan
+- rounded pill
+- uppercase tracking
+- dot
+- subtle border/glow
+
+4. Preserve Profile design
+
+Do not redesign Profile.
+Do not change:
+- avatar rings
+- M/S avatar logic
+- Upload photo behavior
+- Biological Passport card
+- Health Focus Mode
+- Data Constellation
+- Personalization Matrix
+- Control Layer
+- Sign out
+- profile data reading
+- auth logic
+
+5. Mobile spacing
+
+Make sure the left-aligned chip does not feel cramped against the screen edge.
+It should align with the same page content padding used by the Profile cards.
+
+Suggested:
+- chip wrapper width: 100%
+- alignSelf / textAlign / justifyContent set so chip starts at the content column
+- preserve existing top spacing unless alignment requires minor adjustment
+
+6. Do not change data logic
+
+This is a visual alignment fix only.
+
+7. After editing
+
+Report:
+1. Exact file changed.
+2. Confirm no other files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /profile
+5. Confirm:
+   - IDENTITY CORE chip is left-aligned
+   - avatar and identity hero remain centered
+   - Profile still reads user data correctly
+   - Upload photo still works
+   - Sign out still works
+   - bottom nav does not cover content
+   - build passes
+6. Do not commit.
+7. Do not push.
+8. Do not publish.

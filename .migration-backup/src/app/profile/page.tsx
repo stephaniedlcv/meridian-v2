@@ -221,21 +221,8 @@ export default function ProfilePage() {
 
       <div style={{ maxWidth: '540px', margin: '0 auto', padding: '0 20px 120px', position: 'relative', zIndex: 1 }}>
 
-        {/* ════════════════════════════════ HERO ═══ */}
-        <div style={{
-          paddingTop: '44px', paddingBottom: '26px',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-          position: 'relative',
-        }}>
-          {/* Cinematic glow behind avatar */}
-          <div style={{
-            position: 'absolute', top: '30px', left: '50%', transform: 'translateX(-50%)',
-            width: '280px', height: '280px',
-            background: 'radial-gradient(circle, rgba(45,212,191,0.14) 0%, rgba(103,232,249,0.06) 40%, transparent 70%)',
-            filter: 'blur(42px)', pointerEvents: 'none',
-          }} />
-
-          {/* Identity chip */}
+        {/* ════════════════════════════ IDENTITY CORE chip — left-aligned ═══ */}
+        <div style={{ paddingTop: '44px', marginBottom: '28px' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
             padding: '8px 18px', borderRadius: '999px',
@@ -243,11 +230,25 @@ export default function ProfilePage() {
             background: 'rgba(20,184,166,0.08)',
             color: '#2DD4BF',
             fontSize: '12px', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase',
-            marginBottom: '20px', position: 'relative',
           }}>
             <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 8px rgba(45,212,191,0.7)', flexShrink: 0 }} />
             Identity Core
           </div>
+        </div>
+
+        {/* ════════════════════════════════ HERO — centered ═══ */}
+        <div style={{
+          paddingBottom: '26px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+          position: 'relative',
+        }}>
+          {/* Cinematic glow behind avatar */}
+          <div style={{
+            position: 'absolute', top: '0px', left: '50%', transform: 'translateX(-50%)',
+            width: '280px', height: '280px',
+            background: 'radial-gradient(circle, rgba(45,212,191,0.14) 0%, rgba(103,232,249,0.06) 40%, transparent 70%)',
+            filter: 'blur(42px)', pointerEvents: 'none',
+          }} />
 
           {/* Avatar with orbital rings */}
           <div style={{ position: 'relative', width: '180px', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
