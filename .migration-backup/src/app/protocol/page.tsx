@@ -37,14 +37,17 @@ export default function ProtocolPage() {
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+          <div style={{ marginBottom: '28px' }}>
             <span style={{
-              fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em',
-              textTransform: 'uppercase', color: colors.teal,
-              padding: '4px 12px', borderRadius: '20px',
-              border: '1px solid rgba(45,212,191,0.28)',
-              background: 'rgba(45,212,191,0.07)',
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              padding: '8px 18px', borderRadius: '999px',
+              border: '1px solid rgba(45,212,191,0.38)',
+              background: 'rgba(20,184,166,0.08)',
+              color: '#2DD4BF',
+              fontSize: '12px', fontWeight: 800, letterSpacing: '0.18em',
+              textTransform: 'uppercase',
             }}>
+              <span style={{ display: 'block', width: '7px', height: '7px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 8px rgba(45,212,191,0.7)', flexShrink: 0 }} />
               Calibrating
             </span>
           </div>
@@ -53,7 +56,7 @@ export default function ProtocolPage() {
             fontSize: 'clamp(28px, 6vw, 36px)',
             fontWeight: 700,
             color: colors.text,
-            marginBottom: '12px',
+            marginBottom: '16px',
             lineHeight: 1.15,
             letterSpacing: '-0.03em',
           }}>

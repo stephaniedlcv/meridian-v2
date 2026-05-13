@@ -237,12 +237,15 @@ export default function ProfilePage() {
 
           {/* Identity chip */}
           <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            fontSize: '10px', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: colors.teal,
-            padding: '4px 13px', border: '1px solid rgba(45,212,191,0.22)', borderRadius: '20px',
-            background: 'rgba(45,212,191,0.06)', marginBottom: '20px', position: 'relative',
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            padding: '8px 18px', borderRadius: '999px',
+            border: '1px solid rgba(45,212,191,0.38)',
+            background: 'rgba(20,184,166,0.08)',
+            color: '#2DD4BF',
+            fontSize: '12px', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase',
+            marginBottom: '20px', position: 'relative',
           }}>
-            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
+            <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 8px rgba(45,212,191,0.7)', flexShrink: 0 }} />
             Identity Core
           </div>
 

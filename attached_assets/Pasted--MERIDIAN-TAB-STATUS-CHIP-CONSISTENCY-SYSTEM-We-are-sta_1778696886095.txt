@@ -1,0 +1,233 @@
+# MERIDIAN — TAB STATUS CHIP CONSISTENCY SYSTEM
+
+We are standardizing the top status chips across Meridian’s main tabs.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Vercel production is working because Root Directory is set to .migration-backup.
+
+Do NOT restructure the repo.
+Do NOT move files out of .migration-backup.
+Do NOT touch root package files.
+Do NOT touch Vercel settings.
+Do NOT touch artifacts/.
+Do NOT publish to Replit.
+
+TASK:
+Make the main tab status chips visually consistent across:
+
+- Home / Dashboard
+- Labs
+- Protocol
+- Profile
+
+Current system grammar should be:
+
+Home / Dashboard:
+ACTIVE SIGNAL
+
+Labs:
+BIOMARKER SIGNALS
+
+Protocol:
+CALIBRATING
+
+Profile:
+IDENTITY CORE
+
+Current issue:
+Labs does not have a top chip yet, and existing chips may not be perfectly aligned in size, spacing, padding, border, typography, and placement.
+
+Goal:
+All primary tab pages should use the same visual chip language while respecting each page’s layout structure.
+
+Allowed files to modify ONLY if needed:
+
+.migration-backup/src/app/dashboard/page.tsx
+.migration-backup/src/app/labs/upload/page.tsx
+.migration-backup/src/app/protocol/page.tsx
+.migration-backup/src/app/profile/page.tsx
+
+Do not touch:
+- onboarding
+- OCR routes
+- confirm route
+- canonical dictionary
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- artifacts/
+- dependencies
+
+Do not add dependencies.
+Do not create new files.
+Do not use Tailwind.
+Inline styles only.
+TypeScript strict.
+
+REQUIREMENTS:
+
+1. Add Labs chip
+
+On Labs page, add a top status chip above the Labs title:
+
+BIOMARKER SIGNALS
+
+Visual hierarchy should be:
+
+BIOMARKER SIGNALS chip
+Labs
+Your clinical markers, translated into biological signals.
+Snapshot / History segmented control
+Content
+
+2. Update Labs subcopy
+
+Replace current Labs subcopy with:
+
+Your clinical markers, translated into biological signals.
+
+3. Standardize chip styling across tabs
+
+All four chips should share the same base visual treatment:
+
+Suggested base style:
+- display: inline-flex
+- alignItems: center
+- gap: 8px
+- padding: "8px 18px"
+- borderRadius: 999px
+- border: "1px solid rgba(45, 212, 191, 0.38)"
+- background: "rgba(20, 184, 166, 0.08)"
+- color: "#2DD4BF"
+- fontSize: 12px or 13px
+- fontWeight: 800
+- letterSpacing: "0.18em"
+- textTransform: "uppercase"
+- boxShadow: subtle teal glow only if consistent with current design
+
+Dot:
+If the chip uses a dot, make the dot consistent:
+- 7px or 8px
+- circular
+- teal/cyan
+- subtle glow
+
+4. Alignment rule
+
+Do NOT force all chips to the same alignment.
+
+For Dashboard, Labs, and Protocol:
+- keep the top status chip left-aligned with the page title and subcopy.
+- These are functional/editorial system pages.
+
+For Profile:
+- keep the IDENTITY CORE chip centered.
+- Profile uses a centered identity/avatar hero, so centered alignment is intentional.
+
+Final alignment should be:
+
+Dashboard:
+[ACTIVE SIGNAL] left aligned
+Meridian
+Subcopy
+
+Labs:
+[BIOMARKER SIGNALS] left aligned
+Labs
+Subcopy
+
+Protocol:
+[CALIBRATING] left aligned
+Protocol
+Subcopy
+
+Profile:
+[IDENTITY CORE] centered
+Avatar / Identity hero
+Name / profile chips
+
+5. Standardize spacing
+
+For each tab page, make spacing feel consistent:
+
+Chip
+↓ consistent gap
+H1/title
+↓ consistent gap
+Subcopy
+↓ content
+
+Do not force identical layouts where the page structure differs, but visually align the rhythm.
+
+Suggested spacing:
+- chip marginBottom: 28px–32px depending on page
+- title marginBottom: 14px–18px
+- subcopy marginBottom: 32px–40px before major content
+
+6. Preserve each page’s personality
+
+Do not redesign the pages.
+
+Keep:
+- Dashboard Active Signal design and content
+- Labs Snapshot / History behavior
+- Protocol calibrating content
+- Profile Identity Core hero and avatar rings
+
+This is only a chip consistency and Labs chip addition task.
+
+7. Do not change data logic
+
+Do not change:
+- dashboard state logic
+- Labs data fetching
+- upload flow
+- history logic
+- profile data reading
+- auth/sign-out
+- protocol content logic
+
+8. Mobile-first
+
+Test on mobile viewport.
+The chips should:
+- not wrap awkwardly
+- not be too wide
+- not be cramped against the top
+- not create excessive top whitespace
+
+9. After editing
+
+Report:
+1. Exact files changed.
+2. Confirm no files outside the allowed list changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /dashboard
+   /labs/upload
+   /protocol
+   /profile
+5. Confirm:
+   - Dashboard chip says ACTIVE SIGNAL
+   - Labs chip says BIOMARKER SIGNALS
+   - Protocol chip says CALIBRATING
+   - Profile chip says IDENTITY CORE
+   - Dashboard/Labs/Protocol chips are left-aligned
+   - Profile chip remains centered
+   - chips look visually consistent
+   - Labs subcopy reads: “Your clinical markers, translated into biological signals.”
+   - Snapshot / History still works
+   - Dashboard still works
+   - Profile still works
+   - Protocol still works
+   - build passes
+6. Do not commit.
+7. Do not push.
+8. Do not publish.

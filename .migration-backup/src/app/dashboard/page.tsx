@@ -229,14 +229,19 @@ export default function DashboardPage() {
         >
           <div>
             <div style={{
-              fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
-              textTransform: 'uppercase', color: colors.textMuted,
-              marginBottom: '5px', display: 'flex', alignItems: 'center', gap: '6px',
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              padding: '8px 18px', borderRadius: '999px',
+              border: '1px solid rgba(45,212,191,0.38)',
+              background: 'rgba(20,184,166,0.08)',
+              color: '#2DD4BF',
+              fontSize: '12px', fontWeight: 800, letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              marginBottom: '28px',
             }}>
               <div style={{
-                width: '4px', height: '4px', borderRadius: '50%',
+                width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
                 background: colors.teal,
-                boxShadow: `0 0 6px ${colors.teal}`,
+                boxShadow: '0 0 8px rgba(45,212,191,0.7)',
               }} />
               Active Signal
             </div>
@@ -246,7 +251,7 @@ export default function DashboardPage() {
               fontWeight: 700,
               color: '#EAFBF7',
               letterSpacing: '-0.05em',
-              marginBottom: '10px',
+              marginBottom: '14px',
             }}>
               Meridian
             </div>

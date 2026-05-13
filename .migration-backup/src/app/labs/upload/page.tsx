@@ -1476,20 +1476,32 @@ export default function LabsUploadPage() {
         {/* ── Page header ── */}
         {!inUploadFlow && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            {/* BIOMARKER SIGNALS chip */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              padding: '8px 18px', borderRadius: '999px',
+              border: '1px solid rgba(45,212,191,0.38)',
+              background: 'rgba(20,184,166,0.08)',
+              color: '#2DD4BF',
+              fontSize: '12px', fontWeight: 800, letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              marginBottom: '28px',
+            }}>
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 8px rgba(45,212,191,0.7)', flexShrink: 0 }} />
+              Biomarker Signals
+            </div>
             <h1 style={{
               fontFamily: fonts.heading,
               fontSize: 'clamp(26px, 5vw, 32px)',
               fontWeight: 700,
               color: colors.text,
-              marginBottom: '8px',
+              marginBottom: '16px',
               lineHeight: 1.2,
             }}>
               {hasRecentLabs ? 'Labs' : 'Upload your labs'}
             </h1>
             <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: hasRecentLabs ? '16px' : '20px', lineHeight: 1.6 }}>
-              {hasRecentLabs
-                ? 'Meridian is tracking your confirmed lab signals here.'
-                : 'Upload a PDF from your lab provider. Meridian will extract your biomarkers automatically.'}
+              Your clinical markers, translated into biological signals.
             </p>
             {/* ── Snapshot | History toggle ── */}
             {hasRecentLabs && (
