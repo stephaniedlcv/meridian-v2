@@ -117,6 +117,12 @@ const PANEL_ORDER = [
   'Hormones', 'Inflammation / Cardiac Risk', 'Other',
 ]
 
+// How many Optimal markers to show before progressive disclosure
+const OPTIMAL_INITIAL_LIMIT = 3
+
+// State sort priority for expanded panel marker lists
+const STATE_SORT_PRIORITY: Record<string, number> = { Critical: 0, Attention: 1, Watch: 2, Optimal: 3 }
+
 const PANEL_EDUCATION: Record<string, string> = {
   'CBC':                      'This panel helps Meridian understand blood cell patterns, oxygen-carrying capacity, and immune cell context.',
   'CMP':                      'This panel gives context on metabolism, electrolytes, kidney markers, liver enzymes, and protein balance.',
@@ -1127,6 +1133,10 @@ export default function LabsUploadPage() {
   const [deleteConfirmDate, setDeleteConfirmDate] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
+  // ── Snapshot panel expansion state ───────────────────────────────────────────
+  const [expandedSnapshotPanels, setExpandedSnapshotPanels] = useState<Set<string>>(new Set())
+  const [optimalExpanded, setOptimalExpanded] = useState<Set<string>>(new Set())
+
   // ── Auth + data fetch ────────────────────────────────────────────────────────
   useEffect(() => {
     async function checkAuth() {
@@ -1433,6 +1443,36 @@ export default function LabsUploadPage() {
     }
     return Array.from(groupMap, ([panel, markers]) => ({ panel, markers }))
   })()
+
+  // Snapshot markers grouped by panel, sorted Critical → Attention → Watch → Optimal
+  const snapshotMarkersByPanel: Record<string, RecentBiomarker[]> = (() => {
+    const m: Record<string, RecentBiomarker[]> = {}
+    for (const b of snapshotBiomarkers) {
+      const p = inferPanel(b.marker_name)
+      if (!m[p]) m[p] = []
+      m[p].push(b)
+    }
+    for (const p of Object.keys(m)) {
+      m[p].sort((a, b) => (STATE_SORT_PRIORITY[a.state ?? ''] ?? 9) - (STATE_SORT_PRIORITY[b.state ?? ''] ?? 9))
+    }
+    return m
+  })()
+
+  function toggleSnapshotPanel(panel: string) {
+    setExpandedSnapshotPanels(prev => {
+      const next = new Set(prev)
+      if (next.has(panel)) { next.delete(panel) } else { next.add(panel) }
+      return next
+    })
+  }
+
+  function toggleOptimalExpand(panel: string) {
+    setOptimalExpanded(prev => {
+      const next = new Set(prev)
+      if (next.has(panel)) { next.delete(panel) } else { next.add(panel) }
+      return next
+    })
+  }
 
   // Whether the active upload flow is in progress
   const inUploadFlow = uploading || !!staged || confirmed
@@ -2244,76 +2284,204 @@ export default function LabsUploadPage() {
                       </div>
                     )}
 
-                    {/* ── Panel summary cards ── */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {/* ── Panel summary cards — expandable ── */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {panelSummaries.map(ps => {
                         const sc = ps.stateCounts
+                        const isExpanded = expandedSnapshotPanels.has(ps.panel)
+                        const panelMarkers = snapshotMarkersByPanel[ps.panel] ?? []
+                        const abnormalMarkers = panelMarkers.filter(b => b.state !== 'Optimal')
+                        const optimalMarkers = panelMarkers.filter(b => b.state === 'Optimal')
+                        const isOptExpanded = optimalExpanded.has(ps.panel)
+                        const hiddenOptimalCount = Math.max(0, optimalMarkers.length - OPTIMAL_INITIAL_LIMIT)
+                        const visibleOptimal = isOptExpanded ? optimalMarkers : optimalMarkers.slice(0, OPTIMAL_INITIAL_LIMIT)
                         return (
                           <div key={ps.panel} style={{
-                            padding: '14px 18px',
                             backgroundColor: colors.cardBg,
                             border: `1px solid ${colors.cardBorder}`,
-                            borderRadius: '12px',
+                            borderRadius: '14px',
                             backdropFilter: 'blur(24px)',
                             WebkitBackdropFilter: 'blur(24px)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            flexWrap: 'wrap',
+                            overflow: 'hidden',
                           }}>
-                            <div style={{ flex: 1, minWidth: '160px' }}>
-                              <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '13px', fontWeight: 700, color: colors.text }}>{ps.panel}</span>
-                                <span style={{ fontSize: '11px', color: colors.textMuted }}>
+                            {/* ── Card header ── */}
+                            <div style={{ padding: '14px 18px 14px' }}>
+                              {/* Title + count + state dots */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text, flex: 1, minWidth: '100px' }}>{ps.panel}</span>
+                                <span style={{ fontSize: '11px', color: colors.textMuted, whiteSpace: 'nowrap' }}>
                                   {ps.count} {ps.count === 1 ? 'marker' : 'markers'}
                                 </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
+                                  {sc.Critical > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#F87171' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#F87171', display: 'inline-block' }} />{sc.Critical}</span>}
+                                  {sc.Attention > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FB923C' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />{sc.Attention}</span>}
+                                  {sc.Watch > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FCD34D' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FCD34D', display: 'inline-block' }} />{sc.Watch}</span>}
+                                  {sc.Optimal > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#2DD4BF' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />{sc.Optimal}</span>}
+                                </div>
                               </div>
-                              <span style={{ fontSize: '11px', color: colors.textMuted, lineHeight: 1.45, display: 'block', marginTop: '3px' }}>
+                              {/* Education */}
+                              <span style={{ fontSize: '11px', color: colors.textMuted, lineHeight: 1.45, display: 'block', marginBottom: '12px' }}>
                                 {PANEL_EDUCATION[ps.panel] ?? 'This panel adds context to your saved lab profile.'}
                               </span>
+                              {/* CTA row */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                {/* Primary: View / Hide markers */}
+                                <button
+                                  onClick={() => toggleSnapshotPanel(ps.panel)}
+                                  style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: '5px',
+                                    padding: '6px 14px', borderRadius: '8px',
+                                    background: isExpanded ? 'rgba(45,212,191,0.14)' : 'rgba(45,212,191,0.07)',
+                                    border: `1px solid rgba(45,212,191,${isExpanded ? '0.40' : '0.22'})`,
+                                    color: colors.teal, fontSize: '12px', fontWeight: 700,
+                                    cursor: 'pointer', fontFamily: fonts.ui, outline: 'none',
+                                    boxShadow: isExpanded ? '0 0 8px rgba(45,212,191,0.14)' : 'none',
+                                  }}
+                                >
+                                  {isExpanded ? 'Hide markers' : 'View markers'}
+                                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, transition: 'transform 0.18s ease', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                                    <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                </button>
+                                {/* Secondary: History */}
+                                <button
+                                  onClick={() => { setLabsView('history'); if (!histFetched) loadHistoryData() }}
+                                  style={{
+                                    padding: '6px 10px', background: 'transparent', border: 'none',
+                                    color: colors.textMuted, fontSize: '12px', fontWeight: 600,
+                                    cursor: 'pointer', fontFamily: fonts.ui, outline: 'none',
+                                    letterSpacing: '-0.01em',
+                                  }}
+                                >
+                                  History →
+                                </button>
+                                {/* Date — push right */}
+                                <span style={{ marginLeft: 'auto', fontSize: '11px', color: colors.textMuted, whiteSpace: 'nowrap' }}>
+                                  {ps.latestDateLabel}
+                                </span>
+                              </div>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              {sc.Optimal > 0 && (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#2DD4BF' }}>
-                                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />{sc.Optimal}
-                                </span>
-                              )}
-                              {sc.Watch > 0 && (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FACC15' }}>
-                                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FACC15', display: 'inline-block' }} />{sc.Watch}
-                                </span>
-                              )}
-                              {sc.Attention > 0 && (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FB923C' }}>
-                                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />{sc.Attention}
-                                </span>
-                              )}
-                              {sc.Critical > 0 && (
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#F87171' }}>
-                                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#F87171', display: 'inline-block' }} />{sc.Critical}
-                                </span>
-                              )}
-                            </div>
-                            <span style={{ fontSize: '11px', color: colors.textMuted, flexShrink: 0 }}>
-                              {ps.latestDateLabel}
-                            </span>
-                            <button
-                              onClick={() => { setLabsView('history'); if (!histFetched) loadHistoryData() }}
-                              style={{
-                                padding: '4px 10px',
-                                backgroundColor: 'transparent',
-                                border: `1px solid ${colors.cardBorder}`,
-                                borderRadius: '6px',
-                                fontSize: '11px',
-                                fontWeight: 600,
-                                color: colors.textSoft,
-                                fontFamily: fonts.ui,
-                                cursor: 'pointer',
-                                flexShrink: 0,
-                              }}
-                            >
-                              History →
-                            </button>
+
+                            {/* ── Expanded marker list ── */}
+                            {isExpanded && (
+                              <div style={{ borderTop: `1px solid ${colors.cardBorder}`, padding: '10px 14px 14px' }}>
+
+                                {/* Abnormal markers: Critical → Attention → Watch */}
+                                {abnormalMarkers.length > 0 && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: optimalMarkers.length > 0 ? '10px' : '0' }}>
+                                    {abnormalMarkers.map(b => {
+                                      const s = getStateStyles(b.state ?? '')
+                                      const showBar = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
+                                      return (
+                                        <div
+                                          key={b.id}
+                                          onClick={() => setSelectedBiomarker(b)}
+                                          style={{
+                                            padding: '12px 14px', borderRadius: '10px', cursor: 'pointer',
+                                            backgroundColor: 'rgba(232,248,245,0.055)',
+                                            border: `1px solid ${s.dot}30`,
+                                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.18)',
+                                          }}
+                                        >
+                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: showBar ? '8px' : '0' }}>
+                                            <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0 }}>
+                                              {markerDisplayName(b.marker_name)}
+                                            </span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                              <span style={{ fontSize: '15px', fontWeight: 700, color: colors.text }}>{b.value}</span>
+                                              {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
+                                              <span style={{ padding: '2px 7px', borderRadius: '5px', fontSize: '10px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot, letterSpacing: '0.04em' }}>{s.label}</span>
+                                              <span style={{ fontSize: '14px', color: colors.textMuted, opacity: 0.45, lineHeight: 1 }}>›</span>
+                                            </div>
+                                          </div>
+                                          {showBar ? (
+                                            <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} />
+                                          ) : (
+                                            <span style={{ fontSize: '10px', color: colors.textMuted, opacity: 0.55 }}>Range data not available.</span>
+                                          )}
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
+                                )}
+
+                                {/* Optimal markers — lighter compact rows */}
+                                {optimalMarkers.length > 0 && (
+                                  <>
+                                    {abnormalMarkers.length > 0 && (
+                                      <div style={{ height: '1px', background: colors.cardBorder, marginBottom: '8px' }} />
+                                    )}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                      {visibleOptimal.map(b => {
+                                        const showRange = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
+                                        return (
+                                          <div
+                                            key={b.id}
+                                            onClick={() => setSelectedBiomarker(b)}
+                                            style={{
+                                              padding: '9px 12px', borderRadius: '8px', cursor: 'pointer',
+                                              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap',
+                                              backgroundColor: 'rgba(45,212,191,0.03)',
+                                              border: '1px solid rgba(45,212,191,0.10)',
+                                            }}
+                                          >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: '100px' }}>
+                                              <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#2DD4BF', flexShrink: 0 }} />
+                                              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textSoft }}>{markerDisplayName(b.marker_name)}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                              <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{b.value}</span>
+                                              {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
+                                              {showRange && (
+                                                <span style={{ fontSize: '9px', color: 'rgba(154,203,193,0.65)', backgroundColor: 'rgba(103,232,249,0.05)', border: '1px solid rgba(103,232,249,0.10)', borderRadius: '20px', padding: '1px 7px', whiteSpace: 'nowrap' }}>
+                                                  Ref {b.reference_range_min}–{b.reference_range_max}
+                                                </span>
+                                              )}
+                                              <span style={{ padding: '2px 7px', backgroundColor: colors.optimal, border: `1px solid ${colors.optimalBorder}`, borderRadius: '5px', fontSize: '10px', fontWeight: 700, color: '#2DD4BF', letterSpacing: '0.04em' }}>Optimal</span>
+                                              <span style={{ fontSize: '14px', color: colors.textMuted, opacity: 0.45, lineHeight: 1 }}>›</span>
+                                            </div>
+                                          </div>
+                                        )
+                                      })}
+                                    </div>
+                                    {/* Progressive disclosure: more optimal */}
+                                    {!isOptExpanded && hiddenOptimalCount > 0 && (
+                                      <button
+                                        onClick={() => toggleOptimalExpand(ps.panel)}
+                                        style={{
+                                          marginTop: '8px', width: '100%', padding: '8px', borderRadius: '8px',
+                                          background: 'transparent', border: `1px solid rgba(45,212,191,0.12)`,
+                                          color: colors.textMuted, fontSize: '12px', fontWeight: 600,
+                                          cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', textAlign: 'center',
+                                        }}
+                                      >
+                                        View {hiddenOptimalCount} more optimal {hiddenOptimalCount === 1 ? 'marker' : 'markers'}
+                                      </button>
+                                    )}
+                                    {isOptExpanded && optimalMarkers.length > OPTIMAL_INITIAL_LIMIT && (
+                                      <button
+                                        onClick={() => toggleOptimalExpand(ps.panel)}
+                                        style={{
+                                          marginTop: '8px', width: '100%', padding: '8px', borderRadius: '8px',
+                                          background: 'transparent', border: `1px solid rgba(45,212,191,0.12)`,
+                                          color: colors.textMuted, fontSize: '12px', fontWeight: 600,
+                                          cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', textAlign: 'center',
+                                        }}
+                                      >
+                                        Hide extra optimal markers
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+
+                                {/* Fallback: no markers mapped to panel */}
+                                {panelMarkers.length === 0 && (
+                                  <p style={{ fontSize: '12px', color: colors.textMuted, textAlign: 'center', padding: '8px 0', margin: 0 }}>
+                                    No markers in this panel.
+                                  </p>
+                                )}
+                              </div>
+                            )}
                           </div>
                         )
                       })}
