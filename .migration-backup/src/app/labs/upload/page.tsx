@@ -1104,7 +1104,7 @@ export default function LabsUploadPage() {
   const [confirmed, setConfirmed] = useState(false)
   const [savedCount, setSavedCount] = useState(0)
   const [labDate, setLabDate] = useState<string>('')
-  const [duplicateWarning, setDuplicateWarning] = useState<{ count: number; slugs: string[] } | null>(null)
+  const [duplicateWarning, setDuplicateWarning] = useState<{ count: number; slugs: string[]; total: number } | null>(null)
   // Tracks which unmatched markers the user has dismissed in the current review flow.
   // Ignored markers are not saved to pending_biomarkers. Reset on handleReset().
   const [ignoredPending, setIgnoredPending] = useState<Set<number>>(new Set())
@@ -1327,7 +1327,7 @@ export default function LabsUploadPage() {
         const existingSet = new Set(existing.map((r: { marker_name: string }) => r.marker_name))
         const overlapping = staged.filter(b => !b.flag_error && existingSet.has(b.slug)).map(b => b.slug)
         if (overlapping.length > 0) {
-          setDuplicateWarning({ count: overlapping.length, slugs: overlapping })
+          setDuplicateWarning({ count: overlapping.length, slugs: overlapping, total: staged.filter(b => !b.flag_error).length })
           return
         }
       }
@@ -1776,52 +1776,79 @@ export default function LabsUploadPage() {
                 </div>
               )}
 
-              {/* Duplicate warning */}
-              {duplicateWarning && (
-                <div style={{
-                  padding: '16px 20px',
-                  backgroundColor: 'rgba(250,204,21,0.07)',
-                  border: '1px solid rgba(250,204,21,0.28)',
-                  borderRadius: '12px',
-                  marginBottom: '16px',
-                }}>
-                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#FCD34D', margin: '0 0 6px' }}>
-                    Possible duplicate detected
-                  </p>
-                  <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 14px', lineHeight: 1.5 }}>
-                    {duplicateWarning.count} {duplicateWarning.count === 1 ? 'biomarker' : 'biomarkers'} from this date may already exist in your history. You can cancel or save anyway.
-                  </p>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button
-                      onClick={() => setDuplicateWarning(null)}
-                      style={{
-                        padding: '8px 16px', borderRadius: '8px',
-                        border: '1px solid rgba(250,204,21,0.3)',
-                        backgroundColor: 'transparent', color: '#FCD34D',
-                        fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => handleConfirm(true)}
-                      style={{
-                        padding: '8px 16px', borderRadius: '8px',
-                        border: '1px solid rgba(250,204,21,0.3)',
-                        backgroundColor: 'rgba(250,204,21,0.1)', color: '#FCD34D',
-                        fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-                      }}
-                    >
-                      Save anyway
-                    </button>
+              {/* Duplicate / overlap notice — 3-tier */}
+              {duplicateWarning && (() => {
+                const ratio = duplicateWarning.total > 0 ? duplicateWarning.count / duplicateWarning.total : 0
+                const level = (duplicateWarning.count <= 2 || ratio < 0.25) ? 'low'
+                            : ratio > 0.70 ? 'high'
+                            : 'moderate'
+                const isLow = level === 'low'
+                return (
+                  <div style={{
+                    padding: '14px 18px',
+                    backgroundColor: isLow ? 'rgba(45,212,191,0.06)' : 'rgba(250,204,21,0.07)',
+                    border: `1px solid ${isLow ? 'rgba(45,212,191,0.25)' : 'rgba(250,204,21,0.28)'}`,
+                    borderRadius: '12px',
+                    marginBottom: '16px',
+                  }}>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: isLow ? colors.teal : '#FCD34D', margin: '0 0 5px' }}>
+                      {level === 'low' ? 'Same-day lab panel detected'
+                        : level === 'high' ? 'Possible duplicate upload'
+                        : 'Possible overlap detected'}
+                    </p>
+                    <p style={{ fontSize: '13px', color: colors.textSoft, margin: `0 0 ${isLow ? '10px' : '14px'}`, lineHeight: 1.5 }}>
+                      {level === 'low'
+                        ? 'Some markers from this date may already exist. Meridian can save this PDF and add the new markers to your Lab Snapshot.'
+                        : level === 'high'
+                        ? 'Most markers in this PDF appear to already exist for this date. Save anyway only if this is a corrected or separate file.'
+                        : 'Some biomarkers from this date may already exist. Review before saving, or save anyway if this is a separate lab panel.'}
+                    </p>
+                    {isLow ? (
+                      <button
+                        onClick={() => setDuplicateWarning(null)}
+                        style={{
+                          padding: '5px 14px', borderRadius: '8px',
+                          border: '1px solid rgba(45,212,191,0.25)',
+                          backgroundColor: 'transparent', color: colors.teal,
+                          fontFamily: fonts.ui, fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                        }}
+                      >
+                        Dismiss
+                      </button>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <button
+                          onClick={() => setDuplicateWarning(null)}
+                          style={{
+                            padding: '8px 16px', borderRadius: '8px',
+                            border: '1px solid rgba(250,204,21,0.3)',
+                            backgroundColor: 'transparent', color: '#FCD34D',
+                            fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                          }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleConfirm(true)}
+                          style={{
+                            padding: '8px 16px', borderRadius: '8px',
+                            border: '1px solid rgba(250,204,21,0.3)',
+                            backgroundColor: 'rgba(250,204,21,0.1)', color: '#FCD34D',
+                            fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                          }}
+                        >
+                          Save anyway
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                )
+              })()}
 
               {/* Action buttons */}
               <div style={{ display: 'flex', gap: '12px' }}>
                 <motion.button
-                  onClick={() => handleConfirm()}
+                  onClick={() => duplicateWarning ? handleConfirm(true) : handleConfirm()}
                   disabled={confirming || !labDate}
                   whileHover={confirming || !labDate ? {} : { scale: 1.02 }}
                   whileTap={confirming || !labDate ? {} : { scale: 0.98 }}

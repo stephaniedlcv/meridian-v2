@@ -1,0 +1,167 @@
+# MERIDIAN — TASK: Refine Same-Day Duplicate Warning for Multi-PDF Lab Uploads
+
+You are working on Meridian — a premium Health Intelligence System.
+
+Stack:
+- Next.js 14 App Router
+- TypeScript
+- Supabase
+- Vercel
+- Inline styles only
+
+IMPORTANT:
+- Real app lives inside `.migration-backup/`
+- Do NOT move files outside `.migration-backup/`
+- Do NOT redesign the app
+- Do NOT add dependencies
+- Do NOT touch Supabase schema
+- Do NOT touch OCR extraction logic
+- Do NOT touch Safety Engine logic
+- Do NOT touch onboarding/auth
+- This is a Labs upload duplicate-warning UX refinement only
+
+PROBLEM:
+When a user uploads a second lab PDF from the same lab date, Meridian may show:
+
+“Possible duplicate detected”
+
+Example:
+- PDF has 15 markers
+- only 1 marker from that date may already exist
+- user is uploading a legitimate same-day multi-panel lab file
+
+This feels too alarming and can discourage users from uploading routine labs that are split across multiple PDFs.
+
+GOAL:
+Refine duplicate detection messaging so Meridian distinguishes between:
+1. true duplicate upload
+2. same-day multi-panel upload with small overlap
+3. high-overlap upload that likely is a duplicate
+
+────────────────────
+TASK 1 — INSPECT CURRENT DUPLICATE DETECTION
+────────────────────
+
+Inspect:
+
+- `.migration-backup/src/app/labs/upload/page.tsx`
+- any duplicate detection helper used during lab review/save
+
+Find:
+- how duplicate markers are counted
+- how the warning is triggered
+- whether it checks marker name + date only
+- whether it checks value/unit/panel/source PDF
+- how “Save anyway” works
+
+Do NOT change database save logic unless required for this warning refinement.
+
+────────────────────
+TASK 2 — CHANGE WARNING LEVEL BASED ON OVERLAP RATIO
+────────────────────
+
+Use overlap ratio:
+
+duplicateCount / totalMarkersInCurrentUpload
+
+Suggested behavior:
+
+A) Low overlap:
+- duplicateCount <= 2
+OR duplicate ratio < 25%
+
+This should be treated as a soft same-day panel notice, not a duplicate warning.
+
+Copy:
+“Same-day lab panel detected”
+“Some markers from this date may already exist. Meridian can save this PDF and add the new markers to your Lab Snapshot.”
+
+Buttons:
+- Primary action remains normal confirm/save
+- Secondary: Cancel if needed
+- Do NOT make the user feel blocked
+
+B) Moderate overlap:
+- duplicate ratio 25%–70%
+
+Copy:
+“Possible overlap detected”
+“Some biomarkers from this date may already exist. Review before saving, or save anyway if this is a separate lab panel.”
+
+C) High overlap:
+- duplicate ratio > 70%
+
+Copy:
+“Possible duplicate upload”
+“Most markers in this PDF appear to already exist for this date. Save anyway only if this is a corrected or separate file.”
+
+Keep “Save anyway” for this case.
+
+────────────────────
+TASK 3 — UPDATE VISUAL TONE
+────────────────────
+
+For low-overlap same-day panel:
+- use softer teal/amber notice
+- less alarming than current yellow duplicate card
+- do not make it look like an error
+
+For high-overlap duplicate:
+- current amber warning style is acceptable
+
+Do NOT change global design tokens.
+
+────────────────────
+TASK 4 — PRESERVE USER CONTROL
+────────────────────
+
+Users should always be able to:
+- cancel
+- save anyway
+- confirm markers
+
+But the primary button should remain clear.
+
+If there are 15 markers and only 1 overlap:
+- user should not feel like the upload is wrong
+- “Confirm 15 markers” should remain the obvious primary action
+
+────────────────────
+TASK 5 — DO NOT CREATE FAKE DEDUPLICATION
+────────────────────
+
+Do NOT silently delete markers.
+Do NOT silently skip overlapping markers unless existing logic already does that.
+Do NOT invent source PDF hashing.
+Do NOT change confirmed saved data behavior in this task.
+
+This task is about making the warning smarter and less disruptive.
+
+────────────────────
+ACCEPTANCE CRITERIA
+────────────────────
+
+After implementation:
+
+1. Upload with 15 markers and 1 overlap shows “Same-day lab panel detected,” not “Possible duplicate detected.”
+2. High-overlap uploads still warn as possible duplicate.
+3. User can still save anyway.
+4. Confirm button remains available.
+5. Existing save logic is preserved.
+6. Build passes.
+7. No files outside `.migration-backup/` modified.
+
+────────────────────
+RETURN FORMAT
+────────────────────
+
+Return:
+
+1. Files inspected
+2. Files changed
+3. Current duplicate logic found
+4. New overlap thresholds
+5. New copy for low/moderate/high overlap
+6. What save behavior was preserved
+7. Build result
+8. Confirmation no files outside `.migration-backup/` were modified
