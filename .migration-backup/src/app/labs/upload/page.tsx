@@ -1493,7 +1493,17 @@ export default function LabsUploadPage() {
             </p>
             {/* ── Snapshot | History toggle ── */}
             {hasRecentLabs && (
-              <div style={{ display: 'flex', gap: '6px', marginBottom: '20px' }}>
+              <div style={{
+                display: 'inline-flex',
+                gap: '3px',
+                marginBottom: '20px',
+                padding: '4px',
+                backgroundColor: 'rgba(232,248,245,0.04)',
+                border: `1px solid ${colors.cardBorder}`,
+                borderRadius: '24px',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+              }}>
                 {(['snapshot', 'history'] as const).map(view => {
                   const isActive = labsView === view
                   return (
@@ -1504,18 +1514,20 @@ export default function LabsUploadPage() {
                         if (view === 'history' && !histFetched) loadHistoryData()
                       }}
                       style={{
-                        padding: '7px 18px',
+                        padding: '6px 20px',
                         borderRadius: '20px',
                         fontSize: '13px',
                         fontWeight: 600,
                         fontFamily: fonts.ui,
                         cursor: 'pointer',
-                        border: isActive ? `1px solid rgba(45,212,191,0.45)` : `1px solid ${colors.cardBorder}`,
-                        backgroundColor: isActive ? 'rgba(45,212,191,0.12)' : 'transparent',
+                        border: 'none',
+                        backgroundColor: isActive ? 'rgba(45,212,191,0.14)' : 'transparent',
                         color: isActive ? colors.teal : colors.textMuted,
-                        transition: 'all 0.15s ease',
+                        transition: 'background 0.15s ease, color 0.15s ease',
                         letterSpacing: '0.01em',
                         outline: 'none',
+                        boxShadow: isActive ? 'inset 0 1px 0 rgba(45,212,191,0.18)' : 'none',
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {view === 'snapshot' ? 'Snapshot' : 'History'}
@@ -2298,7 +2310,7 @@ export default function LabsUploadPage() {
                 )}
                 {/* Year groups */}
                 {!histLoading && histGroupRows(histBiomarkers).map(yearGroup => (
-                  <div key={yearGroup.year} style={{ marginBottom: '48px' }}>
+                  <div key={yearGroup.year} style={{ marginBottom: '36px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
                       <span style={{ fontFamily: fonts.heading, fontSize: '22px', fontWeight: 700, color: colors.text, letterSpacing: '-0.02em' }}>{yearGroup.year}</span>
                       <div style={{ flex: 1, height: '1px', backgroundColor: colors.cardBorder }} />
@@ -2406,79 +2418,76 @@ export default function LabsUploadPage() {
                     ))}
                   </div>
                 ))}
-                {/* Footer count */}
-                {!histLoading && histBiomarkers.length > 0 && (
-                  <p style={{ fontSize: '12px', color: colors.textMuted, textAlign: 'center', marginTop: '4px', marginBottom: '4px' }}>
-                    {histBiomarkers.length} total biomarkers saved
-                  </p>
-                )}
               </div>
             )}
 
             {/* ════════════════════════════════════════════════════════════════
-                UPLOAD AREA — always shown when not in active upload flow
+                UPLOAD AREA — Snapshot view only
                 ════════════════════════════════════════════════════════════════ */}
+            {labsView === 'snapshot' && (
+              <>
+                {/* Upload section heading (only shown when recent labs exist, to distinguish the CTA) */}
+                {hasRecentLabs && (
+                  <p style={{
+                    fontSize: '11px', fontWeight: 700, letterSpacing: '0.04em',
+                    color: colors.textMuted, textTransform: 'uppercase', marginBottom: '12px',
+                  }}>
+                    Upload New Lab
+                  </p>
+                )}
 
-            {/* Upload section heading (only shown when recent labs exist, to distinguish the CTA) */}
-            {hasRecentLabs && (
-              <p style={{
-                fontSize: '11px', fontWeight: 700, letterSpacing: '0.04em',
-                color: colors.textMuted, textTransform: 'uppercase', marginBottom: '12px',
-              }}>
-                Upload New Lab
-              </p>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: hasRecentLabs ? 0.2 : 0.15 }}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleFileSelect}
+                    style={{ display: 'none' }}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      width: '100%',
+                      padding: hasRecentLabs ? '28px 24px' : '60px 24px',
+                      backgroundColor: colors.cardBg,
+                      border: `2px dashed ${colors.cardBorder}`,
+                      borderRadius: '16px',
+                      cursor: 'pointer',
+                      backdropFilter: 'blur(24px)',
+                      WebkitBackdropFilter: 'blur(24px)',
+                      display: 'flex',
+                      flexDirection: hasRecentLabs ? 'row' : 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '14px',
+                      transition: 'border-color 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.teal }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.cardBorder }}
+                  >
+                    <svg width={hasRecentLabs ? 24 : 48} height={hasRecentLabs ? 24 : 48} viewBox="0 0 24 24" fill="none" stroke={colors.teal} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="12" y1="18" x2="12" y2="12" />
+                      <line x1="9" y1="15" x2="12" y2="12" />
+                      <line x1="15" y1="15" x2="12" y2="12" />
+                    </svg>
+                    <div style={{ textAlign: hasRecentLabs ? 'left' : 'center' }}>
+                      <span style={{ fontSize: hasRecentLabs ? '14px' : '16px', fontWeight: 600, color: colors.text, display: 'block' }}>
+                        {hasRecentLabs ? 'Upload another lab PDF' : 'Choose PDF file'}
+                      </span>
+                      <span style={{ fontSize: '13px', color: colors.textMuted, display: 'block', marginTop: '2px' }}>
+                        Max 10MB · PDF only
+                      </span>
+                    </div>
+                  </button>
+                </motion.div>
+              </>
             )}
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: hasRecentLabs ? 0.2 : 0.15 }}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileSelect}
-                style={{ display: 'none' }}
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                style={{
-                  width: '100%',
-                  padding: hasRecentLabs ? '28px 24px' : '60px 24px',
-                  backgroundColor: colors.cardBg,
-                  border: `2px dashed ${colors.cardBorder}`,
-                  borderRadius: '16px',
-                  cursor: 'pointer',
-                  backdropFilter: 'blur(24px)',
-                  WebkitBackdropFilter: 'blur(24px)',
-                  display: 'flex',
-                  flexDirection: hasRecentLabs ? 'row' : 'column',
-                  alignItems: 'center',
-                  justifyContent: hasRecentLabs ? 'center' : 'center',
-                  gap: '14px',
-                  transition: 'border-color 0.2s ease',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.teal }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.cardBorder }}
-              >
-                <svg width={hasRecentLabs ? 24 : 48} height={hasRecentLabs ? 24 : 48} viewBox="0 0 24 24" fill="none" stroke={colors.teal} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="12" y1="18" x2="12" y2="12" />
-                  <line x1="9" y1="15" x2="12" y2="12" />
-                  <line x1="15" y1="15" x2="12" y2="12" />
-                </svg>
-                <div style={{ textAlign: hasRecentLabs ? 'left' : 'center' }}>
-                  <span style={{ fontSize: hasRecentLabs ? '14px' : '16px', fontWeight: 600, color: colors.text, display: 'block' }}>
-                    {hasRecentLabs ? 'Upload another lab PDF' : 'Choose PDF file'}
-                  </span>
-                  <span style={{ fontSize: '13px', color: colors.textMuted, display: 'block', marginTop: '2px' }}>
-                    Max 10MB · PDF only
-                  </span>
-                </div>
-              </button>
-            </motion.div>
           </>
         )}
 

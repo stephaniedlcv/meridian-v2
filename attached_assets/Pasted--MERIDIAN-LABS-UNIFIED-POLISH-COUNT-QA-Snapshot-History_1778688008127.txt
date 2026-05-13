@@ -1,0 +1,267 @@
+# MERIDIAN — LABS UNIFIED POLISH + COUNT QA
+# Snapshot | History cleanup after merging History into Labs
+
+You are working on Meridian — a premium Health Intelligence System.
+
+Stack:
+- Next.js 14 App Router
+- TypeScript
+- Supabase
+- Vercel
+- Inline styles only
+
+IMPORTANT:
+- Real app lives inside `.migration-backup/`
+- Do NOT move files outside `.migration-backup/`
+- Do NOT redesign globally
+- Do NOT add dependencies
+- Do NOT touch onboarding/auth
+- Do NOT touch OCR parsing
+- Do NOT touch Safety Engine thresholds
+- Do NOT touch `/api/insight`
+- Do NOT change Supabase schema
+- This is a Labs UX polish + count correctness QA task only
+
+CONTEXT:
+History was moved inside Labs as an internal `Snapshot | History` toggle.
+
+Current architecture:
+- Home = current biological signal
+- Labs = evidence layer: Snapshot + History
+- Protocol = action layer
+- Profile = identity/personalization
+
+Now we need to clean up the unified Labs experience so it feels intentional and the counts are not confusing.
+
+────────────────────
+TASK 1 — AUDIT CURRENT LABS COUNTS
+────────────────────
+
+Inspect `.migration-backup/src/app/labs/upload/page.tsx`.
+
+Review all count displays in both views:
+
+Snapshot:
+- latest collection date
+- Biomarkers count
+- Panels count
+- status chips/counts
+- Needs Attention count
+- panel summary count
+
+History:
+- year/month/date group count
+- biomarker count
+- panel count
+- panel accordion marker count
+- status dot counts
+- “total biomarkers saved” text
+
+Known issue:
+The UI may show something like:
+- Snapshot: `1 biomarker · 1 panel`
+- History: `1 biomarker · 1 panel`
+- But also: `3 total biomarkers saved`
+
+This can confuse users unless clearly explained.
+
+Determine exactly what each number is counting:
+- unique current biomarkers?
+- latest snapshot markers?
+- total historical records?
+- duplicate saved rows?
+- total rows in Supabase?
+- validated markers only?
+
+Do NOT guess. Inspect the data transformation logic.
+
+────────────────────
+TASK 2 — FIX CONFUSING COUNT COPY
+────────────────────
+
+Make counts user-clear and truthful.
+
+Rules:
+- Snapshot should count the current/latest deduped biomarker snapshot.
+- History should count historical saved records only if clearly labeled.
+- Avoid showing raw total row counts if they confuse the user.
+- If a count is historical total, label it clearly.
+- If it does not add value, remove the “total biomarkers saved” text.
+
+Recommended:
+If “3 total biomarkers saved” is counting raw rows and conflicts with visible deduped markers, remove it or change it to something like:
+“Historical records may include repeated biomarkers across lab dates.”
+
+But prefer simple over explanatory clutter.
+
+Do NOT fake counts.
+Do NOT hide important archive data.
+Do NOT change saved data.
+
+────────────────────
+TASK 3 — POLISH SNAPSHOT | HISTORY TOGGLE
+────────────────────
+
+Review the toggle visually.
+
+Requirements:
+- Premium glassy chip style
+- Active state obvious but not neon
+- Inactive state readable
+- Labels aligned and evenly spaced
+- Works on iPhone SE width
+- Does not feel like a generic segmented control
+- Uses existing Meridian colors/tokens
+
+Do not change global typography.
+Do not overstyle.
+
+────────────────────
+TASK 4 — HISTORY INSIDE LABS LAYOUT QA
+────────────────────
+
+Since History now lives inside Labs, verify layout feels intentional:
+
+- Year heading spacing
+- Month label spacing
+- Date row spacing
+- Panel accordion spacing
+- Delete button alignment
+- Empty/loading states
+- History content not too close to upload area
+- Bottom nav does not cover content
+
+Make small spacing adjustments only if needed.
+
+Do NOT redesign accordions.
+Do NOT rewrite History logic.
+
+────────────────────
+TASK 5 — UPLOAD AREA BEHAVIOR IN HISTORY VIEW
+────────────────────
+
+Currently Upload New Lab may appear below both Snapshot and History.
+
+Decide the cleanest Phase 1 behavior:
+
+Option A:
+Keep upload area visible in both Snapshot and History, but ensure spacing/copy feels intentional.
+
+Option B:
+Only show upload area in Snapshot, and keep History focused on archive.
+
+Preferred:
+Use the option that feels most premium and least cluttered.
+
+If keeping it in History, consider copy:
+“Upload another lab PDF”
+
+Do NOT remove upload functionality from Labs entirely.
+
+────────────────────
+TASK 6 — DETAIL SHEET QA
+────────────────────
+
+Verify biomarker detail sheets still work from:
+
+- Snapshot cards
+- History accordion biomarkers
+
+Check:
+- opens correctly
+- not fullscreen unless intentionally mobile
+- range bar displays correctly
+- status badge correct
+- Safety Note still appears for critical markers
+- no broken missing range UI
+- bottom safe-area padding works
+
+Fix only small visual or prop issues if found.
+
+────────────────────
+TASK 7 — ROUTE + CTA QA
+────────────────────
+
+Verify:
+
+1. Bottom nav remains:
+   Home · Labs · Protocol · Profile
+
+2. `/labs/upload` opens Snapshot by default.
+
+3. `/labs/upload?view=history` opens History.
+
+4. `/labs/history` redirects to `/labs/upload?view=history`.
+
+5. Home CTA “View Lab History” points to the History view inside Labs.
+
+6. History button inside Snapshot switches the internal view, not a separate bottom-nav page.
+
+────────────────────
+TASK 8 — MOBILE QA
+────────────────────
+
+Check mobile/iPhone SE layout:
+
+- toggle fits
+- cards fit
+- History rows fit
+- Delete button does not crowd text
+- bottom nav does not overlap final content
+- upload area can be reached
+- no horizontal scroll
+
+Make small spacing fixes only if needed.
+
+────────────────────
+DO NOT CHANGE
+────────────────────
+
+Do NOT change:
+- onboarding
+- auth
+- profile
+- dashboard insight logic
+- `/api/insight`
+- Supabase schema
+- Safety Engine thresholds
+- OCR extraction
+- biomarker classification logic
+- Protocol page
+
+────────────────────
+ACCEPTANCE CRITERIA
+────────────────────
+
+After this task:
+
+1. Snapshot counts are clear and truthful.
+2. History counts are clear and truthful.
+3. No confusing “total saved” count remains unless clearly labeled.
+4. Snapshot | History toggle feels premium.
+5. History inside Labs feels intentional.
+6. Upload area behavior is clean.
+7. Detail sheets still work from both Snapshot and History.
+8. Routes and CTAs work.
+9. iPhone SE layout is clean.
+10. Build passes.
+11. No files outside `.migration-backup/` modified.
+
+────────────────────
+RETURN FORMAT
+────────────────────
+
+Return:
+
+1. Files inspected
+2. Files changed
+3. Count audit findings
+4. Count/copy fixes made
+5. Toggle polish changes
+6. History layout changes
+7. Upload area decision
+8. Detail sheet QA findings
+9. Route/CTA QA findings
+10. Mobile QA findings
+11. Build result
+12. Confirmation no files outside `.migration-backup/` were modified
