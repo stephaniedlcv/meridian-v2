@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 import { runDecisionEngine, BiomarkerRecord } from '@/lib/decision-engine'
 import { CANONICAL_DICTIONARY } from '@/lib/canonical-dictionary'
 
+export const dynamic = 'force-dynamic'
+
 // ===== TYPES =====
 
 interface GoldenInsight {
@@ -313,7 +315,7 @@ Generate the Golden Insight for this user's daily priority.`
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 1000,
         temperature: 0.3,
         system: systemPrompt,
@@ -325,11 +327,14 @@ Generate the Golden Insight for this user's daily priority.`
 
     if (!anthropicResponse.ok) {
       const errorText = await anthropicResponse.text()
-      console.error('Claude API error:', errorText)
-      return NextResponse.json(
-        { success: false, error: 'Failed to generate insight' },
-        { status: 500 }
-      )
+      console.error('[insight] Claude API error — status:', anthropicResponse.status, 'body:', errorText.slice(0, 300))
+      return NextResponse.json({
+        success: true,
+        state: 'labs_saved',
+        insight: null,
+        dominant_marker: engineResult.dominant?.slug ?? null,
+        safety_alert: engineResult.has_safety_alert,
+      } satisfies InsightResponse)
     }
 
     const anthropicData = await anthropicResponse.json()
@@ -343,11 +348,14 @@ Generate the Golden Insight for this user's daily priority.`
       const cleaned = rawText.replace(/```json|```/g, '').trim()
       insight = JSON.parse(cleaned)
     } catch {
-      console.error('Failed to parse insight:', rawText)
-      return NextResponse.json(
-        { success: false, error: 'Failed to parse generated insight' },
-        { status: 500 }
-      )
+      console.error('[insight] Failed to parse Claude response:', rawText.slice(0, 300))
+      return NextResponse.json({
+        success: true,
+        state: 'labs_saved',
+        insight: null,
+        dominant_marker: engineResult.dominant?.slug ?? null,
+        safety_alert: engineResult.has_safety_alert,
+      } satisfies InsightResponse)
     }
 
     // ===== GUARDRAIL 1: Hallucination check =====
@@ -390,10 +398,13 @@ Generate the Golden Insight for this user's daily priority.`
 
     return NextResponse.json(response)
   } catch (error) {
-    console.error('Insight API error:', error)
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    )
+    console.error('[insight] Unhandled error:', error instanceof Error ? error.message : String(error))
+    return NextResponse.json({
+      success: true,
+      state: 'insight_unavailable',
+      insight: null,
+      dominant_marker: null,
+      safety_alert: false,
+    } satisfies InsightResponse)
   }
 }
