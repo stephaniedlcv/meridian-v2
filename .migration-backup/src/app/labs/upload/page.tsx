@@ -117,11 +117,137 @@ const PANEL_ORDER = [
   'Hormones', 'Inflammation / Cardiac Risk', 'Other',
 ]
 
-// How many Optimal markers to show before progressive disclosure
-const OPTIMAL_INITIAL_LIMIT = 3
+// ── Snapshot view mode ────────────────────────────────────────────────────────
+type SnapshotViewMode = 'clinical_panels' | 'signal_map'
 
-// State sort priority for expanded panel marker lists
-const STATE_SORT_PRIORITY: Record<string, number> = { Critical: 0, Attention: 1, Watch: 2, Optimal: 3 }
+// How many Optimal markers to show before progressive disclosure
+const OPTIMAL_SHOW_LIMIT = 5
+
+// Marker state sort priority (Critical first)
+const SNAPSHOT_STATE_SORT: Record<string, number> = { Critical: 0, Attention: 1, Watch: 2, Optimal: 3 }
+
+// ── Clinical Panels mapping ───────────────────────────────────────────────────
+const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
+  // CBC
+  wbc: 'CBC', rbc: 'CBC', hemoglobin: 'CBC', hematocrit: 'CBC',
+  mcv: 'CBC', mch: 'CBC', mchc: 'CBC', rdw: 'CBC',
+  platelets: 'CBC', platelet_count: 'CBC', platelet_count_abs: 'CBC', mpv: 'CBC',
+  neutrophils_pct: 'CBC', neutrophils_abs: 'CBC',
+  lymphocytes_pct: 'CBC', lymphocytes_abs: 'CBC',
+  monocytes_pct: 'CBC', monocytes_abs: 'CBC',
+  eosinophils_pct: 'CBC', eosinophils_abs: 'CBC',
+  basophils_pct: 'CBC', basophils_abs: 'CBC',
+  immature_granulocytes_pct: 'CBC', immature_granulocytes_abs: 'CBC',
+  // Comprehensive Metabolic Panel
+  bun: 'Comprehensive Metabolic Panel', creatinine: 'Comprehensive Metabolic Panel',
+  egfr: 'Comprehensive Metabolic Panel', egfr_african_american: 'Comprehensive Metabolic Panel',
+  egfr_non_african_american: 'Comprehensive Metabolic Panel',
+  bun_creatinine_ratio: 'Comprehensive Metabolic Panel',
+  sodium: 'Comprehensive Metabolic Panel', potassium: 'Comprehensive Metabolic Panel',
+  chloride: 'Comprehensive Metabolic Panel', co2: 'Comprehensive Metabolic Panel',
+  calcium: 'Comprehensive Metabolic Panel', total_protein: 'Comprehensive Metabolic Panel',
+  albumin: 'Comprehensive Metabolic Panel', globulin: 'Comprehensive Metabolic Panel',
+  ag_ratio: 'Comprehensive Metabolic Panel', bilirubin_total: 'Comprehensive Metabolic Panel',
+  alkaline_phosphatase: 'Comprehensive Metabolic Panel',
+  ast: 'Comprehensive Metabolic Panel', alt: 'Comprehensive Metabolic Panel',
+  glucose_fasting: 'Comprehensive Metabolic Panel',
+  // Lipid Panel
+  total_cholesterol: 'Lipid Panel', hdl: 'Lipid Panel', ldl: 'Lipid Panel',
+  vldl: 'Lipid Panel', non_hdl: 'Lipid Panel', triglycerides: 'Lipid Panel',
+  ldl_hdl_ratio: 'Lipid Panel', chol_hdl_ratio: 'Lipid Panel',
+  // Glycemic Panel
+  hba1c: 'Glycemic Panel', insulin_fasting: 'Glycemic Panel',
+  // Thyroid Panel
+  tsh: 'Thyroid Panel', free_t4: 'Thyroid Panel', free_t3: 'Thyroid Panel', total_t3: 'Thyroid Panel',
+  // Vitamin & Nutrient Panel
+  vitamin_d: 'Vitamin & Nutrient Panel', vitamin_b12: 'Vitamin & Nutrient Panel',
+  folate: 'Vitamin & Nutrient Panel', magnesium: 'Vitamin & Nutrient Panel',
+  // Iron Panel
+  ferritin: 'Iron Panel',
+  // Hormone Panel
+  testosterone_total: 'Hormone Panel', dhea_s: 'Hormone Panel', cortisol_am: 'Hormone Panel',
+  // Inflammation Markers
+  crp_hs: 'Inflammation Markers', homocysteine: 'Inflammation Markers',
+}
+
+const CLINICAL_PANEL_ORDER = [
+  'CBC', 'Comprehensive Metabolic Panel', 'Lipid Panel', 'Glycemic Panel',
+  'Thyroid Panel', 'Vitamin & Nutrient Panel', 'Iron Panel', 'Hormone Panel',
+  'Inflammation Markers', 'Other',
+]
+
+const CLINICAL_PANEL_EDUCATION: Record<string, string> = {
+  'CBC':                           'Complete blood count — cell counts and indices that reflect immune health, oxygen transport, and clotting.',
+  'Comprehensive Metabolic Panel': 'Metabolic, kidney, liver, and electrolyte markers that map your body\'s chemical balance.',
+  'Lipid Panel':                   'Cholesterol transport and cardiovascular risk signals over time.',
+  'Glycemic Panel':                'Blood sugar regulation and longer-term glucose control patterns.',
+  'Thyroid Panel':                 'Thyroid hormone signaling that influences metabolism, energy, and recovery.',
+  'Vitamin & Nutrient Panel':      'Micronutrient status and possible support needs over time.',
+  'Iron Panel':                    'Iron storage and supply markers relevant to energy and blood health.',
+  'Hormone Panel':                 'Hormonal signals related to energy, recovery, cycle patterns, and stress.',
+  'Inflammation Markers':          'Inflammation signals relevant to cardiovascular and systemic risk context.',
+  'Other':                         'Additional markers that add context to your biological profile.',
+}
+
+// ── Signal Map mapping ────────────────────────────────────────────────────────
+const SIGNAL_SLUG_TO_LAYER: Record<string, string> = {
+  // Cardiovascular
+  total_cholesterol: 'Cardiovascular', hdl: 'Cardiovascular', ldl: 'Cardiovascular',
+  vldl: 'Cardiovascular', non_hdl: 'Cardiovascular', triglycerides: 'Cardiovascular',
+  ldl_hdl_ratio: 'Cardiovascular', chol_hdl_ratio: 'Cardiovascular', homocysteine: 'Cardiovascular',
+  // Metabolic
+  glucose_fasting: 'Metabolic', hba1c: 'Metabolic', insulin_fasting: 'Metabolic',
+  sodium: 'Metabolic', potassium: 'Metabolic', chloride: 'Metabolic', co2: 'Metabolic', calcium: 'Metabolic',
+  // Renal / Filtration
+  egfr: 'Renal / Filtration', egfr_african_american: 'Renal / Filtration',
+  egfr_non_african_american: 'Renal / Filtration',
+  creatinine: 'Renal / Filtration', bun: 'Renal / Filtration', bun_creatinine_ratio: 'Renal / Filtration',
+  // Liver
+  ast: 'Liver', alt: 'Liver', alkaline_phosphatase: 'Liver',
+  bilirubin_total: 'Liver', albumin: 'Liver', total_protein: 'Liver',
+  globulin: 'Liver', ag_ratio: 'Liver',
+  // Thyroid / Energy
+  tsh: 'Thyroid / Energy', free_t4: 'Thyroid / Energy', free_t3: 'Thyroid / Energy', total_t3: 'Thyroid / Energy',
+  // Blood / Oxygen
+  hemoglobin: 'Blood / Oxygen', hematocrit: 'Blood / Oxygen', rbc: 'Blood / Oxygen',
+  mcv: 'Blood / Oxygen', mch: 'Blood / Oxygen', mchc: 'Blood / Oxygen', rdw: 'Blood / Oxygen',
+  platelets: 'Blood / Oxygen', platelet_count: 'Blood / Oxygen', platelet_count_abs: 'Blood / Oxygen', mpv: 'Blood / Oxygen',
+  // Immune
+  wbc: 'Immune',
+  neutrophils_pct: 'Immune', neutrophils_abs: 'Immune',
+  lymphocytes_pct: 'Immune', lymphocytes_abs: 'Immune',
+  monocytes_pct: 'Immune', monocytes_abs: 'Immune',
+  eosinophils_pct: 'Immune', eosinophils_abs: 'Immune',
+  basophils_pct: 'Immune', basophils_abs: 'Immune',
+  immature_granulocytes_pct: 'Immune', immature_granulocytes_abs: 'Immune',
+  // Vitamins & Nutrients
+  vitamin_d: 'Vitamins & Nutrients', vitamin_b12: 'Vitamins & Nutrients',
+  folate: 'Vitamins & Nutrients', magnesium: 'Vitamins & Nutrients', ferritin: 'Vitamins & Nutrients',
+  // Hormones
+  testosterone_total: 'Hormones', dhea_s: 'Hormones', cortisol_am: 'Hormones',
+  // Inflammation
+  crp_hs: 'Inflammation',
+}
+
+const SIGNAL_LAYER_ORDER = [
+  'Cardiovascular', 'Metabolic', 'Renal / Filtration', 'Liver', 'Thyroid / Energy',
+  'Blood / Oxygen', 'Immune', 'Vitamins & Nutrients', 'Hormones', 'Inflammation', 'Urinary', 'Other',
+]
+
+const SIGNAL_LAYER_EDUCATION: Record<string, string> = {
+  'Cardiovascular':       'Lipid transport, vascular risk signals, and cardiovascular context.',
+  'Metabolic':            'Blood sugar regulation, electrolyte balance, and energy metabolism.',
+  'Renal / Filtration':   'Kidney filtration capacity and waste-clearance markers.',
+  'Liver':                'Liver enzyme patterns and protein metabolism context.',
+  'Thyroid / Energy':     'Thyroid hormone signaling for metabolism, energy, and recovery.',
+  'Blood / Oxygen':       'Red cell indices, oxygen transport, and platelet markers.',
+  'Immune':               'White cell counts and immune cell distribution patterns.',
+  'Vitamins & Nutrients': 'Micronutrient status and possible support needs over time.',
+  'Hormones':             'Hormonal signals related to energy, recovery, and stress.',
+  'Inflammation':         'Systemic inflammation signals and cardiovascular risk context.',
+  'Urinary':              'Kidney and urinary tract markers.',
+  'Other':                'Additional markers that add context to your biological profile.',
+}
 
 const PANEL_EDUCATION: Record<string, string> = {
   'CBC':                      'This panel helps Meridian understand blood cell patterns, oxygen-carrying capacity, and immune cell context.',
@@ -1133,8 +1259,8 @@ export default function LabsUploadPage() {
   const [deleteConfirmDate, setDeleteConfirmDate] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  // ── Snapshot panel expansion state ───────────────────────────────────────────
-  const [expandedSnapshotPanels, setExpandedSnapshotPanels] = useState<Set<string>>(new Set())
+  // ── Snapshot view mode + progressive disclosure ──────────────────────────────
+  const [snapshotViewMode, setSnapshotViewMode] = useState<SnapshotViewMode>('clinical_panels')
   const [optimalExpanded, setOptimalExpanded] = useState<Set<string>>(new Set())
 
   // ── Auth + data fetch ────────────────────────────────────────────────────────
@@ -1444,32 +1570,45 @@ export default function LabsUploadPage() {
     return Array.from(groupMap, ([panel, markers]) => ({ panel, markers }))
   })()
 
-  // Snapshot markers grouped by panel, sorted Critical → Attention → Watch → Optimal
-  const snapshotMarkersByPanel: Record<string, RecentBiomarker[]> = (() => {
-    const m: Record<string, RecentBiomarker[]> = {}
+  // ── Current marker groups for Snapshot view mode ─────────────────────────────
+  const currentMarkerGroups = (() => {
+    if (!hasRecentLabs) return []
+    const slugMap = snapshotViewMode === 'clinical_panels' ? CLINICAL_SLUG_TO_PANEL : SIGNAL_SLUG_TO_LAYER
+    const order   = snapshotViewMode === 'clinical_panels' ? CLINICAL_PANEL_ORDER   : SIGNAL_LAYER_ORDER
+    const eduMap  = snapshotViewMode === 'clinical_panels' ? CLINICAL_PANEL_EDUCATION : SIGNAL_LAYER_EDUCATION
+    const groupMap = new Map<string, RecentBiomarker[]>()
     for (const b of snapshotBiomarkers) {
-      const p = inferPanel(b.marker_name)
-      if (!m[p]) m[p] = []
-      m[p].push(b)
+      const g = slugMap[b.marker_name] ?? 'Other'
+      if (!groupMap.has(g)) groupMap.set(g, [])
+      groupMap.get(g)!.push(b)
     }
-    for (const p of Object.keys(m)) {
-      m[p].sort((a, b) => (STATE_SORT_PRIORITY[a.state ?? ''] ?? 9) - (STATE_SORT_PRIORITY[b.state ?? ''] ?? 9))
-    }
-    return m
+    return Array.from(groupMap.entries())
+      .map(([label, markers]) => {
+        const sorted = [...markers].sort((a, b) => (SNAPSHOT_STATE_SORT[a.state ?? ''] ?? 9) - (SNAPSHOT_STATE_SORT[b.state ?? ''] ?? 9))
+        return {
+          key: label,
+          label,
+          count: sorted.length,
+          stateCounts: {
+            Critical:  sorted.filter(b => b.state === 'Critical').length,
+            Attention: sorted.filter(b => b.state === 'Attention').length,
+            Watch:     sorted.filter(b => b.state === 'Watch').length,
+            Optimal:   sorted.filter(b => b.state === 'Optimal').length,
+          },
+          markers: sorted,
+          education: eduMap[label] ?? 'This group adds context to your biological profile.',
+        }
+      })
+      .sort((a, b) => {
+        const ai = order.indexOf(a.label); const bi = order.indexOf(b.label)
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
+      })
   })()
 
-  function toggleSnapshotPanel(panel: string) {
-    setExpandedSnapshotPanels(prev => {
-      const next = new Set(prev)
-      if (next.has(panel)) { next.delete(panel) } else { next.add(panel) }
-      return next
-    })
-  }
-
-  function toggleOptimalExpand(panel: string) {
+  function toggleOptimalExpand(key: string) {
     setOptimalExpanded(prev => {
       const next = new Set(prev)
-      if (next.has(panel)) { next.delete(panel) } else { next.add(panel) }
+      if (next.has(key)) { next.delete(key) } else { next.add(key) }
       return next
     })
   }
@@ -2284,92 +2423,100 @@ export default function LabsUploadPage() {
                       </div>
                     )}
 
-                    {/* ── Panel summary cards — expandable ── */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {panelSummaries.map(ps => {
-                        const sc = ps.stateCounts
-                        const isExpanded = expandedSnapshotPanels.has(ps.panel)
-                        const panelMarkers = snapshotMarkersByPanel[ps.panel] ?? []
-                        const abnormalMarkers = panelMarkers.filter(b => b.state !== 'Optimal')
-                        const optimalMarkers = panelMarkers.filter(b => b.state === 'Optimal')
-                        const isOptExpanded = optimalExpanded.has(ps.panel)
-                        const hiddenOptimalCount = Math.max(0, optimalMarkers.length - OPTIMAL_INITIAL_LIMIT)
-                        const visibleOptimal = isOptExpanded ? optimalMarkers : optimalMarkers.slice(0, OPTIMAL_INITIAL_LIMIT)
-                        return (
-                          <div key={ps.panel} style={{
-                            backgroundColor: colors.cardBg,
-                            border: `1px solid ${colors.cardBorder}`,
-                            borderRadius: '14px',
-                            backdropFilter: 'blur(24px)',
-                            WebkitBackdropFilter: 'blur(24px)',
-                            overflow: 'hidden',
-                          }}>
-                            {/* ── Card header ── */}
-                            <div style={{ padding: '14px 18px 14px' }}>
-                              {/* Title + count + state dots */}
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text, flex: 1, minWidth: '100px' }}>{ps.panel}</span>
-                                <span style={{ fontSize: '11px', color: colors.textMuted, whiteSpace: 'nowrap' }}>
-                                  {ps.count} {ps.count === 1 ? 'marker' : 'markers'}
-                                </span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
-                                  {sc.Critical > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#F87171' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#F87171', display: 'inline-block' }} />{sc.Critical}</span>}
-                                  {sc.Attention > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FB923C' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />{sc.Attention}</span>}
-                                  {sc.Watch > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FCD34D' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FCD34D', display: 'inline-block' }} />{sc.Watch}</span>}
-                                  {sc.Optimal > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#2DD4BF' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />{sc.Optimal}</span>}
+                    {/* ── View mode control ── */}
+                    <div style={{ marginBottom: '20px' }}>
+                      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: colors.textMuted, marginBottom: '10px' }}>
+                        View mode
+                      </p>
+                      {/* Segmented control */}
+                      <div style={{
+                        display: 'inline-flex',
+                        backgroundColor: 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${colors.cardBorder}`,
+                        borderRadius: '10px',
+                        padding: '3px',
+                        gap: '2px',
+                      }}>
+                        <button
+                          onClick={() => { setSnapshotViewMode('clinical_panels'); setOptimalExpanded(new Set()) }}
+                          style={{
+                            padding: '7px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
+                            cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', border: 'none',
+                            background: snapshotViewMode === 'clinical_panels' ? 'rgba(45,212,191,0.13)' : 'transparent',
+                            color: snapshotViewMode === 'clinical_panels' ? colors.teal : colors.textMuted,
+                            boxShadow: snapshotViewMode === 'clinical_panels' ? '0 0 10px rgba(45,212,191,0.10)' : 'none',
+                          }}
+                        >
+                          Clinical Panels
+                        </button>
+                        <button
+                          onClick={() => { setSnapshotViewMode('signal_map'); setOptimalExpanded(new Set()) }}
+                          style={{
+                            padding: '7px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
+                            cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', border: 'none',
+                            background: snapshotViewMode === 'signal_map' ? 'rgba(45,212,191,0.13)' : 'transparent',
+                            color: snapshotViewMode === 'signal_map' ? colors.teal : colors.textMuted,
+                            boxShadow: snapshotViewMode === 'signal_map' ? '0 0 10px rgba(45,212,191,0.10)' : 'none',
+                          }}
+                        >
+                          Signal Map
+                        </button>
+                      </div>
+                      <p style={{ fontSize: '11px', color: colors.textMuted, marginTop: '8px', lineHeight: 1.5 }}>
+                        {snapshotViewMode === 'clinical_panels'
+                          ? 'View your current results as clinical lab panels.'
+                          : 'View your current biomarkers as Meridian signal layers.'}
+                      </p>
+                    </div>
+
+                    {/* ── Current Markers ── */}
+                    <div>
+                      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: colors.textMuted, marginBottom: '12px' }}>
+                        Current Markers
+                      </p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {currentMarkerGroups.map(group => {
+                          const abnormal    = group.markers.filter(b => b.state !== 'Optimal')
+                          const optimal     = group.markers.filter(b => b.state === 'Optimal')
+                          const optKey      = `${snapshotViewMode}::${group.key}`
+                          const isOptExp    = optimalExpanded.has(optKey)
+                          const hiddenOpt   = Math.max(0, optimal.length - OPTIMAL_SHOW_LIMIT)
+                          const visibleOpt  = isOptExp ? optimal : optimal.slice(0, OPTIMAL_SHOW_LIMIT)
+                          const sc          = group.stateCounts
+                          return (
+                            <div key={group.key} style={{
+                              backgroundColor: colors.cardBg,
+                              border: `1px solid ${colors.cardBorder}`,
+                              borderRadius: '14px',
+                              backdropFilter: 'blur(24px)',
+                              WebkitBackdropFilter: 'blur(24px)',
+                              overflow: 'hidden',
+                            }}>
+                              {/* Group header */}
+                              <div style={{ padding: '14px 18px 12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '5px' }}>
+                                  <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text, flex: 1, minWidth: '100px' }}>{group.label}</span>
+                                  <span style={{ fontSize: '11px', color: colors.textMuted, whiteSpace: 'nowrap' }}>
+                                    {group.count} {group.count === 1 ? 'marker' : 'markers'}
+                                  </span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
+                                    {sc.Critical > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#F87171' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#F87171', display: 'inline-block' }} />{sc.Critical}</span>}
+                                    {sc.Attention > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FB923C' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />{sc.Attention}</span>}
+                                    {sc.Watch > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FCD34D' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FCD34D', display: 'inline-block' }} />{sc.Watch}</span>}
+                                    {sc.Optimal > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#2DD4BF' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />{sc.Optimal}</span>}
+                                  </div>
                                 </div>
-                              </div>
-                              {/* Education */}
-                              <span style={{ fontSize: '11px', color: colors.textMuted, lineHeight: 1.45, display: 'block', marginBottom: '12px' }}>
-                                {PANEL_EDUCATION[ps.panel] ?? 'This panel adds context to your saved lab profile.'}
-                              </span>
-                              {/* CTA row */}
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                {/* Primary: View / Hide markers */}
-                                <button
-                                  onClick={() => toggleSnapshotPanel(ps.panel)}
-                                  style={{
-                                    display: 'inline-flex', alignItems: 'center', gap: '5px',
-                                    padding: '6px 14px', borderRadius: '8px',
-                                    background: isExpanded ? 'rgba(45,212,191,0.14)' : 'rgba(45,212,191,0.07)',
-                                    border: `1px solid rgba(45,212,191,${isExpanded ? '0.40' : '0.22'})`,
-                                    color: colors.teal, fontSize: '12px', fontWeight: 700,
-                                    cursor: 'pointer', fontFamily: fonts.ui, outline: 'none',
-                                    boxShadow: isExpanded ? '0 0 8px rgba(45,212,191,0.14)' : 'none',
-                                  }}
-                                >
-                                  {isExpanded ? 'Hide markers' : 'View markers'}
-                                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, transition: 'transform 0.18s ease', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                                    <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                                  </svg>
-                                </button>
-                                {/* Secondary: History */}
-                                <button
-                                  onClick={() => { setLabsView('history'); if (!histFetched) loadHistoryData() }}
-                                  style={{
-                                    padding: '6px 10px', background: 'transparent', border: 'none',
-                                    color: colors.textMuted, fontSize: '12px', fontWeight: 600,
-                                    cursor: 'pointer', fontFamily: fonts.ui, outline: 'none',
-                                    letterSpacing: '-0.01em',
-                                  }}
-                                >
-                                  History →
-                                </button>
-                                {/* Date — push right */}
-                                <span style={{ marginLeft: 'auto', fontSize: '11px', color: colors.textMuted, whiteSpace: 'nowrap' }}>
-                                  {ps.latestDateLabel}
+                                <span style={{ fontSize: '11px', color: colors.textMuted, lineHeight: 1.5, display: 'block' }}>
+                                  {group.education}
                                 </span>
                               </div>
-                            </div>
 
-                            {/* ── Expanded marker list ── */}
-                            {isExpanded && (
+                              {/* Marker rows */}
                               <div style={{ borderTop: `1px solid ${colors.cardBorder}`, padding: '10px 14px 14px' }}>
-
-                                {/* Abnormal markers: Critical → Attention → Watch */}
-                                {abnormalMarkers.length > 0 && (
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: optimalMarkers.length > 0 ? '10px' : '0' }}>
-                                    {abnormalMarkers.map(b => {
+                                {/* Abnormal: Critical → Attention → Watch */}
+                                {abnormal.length > 0 && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', marginBottom: optimal.length > 0 ? '10px' : '0' }}>
+                                    {abnormal.map(b => {
                                       const s = getStateStyles(b.state ?? '')
                                       const showBar = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
                                       return (
@@ -2383,15 +2530,15 @@ export default function LabsUploadPage() {
                                             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.18)',
                                           }}
                                         >
-                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: showBar ? '8px' : '0' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: showBar ? '8px' : '4px' }}>
                                             <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0 }}>
                                               {markerDisplayName(b.marker_name)}
                                             </span>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                               <span style={{ fontSize: '15px', fontWeight: 700, color: colors.text }}>{b.value}</span>
                                               {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
                                               <span style={{ padding: '2px 7px', borderRadius: '5px', fontSize: '10px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot, letterSpacing: '0.04em' }}>{s.label}</span>
-                                              <span style={{ fontSize: '14px', color: colors.textMuted, opacity: 0.45, lineHeight: 1 }}>›</span>
+                                              <span style={{ fontSize: '13px', color: colors.textMuted, opacity: 0.4, lineHeight: 1 }}>›</span>
                                             </div>
                                           </div>
                                           {showBar ? (
@@ -2405,86 +2552,80 @@ export default function LabsUploadPage() {
                                   </div>
                                 )}
 
-                                {/* Optimal markers — lighter compact rows */}
-                                {optimalMarkers.length > 0 && (
-                                  <>
-                                    {abnormalMarkers.length > 0 && (
-                                      <div style={{ height: '1px', background: colors.cardBorder, marginBottom: '8px' }} />
-                                    )}
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                      {visibleOptimal.map(b => {
-                                        const showRange = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
-                                        return (
-                                          <div
-                                            key={b.id}
-                                            onClick={() => setSelectedBiomarker(b)}
-                                            style={{
-                                              padding: '9px 12px', borderRadius: '8px', cursor: 'pointer',
-                                              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap',
-                                              backgroundColor: 'rgba(45,212,191,0.03)',
-                                              border: '1px solid rgba(45,212,191,0.10)',
-                                            }}
-                                          >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: '100px' }}>
-                                              <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#2DD4BF', flexShrink: 0 }} />
-                                              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textSoft }}>{markerDisplayName(b.marker_name)}</span>
-                                            </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                                              <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{b.value}</span>
-                                              {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
-                                              {showRange && (
-                                                <span style={{ fontSize: '9px', color: 'rgba(154,203,193,0.65)', backgroundColor: 'rgba(103,232,249,0.05)', border: '1px solid rgba(103,232,249,0.10)', borderRadius: '20px', padding: '1px 7px', whiteSpace: 'nowrap' }}>
-                                                  Ref {b.reference_range_min}–{b.reference_range_max}
-                                                </span>
-                                              )}
-                                              <span style={{ padding: '2px 7px', backgroundColor: colors.optimal, border: `1px solid ${colors.optimalBorder}`, borderRadius: '5px', fontSize: '10px', fontWeight: 700, color: '#2DD4BF', letterSpacing: '0.04em' }}>Optimal</span>
-                                              <span style={{ fontSize: '14px', color: colors.textMuted, opacity: 0.45, lineHeight: 1 }}>›</span>
-                                            </div>
-                                          </div>
-                                        )
-                                      })}
-                                    </div>
-                                    {/* Progressive disclosure: more optimal */}
-                                    {!isOptExpanded && hiddenOptimalCount > 0 && (
-                                      <button
-                                        onClick={() => toggleOptimalExpand(ps.panel)}
-                                        style={{
-                                          marginTop: '8px', width: '100%', padding: '8px', borderRadius: '8px',
-                                          background: 'transparent', border: `1px solid rgba(45,212,191,0.12)`,
-                                          color: colors.textMuted, fontSize: '12px', fontWeight: 600,
-                                          cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', textAlign: 'center',
-                                        }}
-                                      >
-                                        View {hiddenOptimalCount} more optimal {hiddenOptimalCount === 1 ? 'marker' : 'markers'}
-                                      </button>
-                                    )}
-                                    {isOptExpanded && optimalMarkers.length > OPTIMAL_INITIAL_LIMIT && (
-                                      <button
-                                        onClick={() => toggleOptimalExpand(ps.panel)}
-                                        style={{
-                                          marginTop: '8px', width: '100%', padding: '8px', borderRadius: '8px',
-                                          background: 'transparent', border: `1px solid rgba(45,212,191,0.12)`,
-                                          color: colors.textMuted, fontSize: '12px', fontWeight: 600,
-                                          cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', textAlign: 'center',
-                                        }}
-                                      >
-                                        Hide extra optimal markers
-                                      </button>
-                                    )}
-                                  </>
+                                {/* Divider */}
+                                {abnormal.length > 0 && optimal.length > 0 && (
+                                  <div style={{ height: '1px', background: colors.cardBorder, marginBottom: '8px' }} />
                                 )}
 
-                                {/* Fallback: no markers mapped to panel */}
-                                {panelMarkers.length === 0 && (
-                                  <p style={{ fontSize: '12px', color: colors.textMuted, textAlign: 'center', padding: '8px 0', margin: 0 }}>
-                                    No markers in this panel.
-                                  </p>
+                                {/* Optimal: calm compact rows */}
+                                {visibleOpt.length > 0 && (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                    {visibleOpt.map(b => {
+                                      const showRange = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
+                                      return (
+                                        <div
+                                          key={b.id}
+                                          onClick={() => setSelectedBiomarker(b)}
+                                          style={{
+                                            padding: '9px 12px', borderRadius: '8px', cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap',
+                                            backgroundColor: 'rgba(45,212,191,0.03)',
+                                            border: '1px solid rgba(45,212,191,0.09)',
+                                          }}
+                                        >
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: '100px' }}>
+                                            <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#2DD4BF', flexShrink: 0 }} />
+                                            <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textSoft }}>{markerDisplayName(b.marker_name)}</span>
+                                          </div>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                            <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{b.value}</span>
+                                            {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
+                                            {showRange && (
+                                              <span style={{ fontSize: '9px', color: 'rgba(154,203,193,0.65)', backgroundColor: 'rgba(103,232,249,0.05)', border: '1px solid rgba(103,232,249,0.10)', borderRadius: '20px', padding: '1px 7px', whiteSpace: 'nowrap' }}>
+                                                Ref {b.reference_range_min}–{b.reference_range_max}
+                                              </span>
+                                            )}
+                                            <span style={{ padding: '2px 7px', backgroundColor: colors.optimal, border: `1px solid ${colors.optimalBorder}`, borderRadius: '5px', fontSize: '10px', fontWeight: 700, color: '#2DD4BF', letterSpacing: '0.04em' }}>Optimal</span>
+                                            <span style={{ fontSize: '13px', color: colors.textMuted, opacity: 0.4, lineHeight: 1 }}>›</span>
+                                          </div>
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
+                                )}
+
+                                {/* Progressive disclosure */}
+                                {!isOptExp && hiddenOpt > 0 && (
+                                  <button
+                                    onClick={() => toggleOptimalExpand(optKey)}
+                                    style={{
+                                      marginTop: '8px', width: '100%', padding: '8px', borderRadius: '8px',
+                                      background: 'transparent', border: `1px solid rgba(45,212,191,0.12)`,
+                                      color: colors.textMuted, fontSize: '12px', fontWeight: 600,
+                                      cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', textAlign: 'center',
+                                    }}
+                                  >
+                                    View {hiddenOpt} more optimal {hiddenOpt === 1 ? 'marker' : 'markers'}
+                                  </button>
+                                )}
+                                {isOptExp && optimal.length > OPTIMAL_SHOW_LIMIT && (
+                                  <button
+                                    onClick={() => toggleOptimalExpand(optKey)}
+                                    style={{
+                                      marginTop: '8px', width: '100%', padding: '8px', borderRadius: '8px',
+                                      background: 'transparent', border: `1px solid rgba(45,212,191,0.12)`,
+                                      color: colors.textMuted, fontSize: '12px', fontWeight: 600,
+                                      cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', textAlign: 'center',
+                                    }}
+                                  >
+                                    Hide extra optimal markers
+                                  </button>
                                 )}
                               </div>
-                            )}
-                          </div>
-                        )
-                      })}
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
                   </>
                 )}
