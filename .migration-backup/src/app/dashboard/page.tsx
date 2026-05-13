@@ -132,7 +132,7 @@ export default function DashboardPage() {
         const data = await response.json()
         console.log('[Meridian] insight state:', data?.state, '| success:', data?.success)
 
-        if (data.success && data.state !== 'no_data') {
+        if (data.success && data.state !== 'no_data' && data.state !== 'insight_unavailable') {
           // Insight produced a real result — trust it.
           // Safety precedence: local Safety Engine critical detection must
           // always win. The insight API uses broader decision-engine thresholds
@@ -143,8 +143,8 @@ export default function DashboardPage() {
           setDominantMarker(data.dominant_marker)
           setSafetyAlert(localCritical || Boolean(data.safety_alert))
         } else {
-          // Insight returned no_data, success:false, or an unexpected shape.
-          // Use the biomarker count to decide the real state.
+          // Covers: no_data, insight_unavailable, success:false, unexpected shape.
+          // Use the biomarker count to decide the truthful fallback state.
           const finalState = hasBiomarkers ? 'labs_saved' : 'no_data'
           console.log('[Meridian] insight unavailable — final state:', finalState)
           setState(finalState)
@@ -432,9 +432,9 @@ function LabsSavedBlock({
   hasCritical?: boolean
 }) {
   const steps = [
-    'Review your Lab History',
-    'Upload newer labs if available',
-    'Connect wearables when ready',
+    'Review your Lab Snapshot to see current markers',
+    'Upload newer labs when available',
+    'Insights gain precision as more history accumulates',
   ]
 
   // ── Safety Engine V1: safety-first copy when critical markers are present ──
@@ -535,7 +535,7 @@ function LabsSavedBlock({
           Meridian is building your biological baseline.
         </p>
         <p style={{ fontSize: '14px', color: colors.textMuted, lineHeight: 1.7 }}>
-          Your saved lab history is now part of your Meridian profile. Daily insights will become more precise as newer labs, wearable signals, and feedback are added.
+          Your saved lab history is now part of your Meridian profile. Insights become more precise as more lab history and context accumulate.
         </p>
       </div>
 
@@ -637,7 +637,7 @@ function CalibratingBlock({ onUpload }: { onUpload: () => void }) {
           We have your data — building your baseline
         </h2>
         <p style={{ fontSize: '15px', color: colors.textSoft, lineHeight: 1.65 }}>
-          Meridian is analyzing your biomarkers but needs more data points to generate a confident insight. Upload additional labs to accelerate your first intelligence report.
+          Meridian is analyzing your biomarkers but does not yet have enough context for a confident insight. Upload additional labs to help Meridian build a stronger signal.
         </p>
       </div>
       <div style={{ padding: '0 24px 24px' }}>
