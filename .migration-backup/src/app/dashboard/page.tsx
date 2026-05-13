@@ -287,7 +287,7 @@ export default function DashboardPage() {
           )}
           {state === 'labs_saved' && (
             <LabsSavedBlock
-              onHistory={() => router.push('/labs/history')}
+              onHistory={() => router.push('/labs/upload?view=history')}
               onUpload={() => router.push('/labs/upload')}
               hasCritical={hasCriticalMarker}
             />

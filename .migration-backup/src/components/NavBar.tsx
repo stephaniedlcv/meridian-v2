@@ -14,11 +14,10 @@ const colors = {
 }
 
 const navConfig = [
-  { path: '/dashboard',    label: 'Home',     id: 'home'     },
-  { path: '/labs/upload',  label: 'Labs',     id: 'labs'     },
-  { path: '/labs/history', label: 'History',  id: 'history'  },
-  { path: '/protocol',     label: 'Protocol', id: 'protocol' },
-  { path: '/profile',      label: 'Profile',  id: 'profile'  },
+  { path: '/dashboard',   label: 'Home',     id: 'home'     },
+  { path: '/labs/upload', label: 'Labs',     id: 'labs'     },
+  { path: '/protocol',    label: 'Protocol', id: 'protocol' },
+  { path: '/profile',     label: 'Profile',  id: 'profile'  },
 ]
 
 function NavIcon({ id, isActive }: { id: string; isActive: boolean }) {
@@ -52,20 +51,6 @@ function NavIcon({ id, isActive }: { id: string; isActive: boolean }) {
         <path d="M7.5 2h5" />
         <path d="M8 2v5.5L3.5 15a1.5 1.5 0 0 0 1.3 2.2h10.4a1.5 1.5 0 0 0 1.3-2.2L12 7.5V2" />
         <path d="M5.5 13h9" />
-      </svg>
-    )
-  }
-
-  if (id === 'history') {
-    // Trend line with axis
-    return (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="2,15 6.5,10 10.5,12.5 16,5" />
-        <circle cx="2"    cy="15"   r="1.3" fill={stroke} stroke="none" />
-        <circle cx="6.5"  cy="10"   r="1.3" fill={stroke} stroke="none" />
-        <circle cx="10.5" cy="12.5" r="1.3" fill={stroke} stroke="none" />
-        <circle cx="16"   cy="5"    r="1.3" fill={stroke} stroke="none" />
-        <line x1="2" y1="17.5" x2="18" y2="17.5" strokeWidth="1" />
       </svg>
     )
   }
