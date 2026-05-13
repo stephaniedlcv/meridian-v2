@@ -14,10 +14,11 @@ const colors = {
 }
 
 const navConfig = [
-  { path: '/dashboard', label: 'Home',    id: 'home' },
-  { path: '/labs/upload', label: 'Labs',   id: 'labs' },
-  { path: '/labs/history', label: 'History', id: 'history' },
-  { path: '/profile', label: 'Profile', id: 'profile' },
+  { path: '/dashboard',    label: 'Home',     id: 'home'     },
+  { path: '/labs/upload',  label: 'Labs',     id: 'labs'     },
+  { path: '/labs/history', label: 'History',  id: 'history'  },
+  { path: '/protocol',     label: 'Protocol', id: 'protocol' },
+  { path: '/profile',      label: 'Profile',  id: 'profile'  },
 ]
 
 function NavIcon({ id, isActive }: { id: string; isActive: boolean }) {
@@ -65,6 +66,26 @@ function NavIcon({ id, isActive }: { id: string; isActive: boolean }) {
         <circle cx="10.5" cy="12.5" r="1.3" fill={stroke} stroke="none" />
         <circle cx="16"   cy="5"    r="1.3" fill={stroke} stroke="none" />
         <line x1="2" y1="17.5" x2="18" y2="17.5" strokeWidth="1" />
+      </svg>
+    )
+  }
+
+  if (id === 'protocol') {
+    // Route Path P Mark — vertical stem + P-bowl arc + two circular route nodes.
+    // Bowl occupies top half (y 3.5→10); lower half is plain stem — reads as P, not S.
+    // Left branch at mid-stem connects to an off-axis route node.
+    return (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        {/* Vertical stem */}
+        <line x1="8" y1="3.5" x2="8" y2="16.5" />
+        {/* P bowl — arc from top of stem, curves right, returns to mid-stem */}
+        <path d="M 8,3.5 C 14,3.5 14,10 8,10" />
+        {/* Short horizontal branch to the left-side route node */}
+        <line x1="8" y1="10.5" x2="5.5" y2="10.5" />
+        {/* Lower route node — anchors bottom of vertical path */}
+        <circle cx="8" cy="16.5" r="1.4" fill={stroke} stroke="none" />
+        {/* Left route node — off-axis, connected through the stem branch */}
+        <circle cx="5.5" cy="10.5" r="1.4" fill={stroke} stroke="none" />
       </svg>
     )
   }
@@ -122,7 +143,7 @@ export default function NavBar() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: '4px',
-                padding: '8px 18px',
+                padding: '8px 12px',
                 fontFamily: '"Plus Jakarta Sans", sans-serif',
                 transition: 'all 0.2s ease',
               }}
