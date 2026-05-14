@@ -1693,6 +1693,7 @@ export default function LabsUploadPage() {
   // Deduplicate — rows ordered collected_at DESC so first occurrence = most recent
   const snapshotBiomarkers = deduplicateByMarker(recentBiomarkers)
   const hasRecentLabs = snapshotBiomarkers.length > 0
+  const currentYear = new Date().getFullYear()
   const panelSummaries = hasRecentLabs ? buildPanelSummaries(snapshotBiomarkers) : []
   const latestDate = hasRecentLabs ? snapshotBiomarkers[0].collected_at : null
   // Phase 1 guardrail: systemic markers inside clinical reference range display as
@@ -1834,55 +1835,12 @@ export default function LabsUploadPage() {
             }}>
               {hasRecentLabs ? 'Labs' : 'Upload your labs'}
             </h1>
-            <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: hasRecentLabs ? '16px' : '20px', lineHeight: 1.6 }}>
-              Your clinical markers.<br />
-              <span style={{ color: colors.textMuted }}>Translated into biological signals.</span>
+            <p style={{ fontSize: '15px', fontWeight: 600, color: colors.text, marginBottom: '6px', lineHeight: 1.5 }}>
+              Your clinical markers.
             </p>
-            {/* ── Snapshot | History toggle ── */}
-            {hasRecentLabs && (
-              <div style={{
-                display: 'inline-flex',
-                gap: '3px',
-                marginBottom: '20px',
-                padding: '4px',
-                backgroundColor: 'rgba(232,248,245,0.04)',
-                border: `1px solid ${colors.cardBorder}`,
-                borderRadius: '24px',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-              }}>
-                {(['snapshot', 'history'] as const).map(view => {
-                  const isActive = labsView === view
-                  return (
-                    <button
-                      key={view}
-                      onClick={() => {
-                        setLabsView(view)
-                        if (view === 'history' && !histFetched) loadHistoryData()
-                      }}
-                      style={{
-                        padding: '6px 20px',
-                        borderRadius: '20px',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        fontFamily: fonts.ui,
-                        cursor: 'pointer',
-                        border: 'none',
-                        backgroundColor: isActive ? 'rgba(45,212,191,0.14)' : 'transparent',
-                        color: isActive ? colors.teal : colors.textMuted,
-                        transition: 'background 0.15s ease, color 0.15s ease',
-                        letterSpacing: '0.01em',
-                        outline: 'none',
-                        boxShadow: isActive ? 'inset 0 1px 0 rgba(45,212,191,0.18)' : 'none',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {view === 'snapshot' ? 'Snapshot' : 'Timeline'}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
+            <p style={{ fontSize: '15px', color: colors.textMuted, marginBottom: hasRecentLabs ? '24px' : '20px', lineHeight: 1.5 }}>
+              Translated into biological signals.
+            </p>
             <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(103,232,249,0.12) 40%, rgba(103,232,249,0.08) 60%, transparent)', marginBottom: '28px' }} />
           </motion.div>
         )}
@@ -2438,7 +2396,7 @@ export default function LabsUploadPage() {
                 style={{ marginBottom: '32px' }}
               >
                 {/* Section chip */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
                   <span style={{
                     fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em',
                     color: colors.teal, textTransform: 'uppercase',
@@ -2447,10 +2405,55 @@ export default function LabsUploadPage() {
                     border: `1px solid ${colors.teal}40`,
                     borderRadius: '20px',
                   }}>
-                    Recent Lab Snapshot
+                    Current Biomarker Snapshot
                   </span>
+                </div>
+
+                {/* Snapshot / Timeline toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px', flexWrap: 'wrap' }}>
+                  <div style={{
+                    display: 'inline-flex',
+                    gap: '3px',
+                    padding: '4px',
+                    backgroundColor: 'rgba(232,248,245,0.04)',
+                    border: `1px solid ${colors.cardBorder}`,
+                    borderRadius: '24px',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                  }}>
+                    {(['snapshot', 'history'] as const).map(view => {
+                      const isActive = labsView === view
+                      return (
+                        <button
+                          key={view}
+                          onClick={() => {
+                            setLabsView(view)
+                            if (view === 'history' && !histFetched) loadHistoryData()
+                          }}
+                          style={{
+                            padding: '6px 20px',
+                            borderRadius: '20px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            fontFamily: fonts.ui,
+                            cursor: 'pointer',
+                            border: 'none',
+                            backgroundColor: isActive ? 'rgba(45,212,191,0.14)' : 'transparent',
+                            color: isActive ? colors.teal : colors.textMuted,
+                            transition: 'background 0.15s ease, color 0.15s ease',
+                            letterSpacing: '0.01em',
+                            outline: 'none',
+                            boxShadow: isActive ? 'inset 0 1px 0 rgba(45,212,191,0.18)' : 'none',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {view === 'snapshot' ? 'Snapshot' : 'Timeline'}
+                        </button>
+                      )
+                    })}
+                  </div>
                   <span style={{ fontSize: '12px', color: colors.textMuted }}>
-                    Last 12 months
+                    Current Year · {currentYear}
                   </span>
                 </div>
 
@@ -2640,47 +2643,50 @@ export default function LabsUploadPage() {
                   <>
                     {/* ── View mode control ── */}
                     <div style={{ marginBottom: '20px' }}>
-                      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: colors.textMuted, marginBottom: '10px' }}>
-                        View mode
-                      </p>
-                      {/* Segmented control */}
-                      <div style={{
-                        display: 'inline-flex',
-                        backgroundColor: 'rgba(255,255,255,0.03)',
-                        border: `1px solid ${colors.cardBorder}`,
-                        borderRadius: '10px',
-                        padding: '3px',
-                        gap: '2px',
-                      }}>
-                        <button
-                          onClick={() => { setSnapshotViewMode('clinical_panels'); setOptimalExpanded(new Set()) }}
-                          style={{
-                            padding: '7px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
-                            cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', border: 'none',
-                            background: snapshotViewMode === 'clinical_panels' ? 'rgba(45,212,191,0.13)' : 'transparent',
-                            color: snapshotViewMode === 'clinical_panels' ? colors.teal : colors.textMuted,
-                            boxShadow: snapshotViewMode === 'clinical_panels' ? '0 0 10px rgba(45,212,191,0.10)' : 'none',
-                          }}
-                        >
-                          Clinical Panels
-                        </button>
-                        <button
-                          onClick={() => { setSnapshotViewMode('signal_map'); setOptimalExpanded(new Set()) }}
-                          style={{
-                            padding: '7px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
-                            cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', border: 'none',
-                            background: snapshotViewMode === 'signal_map' ? 'rgba(45,212,191,0.13)' : 'transparent',
-                            color: snapshotViewMode === 'signal_map' ? colors.teal : colors.textMuted,
-                            boxShadow: snapshotViewMode === 'signal_map' ? '0 0 10px rgba(45,212,191,0.10)' : 'none',
-                          }}
-                        >
-                          Signal Map
-                        </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: colors.text, whiteSpace: 'nowrap' }}>
+                          View mode:
+                        </span>
+                        <div style={{
+                          display: 'inline-flex',
+                          backgroundColor: 'rgba(255,255,255,0.03)',
+                          border: `1px solid ${colors.cardBorder}`,
+                          borderRadius: '10px',
+                          padding: '3px',
+                          gap: '2px',
+                        }}>
+                          <button
+                            onClick={() => { setSnapshotViewMode('clinical_panels'); setOptimalExpanded(new Set()) }}
+                            style={{
+                              padding: '5px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
+                              cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', border: 'none',
+                              background: snapshotViewMode === 'clinical_panels' ? 'rgba(45,212,191,0.13)' : 'transparent',
+                              color: snapshotViewMode === 'clinical_panels' ? colors.teal : colors.textMuted,
+                              boxShadow: snapshotViewMode === 'clinical_panels' ? '0 0 10px rgba(45,212,191,0.10)' : 'none',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            Clinical Panels
+                          </button>
+                          <button
+                            onClick={() => { setSnapshotViewMode('signal_map'); setOptimalExpanded(new Set()) }}
+                            style={{
+                              padding: '5px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
+                              cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', border: 'none',
+                              background: snapshotViewMode === 'signal_map' ? 'rgba(45,212,191,0.13)' : 'transparent',
+                              color: snapshotViewMode === 'signal_map' ? colors.teal : colors.textMuted,
+                              boxShadow: snapshotViewMode === 'signal_map' ? '0 0 10px rgba(45,212,191,0.10)' : 'none',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            Signal Map
+                          </button>
+                        </div>
                       </div>
-                      <p style={{ fontSize: '11px', color: colors.textMuted, marginTop: '8px', lineHeight: 1.5 }}>
+                      <p style={{ fontSize: '11px', color: colors.textMuted, marginTop: '6px', lineHeight: 1.5 }}>
                         {snapshotViewMode === 'clinical_panels'
-                          ? 'View your current results as clinical lab panels.'
-                          : 'View your current biomarkers as Meridian signal layers.'}
+                          ? 'Grouped by clinical lab panels.'
+                          : 'Grouped by biological signal layers.'}
                       </p>
                     </div>
 
