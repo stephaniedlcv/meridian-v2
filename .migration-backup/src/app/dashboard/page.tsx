@@ -308,35 +308,37 @@ export default function DashboardPage() {
           )}
         </motion.div>
 
-        {/* Quick Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          style={{
-            marginTop: '24px',
-            display: 'flex',
-            gap: '12px',
-          }}
-        >
-          <button
-            onClick={() => router.push('/labs/upload')}
+        {/* Quick Actions — only shown before first labs upload */}
+        {state === 'no_data' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
             style={{
-              flex: 1,
-              padding: '16px',
-              backgroundColor: colors.cardBg,
-              border: `1px solid ${colors.cardBorder}`,
-              borderRadius: '18px',
-              cursor: 'pointer',
-              backdropFilter: 'blur(28px)',
-              textAlign: 'center',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 20px rgba(45,212,191,0.04)',
+              marginTop: '24px',
+              display: 'flex',
+              gap: '12px',
             }}
           >
-            <div style={{ fontSize: '20px', marginBottom: '6px' }}>🧪</div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text, letterSpacing: '-0.01em' }}>Upload Labs</div>
-          </button>
-        </motion.div>
+            <button
+              onClick={() => router.push('/labs/upload')}
+              style={{
+                flex: 1,
+                padding: '16px',
+                backgroundColor: colors.cardBg,
+                border: `1px solid ${colors.cardBorder}`,
+                borderRadius: '18px',
+                cursor: 'pointer',
+                backdropFilter: 'blur(28px)',
+                textAlign: 'center',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 20px rgba(45,212,191,0.04)',
+              }}
+            >
+              <div style={{ fontSize: '20px', marginBottom: '6px' }}>🧪</div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text, letterSpacing: '-0.01em' }}>Upload Labs</div>
+            </button>
+          </motion.div>
+        )}
 
         {/* Disclaimer */}
         <motion.div
