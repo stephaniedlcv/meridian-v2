@@ -1,0 +1,111 @@
+# MERIDIAN — INSIGHT LANGUAGE PHASE 1 QA ONLY
+
+We implemented Insight Language Clarity Phase 1.
+
+This is QA ONLY.
+
+Do NOT edit files.
+Do NOT modify code.
+Do NOT commit.
+Do NOT push.
+Do NOT publish.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Goal:
+Verify that Meridian’s insight prompt now discourages vague action language and encourages clear, concrete action steps.
+
+Inspect:
+.migration-backup/src/app/api/insight/route.ts
+
+Run:
+cd .migration-backup && npm run build
+
+QA CHECKLIST:
+
+1. Build
+Confirm:
+- build passes
+- zero TypeScript errors
+- no new warnings
+
+2. Prompt language
+Confirm the system prompt:
+- no longer uses the word “mechanistic” in the optimization tone preset
+- includes a clear action-step clarity rule
+- includes the Mom Test or equivalent:
+  If the user has to ask “how?” or “how much?”, the action failed.
+- discourages vague standalone phrases:
+  moderate
+  optimize
+  support
+  balance
+  monitor
+
+3. Action step examples
+Confirm the prompt includes better examples for:
+- protein
+- hydration
+- electrolytes
+- movement
+- monitoring
+
+Examples should be concrete, calm, and user-friendly.
+
+4. Supplement safety
+Confirm the nutrition action-step template no longer casually invites:
+- specific supplement recommendations
+- supplement timing
+- dosage suggestions
+
+Confirm it now frames nutrition as:
+- what to eat
+- what to keep steady
+- what to avoid today
+
+5. Schema safety
+Confirm:
+- output JSON schema was NOT changed
+- no boundary field added yet
+- Dashboard rendering unchanged
+
+6. Health Context
+Confirm:
+- height_cm was NOT added to the insight prompt
+- weight_kg was NOT added
+- activity_level was NOT added
+- training_days was NOT added
+- body_goal_phase was NOT added
+- diet_pattern was NOT added
+
+7. Existing guardrails
+Confirm existing guardrails remain:
+- hallucination check
+- forbidden word scan
+- max 3 action steps
+- anti-diagnosis language
+- causal framing ban
+- medication/supplement safety language
+
+8. Risk check
+Identify if any risky wording still remains, such as:
+- “specific supplement”
+- “mechanistic”
+- “moderate protein”
+- “support hydration”
+- “optimize recovery”
+- “balance electrolytes”
+- “monitor symptoms”
+
+OUTPUT REQUIRED:
+1. Executive QA summary
+2. Files inspected
+3. Build result
+4. Whether Phase 1 language rules were implemented correctly
+5. Any remaining risks
+6. Whether Insight Language Phase 1 can be considered closed
+7. Confirmation:
+   “No files were changed.”
