@@ -1,0 +1,356 @@
+# MERIDIAN — PHASE B HEALTH CONTEXT IMPLEMENTATION
+
+We are implementing Phase B after Profile Phase A passed final QA.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+I already ran this SQL in Supabase:
+
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS height_cm numeric(5,1),
+  ADD COLUMN IF NOT EXISTS weight_kg numeric(5,1),
+  ADD COLUMN IF NOT EXISTS activity_level text,
+  ADD COLUMN IF NOT EXISTS training_days smallint,
+  ADD COLUMN IF NOT EXISTS body_goal_phase text,
+  ADD COLUMN IF NOT EXISTS diet_pattern text;
+
+Goal:
+Add a new editable Health Context section to the Profile page.
+
+Important UX rule:
+Make this easy for the user.
+Do NOT force the user to manually convert height to cm or weight to kg.
+
+The database stores metric values for consistency:
+- height_cm
+- weight_kg
+
+But the UI should allow the user to enter:
+- height in ft + in by default
+- weight in lbs by default
+
+Meridian should convert automatically before saving.
+
+Important product rule:
+Do NOT add these fields to onboarding.
+Onboarding must remain lightweight.
+Dynamic context should be completed and edited from Profile.
+
+Modify ONLY:
+- .migration-backup/src/types/database.ts
+- .migration-backup/src/app/profile/page.tsx
+
+Do not touch:
+- dashboard
+- labs
+- upload flow
+- OCR routes
+- confirm route
+- insight route
+- intelligence route
+- protocol
+- onboarding
+- Supabase clients
+- middleware
+- NavBar
+- package.json
+- dependencies
+- artifacts/
+
+Do not add dependencies.
+Do not create unrelated files.
+Do not use Tailwind.
+Inline styles only.
+TypeScript strict.
+
+TASK:
+Add Health Context fields to Profile.
+
+FIELDS:
+- height_cm
+- weight_kg
+- activity_level
+- training_days
+- body_goal_phase
+- diet_pattern
+
+1. Update database types
+
+In .migration-backup/src/types/database.ts, add these fields to profiles Row / Insert / Update:
+
+height_cm: number | null
+weight_kg: number | null
+activity_level: string | null
+training_days: number | null
+body_goal_phase: string | null
+diet_pattern: string | null
+
+Insert/Update fields should be optional and nullable.
+
+2. Update ProfileData in profile/page.tsx
+
+Add local narrowing types:
+
+type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'athletic'
+type BodyGoalPhase = 'fat_loss' | 'maintenance' | 'muscle_gain' | 'recomposition' | 'performance' | 'wellness'
+type DietPattern = 'no_restriction' | 'balanced' | 'high_protein' | 'vegetarian' | 'vegan' | 'mediterranean' | 'low_carb' | 'keto' | 'other'
+
+Extend ProfileData with:
+
+height_cm: number | null
+weight_kg: number | null
+activity_level: ActivityLevel | null
+training_days: number | null
+body_goal_phase: BodyGoalPhase | null
+diet_pattern: DietPattern | null
+
+3. Extend Profile SELECT query
+
+Update the Profile page SELECT query to include:
+
+height_cm,
+weight_kg,
+activity_level,
+training_days,
+body_goal_phase,
+diet_pattern
+
+Update setProfile to safely read these fields.
+
+4. Add editingSection support
+
+Extend editingSection to include:
+
+'health_context'
+
+Keep existing sections working:
+- identity
+- focus
+- medications
+
+5. Add Health Context card
+
+Placement:
+Add the new Health Context card after Biological Passport and before Medications.
+
+Card title:
+Health Context
+
+Subtitle:
+Helps Meridian understand your body's baseline. Update it whenever things change.
+
+Read-only view:
+Show compact rows for:
+
+Height
+- show “Not set yet” if empty
+- if set, display in ft/in first, with cm in smaller muted text if simple
+- example: 5 ft 4 in · 162.6 cm
+
+Weight
+- show “Not set yet” if empty
+- if set, display in lbs first, with kg in smaller muted text if simple
+- example: 151 lb · 68.5 kg
+
+Activity
+- show display label if set
+- otherwise “Not set yet”
+
+Training
+- show “X days/week” if set
+- otherwise “Not set yet”
+
+Goal phase
+- show display label if set
+- otherwise “Not set yet”
+
+Diet
+- show display label if set
+- otherwise “Not set yet”
+
+Use existing Meridian visual language:
+- dark glass card
+- uppercase small labels
+- muted teal labels
+- white values
+- subtle dividers
+- no redesign
+
+6. Edit mode — user-friendly units
+
+Add an edit view for Health Context with two mini-groups:
+
+Group 1: Body stats
+- Height
+- Weight
+- Training days/week
+
+Group 2: Context
+- Activity level
+- Current goal
+- Diet pattern
+
+Height:
+- Default UI input should be ft + in.
+- Example fields:
+  Feet: [ 5 ]
+  Inches: [ 4 ]
+- Also provide a small unit toggle:
+  ft/in | cm
+- If user chooses cm, show a single cm input.
+- Always save internally as height_cm.
+- If blank or invalid, save null.
+- Do NOT require the user to convert manually.
+
+Weight:
+- Default UI input should be lbs.
+- Example:
+  Weight: [ 151 ] lbs
+- Also provide a small unit toggle:
+  lbs | kg
+- If user chooses kg, show kg input.
+- Always save internally as weight_kg.
+- If blank or invalid, save null.
+- Do NOT require the user to convert manually.
+
+Conversion:
+- height_cm = (feet * 12 + inches) * 2.54
+- weight_kg = pounds / 2.2046226218
+- Round stored values to 1 decimal place.
+- Display values rounded cleanly.
+
+Training days:
+- Accept integer 0–7.
+- If invalid or blank, save null.
+- Do not block saving.
+
+Activity level options:
+- sedentary — Sedentary
+- light — Light
+- moderate — Moderate
+- active — Active
+- athletic — Athletic
+
+Show short descriptions if it fits cleanly:
+- Sedentary: Mostly sitting, little to no exercise
+- Light: Light movement, 1–3 days/week
+- Moderate: Exercise 3–5 days/week
+- Active: Hard training 5–6 days/week
+- Athletic: Intense daily training or physical job
+
+Body goal options:
+- fat_loss — Fat loss
+- maintenance — Maintenance
+- muscle_gain — Muscle gain
+- recomposition — Recomposition
+- performance — Performance
+- wellness — General wellness
+
+Diet pattern options:
+- no_restriction — No restriction
+- balanced — Balanced
+- high_protein — High protein
+- vegetarian — Vegetarian
+- vegan — Vegan
+- mediterranean — Mediterranean
+- low_carb — Low carb
+- keto — Keto
+- other — Other
+
+7. Save logic
+
+Add:
+
+startEditHealthContext()
+saveHealthContext()
+
+Save with Supabase upsert using the existing Phase A pattern.
+
+Save payload:
+
+{
+  id: userId,
+  height_cm,
+  weight_kg,
+  activity_level,
+  training_days,
+  body_goal_phase,
+  diet_pattern
+}
+
+Validation:
+- blank numeric values → null
+- invalid numeric values → null
+- height ft/in invalid or negative → null
+- inches should be 0–11 if using ft/in
+- training_days outside 0–7 → null
+- enum-like fields must be valid values or null
+- do not save empty strings
+
+Do not block users if fields are empty.
+
+8. Do not implement recommendations yet
+
+Do NOT add:
+- protein targets
+- hydration targets
+- activity recommendations
+- estimated ranges
+- consent_for_estimated_ranges
+- supplements
+- wearables
+- language preference
+- i18n
+- medication dose/frequency
+- onboarding changes
+
+This task only collects and displays Health Context.
+
+9. Build and QA
+
+Run:
+
+cd .migration-backup && npm run build
+
+QA checklist:
+- Profile loads without console errors.
+- Health Context card appears after Biological Passport and before Medications.
+- Empty fields show “Not set yet.”
+- Edit Health Context opens correctly.
+- Height can be saved using ft/in.
+- Height can be saved using cm.
+- Height is stored internally as cm.
+- Height displays user-friendly as ft/in first.
+- Weight can be saved using lbs.
+- Weight can be saved using kg.
+- Weight is stored internally as kg.
+- Weight displays user-friendly as lbs first.
+- Training days accepts 0–7.
+- Invalid training days does not crash.
+- Activity level saves and displays.
+- Body goal phase saves and displays.
+- Diet pattern saves and displays.
+- Refreshing keeps saved values.
+- Biological Passport still works.
+- Medications still work.
+- Health Focus still works.
+- Dashboard still loads.
+- Labs still loads.
+- Onboarding untouched.
+- Build passes.
+
+Do not commit.
+Do not push.
+Do not publish.
+
+OUTPUT REQUIRED:
+Return:
+1. Summary of changes
+2. Exact files changed
+3. Confirmation SQL was already run
+4. Build result
+5. QA checklist result
+6. Confirmation no unrelated systems were touched

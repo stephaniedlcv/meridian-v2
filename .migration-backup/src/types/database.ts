@@ -71,6 +71,12 @@ export type Profile = {
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  activity_level: string | null;
+  training_days: number | null;
+  body_goal_phase: string | null;
+  diet_pattern: string | null;
 };
 
 export type BiomarkerStatic = {
@@ -136,6 +142,12 @@ export type Database = {
           onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string | null;
+          height_cm?: number | null;
+          weight_kg?: number | null;
+          activity_level?: string | null;
+          training_days?: number | null;
+          body_goal_phase?: string | null;
+          diet_pattern?: string | null;
         };
         Update: {
           id?: string;
@@ -152,6 +164,12 @@ export type Database = {
           onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string | null;
+          height_cm?: number | null;
+          weight_kg?: number | null;
+          activity_level?: string | null;
+          training_days?: number | null;
+          body_goal_phase?: string | null;
+          diet_pattern?: string | null;
         };
         Relationships: [];
       };

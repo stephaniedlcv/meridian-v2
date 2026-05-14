@@ -26,6 +26,9 @@ const fonts = {
 // ——— Types ———
 type BiologicalProfile = 'female' | 'male'
 type UserProfile = 'bienestar' | 'optimizacion' | 'rendimiento' | 'condicion' | 'primer_paso'
+type ActivityLevel  = 'sedentary' | 'light' | 'moderate' | 'active' | 'athletic'
+type BodyGoalPhase  = 'fat_loss' | 'maintenance' | 'muscle_gain' | 'recomposition' | 'performance' | 'wellness'
+type DietPattern    = 'no_restriction' | 'balanced' | 'high_protein' | 'vegetarian' | 'vegan' | 'mediterranean' | 'low_carb' | 'keto' | 'other'
 
 interface ProfileData {
   full_name:          string | null
@@ -37,6 +40,12 @@ interface ProfileData {
   avatar_url:         string | null   // may not exist in DB — handled gracefully
   birth_date:         string | null
   medications:        string[] | null
+  height_cm:          number | null
+  weight_kg:          number | null
+  activity_level:     ActivityLevel | null
+  training_days:      number | null
+  body_goal_phase:    BodyGoalPhase | null
+  diet_pattern:       DietPattern | null
 }
 
 // ——— Reference maps ———
@@ -63,6 +72,38 @@ const BIO_MAP: Record<BiologicalProfile, string> = {
 
 const ALL_GOALS: UserProfile[] = ['bienestar', 'optimizacion', 'rendimiento', 'condicion', 'primer_paso']
 
+const ACTIVITY_MAP: Record<ActivityLevel, { label: string; description: string }> = {
+  sedentary: { label: 'Sedentary',        description: 'Mostly sitting, little to no exercise' },
+  light:     { label: 'Light',            description: 'Light movement, 1–3 days/week' },
+  moderate:  { label: 'Moderate',         description: 'Exercise 3–5 days/week' },
+  active:    { label: 'Active',           description: 'Hard training 5–6 days/week' },
+  athletic:  { label: 'Athletic',         description: 'Intense daily training or physical job' },
+}
+const ALL_ACTIVITY_LEVELS: ActivityLevel[] = ['sedentary', 'light', 'moderate', 'active', 'athletic']
+
+const GOAL_PHASE_MAP: Record<BodyGoalPhase, string> = {
+  fat_loss:      'Fat loss',
+  maintenance:   'Maintenance',
+  muscle_gain:   'Muscle gain',
+  recomposition: 'Recomposition',
+  performance:   'Performance',
+  wellness:      'General wellness',
+}
+const ALL_GOAL_PHASES: BodyGoalPhase[] = ['fat_loss', 'maintenance', 'muscle_gain', 'recomposition', 'performance', 'wellness']
+
+const DIET_MAP: Record<DietPattern, string> = {
+  no_restriction: 'No restriction',
+  balanced:       'Balanced',
+  high_protein:   'High protein',
+  vegetarian:     'Vegetarian',
+  vegan:          'Vegan',
+  mediterranean:  'Mediterranean',
+  low_carb:       'Low carb',
+  keto:           'Keto',
+  other:          'Other',
+}
+const ALL_DIET_PATTERNS: DietPattern[] = ['no_restriction', 'balanced', 'high_protein', 'vegetarian', 'vegan', 'mediterranean', 'low_carb', 'keto', 'other']
+
 // ——— Helpers ———
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
@@ -74,6 +115,34 @@ function formatBirthDate(isoDate: string): string {
   const day = parseInt(parts[2], 10)
   if (isNaN(monthIndex) || isNaN(day) || monthIndex < 0 || monthIndex > 11) return isoDate
   return `${MONTH_NAMES[monthIndex]} ${day}, ${year}`
+}
+
+function cmToFtIn(cm: number): { ft: number; inch: number } {
+  const totalInches = cm / 2.54
+  const ft   = Math.floor(totalInches / 12)
+  const inch = Math.round(totalInches % 12)
+  return { ft, inch }
+}
+
+function ftInToCm(ft: number, inch: number): number {
+  return Math.round(((ft * 12) + inch) * 2.54 * 10) / 10
+}
+
+function kgToLbs(kg: number): number {
+  return Math.round(kg * 2.2046226218 * 10) / 10
+}
+
+function lbsToKg(lbs: number): number {
+  return Math.round(lbs / 2.2046226218 * 10) / 10
+}
+
+function displayHeight(cm: number): string {
+  const { ft, inch } = cmToFtIn(cm)
+  return `${ft} ft ${inch} in · ${cm.toFixed(1)} cm`
+}
+
+function displayWeight(kg: number): string {
+  return `${kgToLbs(kg).toFixed(1)} lb · ${kg.toFixed(1)} kg`
 }
 
 // ——— Main component ———
@@ -91,11 +160,13 @@ export default function ProfilePage() {
   const [profile, setProfile]                     = useState<ProfileData>({
     full_name: null, first_name: null, last_name: null, display_name: null,
     biological_profile: null, user_profile: null, avatar_url: null, birth_date: null, medications: null,
+    height_cm: null, weight_kg: null, activity_level: null, training_days: null,
+    body_goal_phase: null, diet_pattern: null,
   })
   const [hasLabs, setHasLabs]                     = useState(false)
   const [photoPreview, setPhotoPreview]           = useState<string | null>(null)
 
-  const [editingSection, setEditingSection]       = useState<'identity' | 'focus' | 'medications' | null>(null)
+  const [editingSection, setEditingSection]       = useState<'identity' | 'focus' | 'medications' | 'health_context' | null>(null)
   const [editPreferredName, setEditPreferredName] = useState('')
   const [editFirstName, setEditFirstName]         = useState('')
   const [editLastName, setEditLastName]           = useState('')
@@ -105,6 +176,17 @@ export default function ProfilePage() {
   const [editUserProfile, setEditUserProfile]     = useState<UserProfile | null>(null)
   const [editMedList, setEditMedList]             = useState<string[]>([])
   const [editMedInput, setEditMedInput]           = useState('')
+  // Health Context edit states
+  const [editHeightUnit, setEditHeightUnit]       = useState<'ftin' | 'cm'>('ftin')
+  const [editHeightFt, setEditHeightFt]           = useState('')
+  const [editHeightIn, setEditHeightIn]           = useState('')
+  const [editHeightCm, setEditHeightCm]           = useState('')
+  const [editWeightUnit, setEditWeightUnit]       = useState<'lbs' | 'kg'>('lbs')
+  const [editWeightVal, setEditWeightVal]         = useState('')
+  const [editTrainingDays, setEditTrainingDays]   = useState('')
+  const [editActivityLevel, setEditActivityLevel] = useState<ActivityLevel | null>(null)
+  const [editBodyGoalPhase, setEditBodyGoalPhase] = useState<BodyGoalPhase | null>(null)
+  const [editDietPattern, setEditDietPattern]     = useState<DietPattern | null>(null)
   const [saving, setSaving]                       = useState(false)
   const [saveStatus, setSaveStatus]               = useState<'idle' | 'success' | 'error'>('idle')
 
@@ -115,7 +197,7 @@ export default function ProfilePage() {
       setUserId(user.id)
       setUserEmail(user.email ?? '')
 
-      const SELECT = 'full_name, first_name, last_name, display_name, biological_profile, user_profile, birth_date, avatar_url, medications, onboarding_completed'
+      const SELECT = 'full_name, first_name, last_name, display_name, biological_profile, user_profile, birth_date, avatar_url, medications, onboarding_completed, height_cm, weight_kg, activity_level, training_days, body_goal_phase, diet_pattern'
       const { data: prof, error: profError } = await supabase
         .from('profiles')
         .select(SELECT)
@@ -139,6 +221,12 @@ export default function ProfilePage() {
           avatar_url:          typeof raw.avatar_url === 'string' ? raw.avatar_url : null,
           birth_date:          typeof raw.birth_date === 'string' ? raw.birth_date : null,
           medications:         Array.isArray(raw.medications) ? raw.medications as string[] : null,
+          height_cm:           typeof raw.height_cm === 'number' ? raw.height_cm : null,
+          weight_kg:           typeof raw.weight_kg === 'number' ? raw.weight_kg : null,
+          activity_level:      (['sedentary','light','moderate','active','athletic'] as ActivityLevel[]).includes(raw.activity_level as ActivityLevel) ? raw.activity_level as ActivityLevel : null,
+          training_days:       typeof raw.training_days === 'number' ? raw.training_days : null,
+          body_goal_phase:     (['fat_loss','maintenance','muscle_gain','recomposition','performance','wellness'] as BodyGoalPhase[]).includes(raw.body_goal_phase as BodyGoalPhase) ? raw.body_goal_phase as BodyGoalPhase : null,
+          diet_pattern:        (['no_restriction','balanced','high_protein','vegetarian','vegan','mediterranean','low_carb','keto','other'] as DietPattern[]).includes(raw.diet_pattern as DietPattern) ? raw.diet_pattern as DietPattern : null,
         })
       }
 
@@ -273,6 +361,85 @@ export default function ProfilePage() {
     setSaving(false)
     if (error) { console.error('saveMeds failed:', error); setSaveStatus('error'); return }
     setProfile(p => ({ ...p, medications: cleaned.length > 0 ? cleaned : null }))
+    setSaveStatus('success')
+    setTimeout(() => { setEditingSection(null); setSaveStatus('idle') }, 900)
+  }
+
+  function startEditHealthContext() {
+    // Populate height fields — prefer ft/in as default
+    if (profile.height_cm !== null) {
+      const { ft, inch } = cmToFtIn(profile.height_cm)
+      setEditHeightFt(String(ft))
+      setEditHeightIn(String(inch))
+      setEditHeightCm(profile.height_cm.toFixed(1))
+    } else {
+      setEditHeightFt(''); setEditHeightIn(''); setEditHeightCm('')
+    }
+    setEditHeightUnit('ftin')
+    // Populate weight fields — prefer lbs as default
+    if (profile.weight_kg !== null) {
+      setEditWeightVal(kgToLbs(profile.weight_kg).toFixed(1))
+    } else {
+      setEditWeightVal('')
+    }
+    setEditWeightUnit('lbs')
+    setEditTrainingDays(profile.training_days !== null ? String(profile.training_days) : '')
+    setEditActivityLevel(profile.activity_level)
+    setEditBodyGoalPhase(profile.body_goal_phase)
+    setEditDietPattern(profile.diet_pattern)
+    setEditingSection('health_context')
+    setSaveStatus('idle')
+  }
+
+  async function saveHealthContext() {
+    if (!userId) return
+    setSaving(true); setSaveStatus('idle')
+
+    // Height
+    let hCm: number | null = null
+    if (editHeightUnit === 'ftin') {
+      const ft  = parseFloat(editHeightFt)
+      const inn = parseFloat(editHeightIn)
+      if (!isNaN(ft) && ft >= 0 && !isNaN(inn) && inn >= 0 && inn <= 11) {
+        hCm = ftInToCm(ft, inn)
+      }
+    } else {
+      const parsed = parseFloat(editHeightCm)
+      if (!isNaN(parsed) && parsed > 0) hCm = Math.round(parsed * 10) / 10
+    }
+
+    // Weight
+    let wKg: number | null = null
+    const wRaw = parseFloat(editWeightVal)
+    if (!isNaN(wRaw) && wRaw > 0) {
+      wKg = editWeightUnit === 'lbs' ? lbsToKg(wRaw) : Math.round(wRaw * 10) / 10
+    }
+
+    // Training days
+    const daysRaw = parseInt(editTrainingDays, 10)
+    const days = (!isNaN(daysRaw) && daysRaw >= 0 && daysRaw <= 7) ? daysRaw : null
+
+    const { error } = await supabase.from('profiles').upsert({
+      id: userId,
+      height_cm:       hCm,
+      weight_kg:       wKg,
+      activity_level:  editActivityLevel  || null,
+      training_days:   days,
+      body_goal_phase: editBodyGoalPhase  || null,
+      diet_pattern:    editDietPattern    || null,
+    }, { onConflict: 'id' })
+
+    setSaving(false)
+    if (error) { console.error('saveHealthContext failed:', error); setSaveStatus('error'); return }
+    setProfile(p => ({
+      ...p,
+      height_cm:       hCm,
+      weight_kg:       wKg,
+      activity_level:  editActivityLevel,
+      training_days:   days,
+      body_goal_phase: editBodyGoalPhase,
+      diet_pattern:    editDietPattern,
+    }))
     setSaveStatus('success')
     setTimeout(() => { setEditingSection(null); setSaveStatus('idle') }, 900)
   }
@@ -553,6 +720,179 @@ export default function ProfilePage() {
                 emptyHint="Tap Edit to add."
                 onAdd={startEditIdentity}
               />
+            </div>
+          )}
+        </div>
+
+        {/* ══════════════════════════ HEALTH CONTEXT ═══ */}
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+            <div>
+              <span style={{ ...cardLabel, display: 'block', marginBottom: '4px' }}>Health Context</span>
+              <p style={{ margin: 0, fontSize: '11px', color: colors.textMuted, lineHeight: 1.45 }}>
+                Helps Meridian understand your body&apos;s baseline. Update it whenever things change.
+              </p>
+            </div>
+            {editingSection !== 'health_context' && (
+              <SmallButton onClick={startEditHealthContext}>Edit</SmallButton>
+            )}
+          </div>
+
+          {editingSection === 'health_context' ? (
+            <div>
+              {/* ─── Group 1: Body stats ─── */}
+              <p style={{ margin: '0 0 12px', fontSize: '11px', fontWeight: 700, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Body stats</p>
+
+              {/* Height */}
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '7px' }}>
+                  <label style={fieldLabel}>Height</label>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {(['ftin', 'cm'] as const).map(u => (
+                      <button key={u} type="button" onClick={() => setEditHeightUnit(u)} style={{
+                        padding: '2px 9px', borderRadius: '6px', border: editHeightUnit === u ? '1px solid rgba(45,212,191,0.6)' : `1px solid ${colors.cardBorder}`,
+                        background: editHeightUnit === u ? 'rgba(45,212,191,0.10)' : 'transparent',
+                        color: editHeightUnit === u ? colors.teal : colors.textMuted,
+                        fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: fonts.ui,
+                      }}>{u === 'ftin' ? 'ft / in' : 'cm'}</button>
+                    ))}
+                  </div>
+                </div>
+                {editHeightUnit === 'ftin' ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div>
+                      <input type="number" min="0" max="9" value={editHeightFt} onChange={e => setEditHeightFt(e.target.value)} placeholder="5" style={{ ...inputStyle }} />
+                      <p style={{ ...fieldHint, marginTop: '4px' }}>Feet</p>
+                    </div>
+                    <div>
+                      <input type="number" min="0" max="11" value={editHeightIn} onChange={e => setEditHeightIn(e.target.value)} placeholder="4" style={{ ...inputStyle }} />
+                      <p style={{ ...fieldHint, marginTop: '4px' }}>Inches (0–11)</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <input type="number" min="0" value={editHeightCm} onChange={e => setEditHeightCm(e.target.value)} placeholder="162.6" style={inputStyle} />
+                    <p style={fieldHint}>Centimetres</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Weight */}
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '7px' }}>
+                  <label style={fieldLabel}>Weight</label>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {(['lbs', 'kg'] as const).map(u => (
+                      <button key={u} type="button" onClick={() => setEditWeightUnit(u)} style={{
+                        padding: '2px 9px', borderRadius: '6px', border: editWeightUnit === u ? '1px solid rgba(45,212,191,0.6)' : `1px solid ${colors.cardBorder}`,
+                        background: editWeightUnit === u ? 'rgba(45,212,191,0.10)' : 'transparent',
+                        color: editWeightUnit === u ? colors.teal : colors.textMuted,
+                        fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: fonts.ui,
+                      }}>{u}</button>
+                    ))}
+                  </div>
+                </div>
+                <input
+                  type="number" min="0" value={editWeightVal}
+                  onChange={e => setEditWeightVal(e.target.value)}
+                  placeholder={editWeightUnit === 'lbs' ? '150' : '68'}
+                  style={inputStyle}
+                />
+                <p style={fieldHint}>{editWeightUnit === 'lbs' ? 'Pounds — stored as kg automatically' : 'Kilograms'}</p>
+              </div>
+
+              {/* Training days */}
+              <div style={{ marginBottom: '22px' }}>
+                <label style={fieldLabel}>Training days / week</label>
+                <input
+                  type="number" min="0" max="7" value={editTrainingDays}
+                  onChange={e => setEditTrainingDays(e.target.value)}
+                  placeholder="0–7"
+                  style={inputStyle}
+                />
+                <p style={fieldHint}>Days per week you do intentional exercise.</p>
+              </div>
+
+              {/* ─── Group 2: Context ─── */}
+              <p style={{ margin: '0 0 12px', fontSize: '11px', fontWeight: 700, color: colors.textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Context</p>
+
+              {/* Activity level */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={fieldLabel}>Activity level</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {ALL_ACTIVITY_LEVELS.map(al => (
+                    <button key={al} type="button" onClick={() => setEditActivityLevel(al)} style={{
+                      textAlign: 'left', padding: '10px 13px', borderRadius: '10px',
+                      border: editActivityLevel === al ? '1px solid rgba(45,212,191,0.75)' : `1px solid ${colors.cardBorder}`,
+                      background: editActivityLevel === al ? 'rgba(45,212,191,0.09)' : colors.inputBg,
+                      cursor: 'pointer', fontFamily: fonts.ui,
+                    }}>
+                      <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: editActivityLevel === al ? colors.teal : colors.text, marginBottom: '2px' }}>
+                        {ACTIVITY_MAP[al].label}
+                      </span>
+                      <span style={{ display: 'block', fontSize: '11px', color: editActivityLevel === al ? '#9EEFE4' : colors.textMuted }}>
+                        {ACTIVITY_MAP[al].description}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Current goal */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={fieldLabel}>Current goal</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {ALL_GOAL_PHASES.map(gp => (
+                    <button key={gp} type="button" onClick={() => setEditBodyGoalPhase(gp)} style={{
+                      padding: '8px 12px', borderRadius: '10px',
+                      border: editBodyGoalPhase === gp ? '1px solid rgba(45,212,191,0.75)' : `1px solid ${colors.cardBorder}`,
+                      background: editBodyGoalPhase === gp ? 'rgba(45,212,191,0.09)' : colors.inputBg,
+                      color: editBodyGoalPhase === gp ? colors.teal : colors.textSoft,
+                      fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: fonts.ui,
+                    }}>
+                      {GOAL_PHASE_MAP[gp]}
+                    </button>
+                  ))}
+                </div>
+                <p style={fieldHint}>What you are focused on right now. This can change.</p>
+              </div>
+
+              {/* Diet pattern */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={fieldLabel}>Diet pattern</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {ALL_DIET_PATTERNS.map(dp => (
+                    <button key={dp} type="button" onClick={() => setEditDietPattern(dp)} style={{
+                      padding: '8px 12px', borderRadius: '10px',
+                      border: editDietPattern === dp ? '1px solid rgba(45,212,191,0.75)' : `1px solid ${colors.cardBorder}`,
+                      background: editDietPattern === dp ? 'rgba(45,212,191,0.09)' : colors.inputBg,
+                      color: editDietPattern === dp ? colors.teal : colors.textSoft,
+                      fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: fonts.ui,
+                    }}>
+                      {DIET_MAP[dp]}
+                    </button>
+                  ))}
+                </div>
+                <p style={fieldHint}>Your usual eating pattern.</p>
+              </div>
+
+              <SaveFeedback status={saveStatus} />
+              <EditActions onCancel={cancelEdit} onSave={saveHealthContext} saving={saving} saveLabel="Save health context" />
+            </div>
+          ) : (
+            /* ─── Read-only view ─── */
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <ContextRow label="Height"    value={profile.height_cm    !== null ? displayHeight(profile.height_cm)          : null} />
+              <div style={{ height: '1px', background: colors.cardBorder, margin: '12px 0' }} />
+              <ContextRow label="Weight"    value={profile.weight_kg    !== null ? displayWeight(profile.weight_kg)          : null} />
+              <div style={{ height: '1px', background: colors.cardBorder, margin: '12px 0' }} />
+              <ContextRow label="Activity"  value={profile.activity_level  ? ACTIVITY_MAP[profile.activity_level].label      : null} />
+              <div style={{ height: '1px', background: colors.cardBorder, margin: '12px 0' }} />
+              <ContextRow label="Training"  value={profile.training_days  !== null ? `${profile.training_days} day${profile.training_days === 1 ? '' : 's'}/week` : null} />
+              <div style={{ height: '1px', background: colors.cardBorder, margin: '12px 0' }} />
+              <ContextRow label="Goal phase" value={profile.body_goal_phase ? GOAL_PHASE_MAP[profile.body_goal_phase]        : null} />
+              <div style={{ height: '1px', background: colors.cardBorder, margin: '12px 0' }} />
+              <ContextRow label="Diet"       value={profile.diet_pattern   ? DIET_MAP[profile.diet_pattern]                 : null} />
             </div>
           )}
         </div>
@@ -891,6 +1231,19 @@ function PassportRow({ label, value, emptyLabel, emptyHint, onAdd }: {
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+function ContextRow({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px' }}>
+      <span style={{ flexShrink: 0, fontSize: '10px', fontWeight: 700, color: colors.textMuted, letterSpacing: '0.09em', textTransform: 'uppercase' }}>
+        {label}
+      </span>
+      <span style={{ fontSize: '13px', fontWeight: 600, color: value ? colors.text : colors.textMuted, fontStyle: value ? 'normal' : 'italic', textAlign: 'right' }}>
+        {value ?? 'Not set yet'}
+      </span>
     </div>
   )
 }
