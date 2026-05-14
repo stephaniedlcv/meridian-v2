@@ -184,6 +184,7 @@ export default function ProfilePage() {
   const [editWeightUnit, setEditWeightUnit]       = useState<'lbs' | 'kg'>('lbs')
   const [editWeightVal, setEditWeightVal]         = useState('')
   const [editTrainingDays, setEditTrainingDays]   = useState('')
+  const [editDaysError, setEditDaysError]         = useState<string | null>(null)
   const [editActivityLevel, setEditActivityLevel] = useState<ActivityLevel | null>(null)
   const [editBodyGoalPhase, setEditBodyGoalPhase] = useState<BodyGoalPhase | null>(null)
   const [editDietPattern, setEditDietPattern]     = useState<DietPattern | null>(null)
@@ -415,9 +416,24 @@ export default function ProfilePage() {
       wKg = editWeightUnit === 'lbs' ? lbsToKg(wRaw) : Math.round(wRaw * 10) / 10
     }
 
-    // Training days
-    const daysRaw = parseInt(editTrainingDays, 10)
-    const days = (!isNaN(daysRaw) && daysRaw >= 0 && daysRaw <= 7) ? daysRaw : null
+    // Training days — use Number() to avoid parseInt silently parsing "4-5" as 4
+    const daysStr = editTrainingDays.trim()
+    let days: number | null = null
+    let daysInvalid = false
+    if (daysStr !== '') {
+      const daysNum = Number(daysStr)
+      if (Number.isFinite(daysNum) && Number.isInteger(daysNum) && daysNum >= 0 && daysNum <= 7) {
+        days = daysNum
+      } else {
+        daysInvalid = true
+      }
+    }
+    if (daysInvalid) {
+      setEditDaysError('Use one whole number from 0 to 7.')
+      setSaving(false)
+      return
+    }
+    setEditDaysError(null)
 
     const { error } = await supabase.from('profiles').upsert({
       id: userId,
@@ -805,12 +821,17 @@ export default function ProfilePage() {
               <div style={{ marginBottom: '22px' }}>
                 <label style={fieldLabel}>Training days / week</label>
                 <input
-                  type="number" min="0" max="7" value={editTrainingDays}
-                  onChange={e => setEditTrainingDays(e.target.value)}
-                  placeholder="0–7"
+                  type="number" min="0" max="7" step="1" inputMode="numeric"
+                  value={editTrainingDays}
+                  onChange={e => { setEditTrainingDays(e.target.value); setEditDaysError(null) }}
+                  placeholder="e.g. 4"
                   style={inputStyle}
                 />
-                <p style={fieldHint}>Days per week you do intentional exercise.</p>
+                {editDaysError ? (
+                  <p style={{ margin: '5px 0 0', fontSize: '11px', color: '#F87171', lineHeight: 1.45 }}>{editDaysError}</p>
+                ) : (
+                  <p style={fieldHint}>Enter one number from 0 to 7. If your week varies, choose your usual average.</p>
+                )}
               </div>
 
               {/* ─── Group 2: Context ─── */}
