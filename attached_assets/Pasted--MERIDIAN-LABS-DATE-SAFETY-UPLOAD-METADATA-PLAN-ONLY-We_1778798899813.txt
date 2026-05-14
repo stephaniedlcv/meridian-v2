@@ -1,0 +1,273 @@
+# MERIDIAN — LABS DATE SAFETY + UPLOAD METADATA PLAN ONLY
+
+We completed a Labs Upload Reliability Audit.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+This is PLAN ONLY.
+
+Do NOT edit files.
+Do NOT modify code.
+Do NOT create files.
+Do NOT add dependencies.
+Do NOT commit.
+Do NOT push.
+Do NOT publish.
+
+Background from audit:
+Labs upload currently works but is only partially reliable.
+
+Current findings:
+- Upload flow is single-file oriented.
+- File is sent as base64 PDF to /api/ocr.
+- /api/ocr sends the entire PDF to Claude as a document block.
+- Claude returns { lab_date, biomarkers }.
+- User confirms in /api/ocr/confirm.
+- Confirm saves rows into biomarkers_static.
+- Timeline/history rendering is inside labs/upload/page.tsx.
+- Multipage PDF is partially supported / unclear because the whole PDF is passed to Claude, but page handling is not enforced by app code.
+- Multiple PDFs are not supported.
+- Image/photo upload is not supported.
+- Missing dates can fall back to new Date().toISOString(), meaning old labs could accidentally be saved as today.
+- There is no upload_session_id.
+- There is no source_pdf_name.
+- There is no source_pdf_hash.
+- There is no source_file_type.
+- There is no page_count.
+- There is no deleted_at / soft delete.
+- There is no strong duplicate detection.
+- Same-day panels may coexist but are not explicitly grouped as one collection session.
+
+Goal:
+Plan the safest first implementation phase for Labs reliability.
+
+Do NOT implement yet.
+
+We want Phase A/B to improve trust without adding multiple PDFs or photo upload yet.
+
+Planning target:
+1. Safer collection date handling.
+2. Upload/file metadata tracking.
+3. Duplicate detection foundation.
+4. Soft-delete foundation.
+5. Keep current single-PDF flow working.
+
+AUDIT SCOPE:
+
+Inspect:
+- .migration-backup/src/app/labs/upload/page.tsx
+- .migration-backup/src/app/api/ocr/route.ts
+- .migration-backup/src/app/api/ocr/confirm/route.ts
+- .migration-backup/src/types/database.ts
+- any Supabase insert/delete/fetch logic for biomarkers_static
+- any Timeline/history logic inside labs upload page
+
+TASKS:
+
+1. Current data model map
+
+Map the current biomarkers_static schema from database.ts.
+
+List all current columns, especially:
+- id
+- user_id
+- marker_slug
+- marker_name
+- value
+- unit
+- reference_range
+- collected_at
+- created_at
+- source fields, if any
+- panel/category fields, if any
+
+2. Recommended DB additions
+
+Evaluate these proposed columns:
+
+- upload_session_id uuid null
+- source_pdf_name text null
+- source_pdf_hash text null
+- source_file_type text null
+- page_count int null
+- deleted_at timestamptz null
+
+For each:
+- Should it be added now?
+- Exact type
+- Nullable or required?
+- Default or no default?
+- Why it matters
+- Risk if omitted
+
+Also evaluate if we need:
+- reviewed_by_user boolean
+- duplicate_of uuid
+- panel_source text
+- collection_time text/timestamptz
+
+But do not overbuild. Recommend Phase 1 vs later.
+
+3. Safer collection date behavior
+
+Current risk:
+If date is missing, confirm route may use new Date().toISOString().
+
+Plan how to change this safely.
+
+Questions:
+- Should backend reject confirm if collected_at is missing?
+- Should UI require user to confirm a date before save?
+- Should OCR date extraction be treated as suggested date only?
+- Should user-selected date be stored as date-only or timestamp?
+- How to avoid timezone shifting?
+- How should Timeline group dates?
+
+Recommend exact behavior.
+
+Preferred product rule:
+Never silently save a lab with today's date just because extraction failed.
+
+4. Upload session behavior
+
+Plan how upload_session_id should be generated.
+
+Options:
+A. frontend generates crypto.randomUUID()
+B. confirm route generates server-side crypto.randomUUID()
+C. Supabase DB default
+D. separate uploads table
+
+Recommend simplest safe option for current MVP.
+
+Questions:
+- Should every confirm/save create one upload_session_id?
+- Should all biomarkers from one PDF share the same upload_session_id?
+- How should same-day separate PDFs behave?
+- How should future multiple PDFs behave?
+
+5. File hash behavior
+
+Plan how to generate source_pdf_hash.
+
+Options:
+A. frontend hashes file before upload
+B. OCR route hashes base64
+C. confirm route receives hash from OCR payload
+D. not now
+
+Recommend simplest safe option.
+
+Goal:
+Detect exact duplicate PDF uploads later.
+
+6. Duplicate warning behavior
+
+Do not implement yet, but plan.
+
+Questions:
+- If same source_pdf_hash already exists for same user, should app block or warn?
+- If same collected_at + same marker_slug exists, should app warn?
+- If same date but different panel, should app allow?
+- Should duplicate logic be soft warning instead of hard block?
+
+Recommend MVP behavior.
+
+7. Soft delete behavior
+
+Plan deleted_at.
+
+Questions:
+- Should delete update deleted_at instead of hard delete?
+- Should dashboard/labs queries filter deleted_at IS NULL?
+- Should restore be possible later?
+- How to avoid deleted labs influencing insights?
+
+8. Timeline/history impact
+
+Plan how Timeline should use upload_session_id and collected_at.
+
+Questions:
+- Should Timeline group by collected_at date first, then panels?
+- Should upload_session_id be invisible to user?
+- Should same-day panels from separate PDFs appear under same date?
+- Should older years always be visible?
+- Could current query limits hide older labs?
+
+9. Exact implementation plan
+
+Return a low-risk implementation plan with phases.
+
+Expected:
+Phase A:
+- Add DB columns
+- Update database.ts types
+- Confirm route saves metadata
+- Queries ignore deleted_at
+
+Phase B:
+- UI requires date confirmation
+- Remove silent fallback to today
+- Add duplicate warning foundation
+
+Phase C:
+- Better Timeline grouping
+
+Do NOT recommend multiple PDFs yet.
+Do NOT recommend image upload yet.
+
+10. SQL migration plan
+
+Provide SQL to add columns safely with IF NOT EXISTS.
+
+Do NOT run it.
+Just provide SQL.
+
+11. Files likely to change
+
+List exact files likely to change for Phase A implementation.
+
+12. QA plan
+
+Recommend tests:
+- PDF with extracted date
+- PDF with missing date
+- user-corrected date
+- 2024 lab saved as 2024
+- same PDF uploaded twice
+- same date different panels
+- soft delete removes from dashboard insight
+- deleted lab still exists in DB with deleted_at
+- Timeline older year visibility
+
+13. Build
+
+Run:
+
+cd .migration-backup && npm run build
+
+OUTPUT REQUIRED:
+
+1. Executive recommendation
+2. Current biomarkers_static schema map
+3. Recommended DB additions
+4. Safer collection date plan
+5. Upload session plan
+6. File hash plan
+7. Duplicate warning plan
+8. Soft delete plan
+9. Timeline/history impact
+10. SQL migration draft
+11. Exact files likely to change
+12. Implementation phases
+13. QA plan
+14. Build result
+15. Confirmation:
+   “No files were changed.”
+
+Remember:
+Plan only.
+Do not edit files.
