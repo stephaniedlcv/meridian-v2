@@ -1,0 +1,151 @@
+# MERIDIAN — PROFILE PHASE A FINAL QA ONLY
+
+Profile Phase A is implemented and visually confirmed.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+This is QA ONLY.
+
+Do NOT edit files unless there is a confirmed bug.
+Do NOT commit.
+Do NOT push.
+Do NOT publish.
+
+Scope:
+Verify the final Profile Phase A implementation after these changes:
+
+- first_name, last_name, display_name fields added to profile logic
+- updated_at added to profiles schema/types
+- birth_date editable in Profile
+- medications editor added as name-only string[]
+- hero display name priority fixed:
+  display_name → first_name → full_name → email → "Not set yet"
+- Biological Passport read-only view no longer shows duplicate Name row
+- Display name remains editable but is not shown as a separate passport row
+
+Check these files:
+
+.migration-backup/src/types/database.ts
+.migration-backup/src/app/profile/page.tsx
+
+Also inspect any directly related profile helper logic if needed.
+
+QA CHECKLIST:
+
+1. Database types
+
+Confirm profiles Row / Insert / Update include:
+- first_name
+- last_name
+- display_name
+- updated_at
+
+Confirm existing fields remain:
+- full_name
+- birth_date
+- medications
+- biological_profile
+- user_profile
+- onboarding_completed
+- created_at
+
+2. Profile load
+
+Confirm Profile page:
+- selects first_name
+- selects last_name
+- selects display_name
+- selects birth_date
+- selects medications
+- loads without console-breaking logic
+
+3. Hero display name
+
+Confirm hero name uses this priority exactly:
+display_name → first_name → full_name → email → "Not set yet"
+
+Confirm it does NOT use first_name + last_name.
+
+4. Biological Passport read-only view
+
+Confirm read-only passport shows:
+- First name
+- Last name
+- Email
+- Biological profile
+- Date of birth
+
+Confirm it does NOT show:
+- duplicate Name row
+- Display name row
+
+5. Edit mode
+
+Confirm edit mode includes:
+- First name
+- Last name
+- Display name
+- Date of birth
+- Biological profile
+
+Confirm Display name still saves and updates hero.
+
+6. Birth date
+
+Confirm:
+- birth_date saves as YYYY-MM-DD
+- read-only display is formatted safely
+- no timezone-sensitive Date parsing is used that could shift the day
+
+7. Medications
+
+Confirm:
+- medications remain string[]
+- existing medication names display
+- user can add medication name
+- user can remove medication name
+- empty medication names are not saved
+- duplicate handling is safe if implemented
+- insight/intelligence routes remain compatible with medication list
+
+8. Regression check
+
+Confirm no changes were made to:
+- dashboard
+- labs
+- upload flow
+- OCR routes
+- confirm route
+- insight route
+- intelligence route
+- protocol
+- onboarding
+- middleware
+- NavBar
+- package.json
+- dependencies
+
+9. Build
+
+Run:
+
+cd .migration-backup && npm run build
+
+Report:
+- build result
+- TypeScript errors if any
+- unrelated warnings if any
+
+OUTPUT REQUIRED:
+Return:
+1. Executive QA summary
+2. Files inspected
+3. QA checklist result
+4. Build result
+5. Any actual bugs found
+6. Whether Profile Phase A can be considered closed
+7. Confirmation:
+   “No unrelated files were changed.”
