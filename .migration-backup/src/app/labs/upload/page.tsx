@@ -2401,7 +2401,7 @@ export default function LabsUploadPage() {
                   color: colors.textMuted, textTransform: 'uppercase',
                   margin: '0 0 14px',
                 }}>
-                  Current Biomarker Snapshot · {currentYear}
+                  Biomarker Snapshot · {currentYear}
                 </p>
 
                 {/* Snapshot / Timeline toggle */}
@@ -2633,7 +2633,7 @@ export default function LabsUploadPage() {
                 ) : (
                   <>
                     {/* ── View mode control ── */}
-                    <div style={{ marginBottom: '20px' }}>
+                    <div style={{ marginBottom: '20px', marginTop: '32px' }}>
                       <p style={{
                         fontSize: '11px', fontWeight: 700, letterSpacing: '0.07em',
                         color: colors.textMuted, textTransform: 'uppercase',
@@ -2682,7 +2682,7 @@ export default function LabsUploadPage() {
                           Signal Map
                         </button>
                       </div>
-                      <p style={{ fontSize: '11px', color: colors.textMuted, marginTop: '6px', lineHeight: 1.5 }}>
+                      <p style={{ fontSize: '11px', color: colors.textMuted, marginTop: '4px', lineHeight: 1.5 }}>
                         {snapshotViewMode === 'clinical_panels'
                           ? 'Grouped by clinical lab panels.'
                           : 'Grouped by biological signal layers.'}
