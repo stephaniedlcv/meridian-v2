@@ -1,0 +1,263 @@
+# MERIDIAN — UPLOAD REVIEW PANEL GROUPING + URINALYSIS CLASSIFICATION FIX
+
+We need to improve the Labs Upload Review screen so users can clearly see which clinical panel they are confirming, and fix Urinalysis qualitative markers being misclassified as numeric biomarkers.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Vercel production is working because Root Directory is set to .migration-backup.
+
+Do NOT restructure the repo.
+Do NOT move files out of .migration-backup.
+Do NOT touch root package files.
+Do NOT touch Vercel settings.
+Do NOT touch artifacts/.
+Do NOT publish to Replit.
+
+Modify ONLY if needed:
+
+.migration-backup/src/app/labs/upload/page.tsx
+
+Do not touch:
+- dashboard
+- profile
+- protocol
+- onboarding
+- labs/history
+- OCR route unless absolutely necessary
+- confirm route unless absolutely necessary
+- canonical dictionary unless absolutely necessary
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- dependencies
+- artifacts/
+
+Do not add dependencies.
+Do not create new files.
+Do not use Tailwind.
+Inline styles only.
+TypeScript strict.
+
+TASK:
+Fix the Upload Review experience after OCR extraction.
+
+Current problems observed:
+1. Urinalysis results are still being misclassified or flagged incorrectly.
+2. Some qualitative urine markers are being treated like numeric biomarkers.
+3. The review screen does not clearly show which clinical panel the user is confirming.
+4. Results appear as a loose list, which makes it harder to verify if the PDF was parsed correctly.
+
+Examples observed:
+- Fasting Glucose shows: “Value null mg/dL is outside physically possible range”
+- Hemoglobin A1c shows: “Value null /ul is outside physically possible range”
+- Urinalysis markers such as Color, Appearance, Acetone, Specific Gravity, Urobilinogen, Nitrite, Epithelial Cells appear under Pending Classification
+- Urine values like Color: Yellow / Appearance: Clear / Nitrite: Negative should not be treated as numeric serum biomarkers
+
+GOALS:
+1. Add clinical panel grouping to the Upload Review screen.
+2. Show the panel name clearly above each group of extracted markers.
+3. Handle Urinalysis qualitative/semi-quantitative markers more safely.
+4. Prevent qualitative urine markers from being forced through numeric physical range validation.
+5. Keep confirmation review clean, clinical, and easy to audit.
+
+REQUIREMENTS:
+
+1. Add panel headers in Upload Review
+
+When reviewing extracted biomarkers before saving, group recognized markers by panel.
+
+Show a clear header/card section for each panel, for example:
+
+CBC
+Comprehensive Metabolic Panel
+Lipid Panel
+Glycemic Panel
+Thyroid Panel
+Urinalysis
+Vitamin & Nutrient Panel
+Other
+
+Each panel group should show:
+- panel name
+- marker count
+- flagged count if any
+- collection date if available
+
+Do not make the user confirm a loose ungrouped list.
+
+2. Preserve current top upload summary
+
+Keep:
+- Upload your labs title
+- markers found count
+- flagged count
+- not recognized count
+- Collection Date correction block
+- Confirm markers button
+- Cancel button
+- bottom nav behavior
+
+3. Urinalysis classification
+
+Add or improve safe matching for common Urinalysis markers.
+
+Recognize these as Urinalysis markers when extracted:
+- Color
+- Appearance
+- Specific Gravity
+- pH
+- Glucose, urine / Urine Glucose
+- Protein, urine / Urine Protein
+- Ketones / Acetone
+- Blood
+- Nitrite
+- Leukocyte Esterase
+- Urobilinogen
+- Bilirubin, urine
+- RBC / Red Blood Cells
+- WBC / White Blood Cells
+- Epithelial Cells
+- Bacteria
+- Mucus
+- Crystals
+- Casts
+
+Important:
+Do not confuse serum glucose with urine glucose.
+Do not confuse CBC WBC/RBC with urine sediment WBC/RBC.
+
+Use surrounding panel context, units, reference text, and marker name when available.
+
+4. Qualitative markers
+
+Urinalysis qualitative markers should support non-numeric values such as:
+- Negative
+- Normal
+- Clear
+- Yellow
+- None Seen
+- Trace
+- Few
+- Moderate
+- Large
+
+These should not be flagged as numeric physical impossibility errors simply because value is not numeric.
+
+If the database currently only saves numeric biomarkers, then qualitative markers should either:
+- remain in Pending Classification with clearer messaging, OR
+- be excluded from numeric save flow with a safe “qualitative marker” label
+
+But they should not show scary red errors like:
+“Value null mg/dL is outside physically possible range”
+
+5. Numeric validation guardrail
+
+Only run numeric physical range validation when:
+- marker is expected to be numeric
+- parsed value is a finite number
+
+If marker is qualitative:
+- do not run numeric physical range validation
+- do not show “Value null...” error
+
+If value is missing for a numeric marker:
+- show a neutral extraction issue:
+  “Value could not be read.”
+not a critical medical-style error.
+
+6. Panel context labels
+
+Each marker card in upload review should show or inherit panel context.
+
+Preferred:
+- group header shows the panel
+- marker cards inside do not need repeated panel label
+
+But for flagged/error cards, include a small panel label if helpful:
+Panel: Urinalysis
+Panel: Glycemic Panel
+Panel: CBC
+
+7. Pending Classification section
+
+Keep Pending Classification if needed, but improve clarity.
+
+Instead of implying these are failed biomarkers, explain:
+
+“These markers were extracted but could not be confidently matched to Meridian’s biomarker dictionary. They will not affect your lab results, counts, or health signals.”
+
+For urinalysis qualitative markers, if they are not saved yet, label them as:
+Qualitative urinalysis marker
+
+This avoids making them look broken.
+
+8. Do not save unsafe data
+
+Do not force qualitative markers into biomarkers_static numeric rows unless the existing schema safely supports them.
+
+If the schema only supports numeric value, keep qualitative markers out of the save payload for now.
+
+Do not insert null numeric values.
+
+9. Do not break existing numeric panels
+
+Make sure these still work:
+- CBC
+- CMP
+- Lipid Panel
+- Glycemic markers
+- Thyroid markers
+- Vitamins / Nutrients
+
+10. Visual requirements
+
+Keep Meridian visual identity:
+- dark biological OS
+- glassmorphism
+- clinical/futuristic
+- teal/cyan for normal recognized items
+- amber/orange/red only for real review issues
+- no loud red for qualitative markers that simply are not numeric
+
+11. Safety language
+
+Do not add diagnostic claims.
+Do not imply disease.
+Do not say:
+- “this means”
+- “caused by”
+- “your body is not clearing”
+- “you have”
+
+This is upload review, not interpretation.
+
+12. Build and test
+
+After editing:
+1. Report exact file changed.
+2. Confirm no other files changed unless absolutely required.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /labs/upload
+
+Confirm:
+- Upload Review groups markers by clinical panel
+- panel names are visible before confirmation
+- Urinalysis markers are not treated as serum numeric biomarkers
+- qualitative urine markers do not show “Value null...” physical impossibility errors
+- serum glucose and urine glucose are not confused
+- CBC WBC/RBC and urine sediment WBC/RBC are not confused
+- Pending Classification remains clear and non-alarming
+- numeric panels still parse/review as before
+- confirm/save does not insert null numeric values
+- build passes
+
+Do not commit.
+Do not push.
+Do not publish.

@@ -264,6 +264,37 @@ const PANEL_EDUCATION: Record<string, string> = {
   'Other':                    'This panel adds context to your broader biological profile.',
 }
 
+// ── Urinalysis qualitative marker detection ───────────────────────────────────
+// Qualitative/dipstick urine markers should not be treated as numeric serum
+// biomarkers in the upload review. This prevents scary "Value null..." errors
+// and stops non-numeric values from being saved to biomarkers_static.
+// Conservative matching: unambiguous urinalysis markers only.
+// WBC/RBC alone are NOT matched here (ambiguous: serum vs. urine sediment).
+function isLikelyQualitativeUrinalysis(name: string): boolean {
+  const lower = name.toLowerCase().trim()
+  const exact = new Set([
+    'color', 'colour', 'appearance', 'clarity', 'turbidity',
+    'nitrite', 'nitrites', 'leukocyte esterase',
+    'urobilinogen', 'epithelial cells', 'squamous epithelial cells',
+    'bacteria', 'mucus', 'crystals', 'casts', 'ketones', 'acetone',
+    'urine ph', 'urine glucose', 'urine protein', 'urine blood',
+    'urine nitrite', 'urine bilirubin', 'urine urobilinogen',
+    'glucose, urine', 'protein, urine', 'bilirubin, urine', 'blood, urine',
+    'rbc, urine', 'wbc, urine', 'rbc/hpf', 'wbc/hpf',
+    'red blood cells, urine', 'white blood cells, urine',
+    'specific gravity', 'urine specific gravity',
+  ])
+  if (exact.has(lower)) return true
+  const unambiguous = [
+    'specific gravity', 'leukocyte esterase', 'urobilinogen',
+    'squamous epithelial', 'granular cast', 'hyaline cast', 'urine sediment',
+  ]
+  for (const u of unambiguous) {
+    if (lower.includes(u)) return true
+  }
+  return false
+}
+
 interface PanelSummary {
   panel: string
   count: number
@@ -1410,10 +1441,13 @@ export default function LabsUploadPage() {
     setDuplicateWarning(null)
     try {
       const collectedAt = labDate ? new Date(labDate).toISOString() : new Date().toISOString()
+      // Exclude qualitative markers and non-finite values from save payload.
+      // Qualitative urine dipstick markers are not numeric biomarkers_static rows.
+      const safeBiomarkers = staged.filter(b => Number.isFinite(b.value) && !isLikelyQualitativeUrinalysis(b.name))
       const response = await fetch('/api/ocr/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, biomarkers: staged, collected_at: collectedAt }),
+        body: JSON.stringify({ user_id: userId, biomarkers: safeBiomarkers, collected_at: collectedAt }),
       })
       const data = await response.json()
       if (!data.success) { setError(data.error || 'Failed to save biomarkers'); setConfirming(false); return }
@@ -1870,49 +1904,133 @@ export default function LabsUploadPage() {
                 />
               </div>
 
-              {/* Biomarker cards */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-                {staged.map((b, i) => {
-                  const s = getStateStyles(b.state)
-                  return (
-                    <motion.div
-                      key={b.slug + i}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: i * 0.04 }}
-                      style={{
-                        padding: '16px 20px',
-                        backgroundColor: b.flag_error ? colors.critical : s.bg,
-                        border: `1px solid ${b.flag_error ? colors.criticalBorder : s.border}`,
-                        borderRadius: '12px', display: 'flex', justifyContent: 'space-between',
-                        alignItems: 'center', flexWrap: 'wrap', gap: '8px',
-                      }}
-                    >
-                      <div style={{ flex: 1, minWidth: '150px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: b.flag_error ? colors.error : s.dot }} />
-                          <span style={{ fontSize: '15px', fontWeight: 600, color: colors.text }}>{b.name}</span>
-                        </div>
-                        {b.converted && (
-                          <span style={{ fontSize: '12px', color: colors.textMuted }}>
-                            Converted from {b.original_value} {b.original_unit}
-                          </span>
-                        )}
-                        {b.flag_error && (
-                          <span style={{ fontSize: '12px', color: '#FCA5A5' }}>{b.error_reason}</span>
-                        )}
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: '20px', fontWeight: 700, color: colors.text }}>{b.value}</span>
-                        <span style={{ fontSize: '13px', color: colors.textMuted, marginLeft: '4px' }}>{b.unit}</span>
-                        <div style={{ fontSize: '12px', color: s.dot, fontWeight: 600, marginTop: '2px' }}>
-                          {b.flag_error ? 'ERROR' : s.label}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </div>
+              {/* Biomarker cards — grouped by clinical panel */}
+              {(() => {
+                const panelMap = new Map<string, StagedBiomarker[]>()
+                for (const b of staged) {
+                  const panel = CLINICAL_SLUG_TO_PANEL[b.slug] ?? 'Other'
+                  if (!panelMap.has(panel)) panelMap.set(panel, [])
+                  panelMap.get(panel)!.push(b)
+                }
+                const groups = Array.from(panelMap.entries()).sort((a, b) => {
+                  const ai = CLINICAL_PANEL_ORDER.indexOf(a[0]); const bi = CLINICAL_PANEL_ORDER.indexOf(b[0])
+                  return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
+                })
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
+                    {groups.map(([panel, markers], gi) => {
+                      const realFlagCount = markers.filter(b =>
+                        b.flag_error && Number.isFinite(b.value) && !isLikelyQualitativeUrinalysis(b.name)
+                      ).length
+                      return (
+                        <motion.div
+                          key={panel}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.35, delay: gi * 0.06 }}
+                          style={{
+                            backgroundColor: colors.cardBg,
+                            border: `1px solid ${colors.cardBorder}`,
+                            borderRadius: '14px',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {/* Panel header */}
+                          <div style={{
+                            padding: '11px 16px 10px',
+                            borderBottom: `1px solid ${colors.cardBorder}`,
+                            display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap',
+                          }}>
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: colors.teal, flex: 1, letterSpacing: '0.01em' }}>{panel}</span>
+                            <span style={{ fontSize: '11px', color: colors.textMuted, whiteSpace: 'nowrap' }}>
+                              {markers.length} {markers.length === 1 ? 'marker' : 'markers'}
+                            </span>
+                            {realFlagCount > 0 && (
+                              <span style={{
+                                fontSize: '10px', fontWeight: 700, color: '#F87171',
+                                backgroundColor: colors.critical, border: `1px solid ${colors.criticalBorder}`,
+                                borderRadius: '20px', padding: '1px 8px', whiteSpace: 'nowrap',
+                              }}>{realFlagCount} flagged</span>
+                            )}
+                          </div>
+                          {/* Marker rows */}
+                          <div>
+                            {markers.map((b, i) => {
+                              const s = getStateStyles(b.state)
+                              const valueIsFinite = Number.isFinite(b.value)
+                              const qualitative = isLikelyQualitativeUrinalysis(b.name)
+                              const isRealError = b.flag_error && valueIsFinite && !qualitative
+                              const isSoftIssue = b.flag_error && (!valueIsFinite || qualitative)
+                              const errorMsg = isSoftIssue
+                                ? qualitative
+                                  ? 'Qualitative marker — not saved as a numeric biomarker.'
+                                  : 'Value could not be read.'
+                                : isRealError ? b.error_reason : null
+                              return (
+                                <div
+                                  key={b.slug + i}
+                                  style={{
+                                    padding: '12px 16px',
+                                    borderTop: i === 0 ? 'none' : `1px solid ${colors.cardBorder}`,
+                                    display: 'flex', justifyContent: 'space-between',
+                                    alignItems: 'center', flexWrap: 'wrap', gap: '8px',
+                                    backgroundColor: isRealError
+                                      ? 'rgba(248,113,113,0.07)'
+                                      : isSoftIssue
+                                        ? 'rgba(250,204,21,0.04)'
+                                        : 'transparent',
+                                  }}
+                                >
+                                  <div style={{ flex: 1, minWidth: '150px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: errorMsg ? '4px' : '0' }}>
+                                      <div style={{
+                                        width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
+                                        backgroundColor: isRealError ? colors.error : isSoftIssue ? '#FCD34D' : s.dot,
+                                      }} />
+                                      <span style={{ fontSize: '14px', fontWeight: 600, color: colors.text }}>{b.name}</span>
+                                    </div>
+                                    {b.converted && (
+                                      <span style={{ fontSize: '11px', color: colors.textMuted, display: 'block', paddingLeft: '15px' }}>
+                                        Converted from {b.original_value} {b.original_unit}
+                                      </span>
+                                    )}
+                                    {errorMsg && (
+                                      <span style={{
+                                        fontSize: '11px', display: 'block', paddingLeft: '15px',
+                                        color: isRealError ? '#FCA5A5' : '#FCD34D',
+                                      }}>
+                                        {errorMsg}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                    {valueIsFinite ? (
+                                      <>
+                                        <span style={{ fontSize: '18px', fontWeight: 700, color: colors.text }}>{b.value}</span>
+                                        <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '4px' }}>{b.unit}</span>
+                                      </>
+                                    ) : (
+                                      <span style={{ fontSize: '12px', color: colors.textMuted, fontStyle: 'italic' }}>—</span>
+                                    )}
+                                    <div style={{
+                                      fontSize: '10px', fontWeight: 700, marginTop: '2px', letterSpacing: '0.04em',
+                                      color: isRealError ? '#F87171' : isSoftIssue ? '#FCD34D' : s.dot,
+                                    }}>
+                                      {isRealError ? 'FLAG' : isSoftIssue ? 'SKIP' : s.label}
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </motion.div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
 
               {/* ── Pending Classification queue ─────────────────────────────
                   Unrecognized markers are preserved here, not silently dropped.
@@ -1968,7 +2086,9 @@ export default function LabsUploadPage() {
                               )}
                             </span>
                             <span style={{ fontSize: '11px', color: colors.textMuted, opacity: 0.5, display: 'block', marginTop: '3px' }}>
-                              No confident match in dictionary
+                              {isLikelyQualitativeUrinalysis(u.name)
+                                ? 'Qualitative urinalysis marker'
+                                : 'No confident match in dictionary'}
                             </span>
                           </div>
                           <button
