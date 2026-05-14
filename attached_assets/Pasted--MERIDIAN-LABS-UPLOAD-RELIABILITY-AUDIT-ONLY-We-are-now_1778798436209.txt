@@ -1,0 +1,299 @@
+# MERIDIAN — LABS UPLOAD RELIABILITY AUDIT ONLY
+
+We are now auditing Meridian’s Labs upload and history reliability.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+This is AUDIT ONLY.
+
+Do NOT edit files.
+Do NOT modify code.
+Do NOT create files.
+Do NOT add dependencies.
+Do NOT commit.
+Do NOT push.
+Do NOT publish.
+
+Background:
+The following phases are closed:
+- Profile Phase A
+- Profile Phase B / Health Context
+- Insight Language Phase 1 / 1B / 1C
+- Guardrail Phase 2
+- Boundary Note
+- Health Context Insight Integration Phase 3
+
+Now we need to audit Labs reliability because this is critical for MVP trust.
+
+GOAL:
+Understand whether Meridian reliably handles:
+- lab PDF upload
+- multipage PDFs
+- multiple PDFs
+- collection dates
+- same-day panels
+- duplicate detection
+- Timeline/history grouping
+- panel assignment
+- delete behavior
+- missing panels or biomarkers
+
+AUDIT SCOPE:
+
+Inspect all files involved in:
+- lab upload UI
+- OCR/PDF parsing
+- confirmation/review flow
+- save/insert biomarker flow
+- collection date handling
+- panel grouping
+- Timeline/history rendering
+- duplicate detection
+- delete behavior
+- panel maps / biomarker maps
+
+Likely files:
+- .migration-backup/src/app/labs/upload/page.tsx
+- .migration-backup/src/app/api/ocr/route.ts
+- .migration-backup/src/app/api/confirm/route.ts
+- .migration-backup/src/types/database.ts
+- any lab parsing helpers
+- any biomarker dictionary / panel mapping helpers
+- any Supabase insert/delete logic related to biomarkers_static
+
+Also search for:
+- pdf
+- page
+- pages
+- file
+- files
+- upload
+- OCR
+- Gemini
+- Claude
+- collection_date
+- collected_at
+- lab_date
+- panel
+- duplicate
+- delete
+- biomarker
+- biomarkers_static
+- source
+- filename
+- hash
+- session
+- timeline
+- history
+
+TASKS:
+
+1. Map the current lab upload pipeline
+
+Explain step-by-step:
+- where the user selects a PDF
+- whether the UI accepts one file or multiple
+- whether only PDF is accepted
+- whether image upload is accepted
+- where the file is sent
+- how OCR/parsing happens
+- how extracted markers are returned
+- how the user confirms/reviews them
+- where they are saved to Supabase
+- how dashboard/labs page reads them afterward
+
+2. Multipage PDF support
+
+Determine:
+- whether a PDF with multiple pages is read fully
+- whether only page 1 is processed
+- whether the parser receives the whole PDF or extracted text
+- whether there is any page loop
+- whether page count is known
+- what happens if a lab panel spans multiple pages
+- whether multiple panels inside one PDF are supported
+
+Report confidence level:
+- confirmed supported
+- partially supported
+- not supported
+- unclear
+
+3. Multiple PDF upload support
+
+Determine:
+- whether user can upload more than one PDF at once
+- whether input supports multiple files
+- whether the API supports multiple files
+- whether the confirmation UI supports multiple file batches
+- whether same-day multiple panels are merged safely
+- whether multiple uploads with same collection date overwrite, duplicate, or coexist
+
+4. Image/photo upload support
+
+Determine:
+- whether the input accepts images
+- whether the API can parse image files
+- whether mobile camera/photo upload is possible
+- what would be required to support photo-based labs safely
+
+5. Collection date handling
+
+Audit:
+- where collection date is extracted
+- where user can edit/confirm collection date
+- what happens if the date is missing
+- whether today’s date is used as fallback
+- whether user can accidentally save 2024 labs as 2026
+- whether date storage is consistent
+- whether timezone issues are possible
+- whether Timeline groups by collection date or created_at
+
+6. Same-day panels and duplicate logic
+
+Audit:
+- if two PDFs have the same collection date but different panels, are both preserved?
+- if the same PDF is uploaded twice, is it detected?
+- if same biomarker/date appears twice, what happens?
+- if same day has CBC + CMP + Lipid Panel, are panels grouped correctly?
+- does deleting one collection date delete all panels from that date?
+
+7. Panel assignment and missing panels
+
+Audit:
+- how biomarkers are mapped to panels
+- where panel maps live
+- whether unknown markers are handled
+- whether added mappings like TPO antibodies, ACTH, anion_gap are present
+- why panels may not appear in Timeline
+- whether 2024 labs could be saved but hidden due to date/panel grouping
+- whether panel labels are clinical-panel-based or signal-layer-based
+
+8. Timeline/history behavior
+
+Audit:
+- how Timeline fetches historical lab records
+- whether it groups by year → month → date
+- whether it groups by panel
+- whether it depends on collection date
+- whether labs saved with wrong date would appear under wrong year
+- whether pagination/limits could hide older labs
+- whether 2024 labs might not show due to query limit or ordering
+
+9. Delete behavior
+
+Audit:
+- what Delete does in Timeline
+- whether it deletes by exact collection date
+- whether it deletes by marker IDs
+- whether it deletes all panels on same date
+- whether there is confirmation
+- whether soft delete exists
+- whether accidental delete risk exists
+
+10. Data model gaps
+
+Identify whether current database lacks:
+- upload_session_id
+- source_pdf_name
+- source_pdf_hash
+- source_file_type
+- page_count
+- panel_source
+- collection_time
+- reviewed_by_user
+- duplicate_of
+- deleted_at / soft delete
+
+Recommend which are needed for Phase 1 hardening vs later.
+
+11. Risk ranking
+
+Rank each issue:
+
+Critical:
+Could cause wrong health insight, lost data, wrong date, or mixed patient data.
+
+High:
+Could confuse user or make history unreliable.
+
+Medium:
+UX friction but not dangerous.
+
+Low:
+Polish.
+
+12. Recommended implementation order
+
+Give a phased plan.
+
+Example:
+Phase A:
+- Audit/verify multipage support
+- Add clear single-file vs multiple-file UI
+- Strengthen date confirmation
+
+Phase B:
+- Upload session tracking
+- source filename
+- duplicate soft warning
+
+Phase C:
+- Multiple PDF upload
+- Same-day panel session grouping
+
+Phase D:
+- Image/photo upload
+
+13. QA plan
+
+Recommend exact QA tests:
+- single-page PDF
+- multipage PDF
+- same-day CBC/CMP/Lipid separate PDFs
+- same PDF uploaded twice
+- 2024 PDF with confirmed 2024 date
+- missing collection date
+- wrong date corrected by user
+- delete one panel/date
+- unknown biomarker
+- Timeline older year visibility
+
+14. Build
+
+Run:
+
+cd .migration-backup && npm run build
+
+Report:
+- build result
+- TypeScript errors if any
+- unrelated warnings if any
+
+OUTPUT REQUIRED:
+
+Return:
+1. Executive summary
+2. Current upload pipeline map
+3. Multipage PDF support assessment
+4. Multiple PDF support assessment
+5. Image/photo upload assessment
+6. Collection date handling audit
+7. Same-day panels / duplicate logic audit
+8. Panel assignment audit
+9. Timeline/history audit
+10. Delete behavior audit
+11. Data model gaps
+12. Risk ranking
+13. Recommended implementation order
+14. QA plan
+15. Build result
+16. Confirmation:
+   “No files were changed.”
+
+Remember:
+Audit only.
+Do not edit files.
