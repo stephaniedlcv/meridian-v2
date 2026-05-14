@@ -1,0 +1,107 @@
+# MERIDIAN — PROFILE READ VIEW REMOVE DISPLAY NAME ROW
+
+We need a small Profile read-only view polish.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Modify ONLY:
+
+.migration-backup/src/app/profile/page.tsx
+
+Do not touch any other files.
+
+Do not add dependencies.
+Do not create files.
+Do not use Tailwind.
+Inline styles only.
+TypeScript strict.
+
+CURRENT ISSUE:
+In the Biological Passport read-only view, the Display name row feels redundant because the computed Name already uses display_name as the first priority.
+
+Example:
+If display_name = "Steph", the card would show:
+Name: Steph
+Display name: Steph
+
+This is repetitive.
+
+TASK:
+Remove the Display name row from the Biological Passport read-only view.
+
+REQUIREMENTS:
+
+1. Keep computed Name row
+
+Always show:
+
+Name
+{computedDisplayName}
+
+using the existing priority:
+display_name → first_name + last_name → full_name → fallback
+
+This means if the user edits Display name, the Name row should update accordingly.
+
+2. Remove Display name row from read-only view
+
+Do not show Display name as a separate PassportRow in the read-only Biological Passport card.
+
+3. Keep Display name editable
+
+Do NOT remove Display name from edit mode.
+
+The user should still be able to edit Display name.
+It should still save.
+It should still drive the computed Name.
+
+4. Do not change save logic
+
+Do not change:
+- saveIdentity
+- full_name fallback logic
+- first_name
+- last_name
+- birth_date
+- biological_profile
+- medications
+
+5. Preserve UI style
+
+No redesign.
+Use existing PassportRow/divider pattern.
+
+6. Build and QA
+
+After editing, run:
+
+cd .migration-backup && npm run build
+
+QA checklist:
+- Profile loads without console errors.
+- Name row still appears.
+- Name row uses display_name if display_name exists.
+- First name row still appears.
+- Last name row still appears.
+- Display name row no longer appears in read-only view.
+- Edit mode still shows Display name input.
+- Saving display_name still works.
+- After saving a different display_name, the read-only Name row updates to that display name.
+- Dashboard still loads.
+- Labs still loads.
+- Build passes.
+
+Do not commit.
+Do not push.
+Do not publish.
+
+OUTPUT REQUIRED:
+Return:
+1. Summary of change
+2. Exact file changed
+3. Build result
+4. QA checklist result
+5. Confirmation that no unrelated systems were touched

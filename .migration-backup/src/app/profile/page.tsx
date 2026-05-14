@@ -546,13 +546,6 @@ export default function ProfilePage() {
                 onAdd={startEditIdentity}
               />
               <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
-              <PassportRow
-                label="Display name"
-                value={profile.display_name || null}
-                emptyLabel="Using first name or full name"
-                onAdd={startEditIdentity}
-              />
-              <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
               <PassportRow label="Email" value={userEmail} />
               <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
               <PassportRow
