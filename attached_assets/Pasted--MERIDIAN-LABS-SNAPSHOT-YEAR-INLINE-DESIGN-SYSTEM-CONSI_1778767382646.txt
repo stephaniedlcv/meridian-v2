@@ -1,0 +1,205 @@
+# MERIDIAN — LABS SNAPSHOT YEAR INLINE + DESIGN SYSTEM CONSISTENCY
+
+We need a small Labs page visual polish.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Modify ONLY:
+
+.migration-backup/src/app/labs/upload/page.tsx
+
+Reference page for consistency:
+.migration-backup/src/app/dashboard/page.tsx
+
+You may inspect dashboard/page.tsx only to copy visual rhythm values/patterns.
+Do not modify dashboard/page.tsx.
+
+Do not touch:
+- dashboard logic
+- profile
+- protocol
+- onboarding
+- OCR routes
+- confirm route
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- dependencies
+- artifacts/
+
+Do not add dependencies.
+Do not create new files.
+Do not use Tailwind.
+Inline styles only.
+TypeScript strict.
+
+TASK:
+Make the Labs snapshot heading more compact and consistent.
+
+This is visual/copy polish only.
+
+Do NOT change:
+- upload flow
+- Snapshot / Timeline logic
+- Clinical Panels / Signal Map logic
+- marker grouping
+- marker sorting
+- state badges
+- range bars
+- Timeline data
+- marker detail sheet
+
+REQUIREMENTS:
+
+1. Snapshot heading + year inline
+
+Replace the separate year metadata line:
+
+Current year · 2026
+
+with an inline year inside the snapshot section label.
+
+Use:
+
+CURRENT BIOMARKER SNAPSHOT · [currentYear]
+
+Example:
+CURRENT BIOMARKER SNAPSHOT · 2026
+
+Do not hardcode the year.
+Use the existing currentYear constant or:
+
+new Date().getFullYear()
+
+2. Remove separate Current year line
+
+After this change, there should be no separate line that says:
+
+Current Year · 2026
+Current year · 2026
+
+The year should only appear inline in the snapshot heading.
+
+3. Desired Snapshot structure
+
+The Snapshot section should read:
+
+CURRENT BIOMARKER SNAPSHOT · 2026
+
+[ Snapshot | Timeline ]
+
+[summary card]
+
+[status chips]
+
+4. Header subcopy spacing consistency
+
+Home/Dashboard uses this pattern:
+
+Your body is speaking.
+Let's see what changed today.
+
+The two lines are visually close together and feel like one copy block.
+
+Labs uses:
+
+Your clinical markers.
+Translated into biological signals.
+
+Make the Labs two-line subcopy match the Home/Dashboard spacing rhythm exactly or as closely as possible.
+
+Keep:
+Line 1:
+Your clinical markers.
+
+Line 2:
+Translated into biological signals.
+
+Do not collapse into one sentence.
+
+5. Segmented control consistency
+
+The Snapshot | Timeline segmented control and the Clinical Panels | Signal Map segmented control should share the same visual grammar.
+
+Make Clinical Panels | Signal Map visually match Snapshot | Timeline:
+- same rounded/pill shape
+- same border radius logic
+- same border style
+- same inactive background feel
+- same active background treatment
+- same text color logic
+- same font weight logic
+- same padding rhythm
+- same premium glass feel
+
+It may be wider because labels are longer, but it should not look like a different component.
+
+6. View Mode label hierarchy
+
+Change “View mode:” to match the same section-label grammar as:
+
+CURRENT BIOMARKER SNAPSHOT · 2026
+CURRENT MARKERS
+
+Use:
+
+VIEW MODE
+
+Style:
+- uppercase
+- small size
+- letter spacing
+- muted teal / secondary text
+- same font family/weight as the other section labels
+- no colon
+- no white/bold emphasis
+
+Preferred structure:
+
+VIEW MODE
+
+[ Clinical Panels | Signal Map ]
+
+Grouped by clinical lab panels.
+
+When Signal Map is selected:
+Grouped by biological signal layers.
+
+7. Global design-system rule
+
+If Labs repeats a UI pattern already used in Home/Dashboard, match the existing Home/Dashboard rhythm instead of inventing a new one.
+
+Repeated patterns must feel intentionally identical across Meridian.
+
+8. Build and test
+
+After editing:
+1. Report exact file changed.
+2. Confirm no unrelated files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /labs/upload
+
+Confirm:
+- Snapshot section reads CURRENT BIOMARKER SNAPSHOT · [currentYear]
+- no separate Current year line remains
+- year is dynamic, not hardcoded
+- Labs subcopy spacing matches Home/Dashboard rhythm
+- Snapshot | Timeline and Clinical Panels | Signal Map share the same segmented-control visual grammar
+- VIEW MODE matches the section-label style
+- Snapshot still works
+- Timeline still works
+- Clinical Panels still works
+- Signal Map still works
+- upload flow still works
+- build passes
+
+Do not commit.
+Do not push.
+Do not publish.
