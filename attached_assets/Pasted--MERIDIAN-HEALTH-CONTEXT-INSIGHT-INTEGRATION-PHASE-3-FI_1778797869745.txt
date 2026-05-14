@@ -1,0 +1,133 @@
+# MERIDIAN — HEALTH CONTEXT INSIGHT INTEGRATION PHASE 3 FINAL QA ONLY
+
+Health Context Insight Integration Phase 3 has been implemented and visually tested in production.
+
+This is QA ONLY.
+
+Do NOT edit files.
+Do NOT modify code.
+Do NOT commit.
+Do NOT push.
+Do NOT publish.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Scope:
+Verify that Health Context is safely integrated into insight generation.
+
+Inspect:
+.migration-backup/src/app/api/insight/route.ts
+
+Run:
+cd .migration-backup && npm run build
+
+QA CHECKLIST:
+
+1. Build
+
+Confirm:
+- build passes
+- zero TypeScript errors
+- no new warnings
+
+2. Health Context fields
+
+Confirm the profile SELECT includes:
+- activity_level
+- training_days
+- body_goal_phase
+- diet_pattern
+- weight_kg
+
+Confirm height_cm is intentionally excluded.
+
+3. Safe extraction
+
+Confirm Health Context fields are safely extracted:
+- string fields only if string
+- training_days only if number
+- weight_kg only if number
+- null fallback if missing
+
+4. Prompt injection
+
+Confirm:
+- Health Context block is added only if at least one field exists
+- null fields are omitted
+- weight_kg number is never inserted into prompt text
+- no height value is inserted
+- readable labels are used
+
+5. Rule 17
+
+Confirm Rule 17:
+- uses Health Context only when relevant
+- says not to enumerate every context field
+- says not to mention weight/height numbers
+- bans numeric protein targets
+- bans hydration volumes
+- bans calorie targets
+- bans macro targets
+- bans supplement dosages
+- bans medication dosing
+- bans exact training prescriptions
+- includes good/bad examples
+- discourages repetitive Health Context phrasing
+
+6. Expected production behavior
+
+Confirm the prompt supports outputs like:
+“Since your diet is already high-protein, stick to your usual protein portions today and let hydration be the priority.”
+
+Confirm the prompt avoids outputs like:
+“Eat X grams of protein.”
+“Drink X liters of water.”
+“Because you weigh X…”
+“Based on your height…”
+“Train exactly X minutes.”
+“Since your diet is high-protein, don’t add more protein. No need to increase protein.”
+
+7. Guardrails unchanged
+
+Confirm:
+- hallucination guard still returns insight_unavailable
+- forbidden word guard still returns insight_unavailable
+- no *** replacement exists
+- normal solved/safety_alert path still works
+
+8. Scope safety
+
+Confirm no changes to:
+- Dashboard
+- Labs
+- Profile
+- Onboarding
+- Database types
+- Supabase clients
+- Decision Engine
+- Safety Engine thresholds
+- package.json
+- dependencies
+
+9. Remaining risks
+
+Report any remaining risks, especially:
+- Health Context may still be used too subtly sometimes
+- AI may not always mention context even when relevant
+- no estimated range consent yet
+- no numeric targets yet by design
+
+OUTPUT REQUIRED:
+1. Executive QA summary
+2. Files inspected
+3. Build result
+4. Health Context verification
+5. Rule 17 verification
+6. Guardrail verification
+7. Remaining risks
+8. Whether Health Context Insight Integration Phase 3 can be considered closed
+9. Confirmation:
+   “No files were changed.”
