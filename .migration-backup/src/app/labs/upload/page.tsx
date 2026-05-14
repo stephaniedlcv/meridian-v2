@@ -1835,7 +1835,8 @@ export default function LabsUploadPage() {
               {hasRecentLabs ? 'Labs' : 'Upload your labs'}
             </h1>
             <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: hasRecentLabs ? '16px' : '20px', lineHeight: 1.6 }}>
-              Your clinical markers, translated into biological signals.
+              Your clinical markers.<br />
+              <span style={{ color: colors.textMuted }}>Translated into biological signals.</span>
             </p>
             {/* ── Snapshot | History toggle ── */}
             {hasRecentLabs && (
