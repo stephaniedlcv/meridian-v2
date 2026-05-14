@@ -138,11 +138,11 @@ function lbsToKg(lbs: number): number {
 
 function displayHeight(cm: number): string {
   const { ft, inch } = cmToFtIn(cm)
-  return `${ft} ft ${inch} in · ${cm.toFixed(1)} cm`
+  return `${ft} ft ${inch} in`
 }
 
 function displayWeight(kg: number): string {
-  return `${kgToLbs(kg).toFixed(1)} lb · ${kg.toFixed(1)} kg`
+  return `${kgToLbs(kg).toFixed(1)} lb`
 }
 
 // ——— Main component ———
