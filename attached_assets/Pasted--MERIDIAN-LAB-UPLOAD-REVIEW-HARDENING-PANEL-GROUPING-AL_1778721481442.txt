@@ -1,0 +1,393 @@
+# MERIDIAN — LAB UPLOAD REVIEW HARDENING: PANEL GROUPING, ALIASES, URINALYSIS + OCR ARTIFACTS
+
+We need to harden the Labs Upload Review flow using real issues found during testing.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Vercel production is working because Root Directory is set to .migration-backup.
+
+Do NOT restructure the repo.
+Do NOT move files out of .migration-backup.
+Do NOT touch root package files.
+Do NOT touch Vercel settings.
+Do NOT touch artifacts/.
+Do NOT publish to Replit.
+
+Modify ONLY if needed:
+
+.migration-backup/src/app/labs/upload/page.tsx
+
+Only touch additional files if absolutely necessary for dictionary matching, and report exactly why.
+
+Do not touch:
+- dashboard
+- protocol
+- profile
+- onboarding
+- labs/history
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- dependencies
+- artifacts/
+
+Do not add dependencies.
+Do not create new files unless absolutely required.
+Do not use Tailwind.
+Inline styles only.
+TypeScript strict.
+
+GOAL:
+Improve the lab upload review experience before confirmation.
+
+The upload review should feel clinical, clean, and trustworthy.
+The user should understand what panel they are confirming.
+Meridian should distinguish between:
+1. recognized biomarkers
+2. real biomarkers with missing aliases
+3. qualitative urinalysis markers
+4. OCR/PDF artifacts
+5. true unmatched markers
+
+Do not change the Labs Snapshot Clinical Panels / Signal Map UX.
+This task is only about upload review parsing/classification/display before confirmation.
+
+CURRENT REAL TESTING ISSUES:
+
+1. Urinalysis markers are still problematic.
+Examples:
+- Color: Yellow
+- Appearance: Clear
+- Acetone
+- Specific Gravity: 1.015
+- Urobilinogen
+- Nitrite
+- Epithelial Cells
+- RBC / Red Blood Cells in urine
+- WBC / White Blood Cells in urine
+
+These should not be treated as serum numeric biomarkers.
+Qualitative urine markers should not produce scary numeric errors like:
+“Value null mg/dL is outside physically possible range.”
+
+2. Upload Review needs clearer panel grouping.
+The review screen should show the panel name before the user confirms.
+
+Examples:
+- CBC
+- Comprehensive Metabolic Panel
+- Lipid Panel
+- Glycemic Panel
+- Thyroid Panel
+- Urinalysis
+- Vitamin & Nutrient Panel
+- Hormone Panel
+- Iron Panel
+- Inflammation Markers
+- Other
+
+3. Some real biomarkers are going to Pending Classification because aliases are missing.
+
+Observed pending examples:
+
+A. GFR variants:
+- GFR AFRO AMERICAN
+- GFR NON AFRO AMERICAN
+
+These should map to existing slugs if available:
+- egfr_african_american
+- egfr_non_african_american
+
+Aliases to support:
+- GFR AFRO AMERICAN
+- GFR AFRO-AMERICAN
+- GFR AFRICAN AMERICAN
+- eGFR AFRO AMERICAN
+- eGFR AFRICAN AMERICAN
+- GFR NON AFRO AMERICAN
+- GFR NON-AFRO AMERICAN
+- GFR NON AFRICAN AMERICAN
+- eGFR NON AFRO AMERICAN
+- eGFR NON AFRICAN AMERICAN
+- GFR if non-African Am
+- eGFR if non-African Am
+
+Panel:
+Kidney / Renal or Comprehensive Metabolic Panel, whichever is safest in the existing grouping.
+
+B. Thyroid antibody:
+- MICROSOMAL ANTIBODIES (TPO)
+- value: 10 IU/mL
+- reference: LESS THAN 35 IU/mL
+
+This is a real thyroid antibody marker.
+
+Aliases to support:
+- MICROSOMAL ANTIBODIES (TPO)
+- MICROSOMAL ANTIBODIES
+- TPO ANTIBODIES
+- THYROID PEROXIDASE ANTIBODIES
+- THYROID PEROXIDASE AB
+- ANTI-TPO
+- TPO AB
+- ANTICUERPOS MICROSOMALES
+- ANTICUERPOS MICROSOMALES (TPO)
+- ANTICUERPOS TPO
+- ANTICUERPOS ANTI-TPO
+
+Preferred slug if available:
+- tpo_antibodies
+
+If no slug exists, do not create a database migration.
+Instead keep it pending but label it:
+“Recognized thyroid antibody marker — dictionary slug missing”
+
+Panel:
+Thyroid Panel or Thyroid / Autoimmune.
+
+Support reference text:
+- LESS THAN 35 IU/mL
+- <35 IU/mL
+- Negative <35
+
+C. ACTH:
+- ADRENOCORTICOTROPIC HORMONE
+- value: 34.2 pg/mL
+- reference: ND to 46 pg/mL
+
+This is a real adrenal/pituitary hormone marker.
+
+Aliases to support:
+- ADRENOCORTICOTROPIC HORMONE
+- ADRENOCORTICOTROPIC HORMONE (ACTH)
+- ACTH
+- PLASMA ACTH
+- SERUM ACTH
+- CORTICOTROPIN
+- ADRENOCORTICOTROPINA
+- HORMONA ADRENOCORTICOTROPICA
+- HORMONA ADRENOCORTICOTRÓPICA
+
+Preferred slug if available:
+- acth
+
+If no slug exists, do not create a migration.
+Instead keep it pending but label it:
+“Recognized adrenal hormone marker — dictionary slug missing”
+
+Panel:
+Hormone Panel or Adrenal / Stress Axis.
+
+Support reference text:
+- ND to 46 pg/mL
+- <46 pg/mL
+- Up to 46 pg/mL
+
+D. Short lipid aliases:
+Observed pending:
+- HDL
+- LDL
+
+These should map to:
+- hdl
+- ldl
+
+Aliases to support:
+
+HDL:
+- HDL
+- HDL-C
+- HDL CHOL
+- HDL CHOLESTEROL
+- COLESTEROL HDL
+- HIGH DENSITY LIPOPROTEIN
+
+LDL:
+- LDL
+- LDL-C
+- LDL CHOL
+- LDL CHOLESTEROL
+- LDL CALCULATED
+- LDL CALC
+- COLESTEROL LDL
+- LOW DENSITY LIPOPROTEIN
+
+Panel:
+Lipid Panel.
+
+Preserve unit mg/dL and lab reference range if available.
+
+4. OCR/PDF artifacts should not appear as normal pending biomarkers.
+
+Observed examples:
+- A1C-W2
+- HB-W2
+
+These appear to be PDF/OCR artifacts or worksheet codes, not clinical biomarkers.
+
+If an extracted item looks like a worksheet code, OCR residue, calculation artifact, or document artifact:
+- do not count it as a marker found
+- do not include it in confirm/save payload
+- do not display it as a normal pending biomarker
+- if shown, place under a smaller section called:
+  Possible document artifacts
+- allow Ignore if existing ignore behavior supports it
+- use calm language, not red/alarming language
+
+5. Numeric validation guardrail
+
+Only run numeric physical range validation when:
+- the marker is expected to be numeric
+- parsed value is a finite number
+
+If marker is qualitative:
+- do not run numeric physical range validation
+- do not show “Value null...” error
+
+If a numeric marker has no readable value:
+show:
+“Value could not be read.”
+not:
+“Value null is outside physically possible range.”
+
+Do not save null numeric values.
+
+6. Urinalysis qualitative handling
+
+Recognize common Urinalysis markers as Urinalysis context:
+- Color
+- Appearance
+- Specific Gravity
+- pH
+- Urine Glucose / Glucose, urine
+- Urine Protein / Protein, urine
+- Ketones / Acetone
+- Blood
+- Nitrite
+- Leukocyte Esterase
+- Urobilinogen
+- Bilirubin, urine
+- RBC / Red Blood Cells
+- WBC / White Blood Cells
+- Epithelial Cells
+- Bacteria
+- Mucus
+- Crystals
+- Casts
+
+Supported qualitative values:
+- Negative
+- Normal
+- Clear
+- Yellow
+- None Seen
+- Trace
+- Few
+- Moderate
+- Large
+
+Do not confuse:
+- serum glucose with urine glucose
+- CBC WBC/RBC with urine sediment WBC/RBC
+
+Use panel context, marker name, unit, reference text, and surrounding extracted data when available.
+
+If qualitative markers cannot be safely saved due to numeric-only schema:
+- keep them out of numeric save payload
+- do not insert null values
+- show them as qualitative urinalysis markers or pending qualitative markers
+- make clear they will not affect numeric lab counts/signals yet
+
+7. Panel headers in Upload Review
+
+Group recognized extracted markers by panel before confirmation.
+
+Each panel group should show:
+- panel name
+- marker count
+- flagged count if any
+- collection date if available
+
+Do not make the user confirm a loose ungrouped list.
+
+Keep top upload summary:
+- Upload your labs title
+- markers found count
+- flagged count
+- not recognized count
+- Collection Date correction block
+- Confirm markers button
+- Cancel button
+- bottom nav behavior
+
+8. Pending Classification copy
+
+Keep Pending Classification if needed, but make it more precise.
+
+Use:
+“These markers were extracted but could not be confidently matched to Meridian’s biomarker dictionary. They will not affect your lab results, counts, or health signals.”
+
+If a marker is recognized conceptually but missing a dictionary slug, say:
+“Recognized marker — dictionary slug missing”
+
+If a marker is likely an OCR artifact, place under:
+“Possible document artifacts”
+
+9. Safety / medical language
+
+Do not add diagnosis.
+Do not add treatment advice.
+Do not use:
+- “this means”
+- “caused by”
+- “your body is not clearing”
+- “you have”
+
+This is upload review only.
+
+10. Preserve existing flows
+
+Do not break:
+- upload
+- extract
+- confirm/save
+- cancel
+- “upload another PDF” after confirming
+- Labs Snapshot Clinical Panels / Signal Map
+- marker detail sheet
+- bottom nav
+
+11. Build and report
+
+After editing:
+1. Report exact files changed.
+2. Confirm whether only labs/upload/page.tsx changed.
+3. If any other file changed, explain why.
+4. Run:
+   cd .migration-backup && npm run build
+5. Test:
+   /labs/upload
+
+Confirm:
+- Upload Review groups recognized markers by panel
+- panel names are visible before confirmation
+- Urinalysis qualitative markers do not show numeric null errors
+- serum glucose and urine glucose are not confused
+- CBC WBC/RBC and urine WBC/RBC are not confused
+- HDL and LDL no longer remain pending when confidently matched
+- GFR AFRO/NON AFRO variants no longer remain pending when confidently matched
+- TPO / Microsomal Antibodies is matched if slug exists, otherwise labeled as recognized marker with missing slug
+- ACTH / Adrenocorticotropic Hormone is matched if slug exists, otherwise labeled as recognized marker with missing slug
+- A1C-W2 / HB-W2 are treated as possible document artifacts, not normal pending biomarkers
+- confirm/save does not insert null numeric values
+- upload another PDF flow still works
+- build passes
+
+Do not commit.
+Do not push.
+Do not publish.

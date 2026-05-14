@@ -264,6 +264,18 @@ const PANEL_EDUCATION: Record<string, string> = {
   'Other':                    'This panel adds context to your broader biological profile.',
 }
 
+// ── OCR artifact / worksheet code detection ────────────────────────────────────
+// Patterns like "A1C-W2", "HB-W2" are PDF layout codes or OCR artifacts,
+// not clinical biomarker names. They should not appear as pending biomarkers.
+function isOcrArtifact(name: string): boolean {
+  const t = name.trim()
+  // Short alphanumeric prefix + hyphen + letter + 1–3 digits (e.g. "A1C-W2", "HB-W2")
+  if (/^[A-Za-z0-9]{1,8}-[A-Za-z][0-9]{1,3}$/.test(t)) return true
+  // Bare codes: single letter + 1–2 digits only (e.g. "W2", "R3", "N1")
+  if (/^[A-Z][0-9]{1,2}$/.test(t)) return true
+  return false
+}
+
 // ── Urinalysis qualitative marker detection ───────────────────────────────────
 // Qualitative/dipstick urine markers should not be treated as numeric serum
 // biomarkers in the upload review. This prevents scary "Value null..." errors
@@ -2032,93 +2044,112 @@ export default function LabsUploadPage() {
                 )
               })()}
 
-              {/* ── Pending Classification queue ─────────────────────────────
+              {/* ── Pending Classification + OCR Artifacts ───────────────────
                   Unrecognized markers are preserved here, not silently dropped.
-                  They will be saved to pending_biomarkers on confirm (unless ignored)
-                  and will never enter Labs snapshot, History, or counts.       */}
-              {unmatched.filter((_, i) => !ignoredPending.has(i)).length > 0 && (
-                <div style={{ marginBottom: '24px' }}>
-                  {/* Section header */}
-                  <div style={{
-                    padding: '12px 16px',
-                    backgroundColor: 'rgba(103,232,249,0.035)',
-                    border: `1px solid ${colors.cardBorder}`,
-                    borderRadius: '12px',
-                    marginBottom: '8px',
-                  }}>
-                    <p style={{
-                      fontSize: '10px', fontWeight: 700, letterSpacing: '0.07em',
-                      textTransform: 'uppercase', color: colors.textMuted,
-                      margin: '0 0 4px',
-                    }}>
-                      Pending Classification
-                    </p>
-                    <p style={{ fontSize: '12px', color: colors.textMuted, margin: 0, lineHeight: 1.55 }}>
-                      These markers were extracted but could not be confidently matched to Meridian&apos;s biomarker dictionary. They will be saved separately and will not affect your lab results, counts, or health signals.
-                    </p>
-                  </div>
+                  Partitioned into: true pending markers, and OCR artifacts.    */}
+              {(() => {
+                const visibleUnmatched = unmatched
+                  .map((u, i) => ({ u, i }))
+                  .filter(({ i }) => !ignoredPending.has(i))
+                const realPending = visibleUnmatched.filter(({ u }) => !isOcrArtifact(u.name))
+                const artifacts  = visibleUnmatched.filter(({ u }) =>  isOcrArtifact(u.name))
+                if (visibleUnmatched.length === 0) return null
 
-                  {/* Pending marker cards */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {unmatched.map((u, i) => {
-                      if (ignoredPending.has(i)) return null
-                      return (
-                        <div key={i} style={{
-                          padding: '11px 14px',
-                          backgroundColor: colors.cardBg,
-                          border: `1px solid ${colors.cardBorder}`,
-                          borderRadius: '10px',
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          justifyContent: 'space-between',
-                          gap: '10px',
+                const IgnoreBtn = ({ idx }: { idx: number }) => (
+                  <button
+                    onClick={() => setIgnoredPending(prev => { const next = new Set(prev); next.add(idx); return next })}
+                    style={{
+                      padding: '4px 10px', backgroundColor: 'transparent',
+                      border: '1px solid rgba(95,142,133,0.28)', borderRadius: '6px',
+                      color: colors.textMuted, fontFamily: fonts.ui,
+                      fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+                      flexShrink: 0, whiteSpace: 'nowrap',
+                    }}
+                  >Ignore</button>
+                )
+
+                return (
+                  <div style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+                    {/* ── Real Pending Classification ─────────────────────────── */}
+                    {realPending.length > 0 && (
+                      <div>
+                        <div style={{
+                          padding: '12px 16px', backgroundColor: 'rgba(103,232,249,0.035)',
+                          border: `1px solid ${colors.cardBorder}`, borderRadius: '12px', marginBottom: '8px',
                         }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textSoft, display: 'block', marginBottom: '2px' }}>
-                              {u.name}
-                            </span>
-                            <span style={{ fontSize: '13px', color: colors.textMuted }}>
-                              {u.value} {u.unit}
-                              {u.reference_range && (
-                                <span style={{ marginLeft: '8px', fontSize: '11px', opacity: 0.7 }}>
-                                  Ref: {u.reference_range}
-                                </span>
-                              )}
-                            </span>
-                            <span style={{ fontSize: '11px', color: colors.textMuted, opacity: 0.5, display: 'block', marginTop: '3px' }}>
-                              {isLikelyQualitativeUrinalysis(u.name)
-                                ? 'Qualitative urinalysis marker'
-                                : 'No confident match in dictionary'}
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => setIgnoredPending(prev => {
-                              const next = new Set(prev)
-                              next.add(i)
-                              return next
-                            })}
-                            style={{
-                              padding: '4px 10px',
-                              backgroundColor: 'transparent',
-                              border: `1px solid rgba(95,142,133,0.28)`,
-                              borderRadius: '6px',
-                              color: colors.textMuted,
-                              fontFamily: fonts.ui,
-                              fontSize: '11px',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              flexShrink: 0,
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            Ignore
-                          </button>
+                          <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: colors.textMuted, margin: '0 0 4px' }}>
+                            Pending Classification
+                          </p>
+                          <p style={{ fontSize: '12px', color: colors.textMuted, margin: 0, lineHeight: 1.55 }}>
+                            These markers were extracted but could not be confidently matched to Meridian&apos;s biomarker dictionary. They will not affect your lab results, counts, or health signals.
+                          </p>
                         </div>
-                      )
-                    })}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {realPending.map(({ u, i }) => {
+                            const isQual = isLikelyQualitativeUrinalysis(u.name)
+                            const subLabel = isQual
+                              ? 'Qualitative urinalysis marker'
+                              : 'No confident match in dictionary'
+                            return (
+                              <div key={i} style={{
+                                padding: '11px 14px', backgroundColor: colors.cardBg,
+                                border: `1px solid ${colors.cardBorder}`, borderRadius: '10px',
+                                display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px',
+                              }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textSoft, display: 'block', marginBottom: '2px' }}>{u.name}</span>
+                                  <span style={{ fontSize: '13px', color: colors.textMuted }}>
+                                    {u.value} {u.unit}
+                                    {u.reference_range && (
+                                      <span style={{ marginLeft: '8px', fontSize: '11px', opacity: 0.7 }}>Ref: {u.reference_range}</span>
+                                    )}
+                                  </span>
+                                  <span style={{ fontSize: '11px', color: colors.textMuted, opacity: 0.5, display: 'block', marginTop: '3px' }}>{subLabel}</span>
+                                </div>
+                                <IgnoreBtn idx={i} />
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ── Possible document artifacts ─────────────────────────── */}
+                    {artifacts.length > 0 && (
+                      <div>
+                        <div style={{
+                          padding: '10px 14px', backgroundColor: 'rgba(95,142,133,0.04)',
+                          border: '1px solid rgba(95,142,133,0.14)', borderRadius: '10px', marginBottom: '6px',
+                        }}>
+                          <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: colors.textMuted, margin: '0 0 3px', opacity: 0.7 }}>
+                            Possible document artifacts
+                          </p>
+                          <p style={{ fontSize: '11px', color: colors.textMuted, margin: 0, lineHeight: 1.5, opacity: 0.65 }}>
+                            These appear to be PDF layout codes or OCR residue rather than clinical biomarkers. They will not be saved.
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {artifacts.map(({ u, i }) => (
+                            <div key={i} style={{
+                              padding: '8px 12px', backgroundColor: 'rgba(95,142,133,0.03)',
+                              border: '1px solid rgba(95,142,133,0.10)', borderRadius: '8px',
+                              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
+                            }}>
+                              <div style={{ flex: 1 }}>
+                                <span style={{ fontSize: '12px', fontWeight: 600, color: colors.textMuted, fontFamily: 'monospace' }}>{u.name}</span>
+                                <span style={{ fontSize: '11px', color: colors.textMuted, opacity: 0.45, marginLeft: '8px' }}>document code</span>
+                              </div>
+                              <IgnoreBtn idx={i} />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                   </div>
-                </div>
-              )}
+                )
+              })()}
 
               {/* Duplicate / overlap notice — 3-tier */}
               {duplicateWarning && (() => {
