@@ -1,0 +1,217 @@
+# MERIDIAN — LAB UPLOAD + HISTORY PANEL QA AUDIT ONLY
+
+We need a focused QA audit on Meridian Labs data grouping, upload review, and historical panel display.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+This is AUDIT ONLY.
+
+Do NOT edit files.
+Do NOT modify code.
+Do NOT create files.
+Do NOT add dependencies.
+Do NOT commit.
+Do NOT push.
+Do NOT publish.
+
+Relevant page:
+.migration-backup/src/app/labs/upload/page.tsx
+
+Relevant areas to inspect:
+- upload review / staged biomarkers
+- canonical dictionary matching
+- panel grouping maps
+- history / timeline grouping
+- snapshot clinical panels
+- saved biomarkers rendering
+- pending classification
+- artifact detection
+- qualitative urinalysis handling
+
+TASK:
+Audit why some uploaded historical labs, especially 2024 labs, may not be appearing under the expected clinical panels in Timeline/History or Snapshot.
+
+Known user concern:
+The user uploaded many historical lab PDFs quickly. Some 2024 labs may have saved, but the expected panels may not be appearing correctly. We need to verify whether this is:
+- a rendering issue
+- a grouping issue
+- a canonical slug → panel map issue
+- a saved data issue
+- a collected_at/date issue
+- a duplicate/date merge issue
+- an upload review issue
+- a pending classification issue
+
+Do not assume. Inspect the code carefully.
+
+AUDIT CHECKLIST:
+
+1. Panel grouping maps
+
+Find every map/function that assigns biomarkers to panels, including but not limited to:
+- current snapshot clinical panel grouping
+- signal map grouping
+- timeline/history panel grouping
+- upload review panel grouping
+- pending classification logic
+
+Report:
+- map/function name
+- where it is used
+- whether the maps are consistent with each other
+- any slugs that are missing from one map but present in another
+
+2. 2024 / historical grouping logic
+
+Inspect how Timeline groups saved biomarkers by:
+- year
+- month
+- collection date
+- panel
+
+Report:
+- what field is used for date grouping
+- whether collected_at is normalized correctly
+- whether same-day uploads merge into one date section
+- whether multi-panel same-day labs appear under the same date
+- whether panel counts are calculated from grouped biomarkers or raw rows
+
+3. Saved biomarker requirements
+
+Inspect what conditions must be true for a biomarker to appear in Timeline/History.
+
+Report whether these fields are required:
+- marker_name / slug
+- value
+- unit
+- collected_at
+- state
+- validated
+- flag_error
+- reference_range_min/max
+- optimal_range_min/max
+
+Confirm whether biomarkers with:
+- missing range
+- missing state
+- flag_error true
+- validated false
+- null value
+- qualitative values
+are hidden, shown, or routed to pending.
+
+4. Upload review → save flow
+
+Inspect how staged biomarkers are filtered before saving.
+
+Report:
+- which markers are saved
+- which are excluded
+- how pending classification is handled
+- whether qualitative urinalysis markers are saved or excluded
+- whether OCR artifacts are saved or excluded
+- whether null numeric values are blocked
+
+5. Urinalysis handling
+
+Audit qualitative urine markers like:
+- Color
+- Appearance
+- Acetone
+- Specific Gravity
+- Urobilinogen
+- Nitrite
+- Epithelial Cells
+- pH
+- Urine Protein / Protein, Urine
+
+Report:
+- which are considered qualitative
+- which are considered numeric
+- which should be skipped
+- which should be saved if numeric
+- whether any of them can still produce false red ERROR cards
+
+6. Known alias coverage
+
+Check whether these aliases/slugs are covered correctly:
+- HDL
+- LDL
+- GFR AFRO AMERICAN
+- GFR NON AFRO AMERICAN
+- eGFR
+- TPO / Microsomal Antibodies
+- ACTH / Adrenocorticotropic Hormone
+- A1C-W2
+- HB-W2
+- Urine protein / Protein, urine
+- pH
+
+Report any gaps.
+
+7. Lab panels expected
+
+Check whether the system supports these panels consistently:
+- CBC
+- CMP
+- Lipid Panel
+- Thyroid Panel
+- Glycemic / Hemoglobin A1c
+- Vitamins & Nutrients
+- Hormones
+- Kidney / Renal
+- Urinalysis
+- Other / Pending
+
+Report if 2024 labs could be going to Other or being hidden because of missing panel mapping.
+
+8. Existing data inspection
+
+If there is any seed/sample/local data or Supabase query logic available, inspect how the page retrieves the user’s saved biomarkers.
+
+Do not expose secrets.
+Do not change the database.
+
+Report:
+- what query fetches biomarkers
+- whether it limits rows in a way that could hide older labs
+- whether it sorts by collected_at
+- whether it fetches all historical rows or only recent rows
+- whether there is any hard limit that could exclude 2024 labs
+
+9. Build
+
+Run:
+
+cd .migration-backup && npm run build
+
+Report:
+- build status
+- TypeScript errors if any
+- unrelated warnings if any
+
+OUTPUT REQUIRED:
+
+Return a structured audit with:
+
+1. Executive summary
+2. Most likely reason 2024 panels may not be appearing correctly
+3. Exact file/line areas involved
+4. Map consistency findings
+5. Slug/alias gaps
+6. Urinalysis handling findings
+7. Timeline/history grouping findings
+8. Save-flow findings
+9. Whether this needs a code fix
+10. Recommended fix plan, but do NOT implement it yet
+11. Risk level:
+   - Low / Medium / High
+12. Confirmation:
+   “No files were changed.”
+
+Remember:
+Do not edit anything.
+Audit only.
