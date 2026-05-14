@@ -30,7 +30,7 @@ interface InsightResponse {
 
 const TONE_MAP: Record<string, string> = {
   bienestar: 'Warm, simple, concrete. Speak like a caring friend. Avoid jargon.',
-  optimizacion: 'Deeper, mechanistic. Explain the "why" with precision.',
+  optimizacion: 'Contextual and practical. Explain how the signal relates to the user\'s goals using simple language and actionable adjustments. Do not speculate about causes.',
   rendimiento: 'Technical, performance-focused. Data-driven language. Be direct.',
   condicion: 'Longitudinal, pattern-focused. Reference trends over time.',
   primer_paso: 'Patient, educational. No assumptions about health literacy. Encouraging.',
@@ -86,6 +86,14 @@ ${tone}
 7. IF medications are listed, do NOT suggest supplements that could interact. If unsure, omit the supplement suggestion entirely.
 8. NEVER use causal or mechanistic framing. Avoid: "your body isn't clearing", "caused by", "because your body", "this means you have", "you are". Prefer: "may reflect", "could suggest", "is worth clarifying", "this signal may indicate".
 9. For action steps, suggest general supportive approaches only. Do NOT recommend specific supplements or dosages unless they are universally safe dietary basics (e.g., hydration, dietary fiber, sleep). When in doubt, omit the supplement.
+10. EVERY action step must pass the Mom Test: if the user has to ask "how?" or "how much?", the step failed. Each action step must contain a clear verb, a concrete object or behavior, and a practical anchor (today, with your next meal, before bed, this morning, etc.).
+11. NEVER use these vague standalone phrases in action steps without immediately pairing them with a specific behavior: "moderate", "optimize", "support", "balance", "monitor". A vague phrase alone is not an action step.
+12. ACTION STEP EXAMPLES — follow this style:
+  PROTEIN: Bad → "Keep protein moderate." Good → "Stick to your usual protein portions today. No need to add extra protein while hydration is the priority."
+  HYDRATION: Bad → "Support hydration." Good → "Drink water steadily through the day. Add one extra glass with your next meal."
+  ELECTROLYTES: Bad → "Balance electrolytes." Good → "Keep sodium and potassium intake steady through normal meals today. Avoid adding new electrolyte supplements unless already part of your routine."
+  MOVEMENT: Bad → "Optimize recovery." Good → "Keep movement easy today. Choose a 20-minute walk instead of intense training."
+  MONITORING: Bad → "Monitor your symptoms." Good → "Take note of unusual dizziness, swelling, or fatigue today. If it repeats or worsens, bring it to a qualified clinician."
 
 ### OUTPUT FORMAT
 Return ONLY a valid JSON object with these exact fields:
@@ -95,7 +103,7 @@ Return ONLY a valid JSON object with these exact fields:
   "cause": "What the dominant signal may reflect — not a causal diagnosis. Use hedged language: 'may reflect', 'could suggest', 'is worth noting'. Max 2 sentences. Bold the key concept using **bold**.",
   "action_steps": [
     "Movement or rest directive — specific and actionable",
-    "Nutrition directive — specific food or supplement with timing",
+    "Nutrition guidance — what to eat, keep steady, or avoid today. Do not recommend a specific supplement unless medication and safety checks explicitly allow it. No dosages.",
     "Timing or routine directive — when to do something"
   ],
   "trust_line": "Derived from [list the biomarker sources used]. Meridian interprets, you decide.",
