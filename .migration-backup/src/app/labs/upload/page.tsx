@@ -421,61 +421,122 @@ function isUsableRange(min: number | null, max: number | null): boolean {
   )
 }
 
+// ── Range direction helper ─────────────────────────────────────────────────────
+// Determines the correct visual interpretation for a biomarker's range bar.
+// middle_is_best: low and high edges are both unfavorable (CBC, CMP, electrolytes, thyroid)
+// lower_is_better: controlled/low is favorable (LDL, triglycerides, A1c, glucose, CRP)
+// higher_is_better: adequate/high is favorable (HDL, eGFR, vitamin D)
+// unknown: no clear direction — suppress bar rather than show misleading gradient
+type RangeDirection = 'middle_is_best' | 'lower_is_better' | 'higher_is_better' | 'unknown'
+
+const LOWER_IS_BETTER_SLUGS = new Set([
+  'ldl', 'ldl_cholesterol', 'triglycerides', 'total_cholesterol', 'non_hdl', 'non_hdl_cholesterol',
+  'hba1c', 'hemoglobin_a1c',
+  'glucose_fasting', 'fasting_glucose',
+  'insulin_fasting', 'fasting_insulin',
+  'hs_crp', 'crp_hs',
+  'homocysteine',
+])
+const HIGHER_IS_BETTER_SLUGS = new Set([
+  'hdl', 'hdl_cholesterol',
+  'egfr', 'egfr_african_american', 'egfr_non_african_american',
+  'vitamin_d', 'vitamin_b12',
+])
+const MIDDLE_IS_BEST_SLUGS = new Set([
+  // Electrolytes / BMP / CMP
+  'sodium', 'potassium', 'chloride', 'co2', 'calcium', 'anion_gap',
+  'creatinine', 'bun', 'bun_creatinine_ratio',
+  'ast', 'alt', 'alkaline_phosphatase', 'bilirubin_total',
+  'albumin', 'globulin', 'total_protein', 'ag_ratio',
+  // Thyroid
+  'tsh', 'free_t4', 'free_t3', 'total_t3', 'tpo_antibodies',
+  // CBC
+  'wbc', 'rbc', 'hemoglobin', 'hematocrit', 'mcv', 'mch', 'mchc', 'rdw', 'mpv',
+  'platelets', 'platelet_count', 'platelet_count_abs',
+  'neutrophils_pct', 'neutrophils_abs',
+  'lymphocytes_pct', 'lymphocytes_abs',
+  'monocytes_pct', 'monocytes_abs',
+  'eosinophils_pct', 'eosinophils_abs',
+  'basophils_pct', 'basophils_abs',
+  'immature_granulocytes_pct', 'immature_granulocytes_abs',
+  // Hormones / adrenal (u-shaped by nature)
+  'tsh', 'cortisol_am', 'dhea_s', 'testosterone_total', 'acth',
+])
+
+function getRangeDirection(slug: string): RangeDirection {
+  const s = slug.toLowerCase().replace(/[\s-]+/g, '_')
+  if (LOWER_IS_BETTER_SLUGS.has(s))  return 'lower_is_better'
+  if (HIGHER_IS_BETTER_SLUGS.has(s)) return 'higher_is_better'
+  if (MIDDLE_IS_BEST_SLUGS.has(s))   return 'middle_is_best'
+  return 'unknown'
+}
+
+// Gradient definitions — each direction gets its own track color
+const TRACK_MIDDLE_IS_BEST = 'linear-gradient(to right, rgba(248,113,113,0.65) 0%, rgba(251,146,60,0.50) 20%, rgba(45,212,191,0.72) 50%, rgba(251,146,60,0.50) 80%, rgba(248,113,113,0.65) 100%)'
+const TRACK_LOWER_IS_BETTER = 'linear-gradient(to right, rgba(45,212,191,0.72) 0%, rgba(103,232,249,0.55) 28%, rgba(251,146,60,0.50) 68%, rgba(248,113,113,0.65) 100%)'
+const TRACK_HIGHER_IS_BETTER = 'linear-gradient(to right, rgba(248,113,113,0.65) 0%, rgba(251,146,60,0.50) 32%, rgba(103,232,249,0.55) 72%, rgba(45,212,191,0.72) 100%)'
+const TRACK_UNKNOWN = 'linear-gradient(to right, rgba(95,142,133,0.20) 0%, rgba(95,142,133,0.32) 50%, rgba(95,142,133,0.20) 100%)'
+
 interface RangeBarProps {
   value: number
   refMin: number
   refMax: number
   state: string | null
+  slug?: string
 }
 
-function BiomarkerRangeBar({ value, refMin, refMax, state }: RangeBarProps) {
-  // Spec formula: 0% = at/below refMin (Low), 100% = at/above refMax (High)
+function BiomarkerRangeBar({ value, refMin, refMax, state, slug }: RangeBarProps) {
   const rawPct   = ((value - refMin) / (refMax - refMin)) * 100
   const dotPct   = Math.max(0, Math.min(100, rawPct))
   const dotColor = getStateColor(state)
+  const dir      = slug ? getRangeDirection(slug) : 'unknown'
+
+  const trackGradient = dir === 'lower_is_better'  ? TRACK_LOWER_IS_BETTER
+                      : dir === 'higher_is_better' ? TRACK_HIGHER_IS_BETTER
+                      : dir === 'middle_is_best'   ? TRACK_MIDDLE_IS_BEST
+                      : TRACK_UNKNOWN
+
+  // Label semantics differ by direction
+  const labelLeft  = dir === 'lower_is_better'  ? 'Lower'
+                   : dir === 'higher_is_better' ? 'Low'
+                   : dir === 'middle_is_best'   ? 'Low'
+                   : null
+  const labelRight = dir === 'lower_is_better'  ? 'Higher'
+                   : dir === 'higher_is_better' ? 'Higher'
+                   : dir === 'middle_is_best'   ? 'High'
+                   : null
+
+  const labelStyle: React.CSSProperties = { fontSize: '9px', color: 'rgba(95,142,133,0.7)', letterSpacing: '0.04em' }
 
   return (
     <div style={{ width: '100%', paddingTop: '6px' }}>
-      {/* Track — warm edges → teal/cyan center → warm edges */}
       <div style={{
-        position: 'relative',
-        height: '8px',
-        borderRadius: '6px',
-        width: '100%',
-        background: 'linear-gradient(to right, rgba(248,113,113,0.65) 0%, rgba(251,146,60,0.50) 20%, rgba(45,212,191,0.72) 50%, rgba(251,146,60,0.50) 80%, rgba(248,113,113,0.65) 100%)',
+        position: 'relative', height: '8px', borderRadius: '6px', width: '100%',
+        background: trackGradient,
         boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)',
         overflow: 'visible',
       }}>
-        {/* Value knob — solid state-color, no black center, premium polished */}
         <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: `${dotPct}%`,
+          position: 'absolute', top: '50%', left: `${dotPct}%`,
           transform: 'translate(-50%, -50%)',
-          width: '16px',
-          height: '16px',
-          borderRadius: '50%',
+          width: '16px', height: '16px', borderRadius: '50%',
           backgroundColor: dotColor,
           border: '2px solid rgba(255,255,255,0.22)',
           boxShadow: `0 0 10px ${dotColor}88, 0 0 4px ${dotColor}48, inset 0 1px 0 rgba(255,255,255,0.24)`,
           zIndex: 2,
         }} />
       </div>
-      {/* Low · reference range pill · High */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '5px' }}>
-        <span style={{ fontSize: '9px', color: 'rgba(95,142,133,0.7)', letterSpacing: '0.04em' }}>Low</span>
+        {labelLeft  ? <span style={labelStyle}>{labelLeft}</span>  : <span />}
         <span style={{
-          fontSize: '9px',
-          color: 'rgba(154,203,193,0.65)',
+          fontSize: '9px', color: 'rgba(154,203,193,0.65)',
           backgroundColor: 'rgba(103,232,249,0.05)',
           border: '1px solid rgba(103,232,249,0.10)',
-          borderRadius: '20px',
-          padding: '1px 7px',
-          letterSpacing: '0.02em',
+          borderRadius: '20px', padding: '1px 7px', letterSpacing: '0.02em',
         }}>
           Ref {refMin}–{refMax}
         </span>
-        <span style={{ fontSize: '9px', color: 'rgba(95,142,133,0.7)', letterSpacing: '0.04em' }}>High</span>
+        {labelRight ? <span style={labelStyle}>{labelRight}</span> : <span />}
       </div>
     </div>
   )
@@ -1100,6 +1161,7 @@ function BiomarkerDetailSheet({
                     refMin={biomarker.reference_range_min!}
                     refMax={biomarker.reference_range_max!}
                     state={biomarker.state}
+                    slug={biomarker.marker_name}
                   />
                 )}
               </>
@@ -1252,7 +1314,7 @@ function HistoryDetailSheet({
               <>
                 {hasRange && <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 4px' }}>Clinical: <span style={{ fontWeight: 600, color: colors.text }}>{biomarker.reference_range_min} – {biomarker.reference_range_max}</span>{biomarker.unit ? ` ${biomarker.unit}` : ''}</p>}
                 {hasOptimal && <p style={{ fontSize: '13px', color: colors.teal, margin: '0 0 8px' }}>Optimal: <span style={{ fontWeight: 600 }}>{biomarker.optimal_range_min} – {biomarker.optimal_range_max}</span>{biomarker.unit ? ` ${biomarker.unit}` : ''}</p>}
-                {hasRange && <BiomarkerRangeBar value={biomarker.value} refMin={biomarker.reference_range_min!} refMax={biomarker.reference_range_max!} state={biomarker.state} />}
+                {hasRange && <BiomarkerRangeBar value={biomarker.value} refMin={biomarker.reference_range_min!} refMax={biomarker.reference_range_max!} state={biomarker.state} slug={biomarker.marker_name} />}
               </>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0' }}>
@@ -2549,7 +2611,7 @@ export default function LabsUploadPage() {
                                       {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                     </div>
                                     {showBar ? (
-                                      <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} />
+                                      <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} slug={b.marker_name} />
                                     ) : (
                                       <div style={{ height: '3px', borderRadius: '2px', marginTop: '10px', background: `linear-gradient(90deg, transparent 0%, ${s.dot}38 35%, ${s.dot}55 65%, transparent 100%)` }} />
                                     )}
@@ -2606,7 +2668,7 @@ export default function LabsUploadPage() {
                                   {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                 </div>
                                 {showBar ? (
-                                  <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} />
+                                  <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} slug={b.marker_name} />
                                 ) : (
                                   <div style={{ height: '3px', borderRadius: '2px', marginTop: '10px', background: `linear-gradient(90deg, transparent 0%, ${s.dot}38 35%, ${s.dot}55 65%, transparent 100%)` }} />
                                 )}
@@ -2736,7 +2798,7 @@ export default function LabsUploadPage() {
                                             </div>
                                           </div>
                                           {showBar ? (
-                                            <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} />
+                                            <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} slug={b.marker_name} />
                                           ) : (
                                             <span style={{ fontSize: '10px', color: colors.textMuted, opacity: 0.55 }}>Range data not available.</span>
                                           )}
@@ -2989,7 +3051,7 @@ export default function LabsUploadPage() {
                                                   <span style={{ fontSize: '22px', fontWeight: 800, color: colors.text, lineHeight: '1' }}>{b.value}</span>
                                                   {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                                 </div>
-                                                <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} />
+                                                <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} slug={b.marker_name} />
                                               </div>
                                             )
                                           }
