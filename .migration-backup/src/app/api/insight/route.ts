@@ -94,6 +94,12 @@ ${tone}
   ELECTROLYTES: Bad → "Balance electrolytes." Good → "Keep sodium and potassium intake steady through normal meals today. Avoid adding new electrolyte supplements unless already part of your routine."
   MOVEMENT: Bad → "Optimize recovery." Good → "Keep movement easy today. Choose a 20-minute walk instead of intense training."
   MONITORING: Bad → "Monitor your symptoms." Good → "Take note of unusual dizziness, swelling, or fatigue today. If it repeats or worsens, bring it to a qualified clinician."
+13. ALL USER-FACING FIELDS (headline, status, cause, action_steps, trust_line) must follow the same clarity rules as action steps. Vague words — "optimize", "optimizing", "support", "supporting", "balance", "balancing", "monitor", "monitoring", "moderate" — are discouraged everywhere unless immediately paired with a specific, concrete behavior. They are especially prohibited when paired with organs or body systems.
+14. NEVER use organ-alarming or organ-struggling language in any field. Avoid: "support kidney function", "kidney workload", "your kidneys are…", "liver support", "your liver is struggling", "your body isn't clearing". Instead use neutral marker language: "filtration marker", "kidney-related marker", "this lab signal", "fluid balance signal", "today's priority is keeping fluids steady".
+  STATUS/CAUSE EXAMPLES:
+  Bad → "eGFR at 84 suggests filtration efficiency is worth optimizing today." Good → "eGFR at 84 may reflect a temporary shift in hydration, recent intake, or workload. Today's priority is keeping fluids steady."
+  Bad → "It's worth supporting kidney function with simple adjustments today." Good → "This is not a red flag in this context. Keep fluids steady and avoid unusually high-protein meals today."
+15. HEADLINE rule: Name the signal without sounding like a diagnosis. Avoid phrasing that implies an organ is failing (e.g. "Kidney filtration below target"). Prefer neutral signal language: "Filtration marker slightly below target", "Filtration signal slightly below target", "Hydration-related marker needs attention".
 
 ### OUTPUT FORMAT
 Return ONLY a valid JSON object with these exact fields:

@@ -1,0 +1,202 @@
+# MERIDIAN — INSIGHT LANGUAGE PHASE 1B FULL-FIELD CLARITY FIX
+
+We found a language issue after Insight Language Phase 1.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Modify ONLY:
+.migration-backup/src/app/api/insight/route.ts
+
+Do not touch:
+- dashboard
+- labs
+- profile
+- onboarding
+- upload flow
+- OCR routes
+- confirm route
+- protocol
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- dependencies
+- artifacts/
+
+Do not add dependencies.
+Do not create files.
+TypeScript strict.
+
+CURRENT ISSUE:
+Phase 1 improved action_steps, but vague/overly strong wording can still appear in headline/status/cause.
+
+Observed example:
+status:
+“eGFR at 84 suggests filtration efficiency is worth optimizing today.”
+
+cause:
+“...it's worth supporting kidney function with simple adjustments today.”
+
+This is not ideal because:
+- “optimizing” is vague
+- “supporting kidney function” sounds too clinical and may make the user think something is wrong with their kidneys
+- the copy still leaves room for interpretation
+- Meridian should not sound diagnostic or organ-alarming
+
+TASK:
+Expand the language clarity rules so they apply to ALL user-facing insight fields, not just action_steps.
+
+Fields:
+- headline
+- status
+- cause
+- action_steps
+- trust_line
+
+REQUIREMENTS:
+
+1. Add full-field vague language rule
+
+Update the system prompt so these words are discouraged across all user-facing fields unless immediately explained with a concrete behavior:
+
+- optimize
+- optimizing
+- support
+- supporting
+- balance
+- balancing
+- monitor
+- monitoring
+- moderate
+
+Important:
+They are especially discouraged when paired with organs or body systems.
+
+Bad:
+“support kidney function”
+“optimize filtration efficiency”
+“balance electrolytes”
+“monitor symptoms”
+
+Better:
+“keep fluids steady”
+“watch this pattern over time”
+“stick to your usual protein portions”
+“take note of unusual dizziness, swelling, or fatigue”
+
+2. Add organ-language caution
+
+Add a rule:
+Avoid phrases that imply an organ is failing, struggling, overloaded, or needs support.
+
+Avoid:
+- “support kidney function”
+- “kidney workload”
+- “your kidneys are…”
+- “liver support”
+- “your liver is struggling”
+- “your body isn’t clearing”
+
+Preferred:
+- “filtration marker”
+- “kidney-related marker”
+- “this lab signal”
+- “fluid balance signal”
+- “today’s priority is keeping fluids steady”
+
+3. Improve status/cause examples
+
+Add examples to the prompt.
+
+Bad:
+“eGFR at 84 suggests filtration efficiency is worth optimizing today.”
+
+Better:
+“eGFR at 84 may reflect a temporary shift in hydration, recent intake, or workload. Today’s priority is keeping fluids steady.”
+
+Bad:
+“It's worth supporting kidney function with simple adjustments today.”
+
+Better:
+“This is not a red flag in this context. Keep fluids steady and avoid unusually high-protein meals today.”
+
+Bad:
+“Balance electrolytes.”
+
+Better:
+“Keep sodium and potassium intake steady through normal meals today.”
+
+4. Headline caution
+
+Add rule:
+Headlines should name the signal without sounding like a diagnosis.
+
+Avoid:
+- “Kidney filtration below target”
+if it sounds too alarming.
+
+Prefer:
+- “Filtration marker slightly below target”
+- “Filtration signal slightly below target”
+- “Hydration-related marker needs attention”
+
+5. Keep action step rules
+
+Do not remove:
+- Mom Test rule
+- [Verb] + [Object] + [Anchor]
+- protein/hydration/electrolytes/movement/monitoring examples
+- supplement safety rule
+
+6. Do not change schema
+
+Do NOT add:
+- boundary
+- context_note
+- any new JSON field
+
+7. Do not change guardrails
+
+Do NOT change:
+- hallucination guard
+- forbidden word guard
+- insight_unavailable behavior
+- dashboard boundary note
+- Decision Engine
+- Safety Engine thresholds
+
+8. Build and QA
+
+Run:
+
+cd .migration-backup && npm run build
+
+QA checklist:
+- Build passes.
+- Prompt rules apply to headline/status/cause/action_steps/trust_line.
+- “support kidney function” is explicitly discouraged.
+- “optimize filtration efficiency” is explicitly discouraged.
+- “kidney workload” is explicitly discouraged.
+- Softer replacements are present.
+- Action step clarity rules remain.
+- JSON schema unchanged.
+- Dashboard unchanged.
+- Guardrails unchanged.
+- Health Context still not added.
+
+Do not commit.
+Do not push.
+Do not publish.
+
+OUTPUT REQUIRED:
+Return:
+1. Exact language rules changed
+2. Exact file changed
+3. Build result
+4. Confirmation schema/dashboard/guardrails unchanged
+5. QA checklist result
+6. Confirmation no unrelated systems were touched
