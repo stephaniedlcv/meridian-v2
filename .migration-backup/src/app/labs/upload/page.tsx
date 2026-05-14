@@ -159,6 +159,7 @@ const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
   hba1c: 'Glycemic Panel', insulin_fasting: 'Glycemic Panel',
   // Thyroid Panel
   tsh: 'Thyroid Panel', free_t4: 'Thyroid Panel', free_t3: 'Thyroid Panel', total_t3: 'Thyroid Panel',
+  tpo_antibodies: 'Thyroid Panel',
   // Vitamin & Nutrient Panel
   vitamin_d: 'Vitamin & Nutrient Panel', vitamin_b12: 'Vitamin & Nutrient Panel',
   folate: 'Vitamin & Nutrient Panel', magnesium: 'Vitamin & Nutrient Panel',
@@ -166,6 +167,7 @@ const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
   ferritin: 'Iron Panel',
   // Hormone Panel
   testosterone_total: 'Hormone Panel', dhea_s: 'Hormone Panel', cortisol_am: 'Hormone Panel',
+  acth: 'Hormone Panel',
   // Inflammation Markers
   crp_hs: 'Inflammation Markers', homocysteine: 'Inflammation Markers',
 }
@@ -289,7 +291,9 @@ function isLikelyQualitativeUrinalysis(name: string): boolean {
     'nitrite', 'nitrites', 'leukocyte esterase',
     'urobilinogen', 'epithelial cells', 'squamous epithelial cells',
     'bacteria', 'mucus', 'crystals', 'casts', 'ketones', 'acetone',
-    'urine ph', 'urine glucose', 'urine protein', 'urine blood',
+    // pH — urinalysis only (bare "ph" is safe; serum pH is rare and not in standard panels)
+    'ph', 'urine ph',
+    'urine glucose', 'urine protein', 'urine blood',
     'urine nitrite', 'urine bilirubin', 'urine urobilinogen',
     'glucose, urine', 'protein, urine', 'bilirubin, urine', 'blood, urine',
     'rbc, urine', 'wbc, urine', 'rbc/hpf', 'wbc/hpf',
