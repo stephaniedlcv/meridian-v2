@@ -1,0 +1,237 @@
+# MERIDIAN — LAB HISTORY CLINICAL PANEL GROUPING FIX
+
+We need to fix Lab History grouping so individual biomarkers are not rendered as panel names.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Vercel production is working because Root Directory is set to .migration-backup.
+
+Do NOT restructure the repo.
+Do NOT move files out of .migration-backup.
+Do NOT touch root package files.
+Do NOT touch Vercel settings.
+Do NOT touch artifacts/.
+Do NOT publish to Replit.
+
+Modify ONLY if needed:
+
+.migration-backup/src/app/labs/upload/page.tsx
+
+If Lab History grouping logic is in another file, inspect first and report before editing.
+Do not touch labs/history route unless the current Labs History tab actually depends on it.
+
+Do not touch:
+- dashboard
+- profile
+- protocol
+- onboarding
+- OCR routes
+- confirm route
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- dependencies
+- artifacts/
+
+Do not add dependencies.
+Do not create new files.
+Do not use Tailwind.
+Inline styles only.
+TypeScript strict.
+
+TASK:
+Fix the Labs History panel grouping logic.
+
+CURRENT ISSUE:
+In Labs History, some individual biomarkers are appearing as panel names.
+
+Observed example:
+- August 28, 2024 shows:
+  Lipid Panel
+  Thyroid Panel
+  Hemoglobin A1c
+
+This is wrong.
+
+Hemoglobin A1c is a marker, not a clinical panel.
+It should be grouped under:
+
+Glycemic Panel
+
+PRODUCT RULE:
+History should group confirmed biomarkers by:
+
+year → month → collection date → clinical panel → biomarkers
+
+Clinical panels should be real panel/group names, not individual biomarker names.
+
+EXPECTED PANEL NAMES:
+Use clinical panel names such as:
+
+- CBC
+- Comprehensive Metabolic Panel
+- CMP
+- Lipid Panel
+- Glycemic Panel
+- Thyroid Panel
+- Urinalysis
+- Vitamin & Nutrient Panel
+- Hormone Panel
+- Iron Panel
+- Inflammation Markers
+- Kidney / Renal
+- Other
+
+If the current UI already uses shorter labels like CMP, keep them consistent.
+
+SPECIFIC FIXES:
+
+1. Hemoglobin A1c grouping
+
+Any marker with slug/name/alias:
+- hba1c
+- hemoglobin a1c
+- hb a1c
+- a1c
+- glycated hemoglobin
+- hemoglobina glicosilada
+
+must group under:
+
+Glycemic Panel
+
+Do not render “Hemoglobin A1c” as a panel name.
+
+2. Glycemic Panel grouping
+
+Group these under Glycemic Panel:
+- hba1c
+- glucose_fasting
+- fasting glucose
+- glucose
+- insulin_fasting
+- fasting insulin
+- insulin
+
+However, if glucose is already clearly part of CMP in historical data and the existing grouping safely places it in CMP, do not duplicate it.
+Main priority: A1c must not become its own panel.
+
+3. Lipid Panel grouping
+
+Group these under Lipid Panel:
+- hdl
+- ldl
+- total_cholesterol
+- triglycerides
+- vldl
+- non_hdl
+- ldl_hdl_ratio
+- chol_hdl_ratio
+
+Do not let HDL or LDL appear as separate panels.
+
+4. Thyroid Panel grouping
+
+Group these under Thyroid Panel:
+- tsh
+- free_t4
+- free_t3
+- total_t3
+- tpo_antibodies
+- microsomal antibodies
+- thyroid peroxidase antibodies
+
+5. Vitamin & Nutrient Panel grouping
+
+Group these under Vitamin & Nutrient Panel:
+- vitamin_d
+- vitamin_b12
+- folate
+- magnesium
+
+6. Hormone Panel grouping
+
+Group these under Hormone Panel:
+- acth
+- adrenocorticotropic hormone
+- cortisol_am
+- dhea_s
+- testosterone_total
+
+7. Panel count
+
+Panel count should count unique clinical panels after normalization.
+
+Example:
+If a date has:
+- Lipid markers
+- TSH
+- Hemoglobin A1c
+
+It should show:
+3 panels:
+- Lipid Panel
+- Thyroid Panel
+- Glycemic Panel
+
+not:
+- Hemoglobin A1c as its own panel
+
+8. Same-date merging
+
+Make sure all confirmed biomarkers with the same collection date are grouped under one date section.
+
+Do not split same-date markers into multiple separate date blocks unless the existing data model explicitly requires it.
+
+9. Do not change state logic
+
+Do not modify:
+- Optimal / Watch / Attention / Critical logic
+- range display logic
+- Snapshot Clinical Panels / Signal Map
+- upload review hardening
+- confirmation flow
+- delete flow
+
+This is only History grouping normalization.
+
+10. Visual behavior
+
+Do not redesign History.
+Keep existing accordion look and feel.
+
+Only fix:
+- panel names
+- panel grouping
+- panel counts
+
+11. Build and test
+
+After editing:
+1. Report exact file changed.
+2. Confirm no unrelated files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /labs/upload History tab
+
+Confirm:
+- Hemoglobin A1c no longer appears as a panel name
+- Hemoglobin A1c appears under Glycemic Panel
+- panel counts update correctly
+- Lipid markers remain under Lipid Panel
+- Thyroid markers remain under Thyroid Panel
+- same collection date markers stay merged
+- History accordions still expand
+- Snapshot tab still works
+- upload flow still works
+- build passes
+
+Do not commit.
+Do not push.
+Do not publish.

@@ -785,32 +785,42 @@ interface HistBiomarkerRow {
 
 // Panel mapping for History view — CMP-unified (liver/kidney/electrolytes merged)
 const HIST_SLUG_TO_PANEL: Record<string, string> = {
+  // Thyroid
   tsh: 'Thyroid Panel', free_t4: 'Thyroid Panel', free_t3: 'Thyroid Panel', total_t3: 'Thyroid Panel',
+  tpo_antibodies: 'Thyroid Panel',
+  // CBC
   wbc: 'CBC', rbc: 'CBC', hemoglobin: 'CBC', hematocrit: 'CBC', mcv: 'CBC', mch: 'CBC', mchc: 'CBC', rdw: 'CBC',
   platelets: 'CBC', platelet_count: 'CBC', platelet_count_abs: 'CBC', mpv: 'CBC',
   neutrophils_pct: 'CBC', neutrophils_abs: 'CBC', lymphocytes_pct: 'CBC', lymphocytes_abs: 'CBC',
   monocytes_pct: 'CBC', monocytes_abs: 'CBC', eosinophils_pct: 'CBC', eosinophils_abs: 'CBC',
   basophils_pct: 'CBC', basophils_abs: 'CBC', immature_granulocytes_pct: 'CBC', immature_granulocytes_abs: 'CBC',
+  // Lipid
   total_cholesterol: 'Lipid Panel', hdl: 'Lipid Panel', ldl: 'Lipid Panel', vldl: 'Lipid Panel',
   triglycerides: 'Lipid Panel', non_hdl: 'Lipid Panel', ldl_hdl_ratio: 'Lipid Panel', chol_hdl_ratio: 'Lipid Panel',
+  // CMP (kidney, liver, electrolytes, basic metabolic)
   creatinine: 'CMP', bun: 'CMP', bun_creatinine_ratio: 'CMP', egfr: 'CMP',
   egfr_african_american: 'CMP', egfr_non_african_american: 'CMP',
   ast: 'CMP', alt: 'CMP', alkaline_phosphatase: 'CMP', bilirubin_total: 'CMP',
   albumin: 'CMP', globulin: 'CMP', ag_ratio: 'CMP', total_protein: 'CMP',
   glucose_fasting: 'CMP', sodium: 'CMP', potassium: 'CMP', chloride: 'CMP',
   co2: 'CMP', calcium: 'CMP', anion_gap: 'CMP',
-  hba1c: 'Hemoglobin A1c',
-  insulin_fasting: 'Glycemic',
-  testosterone_total: 'Hormones', cortisol_am: 'Hormones', dhea_s: 'Hormones',
+  // Glycemic (dedicated panel — A1c and fasting insulin are not CMP)
+  hba1c: 'Glycemic Panel',
+  insulin_fasting: 'Glycemic Panel',
+  // Hormone Panel
+  testosterone_total: 'Hormone Panel', cortisol_am: 'Hormone Panel', dhea_s: 'Hormone Panel',
+  acth: 'Hormone Panel',
+  // Inflammation / Cardiac Risk
   crp_hs: 'Inflammation / Cardiac Risk', homocysteine: 'Inflammation / Cardiac Risk',
-  vitamin_d: 'Vitamins & Nutrients', vitamin_b12: 'Vitamins & Nutrients',
-  folate: 'Vitamins & Nutrients', magnesium: 'Vitamins & Nutrients', ferritin: 'Vitamins & Nutrients',
+  // Vitamin & Nutrient Panel
+  vitamin_d: 'Vitamin & Nutrient Panel', vitamin_b12: 'Vitamin & Nutrient Panel',
+  folate: 'Vitamin & Nutrient Panel', magnesium: 'Vitamin & Nutrient Panel', ferritin: 'Vitamin & Nutrient Panel',
 }
 function histInferPanel(slug: string): string { return HIST_SLUG_TO_PANEL[slug] ?? 'Other' }
 
 const HIST_PANEL_DISPLAY_ORDER = [
-  'CBC', 'Lipid Panel', 'CMP', 'Thyroid Panel', 'Hemoglobin A1c',
-  'Glycemic', 'Vitamins & Nutrients', 'Hormones', 'Inflammation / Cardiac Risk', 'Other',
+  'CBC', 'Lipid Panel', 'CMP', 'Glycemic Panel', 'Thyroid Panel',
+  'Hormone Panel', 'Vitamin & Nutrient Panel', 'Inflammation / Cardiac Risk', 'Other',
 ]
 function histPanelSortIndex(name: string): number {
   const i = HIST_PANEL_DISPLAY_ORDER.indexOf(name)
