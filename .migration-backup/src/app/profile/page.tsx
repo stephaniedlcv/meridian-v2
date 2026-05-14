@@ -154,12 +154,10 @@ export default function ProfilePage() {
   }, [])
 
   // ——— Derived ———
-  // Priority: display_name → first_name → full_name → email → fallback
+  // Priority: display_name → first_name → full_name → "Not set yet"
   const displayName =
     profile.display_name?.trim() ||
-    (profile.first_name?.trim()
-      ? [profile.first_name.trim(), profile.last_name?.trim()].filter(Boolean).join(' ')
-      : null) ||
+    profile.first_name?.trim() ||
     profile.full_name ||
     'Not set yet'
   const avatarSrc   = photoPreview || profile.avatar_url
