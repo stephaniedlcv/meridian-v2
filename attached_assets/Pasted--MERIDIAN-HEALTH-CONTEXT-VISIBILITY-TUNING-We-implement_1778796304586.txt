@@ -1,0 +1,105 @@
+# MERIDIAN — HEALTH CONTEXT VISIBILITY TUNING
+
+We implemented Health Context integration into insight/route.ts.
+
+It works, but production testing shows the context is being used too subtly.
+
+Example current output:
+“Keep fluids steady and avoid unusually high-protein meals today.”
+
+This likely reflects diet_pattern = high_protein, but the user cannot tell Meridian is using their profile context.
+
+Goal:
+When Health Context is directly relevant to the dominant signal or action step, Meridian should reference it briefly and naturally.
+
+Do NOT over-personalize.
+Do NOT mention every context field.
+Do NOT mention weight or height numbers.
+Do NOT generate numeric targets.
+
+Modify ONLY:
+.migration-backup/src/app/api/insight/route.ts
+
+Do not touch:
+- dashboard
+- labs
+- profile
+- onboarding
+- database types
+- Supabase clients
+- Decision Engine
+- Safety Engine
+- package.json
+- dependencies
+
+TASK:
+Strengthen Rule 17 so Health Context is visible when directly relevant.
+
+REQUIREMENTS:
+
+1. Update Rule 17
+
+Add language like:
+
+“When Health Context directly explains why an action is recommended, mention it briefly in plain language. Keep it to one short clause. Example: ‘Since your diet is already high-protein…’ or ‘Given that you train regularly…’”
+
+2. Add specific examples
+
+Good:
+“Since your diet is already high-protein, stick to your usual protein portions today rather than adding extra.”
+
+Good:
+“Given that you train regularly, keep movement easy today instead of adding another hard session.”
+
+Good:
+“Since your goal is recomposition, keep protein steady and focus today on hydration.”
+
+Bad:
+“Because you weigh X…”
+“Based on your height and weight…”
+“Eat X grams of protein.”
+“Drink X liters of water.”
+“Train exactly X minutes.”
+
+3. Preserve subtlety
+
+Add:
+“Do not mention Health Context if it does not directly improve the action or explanation.”
+
+4. Keep all existing safety rules
+
+Do not remove:
+- no numeric targets
+- no weight/height numbers
+- no supplement dosage
+- no exact training prescriptions
+- no schema changes
+- no Dashboard changes
+- no guardrail changes
+
+5. Build and QA
+
+Run:
+
+cd .migration-backup && npm run build
+
+QA checklist:
+- Build passes.
+- Rule 17 now says Health Context should be briefly referenced when directly relevant.
+- Examples include high_protein, training regularly, recomposition.
+- Numeric targets remain banned.
+- Weight/height numbers remain banned.
+- JSON schema unchanged.
+- Dashboard unchanged.
+- Guardrails unchanged.
+
+Do not commit.
+Do not push.
+Do not publish.
+
+OUTPUT REQUIRED:
+1. Exact Rule 17 update
+2. Exact file changed
+3. Build result
+4. QA checklist result
+5. Confirmation no unrelated systems were touched

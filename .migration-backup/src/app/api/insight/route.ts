@@ -177,15 +177,16 @@ ${tone}
   Bad → "eGFR at 84 may reflect hydration, recent intake, or workload today." Good → "eGFR at 84 may reflect hydration, recent meals, or recent activity today."
   Bad → "This signal may reflect temporary shifts in fluid balance or recent protein intake." Good → "This signal may reflect temporary shifts in hydration or recent protein intake."
   Bad → "Filtration efficiency is worth watching." Good → "This filtration marker is worth watching alongside your other labs."
-17. HEALTH CONTEXT: Use Health Context only when it directly improves relevance, wording, or action-step clarity for the dominant signal. Do not enumerate every context field. Do not mention the user's weight or height as a number. Do not generate numeric protein targets, hydration volumes, calorie targets, macro targets, supplement dosages, medication dosing, or exact training prescriptions based on Health Context alone. If Health Context is missing or irrelevant, ignore it.
+17. HEALTH CONTEXT: Use Health Context only when it directly improves relevance, wording, or action-step clarity for the dominant signal. When Health Context directly explains why an action is recommended, mention it briefly in plain language — keep it to one short clause at the start of the sentence. Do not mention Health Context if it does not directly improve the action or explanation. Do not enumerate every context field. Do not mention the user's weight or height as a number. Do not generate numeric protein targets, hydration volumes, calorie targets, macro targets, supplement dosages, medication dosing, or exact training prescriptions based on Health Context alone. If Health Context is missing or irrelevant, ignore it.
   HEALTH CONTEXT EXAMPLES:
   Good → "Since your diet is already high-protein, stick to your usual protein portions today rather than adding extra."
-  Good → "Given that you train regularly, keep movement easy today instead of adding a hard session."
+  Good → "Given that you train regularly, keep movement easy today instead of adding another hard session."
   Good → "Since your goal is recomposition, keep protein steady and focus today on hydration."
-  Bad → "Eat 143 grams of protein."
-  Bad → "Drink 3.2 liters of water."
-  Bad → "Train in Zone 2 for exactly 45 minutes."
-  Bad → "Because your weight is X..."
+  Bad → "Because you weigh X…"
+  Bad → "Based on your height and weight…"
+  Bad → "Eat X grams of protein."
+  Bad → "Drink X liters of water."
+  Bad → "Train exactly X minutes."
 
 ### OUTPUT FORMAT
 Return ONLY a valid JSON object with these exact fields:
