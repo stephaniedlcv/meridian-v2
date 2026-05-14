@@ -1,0 +1,127 @@
+# MERIDIAN — LABS TIMELINE NAV CONSISTENCY
+
+We need a small navigation consistency fix on the Labs page.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Modify ONLY:
+
+.migration-backup/src/app/labs/upload/page.tsx
+
+Do not touch:
+- dashboard
+- profile
+- protocol
+- onboarding
+- OCR routes
+- confirm route
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- dependencies
+- artifacts/
+
+Do not add dependencies.
+Do not create new files.
+Do not use Tailwind.
+Inline styles only.
+TypeScript strict.
+
+TASK:
+Ensure the Snapshot | Timeline segmented control is available in both Snapshot and Timeline views.
+
+CURRENT ISSUE:
+When the user switches to Timeline, the Snapshot | Timeline control disappears, so the user cannot easily return to Snapshot from the same page context.
+
+GOAL:
+Snapshot and Timeline should feel like sibling states of the Labs page, not separate dead-end views.
+
+REQUIREMENTS:
+
+1. Add Snapshot | Timeline control to Timeline view
+
+Timeline view should include the same segmented control:
+
+[ Snapshot | Timeline ]
+
+- Snapshot button switches back to Snapshot.
+- Timeline button stays on Timeline.
+- Timeline should appear active when selected.
+
+2. Use the exact same visual grammar
+
+The Timeline control must visually match the Snapshot view control:
+- same pill shape
+- same border radius
+- same active/inactive styling
+- same text styling
+- same spacing rhythm
+- same premium glass feel
+
+If possible, reuse the same JSX/style pattern already used in Snapshot to avoid future visual drift.
+
+3. Timeline header copy
+
+Keep Timeline simple and clear:
+
+TIMELINE
+Your confirmed lab results over time.
+
+[ Snapshot | Timeline ]
+
+4. Preserve Timeline content
+
+Do not change the existing Timeline data display below the header.
+
+Keep:
+- years
+- months
+- dates
+- panels
+- delete buttons
+- expanded panels
+
+5. Do not change logic or data
+
+Do not change:
+- upload flow
+- OCR/extract logic
+- confirm/save logic
+- delete logic
+- marker grouping
+- marker sorting
+- state badges
+- status counts
+- range bars
+- Timeline data grouping logic
+- marker detail sheet behavior
+
+This is navigation/header consistency only.
+
+After editing:
+1. Report exact file changed.
+2. Confirm no unrelated files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /labs/upload
+
+Confirm:
+- Snapshot | Timeline appears in Snapshot view
+- Snapshot | Timeline appears in Timeline view
+- Timeline tab is active in Timeline view
+- User can switch from Timeline back to Snapshot
+- Snapshot still works
+- Timeline still shows the same saved lab records
+- Clinical Panels / Signal Map still works
+- upload flow still works
+- build passes
+
+Do not commit.
+Do not push.
+Do not publish.

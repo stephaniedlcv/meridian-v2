@@ -2924,9 +2924,51 @@ export default function LabsUploadPage() {
                   <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: colors.textMuted, margin: '0 0 4px' }}>
                     Timeline
                   </p>
-                  <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 14px', lineHeight: 1.5 }}>
                     Your confirmed lab results over time.
                   </p>
+                  {/* Snapshot / Timeline toggle */}
+                  <div style={{
+                    display: 'inline-flex',
+                    gap: '3px',
+                    padding: '4px',
+                    backgroundColor: 'rgba(232,248,245,0.04)',
+                    border: `1px solid ${colors.cardBorder}`,
+                    borderRadius: '24px',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                  }}>
+                    {(['snapshot', 'history'] as const).map(view => {
+                      const isActive = labsView === view
+                      return (
+                        <button
+                          key={view}
+                          onClick={() => {
+                            setLabsView(view)
+                            if (view === 'history' && !histFetched) loadHistoryData()
+                          }}
+                          style={{
+                            padding: '6px 20px',
+                            borderRadius: '20px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            fontFamily: fonts.ui,
+                            cursor: 'pointer',
+                            border: 'none',
+                            backgroundColor: isActive ? 'rgba(45,212,191,0.14)' : 'transparent',
+                            color: isActive ? colors.teal : colors.textMuted,
+                            transition: 'background 0.15s ease, color 0.15s ease',
+                            letterSpacing: '0.01em',
+                            outline: 'none',
+                            boxShadow: isActive ? 'inset 0 1px 0 rgba(45,212,191,0.18)' : 'none',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {view === 'snapshot' ? 'Snapshot' : 'Timeline'}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
                 {/* Loading spinner */}
                 {histLoading && (
