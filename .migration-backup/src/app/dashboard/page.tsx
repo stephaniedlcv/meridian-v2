@@ -808,6 +808,24 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
           ))}
         </div>
 
+        {/* Boundary note */}
+        <div style={{ marginTop: '16px' }}>
+          <div style={{
+            fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em',
+            textTransform: 'uppercase', color: colors.textMuted, marginBottom: '4px',
+          }}>
+            Keep in mind
+          </div>
+          <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.55, fontStyle: 'italic' }}>
+            {(safetyAlert || insight.block_color === 'alert')
+              ? 'This result is worth reviewing with a qualified clinician before drawing conclusions. Meridian interprets data; it does not diagnose.'
+              : insight.block_color === 'optimal'
+                ? 'This is a directional signal, not a conclusion. Patterns over time are more meaningful than any single reading.'
+                : 'This is a signal to watch, not a diagnosis. One reading reflects a moment — context, hydration, and recent activity all matter.'
+            }
+          </p>
+        </div>
+
         {/* Confidence Trace */}
         <div style={{
           marginTop: '20px',
