@@ -1,0 +1,246 @@
+# MERIDIAN — PHASE A PROFILE FOUNDATION MINIMUM
+
+You are implementing the first conservative slice of Meridian’s Profile Intelligence Foundation.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+This task must be small, additive, and low-risk.
+
+GOAL:
+Strengthen the Profile foundation without overloading onboarding and without breaking the current working app.
+
+We are NOT implementing the full Profile Intelligence Foundation yet.
+
+IMPLEMENT ONLY PHASE A:
+1. Add updated_at support to profiles
+2. Add first_name, last_name, display_name as nullable profile fields
+3. Keep full_name as backward-compatible fallback
+4. Make birth_date editable in the Profile page
+5. Add a simple medications editor in Profile, name-only for now
+6. Do NOT restructure medications into dose/frequency objects yet
+
+IMPORTANT PRODUCT RULE:
+Onboarding should stay lightweight.
+Do NOT add height, weight, activity, diet, supplements, wearables, language preference, or estimated range consent to onboarding in this task.
+
+Modify ONLY the files required for this task.
+
+Allowed areas:
+- Supabase schema / SQL migration files if they exist
+- .migration-backup/src/types/database.ts
+- .migration-backup/src/app/profile/page.tsx
+- any existing profile-related utility needed for type safety
+
+Do not touch:
+- dashboard
+- labs page
+- upload flow
+- OCR routes
+- confirm route
+- intelligence route
+- insight route
+- protocol
+- onboarding pages, unless absolutely required for type compatibility
+- Supabase clients
+- middleware
+- NavBar
+- package.json
+- dependencies
+- artifacts/
+
+Do not add dependencies.
+Do not create unrelated files.
+Do not use Tailwind.
+Inline styles only.
+TypeScript strict.
+
+TASK DETAILS:
+
+1. Database schema / migration
+
+If there is an existing SQL migration/schema file pattern, add an additive migration for profiles:
+
+Add nullable columns:
+- first_name text null
+- last_name text null
+- display_name text null
+- updated_at timestamptz null
+
+Do NOT remove:
+- full_name
+- birth_date
+- medications
+- user_profile
+- biological_profile
+- hormonal_profile
+- safety_status
+- onboarding_completed
+- created_at
+
+Do NOT rename birth_date to date_of_birth in this task.
+Keep birth_date as the existing DB field for compatibility.
+
+Add or recommend an updated_at trigger if there is already a trigger pattern in the project.
+
+If no migration pattern exists, do not invent a complex system. Provide the SQL clearly in the response and explain where it should be run.
+
+All new fields must be nullable to avoid breaking existing users.
+
+2. Update database types
+
+Update:
+
+.migration-backup/src/types/database.ts
+
+profiles Row / Insert / Update should include:
+
+first_name: string | null
+last_name: string | null
+display_name: string | null
+updated_at: string | null
+
+Keep existing full_name and birth_date fields unchanged.
+
+3. Profile page — identity editing
+
+Update:
+
+.migration-backup/src/app/profile/page.tsx
+
+Profile should support editing:
+- first_name
+- last_name
+- display_name
+- birth_date
+- biological_profile if already editable
+- user_profile if already editable
+
+Rules:
+- Do not remove full_name.
+- full_name should remain as fallback.
+- display_name should be optional.
+- If display_name is empty, UI may fall back to first_name, then full_name, then email.
+- If first_name and last_name are added, optionally update full_name as `${first_name} ${last_name}` trimmed for backward compatibility.
+
+Do not require first_name/last_name/display_name.
+Do not block saving if they are empty.
+
+4. Birth date edit
+
+birth_date currently exists and is displayed read-only.
+
+Make it editable in Profile.
+
+Requirements:
+- Use existing visual language and inline styles.
+- Input should use a date input if already consistent with the app.
+- Store as ISO date string: YYYY-MM-DD.
+- Do not calculate age in this task unless the Profile page already does so.
+- If age is displayed, age should be calculated from birth_date, not stored.
+
+5. Simple medications editor — name-only
+
+Current medications are stored as Json/null and effectively string[].
+
+Add simple Profile editing for medications as name-only entries.
+
+Requirements:
+- User can view current medications.
+- User can add a medication name.
+- User can remove a medication name.
+- User can save changes.
+- Store as string[] for now to preserve current AI route compatibility.
+- Trim empty values.
+- Remove duplicates case-insensitively if simple to do.
+- Do NOT add dose, frequency, start_date, or notes yet.
+- Do NOT migrate medications to object array in this task.
+- Do NOT add medication autocomplete/typeahead.
+
+Important:
+The current insight/intelligence routes read medications as a name list. Preserve that compatibility.
+
+6. UI behavior
+
+Keep the Profile page visually consistent with Meridian:
+- dark glassmorphism
+- same typography
+- same button/card style
+- no redesign
+- no major layout overhaul
+
+This should feel like a careful enhancement, not a new profile redesign.
+
+7. Do not implement these yet
+
+Explicitly do NOT implement:
+- height
+- current_weight
+- activity_level
+- training_days_per_week
+- body_goal_phase
+- diet_pattern
+- supplements
+- wearables
+- Other/manual wearable
+- language_preference
+- i18n
+- consent_for_estimated_ranges
+- estimated protein/hydration/activity targets
+- avatar upload/storage
+- medication dose/frequency objects
+
+8. Build and QA
+
+After editing, run:
+
+cd .migration-backup && npm run build
+
+Report:
+- exact files changed
+- whether any SQL needs to be run manually
+- whether no unrelated files changed
+- build result
+- TypeScript errors if any
+- unrelated warnings if any
+
+QA checklist:
+
+Profile page:
+- Existing profile still loads
+- Existing full_name still displays as fallback
+- first_name can be edited and saved
+- last_name can be edited and saved
+- display_name can be edited and saved
+- birth_date can be edited and saved as YYYY-MM-DD
+- biological_profile still works if already editable
+- user_profile / health focus still works if already editable
+- medications display existing string[] values
+- medication name can be added
+- medication name can be removed
+- medications save as string[]
+- empty medication names are not saved
+- insight/intelligence medication compatibility is preserved
+
+App:
+- Dashboard still loads
+- Labs still loads
+- Upload flow untouched
+- Onboarding still works
+- Bottom nav still works
+- Build passes
+
+Do not commit.
+Do not push.
+Do not publish.
+
+OUTPUT REQUIRED:
+Return:
+1. Summary of what changed
+2. Files changed
+3. SQL/migration instructions, if any
+4. Build result
+5. QA checklist result
+6. Confirmation that no unrelated systems were touched

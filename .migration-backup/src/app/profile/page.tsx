@@ -29,6 +29,9 @@ type UserProfile = 'bienestar' | 'optimizacion' | 'rendimiento' | 'condicion' | 
 
 interface ProfileData {
   full_name:          string | null
+  first_name:         string | null
+  last_name:          string | null
+  display_name:       string | null
   biological_profile: BiologicalProfile | null
   user_profile:       UserProfile | null
   avatar_url:         string | null   // may not exist in DB — handled gracefully
@@ -73,16 +76,22 @@ export default function ProfilePage() {
   const [userId, setUserId]                       = useState('')
   const [userEmail, setUserEmail]                 = useState('')
   const [profile, setProfile]                     = useState<ProfileData>({
-    full_name: null, biological_profile: null,
-    user_profile: null, avatar_url: null, birth_date: null, medications: null,
+    full_name: null, first_name: null, last_name: null, display_name: null,
+    biological_profile: null, user_profile: null, avatar_url: null, birth_date: null, medications: null,
   })
   const [hasLabs, setHasLabs]                     = useState(false)
   const [photoPreview, setPhotoPreview]           = useState<string | null>(null)
 
-  const [editingSection, setEditingSection]       = useState<'identity' | 'focus' | null>(null)
+  const [editingSection, setEditingSection]       = useState<'identity' | 'focus' | 'medications' | null>(null)
   const [editPreferredName, setEditPreferredName] = useState('')
+  const [editFirstName, setEditFirstName]         = useState('')
+  const [editLastName, setEditLastName]           = useState('')
+  const [editDisplayName, setEditDisplayName]     = useState('')
+  const [editBirthDate, setEditBirthDate]         = useState('')
   const [editBioProfile, setEditBioProfile]       = useState<BiologicalProfile | null>(null)
   const [editUserProfile, setEditUserProfile]     = useState<UserProfile | null>(null)
+  const [editMedList, setEditMedList]             = useState<string[]>([])
+  const [editMedInput, setEditMedInput]           = useState('')
   const [saving, setSaving]                       = useState(false)
   const [saveStatus, setSaveStatus]               = useState<'idle' | 'success' | 'error'>('idle')
 
@@ -93,7 +102,7 @@ export default function ProfilePage() {
       setUserId(user.id)
       setUserEmail(user.email ?? '')
 
-      const SELECT = 'full_name, biological_profile, user_profile, birth_date, avatar_url, medications, onboarding_completed'
+      const SELECT = 'full_name, first_name, last_name, display_name, biological_profile, user_profile, birth_date, avatar_url, medications, onboarding_completed'
       const { data: prof, error: profError } = await supabase
         .from('profiles')
         .select(SELECT)
@@ -109,6 +118,9 @@ export default function ProfilePage() {
         const raw = prof as unknown as Record<string, unknown>
         setProfile({
           full_name:           typeof raw.full_name === 'string' ? raw.full_name : null,
+          first_name:          typeof raw.first_name === 'string' ? raw.first_name : null,
+          last_name:           typeof raw.last_name === 'string' ? raw.last_name : null,
+          display_name:        typeof raw.display_name === 'string' ? raw.display_name : null,
           biological_profile:  (raw.biological_profile === 'female' || raw.biological_profile === 'male') ? raw.biological_profile : null,
           user_profile:        typeof raw.user_profile === 'string' ? raw.user_profile as UserProfile : null,
           avatar_url:          typeof raw.avatar_url === 'string' ? raw.avatar_url : null,
@@ -129,7 +141,14 @@ export default function ProfilePage() {
   }, [])
 
   // ——— Derived ———
-  const displayName = profile.full_name || 'Not set yet'
+  // Priority: display_name → first_name → full_name → email → fallback
+  const displayName =
+    profile.display_name?.trim() ||
+    (profile.first_name?.trim()
+      ? [profile.first_name.trim(), profile.last_name?.trim()].filter(Boolean).join(' ')
+      : null) ||
+    profile.full_name ||
+    'Not set yet'
   const avatarSrc   = photoPreview || profile.avatar_url
 
   // ——— Photo handlers ———
@@ -150,6 +169,10 @@ export default function ProfilePage() {
   // ——— Edit handlers ———
   function startEditIdentity() {
     setEditPreferredName(profile.full_name || '')
+    setEditFirstName(profile.first_name || '')
+    setEditLastName(profile.last_name || '')
+    setEditDisplayName(profile.display_name || '')
+    setEditBirthDate(profile.birth_date || '')
     setEditBioProfile(profile.biological_profile)
     setEditingSection('identity')
     setSaveStatus('idle')
@@ -164,12 +187,35 @@ export default function ProfilePage() {
   async function saveIdentity() {
     if (!userId) return
     setSaving(true); setSaveStatus('idle')
+    const fn = editFirstName.trim() || null
+    const ln = editLastName.trim() || null
+    const dn = editDisplayName.trim() || null
+    const bd = editBirthDate || null
+    // Keep full_name in sync as backward-compatible fallback
+    const computedFullName = editPreferredName.trim() ||
+      ([fn, ln].filter(Boolean).join(' ') || null)
     const { error } = await supabase
       .from('profiles')
-      .upsert({ id: userId, full_name: editPreferredName.trim() || null, biological_profile: editBioProfile }, { onConflict: 'id' })
+      .upsert({
+        id: userId,
+        full_name: computedFullName,
+        first_name: fn,
+        last_name: ln,
+        display_name: dn,
+        birth_date: bd,
+        biological_profile: editBioProfile,
+      }, { onConflict: 'id' })
     setSaving(false)
     if (error) { console.error('saveIdentity failed:', error); setSaveStatus('error'); return }
-    setProfile(p => ({ ...p, full_name: editPreferredName.trim() || null, biological_profile: editBioProfile }))
+    setProfile(p => ({
+      ...p,
+      full_name: computedFullName,
+      first_name: fn,
+      last_name: ln,
+      display_name: dn,
+      birth_date: bd,
+      biological_profile: editBioProfile,
+    }))
     setSaveStatus('success')
     setTimeout(() => { setEditingSection(null); setSaveStatus('idle') }, 900)
   }
@@ -182,6 +228,40 @@ export default function ProfilePage() {
     setSaving(false)
     if (error) { console.error('saveFocus failed:', error); setSaveStatus('error'); return }
     setProfile(p => ({ ...p, user_profile: editUserProfile }))
+    setSaveStatus('success')
+    setTimeout(() => { setEditingSection(null); setSaveStatus('idle') }, 900)
+  }
+
+  function startEditMeds() {
+    setEditMedList(profile.medications ? [...profile.medications] : [])
+    setEditMedInput('')
+    setEditingSection('medications')
+    setSaveStatus('idle')
+  }
+
+  function addMedEntry() {
+    const val = editMedInput.trim()
+    if (!val) return
+    const lower = val.toLowerCase()
+    if (editMedList.some(m => m.toLowerCase() === lower)) { setEditMedInput(''); return }
+    setEditMedList(prev => [...prev, val])
+    setEditMedInput('')
+  }
+
+  function removeMedEntry(index: number) {
+    setEditMedList(prev => prev.filter((_, i) => i !== index))
+  }
+
+  async function saveMeds() {
+    if (!userId) return
+    setSaving(true); setSaveStatus('idle')
+    const cleaned = editMedList.map(m => m.trim()).filter(Boolean)
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: userId, medications: cleaned }, { onConflict: 'id' })
+    setSaving(false)
+    if (error) { console.error('saveMeds failed:', error); setSaveStatus('error'); return }
+    setProfile(p => ({ ...p, medications: cleaned.length > 0 ? cleaned : null }))
     setSaveStatus('success')
     setTimeout(() => { setEditingSection(null); setSaveStatus('idle') }, 900)
   }
@@ -200,7 +280,7 @@ export default function ProfilePage() {
     { label: 'Age context',        description: 'Used for age-adjusted biological context.',  status: profile.birth_date ? 'active' : 'pending' },
     { label: 'Lab history',        description: 'Used to refine trend interpretation.',       status: hasLabs ? 'active' : 'pending' },
     { label: 'Wearable signals',   description: 'Used to improve biological context.',        status: 'soon' },
-    { label: 'Medication context', description: profile.medications && profile.medications.length > 0 ? 'Used to flag potential interactions.' : 'Add medications to help Meridian interpret labs more safely.', status: profile.medications && profile.medications.length > 0 ? 'active' : 'pending' },
+    { label: 'Medication context', description: profile.medications && profile.medications.length > 0 ? `${profile.medications.length} medication${profile.medications.length === 1 ? '' : 's'} on file.` : 'Add medications to help Meridian interpret labs more safely.', status: profile.medications && profile.medications.length > 0 ? 'active' : 'pending' },
     { label: 'Feedback loop',      description: 'Used to improve insight accuracy over time.',status: 'soon' },
   ]
 
@@ -369,15 +449,44 @@ export default function ProfilePage() {
 
           {editingSection === 'identity' ? (
             <div>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={fieldLabel}>Display name</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                <div>
+                  <label style={fieldLabel}>First name</label>
+                  <input
+                    type="text" value={editFirstName}
+                    onChange={e => setEditFirstName(e.target.value)}
+                    placeholder="First"
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label style={fieldLabel}>Last name</label>
+                  <input
+                    type="text" value={editLastName}
+                    onChange={e => setEditLastName(e.target.value)}
+                    placeholder="Last"
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={fieldLabel}>Display name <span style={{ fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
                 <input
-                  type="text" value={editPreferredName}
-                  onChange={e => setEditPreferredName(e.target.value)}
-                  placeholder={profile.full_name || 'Enter your name'}
+                  type="text" value={editDisplayName}
+                  onChange={e => setEditDisplayName(e.target.value)}
+                  placeholder="How Meridian addresses you — defaults to first name"
                   style={inputStyle}
                 />
-                <p style={fieldHint}>This is how Meridian addresses you across your health experience.</p>
+                <p style={fieldHint}>Leave blank to use first name. Falls back to full name if both are empty.</p>
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={fieldLabel}>Date of birth</label>
+                <input
+                  type="date" value={editBirthDate}
+                  onChange={e => setEditBirthDate(e.target.value)}
+                  style={{ ...inputStyle, colorScheme: 'dark', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
+                />
+                <p style={fieldHint}>Used for age-adjusted biological context. Stored as YYYY-MM-DD.</p>
               </div>
               <div style={{ marginBottom: '20px' }}>
                 <label style={fieldLabel}>Biological profile</label>
@@ -403,10 +512,10 @@ export default function ProfilePage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <PassportRow
-                label="Display name"
-                value={profile.full_name}
+                label="Name"
+                value={displayName !== 'Not set yet' ? displayName : null}
                 emptyLabel="Not set yet"
-                emptyHint="Enter your name in onboarding or tap Edit above."
+                emptyHint="Tap Edit to add your name."
                 onAdd={startEditIdentity}
               />
               <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
@@ -419,12 +528,14 @@ export default function ProfilePage() {
                 emptyHint="Used to personalize lab interpretation."
                 onAdd={startEditIdentity}
               />
-              {profile.birth_date && (
-                <>
-                  <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
-                  <PassportRow label="Date of birth" value={profile.birth_date} />
-                </>
-              )}
+              <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
+              <PassportRow
+                label="Date of birth"
+                value={profile.birth_date || null}
+                emptyLabel="Not set"
+                emptyHint="Tap Edit to add."
+                onAdd={startEditIdentity}
+              />
             </div>
           )}
         </div>
@@ -493,6 +604,92 @@ export default function ProfilePage() {
               </p>
               <SmallButton onClick={startEditFocus}>Set focus</SmallButton>
             </div>
+          )}
+        </div>
+
+        {/* ═══════════════════════════ MEDICATIONS ═══ */}
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+            <span style={cardLabel}>Medications</span>
+            {editingSection !== 'medications' && (
+              <SmallButton onClick={startEditMeds}>
+                {profile.medications && profile.medications.length > 0 ? 'Edit' : 'Add'}
+              </SmallButton>
+            )}
+          </div>
+
+          {editingSection === 'medications' ? (
+            <div>
+              {/* Current list */}
+              {editMedList.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+                  {editMedList.map((med, i) => (
+                    <div key={i} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      padding: '5px 10px', borderRadius: '20px',
+                      background: 'rgba(45,212,191,0.07)', border: '1px solid rgba(45,212,191,0.20)',
+                    }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, letterSpacing: '-0.01em' }}>{med}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeMedEntry(i)}
+                        style={{
+                          background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 2px',
+                          color: colors.textMuted, fontSize: '14px', lineHeight: 1, fontFamily: fonts.ui,
+                          display: 'flex', alignItems: 'center',
+                        }}
+                        aria-label={`Remove ${med}`}
+                      >×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Add input */}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <input
+                  type="text"
+                  value={editMedInput}
+                  onChange={e => setEditMedInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addMedEntry() } }}
+                  placeholder="e.g. Levothyroxine"
+                  style={{ ...inputStyle, flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={addMedEntry}
+                  disabled={!editMedInput.trim()}
+                  style={{
+                    padding: '0 16px', borderRadius: '10px', border: 'none',
+                    background: editMedInput.trim() ? 'rgba(45,212,191,0.14)' : 'rgba(45,212,191,0.05)',
+                    color: editMedInput.trim() ? colors.teal : colors.textMuted,
+                    fontSize: '13px', fontWeight: 700, cursor: editMedInput.trim() ? 'pointer' : 'not-allowed',
+                    fontFamily: fonts.ui, whiteSpace: 'nowrap',
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+              <p style={fieldHint}>Separate medications as individual entries. Name only — dose and frequency coming later.</p>
+              <div style={{ marginTop: '16px' }}>
+                <SaveFeedback status={saveStatus} />
+                <EditActions onCancel={cancelEdit} onSave={saveMeds} saving={saving} saveLabel="Save medications" />
+              </div>
+            </div>
+          ) : profile.medications && profile.medications.length > 0 ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {profile.medications.map((med, i) => (
+                <div key={i} style={{
+                  padding: '5px 12px', borderRadius: '20px',
+                  background: 'rgba(45,212,191,0.06)', border: '1px solid rgba(45,212,191,0.18)',
+                }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textSoft }}>{med}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ margin: 0, fontSize: '13px', color: colors.textMuted, fontStyle: 'italic' }}>
+              None reported. Tap Add to list current medications.
+            </p>
           )}
         </div>
 

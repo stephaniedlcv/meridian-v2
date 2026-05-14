@@ -59,6 +59,9 @@ export type PendingBiomarker = {
 export type Profile = {
   id: string;
   full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  display_name: string | null;
   biological_profile: BiologicalProfile | null;
   hormonal_profile: string | null;
   birth_date: string | null;
@@ -67,6 +70,7 @@ export type Profile = {
   user_profile: UserProfile | null;
   onboarding_completed: boolean;
   created_at: string;
+  updated_at: string | null;
 };
 
 export type BiomarkerStatic = {
@@ -120,6 +124,9 @@ export type Database = {
         Insert: {
           id: string;
           full_name?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
+          display_name?: string | null;
           biological_profile?: BiologicalProfile | null;
           hormonal_profile?: string | null;
           birth_date?: string | null;
@@ -128,10 +135,14 @@ export type Database = {
           user_profile?: UserProfile | null;
           onboarding_completed?: boolean;
           created_at?: string;
+          updated_at?: string | null;
         };
         Update: {
           id?: string;
           full_name?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
+          display_name?: string | null;
           biological_profile?: BiologicalProfile | null;
           hormonal_profile?: string | null;
           birth_date?: string | null;
@@ -140,6 +151,7 @@ export type Database = {
           user_profile?: UserProfile | null;
           onboarding_completed?: boolean;
           created_at?: string;
+          updated_at?: string | null;
         };
         Relationships: [];
       };
