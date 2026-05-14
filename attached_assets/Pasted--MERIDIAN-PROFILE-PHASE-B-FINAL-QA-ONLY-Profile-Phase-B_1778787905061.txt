@@ -1,0 +1,158 @@
+# MERIDIAN — PROFILE PHASE B FINAL QA ONLY
+
+Profile Phase B — Health Context is implemented and visually confirmed.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+This is QA ONLY.
+
+Do NOT edit files unless there is a confirmed bug.
+Do NOT commit.
+Do NOT push.
+Do NOT publish.
+
+Scope:
+Verify the final Phase B Health Context implementation.
+
+Expected Phase B fields:
+- height_cm
+- weight_kg
+- activity_level
+- training_days
+- body_goal_phase
+- diet_pattern
+
+SQL was already run in Supabase:
+
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS height_cm numeric(5,1),
+  ADD COLUMN IF NOT EXISTS weight_kg numeric(5,1),
+  ADD COLUMN IF NOT EXISTS activity_level text,
+  ADD COLUMN IF NOT EXISTS training_days smallint,
+  ADD COLUMN IF NOT EXISTS body_goal_phase text,
+  ADD COLUMN IF NOT EXISTS diet_pattern text;
+
+Check these files:
+- .migration-backup/src/types/database.ts
+- .migration-backup/src/app/profile/page.tsx
+
+QA CHECKLIST:
+
+1. Database types
+
+Confirm profiles Row / Insert / Update include:
+- height_cm
+- weight_kg
+- activity_level
+- training_days
+- body_goal_phase
+- diet_pattern
+
+2. Profile load
+
+Confirm Profile page SELECT query includes:
+- height_cm
+- weight_kg
+- activity_level
+- training_days
+- body_goal_phase
+- diet_pattern
+
+Confirm setProfile safely reads these fields.
+
+3. Health Context placement
+
+Confirm Health Context card appears:
+- after Biological Passport
+- before Medications / Health Focus
+
+4. Read-only display
+
+Confirm read-only Health Context shows:
+- Height as user-friendly ft/in only
+- Weight as user-friendly lb only
+- Activity label
+- Training days as X days/week
+- Goal phase label
+- Diet label
+
+Confirm read-only view does NOT show:
+- cm
+- kg
+
+Metric values should remain internal.
+
+5. Edit mode
+
+Confirm Health Context edit mode supports:
+- height entry as ft/in
+- height entry as cm
+- weight entry as lb
+- weight entry as kg
+- training days
+- activity level
+- body goal phase
+- diet pattern
+
+6. Conversion logic
+
+Confirm:
+- ft/in converts to height_cm
+- cm saves to height_cm
+- lb converts to weight_kg
+- kg saves to weight_kg
+- stored values round cleanly
+- read-only display converts back to ft/in and lb
+
+7. Training days validation
+
+Confirm:
+- 0 saves as 0
+- 4 saves as 4
+- 7 saves as 7
+- blank saves as null
+- 4-5 does NOT save as 0
+- 4.5 does NOT save
+- invalid input shows or triggers safe validation
+
+8. Regression check
+
+Confirm no changes were made to:
+- dashboard
+- labs
+- upload flow
+- OCR routes
+- confirm route
+- insight route
+- intelligence route
+- protocol
+- onboarding
+- middleware
+- NavBar
+- package.json
+- dependencies
+
+9. Build
+
+Run:
+
+cd .migration-backup && npm run build
+
+Report:
+- build result
+- TypeScript errors if any
+- unrelated warnings if any
+
+OUTPUT REQUIRED:
+Return:
+1. Executive QA summary
+2. Files inspected
+3. QA checklist result
+4. Build result
+5. Any actual bugs found
+6. Whether Profile Phase B can be considered closed
+7. Confirmation:
+   “No unrelated files were changed.”
