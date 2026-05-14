@@ -2395,22 +2395,17 @@ export default function LabsUploadPage() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 style={{ marginBottom: '32px' }}
               >
-                {/* Section chip */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                  <span style={{
-                    fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em',
-                    color: colors.teal, textTransform: 'uppercase',
-                    padding: '4px 10px',
-                    backgroundColor: `${colors.teal}18`,
-                    border: `1px solid ${colors.teal}40`,
-                    borderRadius: '20px',
-                  }}>
-                    Current Biomarker Snapshot
-                  </span>
-                </div>
+                {/* Section label */}
+                <p style={{
+                  fontSize: '11px', fontWeight: 700, letterSpacing: '0.07em',
+                  color: colors.textMuted, textTransform: 'uppercase',
+                  margin: '0 0 14px',
+                }}>
+                  Current Biomarker Snapshot
+                </p>
 
                 {/* Snapshot / Timeline toggle */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px', flexWrap: 'wrap' }}>
+                <div style={{ marginBottom: '8px' }}>
                   <div style={{
                     display: 'inline-flex',
                     gap: '3px',
@@ -2452,10 +2447,10 @@ export default function LabsUploadPage() {
                       )
                     })}
                   </div>
-                  <span style={{ fontSize: '12px', color: colors.textMuted }}>
-                    Current Year · {currentYear}
-                  </span>
                 </div>
+                <p style={{ fontSize: '12px', color: colors.textMuted, margin: '6px 0 16px' }}>
+                  Current Year · {currentYear}
+                </p>
 
                 {/* Summary bar */}
                 <div style={{
