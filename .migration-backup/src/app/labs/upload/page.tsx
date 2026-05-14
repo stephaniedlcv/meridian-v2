@@ -2561,7 +2561,21 @@ export default function LabsUploadPage() {
                                 {visibleOpt.length > 0 && (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                     {visibleOpt.map(b => {
-                                      const showRange = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
+                                      // Optimal range pill: prefer optimal_range when valid
+                                      const hasOptRange = !b.flag_error && isUsableRange(b.optimal_range_min, b.optimal_range_max)
+                                      // Reference range pill: only shown when the value actually falls within the
+                                      // stored bounds — prevents showing misleading category/borderline bands
+                                      // (e.g. Triglycerides "Ref 150–199" while value is 66, state Optimal)
+                                      const hasRefRange = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
+                                      const refInRange  = hasRefRange &&
+                                        b.value >= b.reference_range_min! &&
+                                        b.value <= b.reference_range_max!
+                                      const pillStyle: React.CSSProperties = {
+                                        fontSize: '9px', color: 'rgba(154,203,193,0.65)',
+                                        backgroundColor: 'rgba(103,232,249,0.05)',
+                                        border: '1px solid rgba(103,232,249,0.10)',
+                                        borderRadius: '20px', padding: '1px 7px', whiteSpace: 'nowrap',
+                                      }
                                       return (
                                         <div
                                           key={b.id}
@@ -2580,10 +2594,11 @@ export default function LabsUploadPage() {
                                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                             <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{b.value}</span>
                                             {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
-                                            {showRange && (
-                                              <span style={{ fontSize: '9px', color: 'rgba(154,203,193,0.65)', backgroundColor: 'rgba(103,232,249,0.05)', border: '1px solid rgba(103,232,249,0.10)', borderRadius: '20px', padding: '1px 7px', whiteSpace: 'nowrap' }}>
-                                                Ref {b.reference_range_min}–{b.reference_range_max}
-                                              </span>
+                                            {hasOptRange && (
+                                              <span style={pillStyle}>Opt {b.optimal_range_min}–{b.optimal_range_max}</span>
+                                            )}
+                                            {!hasOptRange && refInRange && (
+                                              <span style={pillStyle}>Ref {b.reference_range_min}–{b.reference_range_max}</span>
                                             )}
                                             <span style={{ padding: '2px 7px', backgroundColor: colors.optimal, border: `1px solid ${colors.optimalBorder}`, borderRadius: '5px', fontSize: '10px', fontWeight: 700, color: '#2DD4BF', letterSpacing: '0.04em' }}>Optimal</span>
                                             <span style={{ fontSize: '13px', color: colors.textMuted, opacity: 0.4, lineHeight: 1 }}>›</span>
