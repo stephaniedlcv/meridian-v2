@@ -1,0 +1,289 @@
+# MERIDIAN — INSIGHT BOUNDARY / CONTEXT NOTE PLAN ONLY
+
+We are preparing the next phase of Meridian Insight Language Safety.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+This is PLAN ONLY.
+
+Do NOT edit files.
+Do NOT modify code.
+Do NOT create files.
+Do NOT add dependencies.
+Do NOT commit.
+Do NOT push.
+Do NOT publish.
+
+Background:
+These phases are already closed:
+
+1. Insight Language Clarity Phase 1
+- “mechanistic” removed
+- Mom Test added
+- vague standalone language restricted
+- better action examples added
+- casual supplement wording removed
+
+2. Insight Guardrail Hardening Phase 2
+- hallucination guard now returns insight_unavailable
+- forbidden word guard now returns insight_unavailable
+- no *** can render to users
+- Dashboard unchanged
+- schema unchanged
+
+Now we are planning the next phase:
+
+Boundary / Context Note
+
+GOAL:
+Add a clear, calm, low-emphasis boundary to every solved insight so users understand what NOT to overinterpret.
+
+Meridian should help the user understand:
+- what the signal may suggest
+- what today’s priority is
+- what action to take
+- what the signal does NOT mean
+
+This should reduce anxiety and avoid the insight feeling like diagnosis.
+
+IMPORTANT:
+Do NOT implement yet.
+Plan only.
+
+AUDIT SCOPE:
+
+Inspect:
+- .migration-backup/src/app/api/insight/route.ts
+- .migration-backup/src/app/dashboard/page.tsx
+- any types/interfaces related to insight response
+- any SolvedBlock / Intelligence Block rendering logic
+- any fallback state rendering relevant to solved/labs_saved/no_data/safety_alert
+
+TASKS:
+
+1. Map current insight JSON schema
+
+Report the current insight fields:
+- headline
+- status
+- cause
+- action_steps
+- trust_line
+- block_color
+- logic_trace
+
+Explain:
+- where the schema is defined
+- where Claude is instructed to return it
+- where the response is parsed
+- where each field renders in Dashboard
+- whether any field is optional or required
+
+2. Determine best boundary field design
+
+Evaluate options:
+
+Option A:
+Add new field:
+
+boundary: string
+
+Option B:
+Add new field:
+
+context_note: string
+
+Option C:
+Do not add a new field; fold boundary into trust_line
+
+Option D:
+Do not change schema; use deterministic Dashboard copy below every insight
+
+For each option, evaluate:
+- clarity for user
+- safety
+- implementation complexity
+- risk of breaking Dashboard
+- risk of AI overexplaining
+- whether it helps avoid diagnostic interpretation
+
+Recommend one option.
+
+3. Boundary copy strategy
+
+Recommend the best label and copy treatment.
+
+Possible labels:
+- Context note
+- What this does not mean
+- Keep in mind
+- Scope
+- Important context
+
+Evaluate which fits Meridian best.
+
+Tone:
+- calm
+- short
+- non-alarming
+- non-diagnostic
+- user-friendly
+- not legalistic
+- not scary
+
+Potential examples:
+
+“This is not a diagnosis. It is a signal to watch in context.”
+
+“This signal may reflect today’s context and should be watched over time.”
+
+“Use this as a directional signal, not a diagnosis.”
+
+“This does not mean something is wrong. It means this signal is worth watching with the rest of your data.”
+
+Recommend final copy rules.
+
+4. Prompt update plan
+
+If adding a new AI-generated field, plan how to update the system prompt.
+
+Boundary should:
+- be one short sentence
+- avoid diagnosis
+- avoid treatment language
+- avoid clinical certainty
+- not repeat the trust_line
+- not mention emergency unless safety_alert is active
+- not use “consult your doctor” as the only message
+- explain the limit of the data calmly
+
+Example boundary outputs:
+
+For non-safety insights:
+“This is not a diagnosis; it is a signal to watch alongside your other data.”
+
+For hydration/renal-style signals:
+“This does not mean something is wrong; hydration, recent intake, and timing can all influence this marker.”
+
+For metabolic signals:
+“This is a pattern to follow over time, not a conclusion from one reading.”
+
+For safety_alert:
+“These values need professional review before Meridian gives optimization steps.”
+
+5. Dashboard rendering plan
+
+Recommend where the boundary/context note should render inside SolvedBlock.
+
+Evaluate placement:
+- below cause
+- below action steps
+- above trust_line
+- combined with trust_line
+- inside a small muted note card
+
+Recommend:
+- visual treatment
+- font size
+- color
+- spacing
+- icon/no icon
+- whether it should appear collapsed or visible
+
+Important:
+It should be visible enough to reduce overinterpretation, but not so prominent that it scares the user or competes with action steps.
+
+6. Safety alert behavior
+
+Plan whether boundary/context note should behave differently when:
+
+state === 'safety_alert'
+
+Current behavior should remain safe.
+
+Recommend:
+- whether safety_alert should have its own fixed boundary
+- whether Claude should generate it
+- whether deterministic copy is safer
+
+7. Backward compatibility
+
+If the JSON schema changes, determine how to handle older/fallback insights.
+
+Plan:
+- should boundary be optional?
+- should Dashboard render only if present?
+- should API provide a deterministic fallback if missing?
+- how to avoid runtime errors?
+
+8. Implementation impact
+
+List exact files likely to change if implemented.
+
+Expected possibilities:
+- .migration-backup/src/app/api/insight/route.ts
+- .migration-backup/src/app/dashboard/page.tsx
+- any local Insight type/interface if present
+
+Confirm whether:
+- database schema changes are needed
+- Supabase changes are needed
+- Health Context is needed
+- Decision Engine changes are needed
+- Safety Engine threshold changes are needed
+
+9. Recommended implementation plan
+
+Provide a phased, low-risk implementation plan.
+
+Preferred:
+Phase A:
+- add optional boundary/context_note to insight schema
+- prompt Claude to return it
+- API validates string fallback
+- Dashboard renders it only if present
+
+Phase B:
+- make boundary required later after production validation
+
+But recommend the safest final approach.
+
+10. QA plan
+
+Recommend exact QA cases:
+
+- normal solved insight with boundary
+- safety_alert insight with boundary
+- missing boundary fallback
+- forbidden word still returns insight_unavailable
+- hallucination still returns insight_unavailable
+- dashboard does not crash if boundary missing
+- action steps remain primary
+- trust_line still renders
+- build passes
+
+OUTPUT REQUIRED:
+
+Return:
+
+1. Executive recommendation
+2. Current insight schema map
+3. Recommended field name: boundary vs context_note vs trust_line
+4. Recommended copy rules
+5. Recommended Dashboard placement
+6. Safety alert behavior
+7. Backward compatibility plan
+8. Exact files likely to change
+9. Whether DB/schema/Supabase changes are needed
+10. Implementation plan
+11. QA plan
+12. Risks and mitigations
+13. Confirmation:
+   “No files were changed.”
+
+Remember:
+Plan only.
+Do not edit files.
