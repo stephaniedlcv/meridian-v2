@@ -523,14 +523,6 @@ export default function ProfilePage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <PassportRow
-                label="Name"
-                value={displayName !== 'Not set yet' ? displayName : null}
-                emptyLabel="Not set yet"
-                emptyHint="Tap Edit to add your name."
-                onAdd={startEditIdentity}
-              />
-              <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
-              <PassportRow
                 label="First name"
                 value={profile.first_name || null}
                 emptyLabel="Not set yet"

@@ -1,0 +1,95 @@
+# MERIDIAN — PROFILE PASSPORT REMOVE DUPLICATE NAME ROW
+
+The Profile display name fix is working.
+
+Now we need one final read-only view polish.
+
+Modify ONLY:
+.migration-backup/src/app/profile/page.tsx
+
+Do not touch any other file.
+Do not change save logic.
+Do not change database types.
+Do not change medications.
+Do not change dashboard, labs, onboarding, routes, middleware, NavBar, or dependencies.
+Do not redesign.
+Inline styles only.
+TypeScript strict.
+
+CURRENT ISSUE:
+The hero already displays the user-facing display name correctly.
+
+Example:
+Hero: Stephanie
+
+The Biological Passport read-only card also shows:
+
+Name
+Stephanie
+
+This is redundant.
+
+TASK:
+Remove the read-only “Name” row from the Biological Passport card.
+
+REQUIREMENTS:
+
+1. Keep hero display name
+
+The hero name at the top should still use the existing displayName priority:
+
+display_name → first_name → full_name → email → "Not set yet"
+
+Do not change this logic.
+
+2. Remove Passport “Name” row
+
+In the Biological Passport read-only view, remove only the row labeled:
+
+Name
+
+Do not remove:
+- First name
+- Last name
+- Email
+- Biological profile
+- Date of birth
+
+3. Keep edit mode unchanged
+
+Do not remove Display name from edit mode.
+Do not remove First name / Last name from edit mode.
+
+Display name remains editable and continues to control the hero name.
+
+4. Keep save logic unchanged
+
+Do not change saveIdentity.
+Do not change full_name fallback logic.
+Do not change medications.
+Do not change birth_date.
+
+5. Build
+
+Run:
+
+cd .migration-backup && npm run build
+
+QA checklist:
+- Profile loads without console errors.
+- Hero still shows displayName correctly.
+- Biological Passport no longer shows duplicate Name row.
+- First name row still appears.
+- Last name row still appears.
+- Email still appears.
+- Biological profile still appears.
+- Date of birth still appears.
+- Edit mode still includes Display name.
+- Saving Display name still updates the hero.
+- Build passes.
+
+Return:
+1. Exact change made
+2. Exact file changed
+3. Build result
+4. Confirmation no unrelated files were touched
