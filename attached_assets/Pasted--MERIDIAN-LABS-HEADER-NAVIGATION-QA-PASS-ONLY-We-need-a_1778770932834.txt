@@ -1,0 +1,135 @@
+# MERIDIAN — LABS HEADER/NAVIGATION QA PASS ONLY
+
+We need a QA pass on the Labs page after the recent header/navigation polish.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+This is QA ONLY.
+
+Do NOT edit files.
+Do NOT modify code.
+Do NOT create files.
+Do NOT add dependencies.
+Do NOT commit.
+Do NOT push.
+Do NOT publish.
+
+Page to test:
+.migration-backup/src/app/labs/upload/page.tsx
+
+Run:
+
+cd .migration-backup && npm run build
+
+Then inspect/test the Labs page behavior.
+
+QA CHECKLIST:
+
+1. Build
+Confirm:
+- build passes
+- no TypeScript errors
+- no compile errors
+
+2. Labs header
+Confirm the header shows:
+
+BIOMARKER SIGNALS
+Labs
+Your clinical markers.
+Translated into biological signals.
+
+Confirm:
+- spacing between the two subcopy lines matches the Home/Dashboard rhythm
+- header looks clean and consistent with Meridian’s design system
+
+3. Snapshot view
+Confirm Snapshot view shows:
+
+BIOMARKER SNAPSHOT · [currentYear]
+[ Snapshot | Timeline ]
+
+Confirm:
+- year is dynamic, not hardcoded
+- Snapshot tab is active
+- summary card still appears
+- status chips still appear
+- VIEW MODE appears with correct subtle section-label styling
+- Clinical Panels / Signal Map control appears
+- microcopy shows:
+  Grouped by clinical lab panels.
+
+4. View mode toggle
+Test:
+- Click Clinical Panels
+- Click Signal Map
+- Click Clinical Panels again
+
+Confirm:
+- selected state updates correctly
+- microcopy changes correctly
+
+Clinical Panels:
+Grouped by clinical lab panels.
+
+Signal Map:
+Grouped by biological signal layers.
+
+Confirm:
+- marker data still renders
+- grouping logic is unchanged
+- no horizontal overflow on mobile
+
+5. Timeline view
+Click Timeline.
+
+Confirm Timeline view shows:
+
+TIMELINE
+Your confirmed lab results over time.
+[ Snapshot | Timeline ]
+
+Confirm:
+- Timeline tab is active
+- Snapshot tab is visible and clickable
+- saved lab records still appear
+- years, months, dates, panels, delete buttons, and expandable panels still work
+- no data grouping changed
+
+6. Return navigation
+From Timeline, click Snapshot.
+
+Confirm:
+- user returns to Snapshot view
+- Snapshot tab becomes active
+- Snapshot data still renders correctly
+
+7. Existing interactions
+Confirm these still work:
+- expand/collapse clinical panels
+- open biomarker detail sheet
+- close biomarker detail sheet
+- switch Snapshot / Timeline multiple times
+- switch Clinical Panels / Signal Map multiple times
+
+8. Upload flow safety
+Confirm the recent visual polish did NOT affect:
+- Upload another lab PDF
+- OCR/extract flow
+- confirm/save flow
+- pending classification display
+- upload review screen
+- cancel flow
+
+Do not modify any files.
+
+OUTPUT REQUIRED:
+1. Build result.
+2. Confirmation that no files were changed.
+3. QA checklist results.
+4. Any issues found.
+5. If no issues found, say:
+   “Labs header/navigation QA passed. No code changes needed.”
