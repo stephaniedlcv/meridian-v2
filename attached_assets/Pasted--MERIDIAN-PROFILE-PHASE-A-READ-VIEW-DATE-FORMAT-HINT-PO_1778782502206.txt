@@ -1,0 +1,183 @@
+# MERIDIAN — PROFILE PHASE A READ VIEW + DATE FORMAT HINT POLISH
+
+We need a small Profile Phase A polish after confirming the new fields save correctly.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Modify ONLY:
+
+.migration-backup/src/app/profile/page.tsx
+
+Do not touch:
+- dashboard
+- labs
+- upload flow
+- OCR routes
+- confirm route
+- insight route
+- intelligence route
+- protocol
+- onboarding
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- dependencies
+- artifacts/
+
+Do not add dependencies.
+Do not create files.
+Do not use Tailwind.
+Inline styles only.
+TypeScript strict.
+
+CURRENT STATE:
+Profile Phase A is working.
+The edit form saves:
+- first_name
+- last_name
+- display_name
+- birth_date
+- biological_profile
+- medications as string[]
+
+CURRENT ISSUE:
+The read-only Biological Passport view only shows:
+- computed Name
+- Email
+- Biological Profile
+- Date of Birth
+
+But now that first_name, last_name, and display_name exist, the user should be able to see these saved fields without clicking Edit.
+
+Also, the birth_date helper text should be clearer. The app stores birth_date as YYYY-MM-DD, but the browser date input may visually display the date in the user’s locale. We should explicitly explain the stored format.
+
+TASK:
+Polish the Profile read-only display and clarify the birth_date helper text.
+
+REQUIREMENTS:
+
+1. Biological Passport read-only view
+
+In the read-only Biological Passport card, show:
+
+- Name
+  computed display name using existing priority:
+  display_name → first_name + last_name → full_name → fallback
+
+- First name
+  show first_name if present
+  otherwise show “Not set yet”
+
+- Last name
+  show last_name if present
+  otherwise show “Not set yet”
+
+- Display name
+  show display_name if present
+  otherwise show “Using first name or full name”
+
+- Email
+  existing read-only email
+
+- Biological profile
+  existing biological_profile display
+
+- Date of birth
+  show birth_date if present
+  otherwise show “Not set yet”
+
+Keep the card clean and not overcrowded.
+Use the existing Meridian visual language:
+- uppercase small labels
+- muted teal label color
+- white value text
+- subtle dividers
+- no redesign
+- no new card style
+
+2. Date of birth display
+
+Do not make a complex date conversion.
+
+Use the stored YYYY-MM-DD value safely.
+
+If you format it into a human-readable date, do it using a timezone-safe date-only approach:
+- split YYYY-MM-DD into year, month, day
+- construct local date only if needed
+- do not use timezone-sensitive parsing that could shift the day
+
+Acceptable read-only display options:
+- YYYY-MM-DD
+or
+- Jan 24, 1991
+
+Choose the option that best matches the existing Profile design.
+
+3. Date input helper copy
+
+Update the birth_date helper copy in edit mode to be clearer.
+
+Use this copy or equivalent:
+
+“Used for age-adjusted biological context. Stored as YYYY-MM-DD.”
+
+Do not say the user must type YYYY-MM-DD if the browser date picker displays the date in local format.
+
+4. Birth date storage
+
+Keep storing birth_date as YYYY-MM-DD.
+Do not change the DB field name.
+Do not rename birth_date to date_of_birth in this task.
+
+5. Do not change Profile Phase A schema
+
+Do not add columns.
+Do not remove fields.
+Do not change medications storage.
+Do not restructure medications.
+
+6. Medications
+
+Do not modify medications in this task unless the current card is visually broken.
+The medication editor already works and should remain string[].
+
+7. Build and QA
+
+After editing, run:
+
+cd .migration-backup && npm run build
+
+QA checklist:
+- Profile loads without console errors.
+- Read-only Biological Passport shows computed Name.
+- Read-only Biological Passport shows First name.
+- Read-only Biological Passport shows Last name.
+- Read-only Biological Passport shows Display name or fallback text.
+- Email still shows.
+- Biological profile still shows.
+- Date of birth still shows.
+- Date input helper copy is clearer.
+- Edit mode still works.
+- Saving first_name, last_name, display_name still works.
+- Saving birth_date still works as YYYY-MM-DD.
+- Refreshing keeps saved data.
+- Dashboard still loads.
+- Labs still loads.
+- Build passes.
+
+Do not commit.
+Do not push.
+Do not publish.
+
+OUTPUT REQUIRED:
+Return:
+1. Summary of changes
+2. Exact file changed
+3. Build result
+4. QA checklist result
+5. Confirmation that no unrelated systems were touched

@@ -63,6 +63,19 @@ const BIO_MAP: Record<BiologicalProfile, string> = {
 
 const ALL_GOALS: UserProfile[] = ['bienestar', 'optimizacion', 'rendimiento', 'condicion', 'primer_paso']
 
+// ——— Helpers ———
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
+function formatBirthDate(isoDate: string): string {
+  const parts = isoDate.split('-')
+  if (parts.length !== 3) return isoDate
+  const year = parts[0]
+  const monthIndex = parseInt(parts[1], 10) - 1
+  const day = parseInt(parts[2], 10)
+  if (isNaN(monthIndex) || isNaN(day) || monthIndex < 0 || monthIndex > 11) return isoDate
+  return `${MONTH_NAMES[monthIndex]} ${day}, ${year}`
+}
+
 // ——— Main component ———
 export default function ProfilePage() {
   const router = useRouter()
@@ -519,6 +532,27 @@ export default function ProfilePage() {
                 onAdd={startEditIdentity}
               />
               <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
+              <PassportRow
+                label="First name"
+                value={profile.first_name || null}
+                emptyLabel="Not set yet"
+                onAdd={startEditIdentity}
+              />
+              <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
+              <PassportRow
+                label="Last name"
+                value={profile.last_name || null}
+                emptyLabel="Not set yet"
+                onAdd={startEditIdentity}
+              />
+              <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
+              <PassportRow
+                label="Display name"
+                value={profile.display_name || null}
+                emptyLabel="Using first name or full name"
+                onAdd={startEditIdentity}
+              />
+              <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
               <PassportRow label="Email" value={userEmail} />
               <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
               <PassportRow
@@ -531,8 +565,8 @@ export default function ProfilePage() {
               <div style={{ height: '1px', background: colors.cardBorder, margin: '14px 0' }} />
               <PassportRow
                 label="Date of birth"
-                value={profile.birth_date || null}
-                emptyLabel="Not set"
+                value={profile.birth_date ? formatBirthDate(profile.birth_date) : null}
+                emptyLabel="Not set yet"
                 emptyHint="Tap Edit to add."
                 onAdd={startEditIdentity}
               />
