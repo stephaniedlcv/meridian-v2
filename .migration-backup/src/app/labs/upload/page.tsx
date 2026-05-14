@@ -1473,7 +1473,7 @@ export default function LabsUploadPage() {
             .order('collected_at', { ascending: false })
             .order('created_at', { ascending: false })
           if (histFetchError) {
-            setHistError('Could not load lab history. Please try again.')
+            setHistError('Could not load your Timeline. Please try again.')
           } else {
             setHistBiomarkers(histData || [])
             setHistFetched(true)
@@ -1649,7 +1649,7 @@ export default function LabsUploadPage() {
       .order('collected_at', { ascending: false })
       .order('created_at', { ascending: false })
     if (fetchError) {
-      setHistError('Could not load lab history. Please try again.')
+      setHistError('Could not load your Timeline. Please try again.')
     } else {
       setHistBiomarkers(data || [])
       setHistFetched(true)
@@ -1877,7 +1877,7 @@ export default function LabsUploadPage() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {view === 'snapshot' ? 'Snapshot' : 'History'}
+                      {view === 'snapshot' ? 'Snapshot' : 'Timeline'}
                     </button>
                   )
                 })}
@@ -2886,7 +2886,7 @@ export default function LabsUploadPage() {
                     No recent labs in the last 12 months.
                   </p>
                   <p style={{ fontSize: '12px', color: colors.textMuted }}>
-                    Your older results are saved in Lab History.
+                    Your confirmed results are saved in Timeline.
                   </p>
                 </div>
                 <button
@@ -2904,16 +2904,25 @@ export default function LabsUploadPage() {
                     flexShrink: 0,
                   }}
                 >
-                  View History →
+                  View Timeline →
                 </button>
               </motion.div>
             )}
 
             {/* ════════════════════════════════════════════════════════════════
-                HISTORY VIEW — shown when History tab is active
+                TIMELINE VIEW — shown when Timeline tab is active
                 ════════════════════════════════════════════════════════════════ */}
             {labsView === 'history' && (
               <div style={{ marginBottom: '32px' }}>
+                {/* Timeline section header */}
+                <div style={{ marginBottom: '20px' }}>
+                  <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: colors.textMuted, margin: '0 0 4px' }}>
+                    Timeline
+                  </p>
+                  <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0, lineHeight: 1.5 }}>
+                    Your confirmed lab results over time.
+                  </p>
+                </div>
                 {/* Loading spinner */}
                 {histLoading && (
                   <div style={{ display: 'flex', justifyContent: 'center', padding: '56px 0' }}>
