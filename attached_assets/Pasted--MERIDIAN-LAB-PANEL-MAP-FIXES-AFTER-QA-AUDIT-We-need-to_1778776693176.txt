@@ -1,0 +1,103 @@
+# MERIDIAN — LAB PANEL MAP FIXES AFTER QA AUDIT
+
+We need to apply small panel/layer mapping fixes found during the Labs QA audit.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Modify ONLY:
+
+.migration-backup/src/app/labs/upload/page.tsx
+
+Do not touch:
+- dashboard
+- profile
+- protocol
+- onboarding
+- OCR routes
+- confirm route
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- dependencies
+- artifacts/
+
+Do not add dependencies.
+Do not create new files.
+Do not use Tailwind.
+Inline styles only.
+TypeScript strict.
+
+TASK:
+Fix missing marker slug mappings across Labs panel/layer maps.
+
+QA audit findings:
+1. tpo_antibodies is missing from SIGNAL_SLUG_TO_LAYER.
+2. acth is missing from SIGNAL_SLUG_TO_LAYER.
+3. tpo_antibodies is missing from SLUG_TO_PANEL.
+4. acth is missing from SLUG_TO_PANEL.
+5. anion_gap is missing from CLINICAL_SLUG_TO_PANEL.
+
+REQUIREMENTS:
+
+1. Add to SIGNAL_SLUG_TO_LAYER:
+
+tpo_antibodies: 'Thyroid / Energy'
+acth: 'Hormones'
+
+2. Add to SLUG_TO_PANEL:
+
+tpo_antibodies: 'Thyroid Panel'
+acth: 'Hormones'
+
+3. Add to CLINICAL_SLUG_TO_PANEL:
+
+anion_gap: 'Comprehensive Metabolic Panel'
+
+4. Do not change existing labels unless required.
+
+5. Do not change Snapshot date filter.
+
+Important:
+The audit confirmed Snapshot intentionally filters to the last 12 months.
+Timeline has no date filter and should show older labs such as 2024.
+Do not modify date filtering in this task.
+
+6. Do not change:
+- upload flow
+- save flow
+- OCR logic
+- pending classification logic
+- qualitative urinalysis handling
+- Timeline grouping logic
+- state logic
+- range bars
+- dashboard logic
+
+This is only a marker-to-panel/layer mapping fix.
+
+After editing:
+1. Report exact file changed.
+2. Confirm no unrelated files changed.
+3. Run:
+   cd .migration-backup && npm run build
+4. Test:
+   /labs/upload
+
+Confirm:
+- tpo_antibodies appears under Thyroid / Energy in Signal Map
+- acth appears under Hormones in Signal Map
+- tpo_antibodies appears under Thyroid Panel in upload review/detail badge
+- acth appears under Hormones in upload review/detail badge
+- anion_gap appears under Comprehensive Metabolic Panel in Clinical Panels
+- Timeline still shows historical labs
+- Snapshot still only shows recent/current labs
+- build passes
+
+Do not commit.
+Do not push.
+Do not publish.

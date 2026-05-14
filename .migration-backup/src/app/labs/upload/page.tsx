@@ -95,6 +95,7 @@ const SLUG_TO_PANEL: Record<string, string> = {
   vldl: 'Lipid Panel', triglycerides: 'Lipid Panel', non_hdl: 'Lipid Panel',
   ldl_hdl_ratio: 'Lipid Panel', chol_hdl_ratio: 'Lipid Panel',
   testosterone_total: 'Hormones', cortisol_am: 'Hormones', dhea_s: 'Hormones',
+  tpo_antibodies: 'Thyroid Panel', acth: 'Hormones',
   crp_hs: 'Inflammation / Cardiac Risk', homocysteine: 'Inflammation / Cardiac Risk',
   vitamin_d: 'Vitamins & Nutrients', vitamin_b12: 'Vitamins & Nutrients',
   folate: 'Vitamins & Nutrients', magnesium: 'Vitamins & Nutrients', ferritin: 'Vitamins & Nutrients',
@@ -151,6 +152,7 @@ const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
   alkaline_phosphatase: 'Comprehensive Metabolic Panel',
   ast: 'Comprehensive Metabolic Panel', alt: 'Comprehensive Metabolic Panel',
   glucose_fasting: 'Comprehensive Metabolic Panel',
+  anion_gap: 'Comprehensive Metabolic Panel',
   // Lipid Panel
   total_cholesterol: 'Lipid Panel', hdl: 'Lipid Panel', ldl: 'Lipid Panel',
   vldl: 'Lipid Panel', non_hdl: 'Lipid Panel', triglycerides: 'Lipid Panel',
@@ -210,6 +212,7 @@ const SIGNAL_SLUG_TO_LAYER: Record<string, string> = {
   globulin: 'Liver', ag_ratio: 'Liver',
   // Thyroid / Energy
   tsh: 'Thyroid / Energy', free_t4: 'Thyroid / Energy', free_t3: 'Thyroid / Energy', total_t3: 'Thyroid / Energy',
+  tpo_antibodies: 'Thyroid / Energy',
   // Blood / Oxygen
   hemoglobin: 'Blood / Oxygen', hematocrit: 'Blood / Oxygen', rbc: 'Blood / Oxygen',
   mcv: 'Blood / Oxygen', mch: 'Blood / Oxygen', mchc: 'Blood / Oxygen', rdw: 'Blood / Oxygen',
@@ -226,7 +229,7 @@ const SIGNAL_SLUG_TO_LAYER: Record<string, string> = {
   vitamin_d: 'Vitamins & Nutrients', vitamin_b12: 'Vitamins & Nutrients',
   folate: 'Vitamins & Nutrients', magnesium: 'Vitamins & Nutrients', ferritin: 'Vitamins & Nutrients',
   // Hormones
-  testosterone_total: 'Hormones', dhea_s: 'Hormones', cortisol_am: 'Hormones',
+  testosterone_total: 'Hormones', dhea_s: 'Hormones', cortisol_am: 'Hormones', acth: 'Hormones',
   // Inflammation
   crp_hs: 'Inflammation',
 }
