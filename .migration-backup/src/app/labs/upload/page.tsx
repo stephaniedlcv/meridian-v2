@@ -312,6 +312,36 @@ function deduplicateByMarker(rows: RecentBiomarker[]): RecentBiomarker[] {
   })
 }
 
+// ── Phase 1 Watch guardrail: systemic / calculated markers ────────────────────
+// Systemic markers are those whose clinical reference range is well-established and
+// whose Watch state is frequently triggered only because the value sits outside
+// Meridian's narrower optimal range — not because it is clinically out of range.
+// When the value is inside the clinical reference range, we suppress Watch in the
+// display layer so the marker does not surface as Needs Attention.
+// Preventive/optimization markers (lipids, glycemic, vitamins, hormones, CRP, TSH)
+// are intentionally excluded — Watch is meaningful for those regardless.
+// No database values are changed; this is display-only.
+const SYSTEMIC_MARKERS = new Set([
+  'anion_gap', 'sodium', 'potassium', 'chloride', 'co2', 'calcium',
+  'creatinine', 'egfr', 'bun', 'bun_creatinine_ratio',
+  'ast', 'alt', 'alkaline_phosphatase', 'bilirubin_total',
+  'albumin', 'globulin', 'total_protein', 'ag_ratio',
+])
+
+function effectiveSnapshotState(b: RecentBiomarker): string | null {
+  if (
+    b.state === 'Watch' &&
+    SYSTEMIC_MARKERS.has(b.marker_name.toLowerCase().replace(/[\s-]+/g, '_')) &&
+    b.reference_range_min !== null && b.reference_range_max !== null &&
+    Number.isFinite(b.reference_range_min) && Number.isFinite(b.reference_range_max) &&
+    b.reference_range_min < b.reference_range_max &&
+    b.value >= b.reference_range_min && b.value <= b.reference_range_max
+  ) {
+    return 'Optimal'
+  }
+  return b.state
+}
+
 // ── Date helpers ───────────────────────────────────────────────────────────────
 function formatDateShort(iso: string): string {
   const [y, m, d] = iso.split('T')[0].split('-').map(Number)
@@ -1543,19 +1573,22 @@ export default function LabsUploadPage() {
   const hasRecentLabs = snapshotBiomarkers.length > 0
   const panelSummaries = hasRecentLabs ? buildPanelSummaries(snapshotBiomarkers) : []
   const latestDate = hasRecentLabs ? snapshotBiomarkers[0].collected_at : null
+  // Phase 1 guardrail: systemic markers inside clinical reference range display as
+  // Optimal rather than Watch. Raw DB state is preserved in snapshotBiomarkers.
+  const snapshotBiomarkersDisplay = snapshotBiomarkers.map(b => ({ ...b, state: effectiveSnapshotState(b) }))
   const totalStateCounts = {
-    Optimal:   snapshotBiomarkers.filter(b => b.state === 'Optimal').length,
-    Watch:     snapshotBiomarkers.filter(b => b.state === 'Watch').length,
-    Attention: snapshotBiomarkers.filter(b => b.state === 'Attention').length,
-    Critical:  snapshotBiomarkers.filter(b => b.state === 'Critical').length,
+    Optimal:   snapshotBiomarkersDisplay.filter(b => b.state === 'Optimal').length,
+    Watch:     snapshotBiomarkersDisplay.filter(b => b.state === 'Watch').length,
+    Attention: snapshotBiomarkersDisplay.filter(b => b.state === 'Attention').length,
+    Critical:  snapshotBiomarkersDisplay.filter(b => b.state === 'Critical').length,
   }
   const SEVERITY: Record<string, number> = { Critical: 0, Attention: 1, Watch: 2 }
-  const attentionMarkers = snapshotBiomarkers
+  const attentionMarkers = snapshotBiomarkersDisplay
     .filter(b => b.state === 'Critical' || b.state === 'Attention' || b.state === 'Watch')
     .sort((a, b) => (SEVERITY[a.state ?? ''] ?? 9) - (SEVERITY[b.state ?? ''] ?? 9))
   const filteredBiomarkers = activeFilter
-    ? snapshotBiomarkers.filter(b => b.state === activeFilter)
-    : snapshotBiomarkers
+    ? snapshotBiomarkersDisplay.filter(b => b.state === activeFilter)
+    : snapshotBiomarkersDisplay
 
   // Group filteredBiomarkers by source panel for the filtered view.
   // Map preserves insertion order → groups appear in biomarker severity order.
@@ -1577,7 +1610,7 @@ export default function LabsUploadPage() {
     const order   = snapshotViewMode === 'clinical_panels' ? CLINICAL_PANEL_ORDER   : SIGNAL_LAYER_ORDER
     const eduMap  = snapshotViewMode === 'clinical_panels' ? CLINICAL_PANEL_EDUCATION : SIGNAL_LAYER_EDUCATION
     const groupMap = new Map<string, RecentBiomarker[]>()
-    for (const b of snapshotBiomarkers) {
+    for (const b of snapshotBiomarkersDisplay) {
       const g = slugMap[b.marker_name] ?? 'Other'
       if (!groupMap.has(g)) groupMap.set(g, [])
       groupMap.get(g)!.push(b)
