@@ -371,23 +371,27 @@ Generate the Golden Insight for this user's daily priority.`
     // ===== GUARDRAIL 1: Hallucination check =====
     const validSlugs = engineResult.all_scores.map(s => s.slug)
     if (!validateMarkers(insight, validSlugs)) {
-      console.error('Hallucination detected — insight references markers not in input')
-      // Retry once with stricter instruction
-      // For now, return the insight with a warning
-      insight.logic_trace += ' | WARNING: possible hallucination detected'
+      console.error('[insight] Hallucination detected — returning insight_unavailable')
+      return NextResponse.json({
+        success: true,
+        state: 'insight_unavailable',
+        insight: null,
+        dominant_marker: engineResult.dominant?.slug ?? null,
+        safety_alert: engineResult.has_safety_alert,
+      } satisfies InsightResponse)
     }
 
     // ===== GUARDRAIL 2: Forbidden words check =====
     const forbiddenWord = containsForbiddenWords(insight)
     if (forbiddenWord) {
-      console.error(`Forbidden word detected: ${forbiddenWord}`)
-      // Clean it from the output
-      const cleanRegex = new RegExp(forbiddenWord, 'gi')
-      insight.headline = insight.headline.replace(cleanRegex, '***')
-      insight.status = insight.status.replace(cleanRegex, '***')
-      insight.cause = insight.cause.replace(cleanRegex, '***')
-      insight.action_steps = insight.action_steps.map(s => s.replace(cleanRegex, '***'))
-      insight.logic_trace += ` | CLEANED: removed "${forbiddenWord}"`
+      console.error(`[insight] Forbidden word detected: "${forbiddenWord}" — returning insight_unavailable`)
+      return NextResponse.json({
+        success: true,
+        state: 'insight_unavailable',
+        insight: null,
+        dominant_marker: engineResult.dominant?.slug ?? null,
+        safety_alert: engineResult.has_safety_alert,
+      } satisfies InsightResponse)
     }
 
     // ===== GUARDRAIL 3: Action steps limit =====

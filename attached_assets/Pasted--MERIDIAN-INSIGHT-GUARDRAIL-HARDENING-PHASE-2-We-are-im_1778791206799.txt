@@ -1,0 +1,179 @@
+# MERIDIAN — INSIGHT GUARDRAIL HARDENING PHASE 2
+
+We are implementing Phase 2 of Meridian Insight Language Safety.
+
+Important context:
+The real app lives in:
+
+.migration-backup/
+
+Insight Language Clarity Phase 1 is closed.
+
+Goal:
+If an AI-generated insight fails critical guardrails, Meridian should NOT show broken, hallucinated, diagnostic, or unsafe copy to users.
+
+This task should be small and surgical.
+
+Modify ONLY:
+.migration-backup/src/app/api/insight/route.ts
+
+Do not touch:
+- dashboard
+- labs
+- profile
+- onboarding
+- upload flow
+- OCR routes
+- confirm route
+- protocol
+- Supabase clients
+- database types
+- middleware
+- NavBar
+- package.json
+- dependencies
+- artifacts/
+
+Do not add dependencies.
+Do not create files.
+TypeScript strict.
+
+CURRENT RISKS:
+1. Hallucination guard is currently soft:
+If the AI mentions a biomarker not present in the input JSON, the route logs/appends a warning to logic_trace but still returns the insight.
+
+2. Forbidden word guard currently replaces forbidden words with "***":
+This can render broken copy to the user.
+
+PRODUCT RULE:
+Never show:
+- hallucinated biomarker references
+- diagnostic/forbidden language
+- text with "***"
+- broken AI cleanup artifacts
+
+If an insight fails these guardrails, return:
+
+state: 'insight_unavailable'
+insight: null
+
+Dashboard already handles insight_unavailable gracefully.
+
+TASK:
+
+1. Harden hallucination guard
+
+Find the logic similar to:
+
+if (!validateMarkers(insight, validSlugs)) {
+  console.error('Hallucination detected...')
+  insight.logic_trace += ' | WARNING...'
+}
+
+Replace the continuation behavior with an early return:
+
+return NextResponse.json({
+  success: true,
+  state: 'insight_unavailable',
+  insight: null,
+  dominant_marker: engineResult.dominant?.slug ?? null,
+  safety_alert: engineResult.has_safety_alert,
+} satisfies InsightResponse)
+
+Use a clear console error like:
+[insight] Hallucination detected — returning insight_unavailable
+
+Do not return the generated insight.
+
+2. Harden forbidden word guard
+
+Find the logic similar to:
+
+const forbiddenWord = containsForbiddenWords(insight)
+if (forbiddenWord) {
+  console.error(...)
+  replace forbidden word with "***"
+  insight.logic_trace += ...
+}
+
+Remove the replace-with-*** behavior.
+
+Replace with an early return:
+
+return NextResponse.json({
+  success: true,
+  state: 'insight_unavailable',
+  insight: null,
+  dominant_marker: engineResult.dominant?.slug ?? null,
+  safety_alert: engineResult.has_safety_alert,
+} satisfies InsightResponse)
+
+Use a clear console error like:
+[insight] Forbidden word detected: "..." — returning insight_unavailable
+
+Do not return the generated insight.
+
+3. Do not add retry
+
+Do NOT retry the Claude call in this task.
+
+Reasons:
+- keep latency low
+- keep API cost low
+- avoid repeated unsafe output
+- existing Dashboard fallback is already calm and safe
+
+4. Do not change Dashboard
+
+Do NOT modify Dashboard.
+
+Dashboard already handles insight_unavailable by falling back to labs_saved or no_data.
+
+5. Do not change output schema
+
+Do NOT add boundary field.
+Do NOT change the normal solved JSON schema.
+Do NOT add new states.
+
+6. Preserve existing behavior for normal insights
+
+If:
+- validateMarkers passes
+- containsForbiddenWords returns null
+
+then the route should continue returning the normal solved/safety_alert insight exactly as before.
+
+7. Build and QA
+
+Run:
+
+cd .migration-backup && npm run build
+
+QA checklist:
+- Build passes.
+- insight/route.ts compiles.
+- Normal insight path still returns solved/safety_alert.
+- Hallucination guard now returns insight_unavailable.
+- Forbidden word guard now returns insight_unavailable.
+- No "***" replacement remains in user-facing output logic.
+- No Dashboard files changed.
+- No schema changes.
+- No retry added.
+- Health Context still not added.
+- Decision Engine unchanged.
+- Safety Engine thresholds unchanged.
+
+Do not commit.
+Do not push.
+Do not publish.
+
+OUTPUT REQUIRED:
+Return:
+1. Summary of exact guardrail changes
+2. Exact file changed
+3. Whether Dashboard was untouched
+4. Whether schema was unchanged
+5. Whether retry was not added
+6. Build result
+7. QA checklist result
+8. Confirmation no unrelated systems were touched
