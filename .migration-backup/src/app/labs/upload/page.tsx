@@ -2633,52 +2633,6 @@ export default function LabsUploadPage() {
 
                 ) : (
                   <>
-                    {/* ── Needs Attention (Critical → Attention → Watch) ── */}
-                    {attentionMarkers.length > 0 && (
-                      <div style={{ marginBottom: '16px' }}>
-                        <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '10px' }}>
-                          Needs attention
-                        </p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          {attentionMarkers.map(b => {
-                            const s = getStateStyles(b.state ?? '')
-                            const showBar = isUsableRange(b.reference_range_min, b.reference_range_max)
-                            return (
-                              <div key={b.id} style={{
-                                padding: '14px 16px',
-                                backgroundColor: 'rgba(232,248,245,0.055)',
-                                border: `1px solid ${s.dot}30`,
-                                borderRadius: '10px',
-                                cursor: 'pointer',
-                                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.18)`,
-                              }} onClick={() => setSelectedBiomarker(b)}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
-                                  <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0 }}>
-                                    {markerDisplayName(b.marker_name)}
-                                  </span>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                                    <span style={{ padding: '2px 8px', borderRadius: '5px', fontSize: '10px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot, letterSpacing: '0.04em' }}>
-                                      {s.label}
-                                    </span>
-                                    <span style={{ fontSize: '14px', color: colors.textMuted, opacity: 0.45, lineHeight: 1 }}>›</span>
-                                  </div>
-                                </div>
-                                <div style={{ marginBottom: showBar ? '4px' : '0' }}>
-                                  <span style={{ fontSize: '22px', fontWeight: 800, color: colors.text, lineHeight: '1' }}>{b.value}</span>
-                                  {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
-                                </div>
-                                {showBar ? (
-                                  <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} slug={b.marker_name} />
-                                ) : (
-                                  <div style={{ height: '3px', borderRadius: '2px', marginTop: '10px', background: `linear-gradient(90deg, transparent 0%, ${s.dot}38 35%, ${s.dot}55 65%, transparent 100%)` }} />
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )}
-
                     {/* ── View mode control ── */}
                     <div style={{ marginBottom: '20px' }}>
                       <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: colors.textMuted, marginBottom: '10px' }}>
