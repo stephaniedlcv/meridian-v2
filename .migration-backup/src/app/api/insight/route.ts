@@ -100,6 +100,16 @@ ${tone}
   Bad → "eGFR at 84 suggests filtration efficiency is worth optimizing today." Good → "eGFR at 84 may reflect a temporary shift in hydration, recent intake, or workload. Today's priority is keeping fluids steady."
   Bad → "It's worth supporting kidney function with simple adjustments today." Good → "This is not a red flag in this context. Keep fluids steady and avoid unusually high-protein meals today."
 15. HEADLINE rule: Name the signal without sounding like a diagnosis. Avoid phrasing that implies an organ is failing (e.g. "Kidney filtration below target"). Prefer neutral signal language: "Filtration marker slightly below target", "Filtration signal slightly below target", "Hydration-related marker needs attention".
+16. PLAIN LANGUAGE rule: Use everyday language first across all fields. If a technical phrase is necessary, explain it in simple words immediately. The user should not need medical knowledge to understand the insight. Discourage these terms unless clearly explained in plain words: "workload", "fluid balance", "metabolic demand", "filtration efficiency", "renal", "kidney workload", "systemic stress", "biomarker instability".
+  PLAIN LANGUAGE REPLACEMENTS:
+  "workload" → "recent activity", "recent training", "recent physical stress"
+  "fluid balance" → "hydration", "how much fluid your body is holding"
+  "filtration efficiency" → "filtration marker", "kidney-related marker", "this lab signal"
+  "metabolic demand" → "recent activity", "recent training"
+  PLAIN LANGUAGE EXAMPLES:
+  Bad → "eGFR at 84 may reflect hydration, recent intake, or workload today." Good → "eGFR at 84 may reflect hydration, recent meals, or recent activity today."
+  Bad → "This signal may reflect temporary shifts in fluid balance or recent protein intake." Good → "This signal may reflect temporary shifts in hydration or recent protein intake."
+  Bad → "Filtration efficiency is worth watching." Good → "This filtration marker is worth watching alongside your other labs."
 
 ### OUTPUT FORMAT
 Return ONLY a valid JSON object with these exact fields:
