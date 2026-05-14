@@ -26,6 +26,71 @@ interface InsightResponse {
   error?: string
 }
 
+interface HealthContext {
+  activityLevel: string | null
+  trainingDays: number | null
+  bodyGoalPhase: string | null
+  dietPattern: string | null
+  weightKg: number | null
+}
+
+// ===== HEALTH CONTEXT LABELS =====
+
+const ACTIVITY_LABELS: Record<string, string> = {
+  sedentary: 'sedentary',
+  light: 'lightly active',
+  moderate: 'moderately active',
+  active: 'active',
+  athletic: 'athletic',
+}
+
+const GOAL_LABELS: Record<string, string> = {
+  fat_loss: 'fat loss',
+  maintenance: 'maintenance',
+  muscle_gain: 'muscle gain',
+  recomposition: 'recomposition',
+  performance: 'performance',
+  wellness: 'general wellness',
+}
+
+const DIET_LABELS: Record<string, string> = {
+  no_restriction: 'no specific restriction',
+  balanced: 'balanced',
+  high_protein: 'high-protein',
+  vegetarian: 'vegetarian',
+  vegan: 'vegan',
+  mediterranean: 'Mediterranean',
+  low_carb: 'low-carb',
+  keto: 'keto',
+  other: 'other',
+}
+
+function buildHealthContextBlock(hc: HealthContext): string {
+  const lines: string[] = []
+
+  if (hc.activityLevel) {
+    const label = ACTIVITY_LABELS[hc.activityLevel] ?? hc.activityLevel
+    lines.push(`- Reported activity level: ${label}`)
+  }
+  if (hc.trainingDays !== null) {
+    lines.push(`- Reported training frequency: ${hc.trainingDays} days/week`)
+  }
+  if (hc.bodyGoalPhase) {
+    const label = GOAL_LABELS[hc.bodyGoalPhase] ?? hc.bodyGoalPhase
+    lines.push(`- Reported body goal: ${label}`)
+  }
+  if (hc.dietPattern) {
+    const label = DIET_LABELS[hc.dietPattern] ?? hc.dietPattern
+    lines.push(`- Reported diet pattern: ${label}`)
+  }
+  if (hc.weightKg !== null) {
+    lines.push(`- Weight context: available internally, but never mention the number to the user`)
+  }
+
+  if (lines.length === 0) return ''
+  return `\n### HEALTH CONTEXT\n${lines.join('\n')}`
+}
+
 // ===== TONE MAP =====
 
 const TONE_MAP: Record<string, string> = {
@@ -56,9 +121,11 @@ const FORBIDDEN_WORDS = [
 function buildSystemPrompt(
   userProfile: string,
   medications: string[],
-  biologicalProfile: string
+  biologicalProfile: string,
+  healthContext: HealthContext
 ): string {
   const tone = TONE_MAP[userProfile] || TONE_MAP.bienestar
+  const healthContextBlock = buildHealthContextBlock(healthContext)
 
   return `### ROLE
 You are the "Meridian Health Intelligence Engine", powered by Claude.
@@ -71,7 +138,7 @@ If it could apply to anyone, delete it.
 ### USER CONTEXT
 - Biological profile: ${biologicalProfile}
 - Health goal: ${userProfile}
-- Current medications: ${medications.length > 0 ? medications.join(', ') : 'None reported'}
+- Current medications: ${medications.length > 0 ? medications.join(', ') : 'None reported'}${healthContextBlock}
 
 ### TONE
 ${tone}
@@ -110,6 +177,15 @@ ${tone}
   Bad → "eGFR at 84 may reflect hydration, recent intake, or workload today." Good → "eGFR at 84 may reflect hydration, recent meals, or recent activity today."
   Bad → "This signal may reflect temporary shifts in fluid balance or recent protein intake." Good → "This signal may reflect temporary shifts in hydration or recent protein intake."
   Bad → "Filtration efficiency is worth watching." Good → "This filtration marker is worth watching alongside your other labs."
+17. HEALTH CONTEXT: Use Health Context only when it directly improves relevance, wording, or action-step clarity for the dominant signal. Do not enumerate every context field. Do not mention the user's weight or height as a number. Do not generate numeric protein targets, hydration volumes, calorie targets, macro targets, supplement dosages, medication dosing, or exact training prescriptions based on Health Context alone. If Health Context is missing or irrelevant, ignore it.
+  HEALTH CONTEXT EXAMPLES:
+  Good → "Since your diet is already high-protein, stick to your usual protein portions today rather than adding extra."
+  Good → "Given that you train regularly, keep movement easy today instead of adding a hard session."
+  Good → "Since your goal is recomposition, keep protein steady and focus today on hydration."
+  Bad → "Eat 143 grams of protein."
+  Bad → "Drink 3.2 liters of water."
+  Bad → "Train in Zone 2 for exactly 45 minutes."
+  Bad → "Because your weight is X..."
 
 ### OUTPUT FORMAT
 Return ONLY a valid JSON object with these exact fields:
@@ -226,7 +302,7 @@ export async function GET(request: NextRequest) {
     // Get user profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('biological_profile, user_profile, medications')
+      .select('biological_profile, user_profile, medications, activity_level, training_days, body_goal_phase, diet_pattern, weight_kg')
       .eq('id', userId)
       .single()
 
@@ -240,6 +316,14 @@ export async function GET(request: NextRequest) {
     const biologicalProfile = (profile.biological_profile as 'female' | 'male') || 'female'
     const userProfile = (profile.user_profile as string) || 'bienestar'
     const medications = (profile.medications as string[]) || []
+
+    const healthContext: HealthContext = {
+      activityLevel: typeof profile.activity_level === 'string' ? profile.activity_level : null,
+      trainingDays: typeof profile.training_days === 'number' ? profile.training_days : null,
+      bodyGoalPhase: typeof profile.body_goal_phase === 'string' ? profile.body_goal_phase : null,
+      dietPattern: typeof profile.diet_pattern === 'string' ? profile.diet_pattern : null,
+      weightKg: typeof profile.weight_kg === 'number' ? profile.weight_kg : null,
+    }
 
     // Get biomarkers — no date cutoff so historical labs are always considered.
     // The decision engine applies recency weighting; the API should not discard valid data.
@@ -313,7 +397,7 @@ export async function GET(request: NextRequest) {
     }))
 
     // Build prompts
-    const systemPrompt = buildSystemPrompt(userProfile, medications, biologicalProfile)
+    const systemPrompt = buildSystemPrompt(userProfile, medications, biologicalProfile, healthContext)
 
     let userPrompt = `Here are the user's current biomarker results, ranked by relevance score:
 
