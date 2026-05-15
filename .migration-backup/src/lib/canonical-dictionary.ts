@@ -2159,7 +2159,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     name: 'Bacteria (Urine)',
     unit: '',
     result_type: 'qualitative',
-    marker_category: 'microbiology',
+    marker_category: 'urinalysis',
     qualitative_state_map: {
       none: 'Optimal', none_seen: 'Optimal', absent: 'Optimal', negative: 'Optimal',
       rare: 'Watch',

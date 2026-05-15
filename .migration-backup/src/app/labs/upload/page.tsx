@@ -111,6 +111,16 @@ const SLUG_TO_PANEL: Record<string, string> = {
   ag_ratio: 'Liver', total_protein: 'Liver',
   glucose_fasting: 'CMP', sodium: 'CMP', potassium: 'CMP',
   chloride: 'CMP', co2: 'CMP', calcium: 'CMP', anion_gap: 'CMP',
+  // Urinalysis — dipstick, physical, and microscopy
+  urine_color: 'Urinalysis', urine_clarity: 'Urinalysis',
+  urine_specific_gravity: 'Urinalysis', urine_ph: 'Urinalysis',
+  urine_glucose_ua: 'Urinalysis', urine_protein_ua: 'Urinalysis',
+  urine_blood_ua: 'Urinalysis', urine_ketones_ua: 'Urinalysis',
+  urine_bilirubin_ua: 'Urinalysis', urine_urobilinogen_ua: 'Urinalysis',
+  urine_nitrite_ua: 'Urinalysis', urine_leukocyte_esterase_ua: 'Urinalysis',
+  urine_wbc_hpf: 'Urinalysis', urine_rbc_hpf: 'Urinalysis',
+  urine_bacteria_hpf: 'Urinalysis', urine_epithelial_cells_hpf: 'Urinalysis',
+  urine_casts_hpf: 'Urinalysis', urine_mucus_hpf: 'Urinalysis',
 }
 
 function inferPanel(slug: string): string {
@@ -120,7 +130,7 @@ function inferPanel(slug: string): string {
 const PANEL_ORDER = [
   'CBC', 'Lipid Panel', 'CMP', 'Kidney / Renal', 'Liver',
   'Glycemic', 'Thyroid Panel', 'Vitamins & Nutrients',
-  'Hormones', 'Inflammation / Cardiac Risk', 'Other',
+  'Hormones', 'Inflammation / Cardiac Risk', 'Urinalysis', 'Other',
 ]
 
 // ── Snapshot view mode ────────────────────────────────────────────────────────
@@ -178,12 +188,22 @@ const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
   acth: 'Hormone Panel',
   // Inflammation Markers
   crp_hs: 'Inflammation Markers', homocysteine: 'Inflammation Markers',
+  // Urinalysis — dipstick, physical, and microscopy
+  urine_color: 'Urinalysis', urine_clarity: 'Urinalysis',
+  urine_specific_gravity: 'Urinalysis', urine_ph: 'Urinalysis',
+  urine_glucose_ua: 'Urinalysis', urine_protein_ua: 'Urinalysis',
+  urine_blood_ua: 'Urinalysis', urine_ketones_ua: 'Urinalysis',
+  urine_bilirubin_ua: 'Urinalysis', urine_urobilinogen_ua: 'Urinalysis',
+  urine_nitrite_ua: 'Urinalysis', urine_leukocyte_esterase_ua: 'Urinalysis',
+  urine_wbc_hpf: 'Urinalysis', urine_rbc_hpf: 'Urinalysis',
+  urine_bacteria_hpf: 'Urinalysis', urine_epithelial_cells_hpf: 'Urinalysis',
+  urine_casts_hpf: 'Urinalysis', urine_mucus_hpf: 'Urinalysis',
 }
 
 const CLINICAL_PANEL_ORDER = [
   'CBC', 'Comprehensive Metabolic Panel', 'Lipid Panel', 'Glycemic Panel',
   'Thyroid Panel', 'Vitamin & Nutrient Panel', 'Iron Panel', 'Hormone Panel',
-  'Inflammation Markers', 'Other',
+  'Inflammation Markers', 'Urinalysis', 'Other',
 ]
 
 const CLINICAL_PANEL_EDUCATION: Record<string, string> = {
@@ -196,6 +216,7 @@ const CLINICAL_PANEL_EDUCATION: Record<string, string> = {
   'Iron Panel':                    'Iron storage and supply markers relevant to energy and blood health.',
   'Hormone Panel':                 'Hormonal signals related to energy, recovery, cycle patterns, and stress.',
   'Inflammation Markers':          'Inflammation signals relevant to cardiovascular and systemic risk context.',
+  'Urinalysis':                    'Dipstick chemistry, physical properties, and microscopic sediment findings from a urine specimen.',
   'Other':                         'Additional markers that add context to your biological profile.',
 }
 
@@ -238,6 +259,16 @@ const SIGNAL_SLUG_TO_LAYER: Record<string, string> = {
   testosterone_total: 'Hormones', dhea_s: 'Hormones', cortisol_am: 'Hormones', acth: 'Hormones',
   // Inflammation
   crp_hs: 'Inflammation',
+  // Urinary — all urinalysis slugs map to the existing 'Urinary' signal layer
+  urine_color: 'Urinary', urine_clarity: 'Urinary',
+  urine_specific_gravity: 'Urinary', urine_ph: 'Urinary',
+  urine_glucose_ua: 'Urinary', urine_protein_ua: 'Urinary',
+  urine_blood_ua: 'Urinary', urine_ketones_ua: 'Urinary',
+  urine_bilirubin_ua: 'Urinary', urine_urobilinogen_ua: 'Urinary',
+  urine_nitrite_ua: 'Urinary', urine_leukocyte_esterase_ua: 'Urinary',
+  urine_wbc_hpf: 'Urinary', urine_rbc_hpf: 'Urinary',
+  urine_bacteria_hpf: 'Urinary', urine_epithelial_cells_hpf: 'Urinary',
+  urine_casts_hpf: 'Urinary', urine_mucus_hpf: 'Urinary',
 }
 
 const SIGNAL_LAYER_ORDER = [
@@ -915,6 +946,7 @@ const HIST_SLUG_TO_PANEL: Record<string, string> = {
   neutrophils_pct: 'CBC', neutrophils_abs: 'CBC', lymphocytes_pct: 'CBC', lymphocytes_abs: 'CBC',
   monocytes_pct: 'CBC', monocytes_abs: 'CBC', eosinophils_pct: 'CBC', eosinophils_abs: 'CBC',
   basophils_pct: 'CBC', basophils_abs: 'CBC', immature_granulocytes_pct: 'CBC', immature_granulocytes_abs: 'CBC',
+  nrbc_pct: 'CBC', nrbc_abs: 'CBC',
   // Lipid
   total_cholesterol: 'Lipid Panel', hdl: 'Lipid Panel', ldl: 'Lipid Panel', vldl: 'Lipid Panel',
   triglycerides: 'Lipid Panel', non_hdl: 'Lipid Panel', ldl_hdl_ratio: 'Lipid Panel', chol_hdl_ratio: 'Lipid Panel',
@@ -936,12 +968,22 @@ const HIST_SLUG_TO_PANEL: Record<string, string> = {
   // Vitamin & Nutrient Panel
   vitamin_d: 'Vitamin & Nutrient Panel', vitamin_b12: 'Vitamin & Nutrient Panel',
   folate: 'Vitamin & Nutrient Panel', magnesium: 'Vitamin & Nutrient Panel', ferritin: 'Vitamin & Nutrient Panel',
+  // Urinalysis — dipstick, physical, and microscopy
+  urine_color: 'Urinalysis', urine_clarity: 'Urinalysis',
+  urine_specific_gravity: 'Urinalysis', urine_ph: 'Urinalysis',
+  urine_glucose_ua: 'Urinalysis', urine_protein_ua: 'Urinalysis',
+  urine_blood_ua: 'Urinalysis', urine_ketones_ua: 'Urinalysis',
+  urine_bilirubin_ua: 'Urinalysis', urine_urobilinogen_ua: 'Urinalysis',
+  urine_nitrite_ua: 'Urinalysis', urine_leukocyte_esterase_ua: 'Urinalysis',
+  urine_wbc_hpf: 'Urinalysis', urine_rbc_hpf: 'Urinalysis',
+  urine_bacteria_hpf: 'Urinalysis', urine_epithelial_cells_hpf: 'Urinalysis',
+  urine_casts_hpf: 'Urinalysis', urine_mucus_hpf: 'Urinalysis',
 }
 function histInferPanel(slug: string): string { return HIST_SLUG_TO_PANEL[slug] ?? 'Other' }
 
 const HIST_PANEL_DISPLAY_ORDER = [
   'CBC', 'Lipid Panel', 'CMP', 'Glycemic Panel', 'Thyroid Panel',
-  'Hormone Panel', 'Vitamin & Nutrient Panel', 'Inflammation / Cardiac Risk', 'Other',
+  'Hormone Panel', 'Vitamin & Nutrient Panel', 'Inflammation / Cardiac Risk', 'Urinalysis', 'Other',
 ]
 function histPanelSortIndex(name: string): number {
   const i = HIST_PANEL_DISPLAY_ORDER.indexOf(name)
