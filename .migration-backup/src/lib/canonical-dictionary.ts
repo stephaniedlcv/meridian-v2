@@ -35,6 +35,20 @@ export type MarkerCategory =
   | 'pathology'
   | 'microbiology'
 
+// derived_metric_type: classifies computed / ratio markers by domain.
+// These are typically calculated from two primary analytes rather than measured directly.
+//   lipid_ratio            — cardiovascular ratio (LDL/HDL, TC/HDL, etc.)
+//   insulin_resistance_ratio — metabolic ratio (e.g. TG/HDL, HOMA-IR)
+//   inflammatory_ratio     — inflammation index (e.g. neutrophil/lymphocyte)
+//   renal_ratio            — kidney function ratio (e.g. BUN/Creatinine)
+//   hepatic_ratio          — liver function ratio (e.g. Albumin/Globulin)
+export type DerivedMetricType =
+  | 'lipid_ratio'
+  | 'insulin_resistance_ratio'
+  | 'inflammatory_ratio'
+  | 'renal_ratio'
+  | 'hepatic_ratio'
+
 export interface CanonicalMarker {
   slug: string
   name: string
@@ -43,6 +57,8 @@ export interface CanonicalMarker {
   system: string
   result_type?: ResultType
   marker_category?: MarkerCategory
+  // Classifies this marker as a derived / computed ratio metric.
+  derived_metric_type?: DerivedMetricType
   // Per-marker state mapping for qualitative values.
   // Keys are QualitativeValue strings; values override the default serology state logic.
   qualitative_state_map?: Record<string, 'Optimal' | 'Watch' | 'Attention'>
@@ -327,11 +343,18 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'ldl_hdl_ratio',
     name: 'LDL/HDL Ratio',
     unit: 'ratio',
+    derived_metric_type: 'lipid_ratio',
     aliases: [
+      // Standard forms
       'ldl/hdl', 'ldl / hdl', 'ldl hdl',
       'ldl/hdl ratio', 'ldl hdl ratio',
       'ldl to hdl ratio',
       'ldl cholesterol / hdl cholesterol',
+      // Colon-separator variants (some vendors)
+      'ldl:hdl', 'ldl:hdl ratio', 'ldl:hdl cholesterol',
+      // Spelled-out variants
+      'ldl cholesterol hdl cholesterol ratio',
+      'ldl cholesterol to hdl cholesterol ratio',
     ],
     system: 'cardiovascular',
     riskProfile: 'linear-high',
@@ -347,7 +370,34 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'chol_hdl_ratio',
     name: 'Cholesterol/HDL Ratio',
     unit: 'ratio',
-    aliases: ['cholesterol/hdl ratio', 'chol/hdl ratio', 'total cholesterol/hdl ratio', 'tc/hdl ratio'],
+    derived_metric_type: 'lipid_ratio',
+    aliases: [
+      // Standard forms
+      'cholesterol/hdl ratio', 'chol/hdl ratio',
+      'total cholesterol/hdl ratio', 'tc/hdl ratio',
+      // Slash variants without "ratio" suffix
+      'cholesterol/hdl', 'chol/hdl',
+      'total cholesterol/hdl', 'tc/hdl',
+      'total chol/hdl ratio', 'total chol/hdl',
+      // Colon-separator variants (some vendors)
+      'chol:hdl', 'chol:hdl ratio', 'tc:hdl', 'tc:hdl ratio',
+      'cholesterol:hdl', 'cholesterol:hdl ratio',
+      // Space-separated
+      'cholesterol hdl ratio', 'cholesterol to hdl ratio',
+      'total cholesterol hdl ratio', 'total cholesterol to hdl ratio',
+      // ── Vendor-specific / proprietary naming ─────────────────────────────
+      // "HDL Risk Factor" — used by Quest, LabCorp variants, and legacy panels.
+      // In clinical context this always refers to TC/HDL (Framingham Risk).
+      'hdl risk factor',
+      // Cardiac / coronary risk naming variants
+      'cardiac risk ratio', 'cardiac risk factor',
+      'coronary risk ratio', 'coronary risk factor',
+      // "Cholesterol Risk Factor" — another common vendor synonym
+      'cholesterol risk factor', 'cholesterol risk ratio',
+      // Additional TC/HDL spellings found in real-world lab PDFs
+      'total chol hdl ratio', 'total chol to hdl ratio',
+      'chol hdl ratio', 'chol to hdl ratio',
+    ],
     system: 'cardiovascular',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 5.0 },
@@ -502,6 +552,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'ag_ratio',
     name: 'Albumin/Globulin Ratio',
     unit: 'ratio',
+    derived_metric_type: 'hepatic_ratio',
     aliases: ['albumin/globulin ratio', 'a/g ratio', 'ag ratio', 'a:g ratio'],
     system: 'liver',
     riskProfile: 'u-shaped',
@@ -626,6 +677,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'bun_creatinine_ratio',
     name: 'BUN/Creatinine Ratio',
     unit: 'ratio',
+    derived_metric_type: 'renal_ratio',
     aliases: ['bun/creatinine ratio', 'bun creatinine ratio', 'bun/creat ratio'],
     system: 'kidney',
     riskProfile: 'u-shaped',
@@ -2028,27 +2080,76 @@ function _jaccardWords(a: string, b: string): number {
 }
 const _JACCARD_THRESHOLD = 0.60
 
+// ── Semantic ratio / risk-factor normalizer ───────────────────────────────────
+// Catches vendor-proprietary names (e.g. "HDL Risk Factor", "Cardiac Risk Ratio")
+// that carry clear ratio semantics but don't match any alias literally.
+// This runs as Step 0.5 — before alias lookup and before PROTECTED_SLUGS exclusions,
+// so ratio slugs (which are protected from fuzzy matching) still get correctly resolved.
+//
+// Resolution logic (clinical rationale):
+//   LDL + HDL in name               → ldl_hdl_ratio
+//   "cardiac risk" / "coronary risk" → chol_hdl_ratio  (TC/HDL = Framingham Risk)
+//   HDL + ratio/risk intent          → chol_hdl_ratio
+function _semanticRatioMatch(normalized: string): string | null {
+  const hasHDL = normalized.includes('hdl')
+  const hasLDL = normalized.includes('ldl')
+
+  // Both lipoproteins present → LDL/HDL ratio
+  if (hasLDL && hasHDL) return 'ldl_hdl_ratio'
+
+  // Cardiac / coronary risk — clinically synonymous with TC/HDL (Framingham Risk Factor)
+  if (normalized.includes('cardiac risk') || normalized.includes('coronary risk')) {
+    return 'chol_hdl_ratio'
+  }
+
+  // HDL in a ratio / risk / division context → TC/HDL ratio
+  if (hasHDL) {
+    const hasRatioIntent =
+      normalized.includes('ratio') ||
+      normalized.includes('risk factor') ||
+      normalized.includes('risk ratio') ||
+      normalized.includes('/hdl') ||
+      normalized.includes(':hdl') ||
+      normalized.includes('chol/')
+    if (hasRatioIntent) return 'chol_hdl_ratio'
+  }
+
+  return null
+}
+
 /**
  * Match a raw lab marker name to a canonical slug.
  *
  * Matching priority (highest → lowest):
- *   1. Exact alias lookup on normalized string
- *   2. Hyphen normalization variants (strip / replace with space)
- *   3. Abbreviation expansion (hgb → hemoglobin) + alias lookup
- *   4. Substring / partial match on normalized string (PROTECTED_SLUGS excluded)
- *   5. Substring / partial match on abbreviation-expanded string
- *   6. Word-set Jaccard similarity ≥ 0.60 (PROTECTED_SLUGS excluded)
+ *   0.5 Semantic ratio / risk-factor normalization (vendor-proprietary names)
+ *   1.  Exact alias lookup on normalized string
+ *   2.  Hyphen normalization variants (strip / replace with space)
+ *   3.  Abbreviation expansion (hgb → hemoglobin) + alias lookup
+ *   4.  Substring / partial match on normalized string (PROTECTED_SLUGS excluded)
+ *   5.  Substring / partial match on abbreviation-expanded string
+ *   6.  Word-set Jaccard similarity ≥ 0.60 (PROTECTED_SLUGS excluded)
  *
  * If none of the above produce a match, returns null and the marker is
  * routed to the pending_biomarkers queue.
  */
 export function matchMarkerToSlug(rawName: string): string | null {
   // Step 0: baseline normalization
+  // Note: colons are NOT stripped here so that "chol:hdl" etc. survive into the
+  // alias map (aliases include colon forms). Colons are stripped only for the
+  // semantic layer which does substring checks.
   const normalized = rawName.toLowerCase().trim()
     .replace(/[()[\]]/g, '')
-    .replace(/[,;:]/g, '')
+    .replace(/[,;]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
+
+  // Step 0.5: semantic ratio / risk-factor normalization.
+  // Runs before alias lookup so vendor-proprietary names (e.g. "HDL Risk Factor",
+  // "Cardiac Risk Ratio") resolve to the correct protected ratio slug.
+  // Uses a colon-stripped variant for reliable substring checks.
+  const normalizedForSemantic = normalized.replace(/:/g, ' ').replace(/\s+/g, ' ').trim()
+  const semanticSlug = _semanticRatioMatch(normalizedForSemantic)
+  if (semanticSlug) return semanticSlug
 
   // 1. Exact alias match on normalized string
   if (_aliasMap.has(normalized)) return _aliasMap.get(normalized)!
