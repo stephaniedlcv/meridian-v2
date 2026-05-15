@@ -246,6 +246,12 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     aliases: ['glucose', 'glucosa', 'glucose fasting', 'glucosa ayunas', 'blood sugar', 'glicemia', 'glucosa basal', 'fasting glucose', 'fasting blood sugar', 'blood glucose',
       // Phase 1 hardening — serum/plasma variants common on CMP printouts
       'serum glucose', 'glucose serum', 'plasma glucose', 'glucose plasma', 'glucose blood', 'glucose, serum', 'glucose, plasma',
+      // Panel-contextual FBS / FPG variants — prevent serum glucose from routing to urine_glucose_ua
+      // "Glucose - FBS", "Glucose FBS", "FBS", "FPG", "Fasting Plasma Glucose"
+      'glucose - fbs', 'glucose fbs', 'glucose-fbs', 'glu fbs', 'glucose, fbs',
+      'fbs', 'fasting blood sugar', 'fasting blood glucose',
+      'fpg', 'glucose fpg', 'glucose - fpg', 'fasting plasma glucose',
+      'glucose, fasting', 'glu fasting',
     ],
     system: 'metabolic',
     riskProfile: 'u-shaped',
@@ -1864,8 +1870,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
       plus_1: 'Attention', plus_2: 'Attention', plus_3: 'Attention', plus_4: 'Attention',
     },
     aliases: [
-      'glucose', 'glucose, urine', 'urine glucose',
-      'glucose ur', 'glu urine', 'glucose ua',
+      // Bare 'glucose' intentionally removed — it overwrote glucose_fasting in the alias map.
+      // Urine glucose must only match when an explicit urine qualifier is present.
+      'glucose, urine', 'urine glucose', 'urine glucose ua',
+      'glucose ur', 'glu urine', 'glucose ua', 'glucose urine',
     ],
     system: 'urinalysis',
     riskProfile: 'context',
@@ -2350,6 +2358,11 @@ const PROTECTED_SLUGS = new Set([
   'bun', 'bun_creatinine_ratio',
   'total_t3', 'free_t3',
   'co2',
+  // Urinalysis slugs that share ambiguous root words with serum markers
+  // (glucose, protein, blood).  Fuzzy substring matching must not route
+  // a serum marker name to a urine-specific slug via partial overlap.
+  // These markers only match via explicit alias (e.g. "glucose, urine").
+  'urine_glucose_ua', 'urine_protein_ua', 'urine_blood_ua',
 ])
 
 // ── Abbreviation expansion map ────────────────────────────────────────────────
@@ -2362,6 +2375,9 @@ const _ABBREV_EXPANSIONS: Record<string, string> = {
   'hbg': 'hemoglobin',
   'ser': 'serum',
   'tot': 'total',
+  // Glucose methodology suffixes — FBS / FPG are common on CMP printouts
+  'fbs': 'fasting blood sugar',
+  'fpg': 'fasting plasma glucose',
 }
 
 function _expandAbbreviations(text: string): string {

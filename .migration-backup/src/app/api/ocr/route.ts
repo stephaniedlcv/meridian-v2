@@ -83,6 +83,29 @@ function normalizeQualitativeValue(raw: string): QualitativeValue | null {
   return QUALITATIVE_VALUE_MAP[n] ?? null
 }
 
+// ── Panel context marker sets ─────────────────────────────────────────────────
+// CMP / serum chemistry markers — 2+ of these in a batch signals the extraction
+// is from a serum panel, not a urinalysis panel.
+const CMP_SERUM_CONTEXT_SLUGS = new Set([
+  'bun', 'creatinine', 'bun_creatinine_ratio',
+  'egfr', 'egfr_african_american', 'egfr_non_african_american',
+  'sodium', 'potassium', 'chloride', 'co2', 'calcium', 'anion_gap',
+  'ast', 'alt', 'alkaline_phosphatase', 'bilirubin_total',
+  'albumin', 'total_protein', 'globulin', 'ag_ratio',
+  'glucose_fasting', 'hba1c',
+  // Lipid panel — strong serum context signal
+  'total_cholesterol', 'hdl', 'ldl', 'triglycerides',
+])
+
+// Urinalysis slug → serum counterpart reclassify map.
+// Used by:
+//   a) the per-marker type-mismatch guard (qualitative-typed slug + numeric value)
+//   b) the post-extraction CMP context pass (batch-level panel inference)
+const URINE_TO_SERUM_RECLASSIFY: Record<string, string> = {
+  urine_glucose_ua: 'glucose_fasting',
+  // urine_protein_ua intentionally omitted — no unambiguous 1:1 serum counterpart
+}
+
 // qualitativeStateFromValue resolves the clinical state for a qualitative result.
 // Checks the marker's per-entry qualitative_state_map first (if present), then
 // falls back to the generic serology defaults (reactive → Attention, etc.).
@@ -321,9 +344,26 @@ export async function POST(request: NextRequest) {
 
       // Skip duplicates — keep the first match for each slug
       if (seenSlugs.has(slug)) continue
-      seenSlugs.add(slug)
 
-      const marker = CANONICAL_DICTIONARY[slug]
+      // ── Per-marker type-mismatch guard ────────────────────────────────────
+      // If the matched slug resolves to a qualitative/urinalysis marker but
+      // Claude returned a numeric value, the slug is almost certainly wrong.
+      // A known serum counterpart exists: reclassify before staging so the
+      // downstream branches receive the correct marker and value type.
+      //
+      // Example: "Glucose - FBS" → urine_glucose_ua (fuzzy alias collision)
+      //          value = 95 (numeric) → reclassify to glucose_fasting
+      let finalSlug = slug
+      if (!rawValueIsNull && !rawValueIsString) {
+        const serumCounterpart = URINE_TO_SERUM_RECLASSIFY[slug]
+        if (serumCounterpart && !seenSlugs.has(serumCounterpart) && CANONICAL_DICTIONARY[serumCounterpart]) {
+          finalSlug = serumCounterpart
+        }
+      }
+
+      seenSlugs.add(finalSlug)
+
+      const marker = CANONICAL_DICTIONARY[finalSlug]
 
       // ── Qualitative branch ─────────────────────────────────────────────────
       // Fires when:
@@ -336,7 +376,7 @@ export async function POST(request: NextRequest) {
         const state = qualitativeStateFromValue(qv, marker)
 
         stagedBiomarkers.push({
-          slug,
+          slug: finalSlug,
           name: marker.name,
           source_marker_name: raw.name,
           source_raw_value: rawStr,
@@ -365,7 +405,7 @@ export async function POST(request: NextRequest) {
       // Mark as unreadable; the UI shows "Needs Review" instead of a health state.
       if (rawValueIsNull) {
         stagedBiomarkers.push({
-          slug,
+          slug: finalSlug,
           name: marker.name,
           source_marker_name: raw.name,
           source_raw_value: '',
@@ -390,12 +430,12 @@ export async function POST(request: NextRequest) {
 
       // ── Quantitative branch ────────────────────────────────────────────────
       const numericValue = raw.value as number
-      const converted = convertToCanonicalUnit(slug, numericValue, raw.unit)
+      const converted = convertToCanonicalUnit(finalSlug, numericValue, raw.unit)
 
       // Second safety check: ensure conversion produced a finite number.
       if (!Number.isFinite(converted.value)) {
         stagedBiomarkers.push({
-          slug,
+          slug: finalSlug,
           name: marker.name,
           source_marker_name: raw.name,
           source_raw_value: String(numericValue),
@@ -418,13 +458,13 @@ export async function POST(request: NextRequest) {
         continue
       }
 
-      const impossible = isImpossibleValue(slug, converted.value)
+      const impossible = isImpossibleValue(finalSlug, converted.value)
       const refRange = parseReferenceRange(raw.reference_range ?? undefined)
       const optRange = bioProfile === 'female' ? marker.optimalF : marker.optimalM
-      const state = impossible ? 'Critical' : classifyBiomarkerState(slug, converted.value, bioProfile)
+      const state = impossible ? 'Critical' : classifyBiomarkerState(finalSlug, converted.value, bioProfile)
 
       stagedBiomarkers.push({
-        slug,
+        slug: finalSlug,
         name: marker.name,
         source_marker_name: raw.name,
         source_raw_value: String(numericValue),
@@ -446,6 +486,69 @@ export async function POST(request: NextRequest) {
           : null,
         matched: true,
       })
+    }
+
+    // ── Context-aware CMP panel disambiguation pass ───────────────────────────
+    // After all individual markers are extracted, check whether the batch has
+    // strong serum/chemistry context (≥2 CMP marker slugs present). If so, any
+    // urinalysis-typed marker that was staged as qualitative_only but whose
+    // source_raw_value is a parseable number is a likely misclassification.
+    // Rebuild those entries as quantitative serum markers using their counterpart.
+    //
+    // This pass catches edge cases the per-marker type-mismatch guard cannot:
+    // e.g. a future alias collision where the guard did not apply because the
+    // resolved slug was not in URINE_TO_SERUM_RECLASSIFY at guard time.
+    const batchSlugs = new Set(stagedBiomarkers.map(b => b.slug))
+    const cmpContextCount = [...batchSlugs].filter(s => CMP_SERUM_CONTEXT_SLUGS.has(s)).length
+
+    if (cmpContextCount >= 2) {
+      for (let i = stagedBiomarkers.length - 1; i >= 0; i--) {
+        const b = stagedBiomarkers[i]
+        const serumSlug = URINE_TO_SERUM_RECLASSIFY[b.slug]
+        if (!serumSlug) continue
+        if (batchSlugs.has(serumSlug)) continue           // serum already staged — don't duplicate
+        if (b.extraction_status !== 'qualitative_only') continue
+
+        // Only reclassify if the source was clearly numeric (genuine qualitative = real urine result)
+        const numericSource = parseFloat(b.source_raw_value)
+        if (!Number.isFinite(numericSource) || numericSource <= 0) continue
+
+        const serumMarker = CANONICAL_DICTIONARY[serumSlug]
+        if (!serumMarker) continue
+
+        const convResult = convertToCanonicalUnit(serumSlug, numericSource, b.original_unit)
+        if (!Number.isFinite(convResult.value)) continue
+
+        const imp = isImpossibleValue(serumSlug, convResult.value)
+        const serumState = imp ? 'Critical' : classifyBiomarkerState(serumSlug, convResult.value, bioProfile)
+        const optR = bioProfile === 'female' ? serumMarker.optimalF : serumMarker.optimalM
+
+        stagedBiomarkers[i] = {
+          slug: serumSlug,
+          name: serumMarker.name,
+          source_marker_name: b.source_marker_name,
+          source_raw_value: b.source_raw_value,
+          qualitative_value: null,
+          extraction_status: imp ? 'partial' : 'parsed',
+          value: convResult.value,
+          unit: convResult.unit,
+          original_value: numericSource,
+          original_unit: b.original_unit,
+          converted: convResult.converted,
+          reference_range_min: b.reference_range_min,
+          reference_range_max: b.reference_range_max,
+          optimal_range_min: optR.min,
+          optimal_range_max: optR.max,
+          state: serumState,
+          flag_error: imp,
+          error_reason: imp
+            ? `Value ${convResult.value} ${convResult.unit} is outside the physically possible range for ${serumMarker.name}`
+            : null,
+          matched: true,
+        }
+        batchSlugs.delete(b.slug)
+        batchSlugs.add(serumSlug)
+      }
     }
 
     const response: OCRResponse = {
