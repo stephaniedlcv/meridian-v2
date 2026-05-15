@@ -1202,11 +1202,13 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
   },
   rdw: {
     slug: 'rdw',
-    name: 'RDW',
+    name: 'RDW-CV',
     unit: '%',
-    aliases: ['rdw', 'red cell distribution width', 'rdw-cv',
-      // Phase 1 hardening — SD variant and whitespace-normalized forms
-      'rdw-sd', 'rdw sd', 'rdw cv', 'red blood cell distribution width',
+    panel_membership: ['CBC'],
+    aliases: [
+      'rdw', 'rdw-cv', 'rdw cv', 'rdw cv %', 'rdwcv',
+      'red cell distribution width', 'red blood cell distribution width',
+      'red cell distribution width cv', 'rdw coefficient of variation',
     ],
     system: 'blood',
     riskProfile: 'linear-high',
@@ -1217,6 +1219,29 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMin: 5,
     impossibleMax: 30,
     priorityWeight: 2,
+  },
+  // RDW-SD is a separate measurement from RDW-CV — different unit (fL vs %),
+  // different clinical range. Must be a distinct canonical slug.
+  rdw_sd: {
+    slug: 'rdw_sd',
+    name: 'RDW-SD',
+    unit: 'fL',
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'rdw-sd', 'rdw sd', 'rdw sd fl', 'rdw-sd fl', 'rdwsd',
+      'red cell distribution width sd', 'red blood cell distribution width sd',
+      'rdw standard deviation', 'rdw sd (fl)',
+    ],
+    system: 'blood',
+    riskProfile: 'linear-high',
+    normalF: { min: 37, max: 54 },
+    normalM: { min: 37, max: 54 },
+    optimalF: { min: 37, max: 47 },
+    optimalM: { min: 37, max: 47 },
+    impossibleMin: 15,
+    impossibleMax: 80,
+    priorityWeight: 1,
   },
   mpv: {
     slug: 'mpv',
@@ -1265,6 +1290,9 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     aliases: ['wbc', 'white blood cells', 'leucocitos', 'globulos blancos', 'white blood cell count',
       // Phase 1 hardening — clinical synonym variants
       'white cell count', 'leukocytes', 'leukocyte count', 'total wbc',
+      // Singular forms — common on vendor printouts; also prevents Step 0.25 collision
+      // where "(WBC)" is stripped leaving bare "white blood cell" unmatched
+      'white blood cell', 'white blood cell (wbc)',
     ],
     system: 'immune',
     riskProfile: 'u-shaped',
@@ -1311,8 +1339,10 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     marker_category: 'cbc_differential',
     aliases: [
       'neutrophils #', 'neutrophils abs', 'absolute neutrophils', 'neut #', 'neut abs', 'abs neutrophils',
-      // Singular forms
+      // Singular forms (with and without space before #)
       'neutrophil #', 'neutrophil abs', 'abs neutrophil',
+      // No-space hash forms — common vendor formatting: "Neutrophil#", "Neutrophils#"
+      'neutrophil#', 'neutrophils#', 'neut#',
       // Standard clinical abbreviations (ANC = Absolute Neutrophil Count)
       'anc', 'absolute neutrophil count', 'neutrophil count', 'neutrophil absolute',
       'neutrophil absolute count', 'seg abs', 'pmn abs', 'segs abs',
@@ -1926,9 +1956,12 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
       plus_1: 'Attention', plus_2: 'Attention', plus_3: 'Attention',
     },
     aliases: [
+      // Bare 'blood' alone is too ambiguous across panels — remove if it causes collisions,
+      // but kept here since urine_blood_ua is in PROTECTED_SLUGS (no fuzzy match).
       'blood', 'blood, urine', 'urine blood', 'occult blood urine',
       'blood ur', 'hemogl urine', 'hemoglobin urine',
-      'rbc, urine', 'rbc/hpf',
+      'rbc, urine',
+      // 'rbc/hpf' intentionally removed — it belongs on urine_rbc_hpf which already has it.
     ],
     system: 'urinalysis',
     riskProfile: 'context',
@@ -2363,6 +2396,11 @@ const PROTECTED_SLUGS = new Set([
   // a serum marker name to a urine-specific slug via partial overlap.
   // These markers only match via explicit alias (e.g. "glucose, urine").
   'urine_glucose_ua', 'urine_protein_ua', 'urine_blood_ua',
+  // Urine microscopy markers share 'wbc'/'rbc' root words with CBC markers.
+  // Protected so that bare CBC names (e.g. "WBC") never fuzzy-match a /hpf slug.
+  'urine_wbc_hpf', 'urine_rbc_hpf',
+  // RDW slug variants protected from cross-matching each other
+  'rdw_sd',
 ])
 
 // ── Abbreviation expansion map ────────────────────────────────────────────────

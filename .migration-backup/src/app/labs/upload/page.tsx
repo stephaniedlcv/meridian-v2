@@ -84,7 +84,7 @@ const SLUG_TO_PANEL: Record<string, string> = {
   // Phase 1 hardening: harmonized with history page ('Thyroid Panel' not 'Thyroid')
   tsh: 'Thyroid Panel', free_t4: 'Thyroid Panel', free_t3: 'Thyroid Panel', total_t3: 'Thyroid Panel',
   wbc: 'CBC', rbc: 'CBC', hemoglobin: 'CBC', hematocrit: 'CBC',
-  mcv: 'CBC', mch: 'CBC', mchc: 'CBC', rdw: 'CBC',
+  mcv: 'CBC', mch: 'CBC', mchc: 'CBC', rdw: 'CBC', rdw_sd: 'CBC',
   // Phase 1 hardening: added canonical 'platelets' + 'mpv' slugs alongside legacy aliases
   platelets: 'CBC', platelet_count: 'CBC', platelet_count_abs: 'CBC',
   mpv: 'CBC',
@@ -146,7 +146,7 @@ const SNAPSHOT_STATE_SORT: Record<string, number> = { Critical: 0, Attention: 1,
 const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
   // CBC
   wbc: 'CBC', rbc: 'CBC', hemoglobin: 'CBC', hematocrit: 'CBC',
-  mcv: 'CBC', mch: 'CBC', mchc: 'CBC', rdw: 'CBC',
+  mcv: 'CBC', mch: 'CBC', mchc: 'CBC', rdw: 'CBC', rdw_sd: 'CBC',
   platelets: 'CBC', platelet_count: 'CBC', platelet_count_abs: 'CBC', mpv: 'CBC',
   neutrophils_pct: 'CBC', neutrophils_abs: 'CBC',
   lymphocytes_pct: 'CBC', lymphocytes_abs: 'CBC',
@@ -259,6 +259,8 @@ const SIGNAL_SLUG_TO_LAYER: Record<string, string> = {
   testosterone_total: 'Hormones', dhea_s: 'Hormones', cortisol_am: 'Hormones', acth: 'Hormones',
   // Inflammation
   crp_hs: 'Inflammation',
+  // RDW-SD maps to Blood / Oxygen layer (same as RDW-CV)
+  rdw_sd: 'Blood / Oxygen',
   // Urinary — all urinalysis slugs map to the existing 'Urinary' signal layer
   urine_color: 'Urinary', urine_clarity: 'Urinary',
   urine_specific_gravity: 'Urinary', urine_ph: 'Urinary',
@@ -947,6 +949,7 @@ const HIST_SLUG_TO_PANEL: Record<string, string> = {
   monocytes_pct: 'CBC', monocytes_abs: 'CBC', eosinophils_pct: 'CBC', eosinophils_abs: 'CBC',
   basophils_pct: 'CBC', basophils_abs: 'CBC', immature_granulocytes_pct: 'CBC', immature_granulocytes_abs: 'CBC',
   nrbc_pct: 'CBC', nrbc_abs: 'CBC',
+  rdw_sd: 'CBC',
   // Lipid
   total_cholesterol: 'Lipid Panel', hdl: 'Lipid Panel', ldl: 'Lipid Panel', vldl: 'Lipid Panel',
   triglycerides: 'Lipid Panel', non_hdl: 'Lipid Panel', ldl_hdl_ratio: 'Lipid Panel', chol_hdl_ratio: 'Lipid Panel',
