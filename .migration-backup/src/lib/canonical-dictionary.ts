@@ -16,12 +16,18 @@
 
 export type RiskProfile = 'linear-high' | 'linear-low' | 'u-shaped' | 'context'
 
+// result_type distinguishes numeric biomarkers from qualitative clinical tests
+// (e.g. serology panels where results are REACTIVE / NON REACTIVE / POSITIVE / NEGATIVE).
+// Omitting result_type or setting it to 'quantitative' preserves existing behaviour.
+export type ResultType = 'quantitative' | 'qualitative'
+
 export interface CanonicalMarker {
   slug: string
   name: string
   unit: string
   aliases: string[]
   system: string
+  result_type?: ResultType
   riskProfile: RiskProfile
   normalF: { min: number; max: number }
   normalM: { min: number; max: number }
@@ -1255,6 +1261,147 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMin: 0,
     impossibleMax: 5,
     priorityWeight: 1,
+  },
+
+  // ===== INFECTIOUS DISEASE / SEROLOGY (qualitative) =====
+  // result_type: 'qualitative' — values are REACTIVE/NON REACTIVE/POSITIVE/NEGATIVE/etc.
+  // Numeric range fields are unused placeholders required by the shared interface.
+  // These markers are displayed with a result badge; they are NOT saved to biomarkers_static.
+
+  hepatitis_a_igm_ab: {
+    slug: 'hepatitis_a_igm_ab',
+    name: 'Hepatitis A IgM Antibody',
+    unit: '',
+    result_type: 'qualitative',
+    aliases: [
+      'hepatitis a igm ab', 'hav igm', 'hav igm ab',
+      'hepatitis a igm antibody', 'hep a igm', 'hep a igm ab',
+      'anti hav igm', 'hepatitis a virus igm antibody',
+      'hepatitis a ab igm', 'hepatitis a ab', 'hep a ab',
+      'hepatitis a total ab', 'hav ab',
+    ],
+    system: 'infectious',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 3,
+  },
+
+  hepatitis_b_core_igm: {
+    slug: 'hepatitis_b_core_igm',
+    name: 'Hepatitis B Core IgM',
+    unit: '',
+    result_type: 'qualitative',
+    aliases: [
+      'hepatitis b core igm', 'hbcab igm', 'hbc igm',
+      'hepatitis b core igm ab', 'anti hbc igm',
+      'hepatitis b core antibody igm', 'hep b core igm',
+      'hepatitis b core ab igm', 'hbv core igm',
+      'hep b core ab', 'hbcab', 'anti hbc',
+    ],
+    system: 'infectious',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 3,
+  },
+
+  hepatitis_b_surface_antigen: {
+    slug: 'hepatitis_b_surface_antigen',
+    name: 'Hepatitis B Surface Antigen',
+    unit: '',
+    result_type: 'qualitative',
+    aliases: [
+      'hepatitis bs antigen', 'hepatitis b surface antigen', 'hbsag',
+      'hbs ag', 'hbv surface antigen', 'hep b surface antigen',
+      'hep bs antigen', 'hepatitis b surface ag', 'hbv ag',
+      'hepatitis b antigen', 'hepatitis b ag',
+    ],
+    system: 'infectious',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 3,
+  },
+
+  hepatitis_c_ab: {
+    slug: 'hepatitis_c_ab',
+    name: 'Hepatitis C Antibody',
+    unit: '',
+    result_type: 'qualitative',
+    aliases: [
+      'hep c ab igg/igm', 'hep c ab igg igm', 'hepatitis c antibody',
+      'hcv ab', 'hep c ab', 'anti hcv', 'hcv antibody',
+      'hepatitis c ab', 'hep c antibody',
+      'hepatitis c virus antibody', 'hcv ab igg igm',
+      'hepatitis c igg igm', 'hep c igg igm', 'hcv screen',
+    ],
+    system: 'infectious',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 3,
+  },
+
+  hiv_1_2_ab: {
+    slug: 'hiv_1_2_ab',
+    name: 'HIV-1/2 Antibody',
+    unit: '',
+    result_type: 'qualitative',
+    aliases: [
+      'hiv 1 2 ab', 'hiv antibody', 'hiv ab',
+      'hiv 1 2 antibody', 'hiv 1/2 ab', 'anti hiv',
+      'hiv 1/2 antibody', 'hiv screen',
+      'hiv 1 and 2 antibody', 'hiv ab screen',
+      'hiv 4th gen', 'hiv ag ab', 'hiv antigen antibody',
+    ],
+    system: 'infectious',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 3,
+  },
+
+  rpr_syphilis: {
+    slug: 'rpr_syphilis',
+    name: 'RPR (Syphilis)',
+    unit: '',
+    result_type: 'qualitative',
+    aliases: [
+      'rpr', 'rpr syphilis', 'rapid plasma reagin',
+      'vdrl', 'syphilis screen', 'syphilis ab',
+      'treponema pallidum ab', 'tpha', 'fta abs',
+      'rpr qualitative', 'rpr screen', 'syphilis',
+    ],
+    system: 'infectious',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 3,
   },
 }
 

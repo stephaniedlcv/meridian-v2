@@ -7,9 +7,57 @@ import {
   classifyBiomarkerState,
 } from '@/lib/canonical-dictionary'
 
+// Qualitative result values — used for serology / infectious disease panels
+type QualitativeValue =
+  | 'reactive'
+  | 'non_reactive'
+  | 'positive'
+  | 'negative'
+  | 'detected'
+  | 'not_detected'
+  | 'indeterminate'
+  | 'equivocal'
+
+const QUALITATIVE_VALUE_MAP: Record<string, QualitativeValue> = {
+  'reactive':           'reactive',
+  'non reactive':       'non_reactive',
+  'non-reactive':       'non_reactive',
+  'nonreactive':        'non_reactive',
+  'positive':           'positive',
+  'pos':                'positive',
+  'negative':           'negative',
+  'neg':                'negative',
+  'detected':           'detected',
+  'not detected':       'not_detected',
+  'not-detected':       'not_detected',
+  'notdetected':        'not_detected',
+  'indeterminate':      'indeterminate',
+  'equivocal':          'equivocal',
+}
+
+function normalizeQualitativeValue(raw: string): QualitativeValue | null {
+  const n = raw.toLowerCase().trim()
+  return QUALITATIVE_VALUE_MAP[n] ?? null
+}
+
+function qualitativeStateFromValue(qv: QualitativeValue): 'Optimal' | 'Watch' | 'Attention' {
+  switch (qv) {
+    case 'reactive':
+    case 'positive':
+    case 'detected':
+      return 'Attention'
+    case 'indeterminate':
+    case 'equivocal':
+      return 'Watch'
+    default:
+      return 'Optimal'
+  }
+}
+
+// Claude may return either a number (quantitative) or a string (qualitative text result)
 interface RawExtraction {
   name: string
-  value: number
+  value: number | string
   unit: string
   reference_range?: string
 }
@@ -18,6 +66,8 @@ interface StagedBiomarker {
   slug: string
   name: string
   source_marker_name: string
+  source_raw_value: string
+  qualitative_value: string | null
   value: number
   unit: string
   original_value: number
@@ -53,9 +103,9 @@ Return a JSON object with two fields:
 
 For each biomarker found, return:
 - name: the biomarker name exactly as written in the report
-- value: the numeric value (number only, no text)
-- unit: the unit of measurement exactly as written
-- reference_range: the reference range string if shown — include dash-style ranges (e.g. "0.4-4.0"), qualitative ranges (e.g. "< 2.0", "> 60", "<= 100"), or any other format exactly as written
+- value: for numeric results return the number (e.g. 3.03); for qualitative/text results (e.g. REACTIVE, NON REACTIVE, POSITIVE, NEGATIVE, DETECTED, NOT DETECTED, INDETERMINATE) return the exact text as a string
+- unit: the unit of measurement exactly as written; use "" for qualitative markers with no unit
+- reference_range: the reference range string if shown — include dash-style ranges (e.g. "0.4-4.0"), qualitative ranges (e.g. "< 2.0", "> 60", "<= 100"), or any other format exactly as written; use null if not present
 
 IMPORTANT: If a biomarker appears multiple times (e.g. from different sections), only include it ONCE — use the most specific or primary result.
 
@@ -66,7 +116,9 @@ Example output:
   "lab_date": "2025-03-15",
   "biomarkers": [
     {"name": "TSH", "value": 3.03, "unit": "mIU/L", "reference_range": "0.40-4.00"},
-    {"name": "Vitamin D, 25-OH", "value": 23, "unit": "ng/mL", "reference_range": "30-100"}
+    {"name": "Vitamin D, 25-OH", "value": 23, "unit": "ng/mL", "reference_range": "30-100"},
+    {"name": "HEPATITIS A IgM AB", "value": "NON REACTIVE", "unit": "", "reference_range": null},
+    {"name": "HEPATITIS Bs ANTIGEN", "value": "REACTIVE", "unit": "", "reference_range": null}
   ]
 }`
 
@@ -176,24 +228,64 @@ export async function POST(request: NextRequest) {
     // Deduplicate: keep only first occurrence of each matched slug
     const seenSlugs = new Set<string>()
     const stagedBiomarkers: StagedBiomarker[] = []
-    const unmatched: RawExtraction[] = []
+    // unmatched uses numeric value; qualitative strings are coerced to 0 so the
+    // pending_biomarkers DB column (numeric) is never sent a string.
+    const unmatched: Array<{ name: string; value: number; unit: string; reference_range?: string }> = []
 
     for (const raw of rawExtractions) {
+      const rawValueIsString = typeof raw.value === 'string'
       const slug = matchMarkerToSlug(raw.name)
 
       if (!slug) {
-        unmatched.push(raw)
+        unmatched.push({
+          name: raw.name,
+          value: rawValueIsString ? 0 : (raw.value as number),
+          unit: raw.unit,
+          reference_range: raw.reference_range,
+        })
         continue
       }
 
       // Skip duplicates — keep the first match
-      if (seenSlugs.has(slug)) {
-        continue
-      }
+      if (seenSlugs.has(slug)) continue
       seenSlugs.add(slug)
 
       const marker = CANONICAL_DICTIONARY[slug]
-      const converted = convertToCanonicalUnit(slug, raw.value, raw.unit)
+
+      // ── Qualitative branch ─────────────────────────────────────────────────
+      // Fires when the marker is declared qualitative in the dictionary OR when
+      // Claude extracted a text value (e.g. "NON REACTIVE") instead of a number.
+      if (marker.result_type === 'qualitative' || rawValueIsString) {
+        const rawStr = String(raw.value)
+        const qv = normalizeQualitativeValue(rawStr)
+        const state = qv ? qualitativeStateFromValue(qv) : 'Watch'
+
+        stagedBiomarkers.push({
+          slug,
+          name: marker.name,
+          source_marker_name: raw.name,
+          source_raw_value: rawStr,
+          qualitative_value: qv,
+          value: 0,
+          unit: '',
+          original_value: 0,
+          original_unit: rawStr,
+          converted: false,
+          reference_range_min: null,
+          reference_range_max: null,
+          optimal_range_min: null,
+          optimal_range_max: null,
+          state,
+          flag_error: false,
+          error_reason: null,
+          matched: true,
+        })
+        continue
+      }
+
+      // ── Quantitative branch ────────────────────────────────────────────────
+      const numericValue = raw.value as number
+      const converted = convertToCanonicalUnit(slug, numericValue, raw.unit)
       const impossible = isImpossibleValue(slug, converted.value)
       const refRange = parseReferenceRange(raw.reference_range)
       const optRange = bioProfile === 'female' ? marker.optimalF : marker.optimalM
@@ -203,9 +295,11 @@ export async function POST(request: NextRequest) {
         slug,
         name: marker.name,
         source_marker_name: raw.name,
+        source_raw_value: String(numericValue),
+        qualitative_value: null,
         value: converted.value,
         unit: converted.unit,
-        original_value: raw.value,
+        original_value: numericValue,
         original_unit: raw.unit,
         converted: converted.converted,
         reference_range_min: refRange.min,

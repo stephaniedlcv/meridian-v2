@@ -39,6 +39,8 @@ interface StagedBiomarker {
   slug: string
   name: string
   source_marker_name: string
+  source_raw_value: string
+  qualitative_value: string | null
   value: number
   unit: string
   original_value: number
@@ -280,6 +282,19 @@ function isOcrArtifact(name: string): boolean {
   // Bare codes: single letter + 1–2 digits only (e.g. "W2", "R3", "N1")
   if (/^[A-Z][0-9]{1,2}$/.test(t)) return true
   return false
+}
+
+// ── Qualitative result display labels ─────────────────────────────────────────
+// Maps internal qualitative_value keys to the badge text shown in the UI.
+const QUALITATIVE_DISPLAY_LABELS: Record<string, string> = {
+  reactive:        'REACTIVE',
+  non_reactive:    'NON REACTIVE',
+  positive:        'POSITIVE',
+  negative:        'NEGATIVE',
+  detected:        'DETECTED',
+  not_detected:    'NOT DETECTED',
+  indeterminate:   'INDETERMINATE',
+  equivocal:       'EQUIVOCAL',
 }
 
 // ── Urinalysis qualitative marker detection ───────────────────────────────────
@@ -1534,8 +1549,13 @@ export default function LabsUploadPage() {
     try {
       const collectedAt = labDate ? new Date(labDate).toISOString() : new Date().toISOString()
       // Exclude qualitative markers and non-finite values from save payload.
-      // Qualitative urine dipstick markers are not numeric biomarkers_static rows.
-      const safeBiomarkers = staged.filter(b => Number.isFinite(b.value) && !isLikelyQualitativeUrinalysis(b.name))
+      // Qualitative serology markers (qualitative_value !== null) are display-only in Phase 1.
+      // Qualitative urine dipstick markers are excluded by isLikelyQualitativeUrinalysis.
+      const safeBiomarkers = staged.filter(b =>
+        Number.isFinite(b.value) &&
+        b.qualitative_value === null &&
+        !isLikelyQualitativeUrinalysis(b.name)
+      )
       const response = await fetch('/api/ocr/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2010,15 +2030,19 @@ export default function LabsUploadPage() {
                           <div>
                             {markers.map((b, i) => {
                               const s = getStateStyles(b.state)
+                              const isQualitativeSerology = b.qualitative_value !== null
                               const valueIsFinite = Number.isFinite(b.value)
-                              const qualitative = isLikelyQualitativeUrinalysis(b.name)
-                              const isRealError = b.flag_error && valueIsFinite && !qualitative
-                              const isSoftIssue = b.flag_error && (!valueIsFinite || qualitative)
+                              const qualitativeUrinalysis = isLikelyQualitativeUrinalysis(b.name)
+                              const isRealError = b.flag_error && valueIsFinite && !qualitativeUrinalysis && !isQualitativeSerology
+                              const isSoftIssue = b.flag_error && (!valueIsFinite || qualitativeUrinalysis) && !isQualitativeSerology
                               const errorMsg = isSoftIssue
-                                ? qualitative
+                                ? qualitativeUrinalysis
                                   ? 'Qualitative marker — not saved as a numeric biomarker.'
                                   : 'Value could not be read.'
                                 : isRealError ? b.error_reason : null
+                              const qualBadgeLabel = isQualitativeSerology
+                                ? (QUALITATIVE_DISPLAY_LABELS[b.qualitative_value!] ?? b.qualitative_value!)
+                                : null
                               return (
                                 <div
                                   key={b.slug + i}
@@ -2035,14 +2059,19 @@ export default function LabsUploadPage() {
                                   }}
                                 >
                                   <div style={{ flex: 1, minWidth: '150px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: errorMsg ? '4px' : '0' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: (errorMsg || isQualitativeSerology) ? '4px' : '0' }}>
                                       <div style={{
                                         width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
                                         backgroundColor: isRealError ? colors.error : isSoftIssue ? '#FCD34D' : s.dot,
                                       }} />
                                       <span style={{ fontSize: '14px', fontWeight: 600, color: colors.text }}>{b.name}</span>
                                     </div>
-                                    {b.converted && (
+                                    {isQualitativeSerology && b.source_marker_name && b.source_marker_name !== b.name && (
+                                      <span style={{ fontSize: '11px', color: colors.textMuted, display: 'block', paddingLeft: '15px' }}>
+                                        From: {b.source_marker_name}
+                                      </span>
+                                    )}
+                                    {!isQualitativeSerology && b.converted && (
                                       <span style={{ fontSize: '11px', color: colors.textMuted, display: 'block', paddingLeft: '15px' }}>
                                         Converted from {b.original_value} {b.original_unit}
                                       </span>
@@ -2057,7 +2086,29 @@ export default function LabsUploadPage() {
                                     )}
                                   </div>
                                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                    {valueIsFinite ? (
+                                    {isQualitativeSerology ? (
+                                      <>
+                                        <div style={{
+                                          display: 'inline-block',
+                                          padding: '4px 12px',
+                                          borderRadius: '20px',
+                                          backgroundColor: s.bg,
+                                          border: `1px solid ${s.border}`,
+                                          fontSize: '11px',
+                                          fontWeight: 700,
+                                          letterSpacing: '0.06em',
+                                          color: s.dot,
+                                        }}>
+                                          {qualBadgeLabel}
+                                        </div>
+                                        <div style={{
+                                          fontSize: '10px', fontWeight: 700, marginTop: '4px', letterSpacing: '0.04em',
+                                          color: s.dot,
+                                        }}>
+                                          SEROLOGY
+                                        </div>
+                                      </>
+                                    ) : valueIsFinite ? (
                                       <>
                                         <span style={{ fontSize: '18px', fontWeight: 700, color: colors.text }}>{b.value}</span>
                                         <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '4px' }}>{b.unit}</span>
@@ -2065,12 +2116,14 @@ export default function LabsUploadPage() {
                                     ) : (
                                       <span style={{ fontSize: '12px', color: colors.textMuted, fontStyle: 'italic' }}>—</span>
                                     )}
-                                    <div style={{
-                                      fontSize: '10px', fontWeight: 700, marginTop: '2px', letterSpacing: '0.04em',
-                                      color: isRealError ? '#F87171' : isSoftIssue ? '#FCD34D' : s.dot,
-                                    }}>
-                                      {isRealError ? 'FLAG' : isSoftIssue ? 'SKIP' : s.label}
-                                    </div>
+                                    {!isQualitativeSerology && (
+                                      <div style={{
+                                        fontSize: '10px', fontWeight: 700, marginTop: '2px', letterSpacing: '0.04em',
+                                        color: isRealError ? '#F87171' : isSoftIssue ? '#FCD34D' : s.dot,
+                                      }}>
+                                        {isRealError ? 'FLAG' : isSoftIssue ? 'SKIP' : s.label}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               )
