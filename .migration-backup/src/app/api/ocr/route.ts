@@ -5,20 +5,32 @@ import {
   convertToCanonicalUnit,
   isImpossibleValue,
   classifyBiomarkerState,
+  type ExtractionStatus,
+  type CanonicalMarker,
 } from '@/lib/canonical-dictionary'
 
-// Qualitative result values — used for serology / infectious disease panels
+// Qualitative result values — used for serology, urinalysis, and other qualitative panels.
+// Covers serology binary values, urinalysis semi-quantitative ordinals, and microscopy counts.
 type QualitativeValue =
-  | 'reactive'
-  | 'non_reactive'
-  | 'positive'
-  | 'negative'
-  | 'detected'
-  | 'not_detected'
-  | 'indeterminate'
-  | 'equivocal'
+  // Serology / infectious disease
+  | 'reactive' | 'non_reactive'
+  | 'positive' | 'negative'
+  | 'detected' | 'not_detected'
+  | 'indeterminate' | 'equivocal'
+  // Urinalysis dipstick / semi-quantitative
+  | 'trace' | 'small' | 'moderate' | 'large'
+  | 'plus_1' | 'plus_2' | 'plus_3' | 'plus_4'
+  | 'normal' | 'abnormal'
+  | 'present' | 'absent'
+  // Microscopy counts
+  | 'none' | 'none_seen' | 'rare' | 'few' | 'many'
+  // Urine color
+  | 'yellow' | 'straw' | 'amber' | 'orange' | 'red' | 'brown'
+  // Urine clarity
+  | 'clear' | 'hazy' | 'cloudy' | 'turbid'
 
 const QUALITATIVE_VALUE_MAP: Record<string, QualitativeValue> = {
+  // Serology
   'reactive':           'reactive',
   'non reactive':       'non_reactive',
   'non-reactive':       'non_reactive',
@@ -33,6 +45,37 @@ const QUALITATIVE_VALUE_MAP: Record<string, QualitativeValue> = {
   'notdetected':        'not_detected',
   'indeterminate':      'indeterminate',
   'equivocal':          'equivocal',
+  // Urinalysis semi-quantitative
+  'trace':              'trace',
+  'small':              'small',
+  'moderate':           'moderate',
+  'large':              'large',
+  '1+':                 'plus_1',
+  '2+':                 'plus_2',
+  '3+':                 'plus_3',
+  '4+':                 'plus_4',
+  'normal':             'normal',
+  'abnormal':           'abnormal',
+  'present':            'present',
+  'absent':             'absent',
+  // Microscopy counts
+  'none':               'none',
+  'none seen':          'none_seen',
+  'rare':               'rare',
+  'few':                'few',
+  'many':               'many',
+  // Urine color
+  'yellow':             'yellow',
+  'straw':              'straw',
+  'amber':              'amber',
+  'orange':             'orange',
+  'red':                'red',
+  'brown':              'brown',
+  // Urine clarity
+  'clear':              'clear',
+  'hazy':               'hazy',
+  'cloudy':             'cloudy',
+  'turbid':             'turbid',
 }
 
 function normalizeQualitativeValue(raw: string): QualitativeValue | null {
@@ -40,7 +83,17 @@ function normalizeQualitativeValue(raw: string): QualitativeValue | null {
   return QUALITATIVE_VALUE_MAP[n] ?? null
 }
 
-function qualitativeStateFromValue(qv: QualitativeValue): 'Optimal' | 'Watch' | 'Attention' {
+// qualitativeStateFromValue resolves the clinical state for a qualitative result.
+// Checks the marker's per-entry qualitative_state_map first (if present), then
+// falls back to the generic serology defaults (reactive → Attention, etc.).
+function qualitativeStateFromValue(
+  qv: QualitativeValue | null,
+  marker?: CanonicalMarker,
+): 'Optimal' | 'Watch' | 'Attention' {
+  if (!qv) return 'Watch'
+  if (marker?.qualitative_state_map?.[qv]) {
+    return marker.qualitative_state_map[qv]
+  }
   switch (qv) {
     case 'reactive':
     case 'positive':
@@ -54,12 +107,12 @@ function qualitativeStateFromValue(qv: QualitativeValue): 'Optimal' | 'Watch' | 
   }
 }
 
-// Claude may return either a number (quantitative) or a string (qualitative text result)
+// Claude may return a number (quantitative), a string (qualitative text), or null (unparseable).
 interface RawExtraction {
   name: string
-  value: number | string
+  value: number | string | null
   unit: string
-  reference_range?: string
+  reference_range?: string | null
 }
 
 interface StagedBiomarker {
@@ -68,6 +121,7 @@ interface StagedBiomarker {
   source_marker_name: string
   source_raw_value: string
   qualitative_value: string | null
+  extraction_status: ExtractionStatus
   value: number
   unit: string
   original_value: number
@@ -93,7 +147,7 @@ interface OCRResponse {
   lab_date: string | null
 }
 
-const EXTRACTION_PROMPT = `You are a medical lab report parser. Extract ALL biomarker results from this lab report.
+const EXTRACTION_PROMPT = `You are a medical lab report parser. Extract ALL biomarker results from this lab report, including standard blood panels, urinalysis, and serology/infectious disease tests.
 
 IMPORTANT: Also extract the date when the lab was collected or reported. Look for "Collection Date", "Date Collected", "Report Date", "Date of Service", "Specimen Collected", or similar fields.
 
@@ -103,11 +157,18 @@ Return a JSON object with two fields:
 
 For each biomarker found, return:
 - name: the biomarker name exactly as written in the report
-- value: for numeric results return the number (e.g. 3.03); for qualitative/text results (e.g. REACTIVE, NON REACTIVE, POSITIVE, NEGATIVE, DETECTED, NOT DETECTED, INDETERMINATE) return the exact text as a string
-- unit: the unit of measurement exactly as written; use "" for qualitative markers with no unit
-- reference_range: the reference range string if shown — include dash-style ranges (e.g. "0.4-4.0"), qualitative ranges (e.g. "< 2.0", "> 60", "<= 100"), or any other format exactly as written; use null if not present
+- value: use the following rules:
+  • Numeric result → return the number (e.g. 3.03, 1.015, 5)
+  • Qualitative / text result → return the exact text as a string (e.g. "NON REACTIVE", "NEGATIVE", "TRACE", "MODERATE", "CLOUDY", "YELLOW", "NONE SEEN", "RARE", "FEW")
+  • Cannot read / illegible → return null
+- unit: the unit exactly as written; use "" when there is no unit (qualitative results, color, clarity, etc.)
+- reference_range: the reference range string if shown, or null if not present
 
-IMPORTANT: If a biomarker appears multiple times (e.g. from different sections), only include it ONCE — use the most specific or primary result.
+URINALYSIS: Extract ALL urinalysis fields including Color, Clarity, pH, Specific Gravity, and all dipstick results (Glucose, Protein, Blood, Ketones, Bilirubin, Urobilinogen, Nitrite, Leukocyte Esterase) and all microscopy results (WBC /hpf, RBC /hpf, Bacteria, Epithelial Cells, Casts, Mucus). Use the text result for dipstick/qualitative fields (e.g. "NEGATIVE", "TRACE", "1+", "CLOUDY").
+
+IMPORTANT: Include ALL fields from the report. Do NOT skip urinalysis results.
+
+If a biomarker appears multiple times, include it ONCE — use the most specific or primary result.
 
 Return ONLY valid JSON. No explanations, no markdown, no extra text.
 
@@ -117,6 +178,15 @@ Example output:
   "biomarkers": [
     {"name": "TSH", "value": 3.03, "unit": "mIU/L", "reference_range": "0.40-4.00"},
     {"name": "Vitamin D, 25-OH", "value": 23, "unit": "ng/mL", "reference_range": "30-100"},
+    {"name": "Color", "value": "YELLOW", "unit": "", "reference_range": null},
+    {"name": "Clarity", "value": "CLEAR", "unit": "", "reference_range": null},
+    {"name": "pH", "value": 6.0, "unit": "", "reference_range": "4.5-8.5"},
+    {"name": "Specific Gravity", "value": 1.015, "unit": "", "reference_range": "1.005-1.030"},
+    {"name": "Glucose", "value": "NEGATIVE", "unit": "", "reference_range": null},
+    {"name": "Protein", "value": "TRACE", "unit": "", "reference_range": null},
+    {"name": "Nitrite", "value": "NEGATIVE", "unit": "", "reference_range": null},
+    {"name": "WBC /hpf", "value": 2, "unit": "/hpf", "reference_range": "0-5"},
+    {"name": "Bacteria", "value": "NONE SEEN", "unit": "", "reference_range": null},
     {"name": "HEPATITIS A IgM AB", "value": "NON REACTIVE", "unit": "", "reference_range": null},
     {"name": "HEPATITIS Bs ANTIGEN", "value": "REACTIVE", "unit": "", "reference_range": null}
   ]
@@ -225,40 +295,45 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Deduplicate: keep only first occurrence of each matched slug
+    // Deduplicate: keep only first occurrence of each matched slug.
+    // Urinalysis microscopy markers with different units (e.g. bacteria /hpf vs /µL)
+    // are separate dictionary slugs and naturally avoid deduplication.
     const seenSlugs = new Set<string>()
     const stagedBiomarkers: StagedBiomarker[] = []
-    // unmatched uses numeric value; qualitative strings are coerced to 0 so the
-    // pending_biomarkers DB column (numeric) is never sent a string.
+    // unmatched uses numeric value; non-numeric values are coerced to 0 to keep
+    // the pending_biomarkers DB column (numeric) type-safe.
     const unmatched: Array<{ name: string; value: number; unit: string; reference_range?: string }> = []
 
     for (const raw of rawExtractions) {
-      const rawValueIsString = typeof raw.value === 'string'
+      const rawValueIsNull   = raw.value === null || raw.value === undefined
+      const rawValueIsString = !rawValueIsNull && typeof raw.value === 'string'
       const slug = matchMarkerToSlug(raw.name)
 
       if (!slug) {
         unmatched.push({
           name: raw.name,
-          value: rawValueIsString ? 0 : (raw.value as number),
+          value: (rawValueIsNull || rawValueIsString) ? 0 : (raw.value as number),
           unit: raw.unit,
-          reference_range: raw.reference_range,
+          reference_range: raw.reference_range ?? undefined,
         })
         continue
       }
 
-      // Skip duplicates — keep the first match
+      // Skip duplicates — keep the first match for each slug
       if (seenSlugs.has(slug)) continue
       seenSlugs.add(slug)
 
       const marker = CANONICAL_DICTIONARY[slug]
 
       // ── Qualitative branch ─────────────────────────────────────────────────
-      // Fires when the marker is declared qualitative in the dictionary OR when
-      // Claude extracted a text value (e.g. "NON REACTIVE") instead of a number.
+      // Fires when:
+      //   a) the marker's dictionary entry declares result_type: 'qualitative', OR
+      //   b) Claude returned a text value (e.g. "NON REACTIVE", "TRACE", "CLOUDY")
+      // Covers serology, urinalysis dipstick, microscopy counts, and color/clarity.
       if (marker.result_type === 'qualitative' || rawValueIsString) {
-        const rawStr = String(raw.value)
-        const qv = normalizeQualitativeValue(rawStr)
-        const state = qv ? qualitativeStateFromValue(qv) : 'Watch'
+        const rawStr = rawValueIsNull ? '' : String(raw.value)
+        const qv = rawStr ? normalizeQualitativeValue(rawStr) : null
+        const state = qualitativeStateFromValue(qv, marker)
 
         stagedBiomarkers.push({
           slug,
@@ -266,6 +341,7 @@ export async function POST(request: NextRequest) {
           source_marker_name: raw.name,
           source_raw_value: rawStr,
           qualitative_value: qv,
+          extraction_status: 'qualitative_only',
           value: 0,
           unit: '',
           original_value: 0,
@@ -283,11 +359,67 @@ export async function POST(request: NextRequest) {
         continue
       }
 
+      // ── Extraction safety check ────────────────────────────────────────────
+      // A null value or a value that is not finite after conversion must NEVER
+      // reach the state classifier. Classifying 0 / NaN produces false Criticals.
+      // Mark as unreadable; the UI shows "Needs Review" instead of a health state.
+      if (rawValueIsNull) {
+        stagedBiomarkers.push({
+          slug,
+          name: marker.name,
+          source_marker_name: raw.name,
+          source_raw_value: '',
+          qualitative_value: null,
+          extraction_status: 'unreadable',
+          value: NaN,
+          unit: raw.unit,
+          original_value: NaN,
+          original_unit: raw.unit,
+          converted: false,
+          reference_range_min: null,
+          reference_range_max: null,
+          optimal_range_min: null,
+          optimal_range_max: null,
+          state: 'Watch',
+          flag_error: true,
+          error_reason: 'Value could not be parsed from the lab report',
+          matched: true,
+        })
+        continue
+      }
+
       // ── Quantitative branch ────────────────────────────────────────────────
       const numericValue = raw.value as number
       const converted = convertToCanonicalUnit(slug, numericValue, raw.unit)
+
+      // Second safety check: ensure conversion produced a finite number.
+      if (!Number.isFinite(converted.value)) {
+        stagedBiomarkers.push({
+          slug,
+          name: marker.name,
+          source_marker_name: raw.name,
+          source_raw_value: String(numericValue),
+          qualitative_value: null,
+          extraction_status: 'unreadable',
+          value: NaN,
+          unit: raw.unit,
+          original_value: numericValue,
+          original_unit: raw.unit,
+          converted: false,
+          reference_range_min: null,
+          reference_range_max: null,
+          optimal_range_min: null,
+          optimal_range_max: null,
+          state: 'Watch',
+          flag_error: true,
+          error_reason: 'Value could not be parsed from the lab report',
+          matched: true,
+        })
+        continue
+      }
+
       const impossible = isImpossibleValue(slug, converted.value)
-      const refRange = parseReferenceRange(raw.reference_range)
+      const refRange = parseReferenceRange(raw.reference_range ?? undefined)
       const optRange = bioProfile === 'female' ? marker.optimalF : marker.optimalM
       const state = impossible ? 'Critical' : classifyBiomarkerState(slug, converted.value, bioProfile)
 
@@ -297,6 +429,7 @@ export async function POST(request: NextRequest) {
         source_marker_name: raw.name,
         source_raw_value: String(numericValue),
         qualitative_value: null,
+        extraction_status: impossible ? 'partial' : 'parsed',
         value: converted.value,
         unit: converted.unit,
         original_value: numericValue,
@@ -308,7 +441,9 @@ export async function POST(request: NextRequest) {
         optimal_range_max: optRange.max,
         state,
         flag_error: impossible,
-        error_reason: impossible ? `Value ${converted.value} ${converted.unit} is outside physically possible range for ${marker.name}` : null,
+        error_reason: impossible
+          ? `Value ${converted.value} ${converted.unit} is outside the physically possible range for ${marker.name}`
+          : null,
         matched: true,
       })
     }

@@ -41,6 +41,7 @@ interface StagedBiomarker {
   source_marker_name: string
   source_raw_value: string
   qualitative_value: string | null
+  extraction_status: 'parsed' | 'unreadable' | 'partial' | 'qualitative_only'
   value: number
   unit: string
   original_value: number
@@ -286,7 +287,9 @@ function isOcrArtifact(name: string): boolean {
 
 // ── Qualitative result display labels ─────────────────────────────────────────
 // Maps internal qualitative_value keys to the badge text shown in the UI.
+// Covers serology, urinalysis semi-quantitative, microscopy, and color/clarity.
 const QUALITATIVE_DISPLAY_LABELS: Record<string, string> = {
+  // Serology / infectious disease
   reactive:        'REACTIVE',
   non_reactive:    'NON REACTIVE',
   positive:        'POSITIVE',
@@ -295,6 +298,37 @@ const QUALITATIVE_DISPLAY_LABELS: Record<string, string> = {
   not_detected:    'NOT DETECTED',
   indeterminate:   'INDETERMINATE',
   equivocal:       'EQUIVOCAL',
+  // Urinalysis semi-quantitative
+  trace:           'TRACE',
+  small:           'SMALL',
+  moderate:        'MODERATE',
+  large:           'LARGE',
+  plus_1:          '1+',
+  plus_2:          '2+',
+  plus_3:          '3+',
+  plus_4:          '4+',
+  normal:          'NORMAL',
+  abnormal:        'ABNORMAL',
+  present:         'PRESENT',
+  absent:          'ABSENT',
+  // Microscopy counts
+  none:            'NONE',
+  none_seen:       'NONE SEEN',
+  rare:            'RARE',
+  few:             'FEW',
+  many:            'MANY',
+  // Urine color
+  yellow:          'YELLOW',
+  straw:           'STRAW',
+  amber:           'AMBER',
+  orange:          'ORANGE',
+  red:             'RED',
+  brown:           'BROWN',
+  // Urine clarity
+  clear:           'CLEAR',
+  hazy:            'HAZY',
+  cloudy:          'CLOUDY',
+  turbid:          'TURBID',
 }
 
 // ── Urinalysis qualitative marker detection ───────────────────────────────────
@@ -1548,14 +1582,10 @@ export default function LabsUploadPage() {
     setDuplicateWarning(null)
     try {
       const collectedAt = labDate ? new Date(labDate).toISOString() : new Date().toISOString()
-      // Exclude qualitative markers and non-finite values from save payload.
-      // Qualitative serology markers (qualitative_value !== null) are display-only in Phase 1.
-      // Qualitative urine dipstick markers are excluded by isLikelyQualitativeUrinalysis.
-      const safeBiomarkers = staged.filter(b =>
-        Number.isFinite(b.value) &&
-        b.qualitative_value === null &&
-        !isLikelyQualitativeUrinalysis(b.name)
-      )
+      // Only save markers that were fully parsed and classified.
+      // 'qualitative_only' markers (serology, urinalysis dipstick) are display-only in Phase 1.
+      // 'unreadable' / 'partial' markers must never be saved — their values are unreliable.
+      const safeBiomarkers = staged.filter(b => b.extraction_status === 'parsed')
       const response = await fetch('/api/ocr/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2030,19 +2060,41 @@ export default function LabsUploadPage() {
                           <div>
                             {markers.map((b, i) => {
                               const s = getStateStyles(b.state)
-                              const isQualitativeSerology = b.qualitative_value !== null
-                              const valueIsFinite = Number.isFinite(b.value)
-                              const qualitativeUrinalysis = isLikelyQualitativeUrinalysis(b.name)
-                              const isRealError = b.flag_error && valueIsFinite && !qualitativeUrinalysis && !isQualitativeSerology
-                              const isSoftIssue = b.flag_error && (!valueIsFinite || qualitativeUrinalysis) && !isQualitativeSerology
-                              const errorMsg = isSoftIssue
-                                ? qualitativeUrinalysis
-                                  ? 'Qualitative marker — not saved as a numeric biomarker.'
-                                  : 'Value could not be read.'
-                                : isRealError ? b.error_reason : null
-                              const qualBadgeLabel = isQualitativeSerology
-                                ? (QUALITATIVE_DISPLAY_LABELS[b.qualitative_value!] ?? b.qualitative_value!)
+                              const status = b.extraction_status ?? 'parsed'
+
+                              // Rendering mode — determines which right-column variant to show
+                              const isQualitative  = status === 'qualitative_only'
+                              const isUnreadable   = status === 'unreadable'
+                              const isPartial      = status === 'partial'  // impossible value
+                              const isOk           = status === 'parsed'
+
+                              const qualBadgeLabel = isQualitative && b.qualitative_value
+                                ? (QUALITATIVE_DISPLAY_LABELS[b.qualitative_value] ?? b.qualitative_value.toUpperCase())
                                 : null
+
+                              // Category label shown below the right-column value
+                              const markerCategoryLabel = isQualitative
+                                ? (isLikelyQualitativeUrinalysis(b.name) ? 'URINALYSIS' : 'SEROLOGY')
+                                : null
+
+                              // Sub-text beneath the marker name
+                              const subText: string | null = isUnreadable
+                                ? 'Meridian could not confidently extract this value from the PDF.'
+                                : isPartial
+                                  ? b.error_reason ?? 'Value outside plausible range — not saved.'
+                                  : isQualitative && b.source_marker_name && b.source_marker_name !== b.name
+                                    ? `From: ${b.source_marker_name}`
+                                    : !isQualitative && b.converted
+                                      ? `Converted from ${b.original_value} ${b.original_unit}`
+                                      : null
+
+                              const dotColor = isUnreadable ? '#FCD34D' : isPartial ? '#F87171' : s.dot
+                              const rowBg = isPartial
+                                ? 'rgba(248,113,113,0.07)'
+                                : isUnreadable
+                                  ? 'rgba(250,204,21,0.04)'
+                                  : 'transparent'
+
                               return (
                                 <div
                                   key={b.slug + i}
@@ -2051,78 +2103,72 @@ export default function LabsUploadPage() {
                                     borderTop: i === 0 ? 'none' : `1px solid ${colors.cardBorder}`,
                                     display: 'flex', justifyContent: 'space-between',
                                     alignItems: 'center', flexWrap: 'wrap', gap: '8px',
-                                    backgroundColor: isRealError
-                                      ? 'rgba(248,113,113,0.07)'
-                                      : isSoftIssue
-                                        ? 'rgba(250,204,21,0.04)'
-                                        : 'transparent',
+                                    backgroundColor: rowBg,
                                   }}
                                 >
+                                  {/* Left column: marker name + sub-text */}
                                   <div style={{ flex: 1, minWidth: '150px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: (errorMsg || isQualitativeSerology) ? '4px' : '0' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: subText ? '4px' : '0' }}>
                                       <div style={{
                                         width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
-                                        backgroundColor: isRealError ? colors.error : isSoftIssue ? '#FCD34D' : s.dot,
+                                        backgroundColor: dotColor,
                                       }} />
                                       <span style={{ fontSize: '14px', fontWeight: 600, color: colors.text }}>{b.name}</span>
                                     </div>
-                                    {isQualitativeSerology && b.source_marker_name && b.source_marker_name !== b.name && (
-                                      <span style={{ fontSize: '11px', color: colors.textMuted, display: 'block', paddingLeft: '15px' }}>
-                                        From: {b.source_marker_name}
-                                      </span>
-                                    )}
-                                    {!isQualitativeSerology && b.converted && (
-                                      <span style={{ fontSize: '11px', color: colors.textMuted, display: 'block', paddingLeft: '15px' }}>
-                                        Converted from {b.original_value} {b.original_unit}
-                                      </span>
-                                    )}
-                                    {errorMsg && (
+                                    {subText && (
                                       <span style={{
                                         fontSize: '11px', display: 'block', paddingLeft: '15px',
-                                        color: isRealError ? '#FCA5A5' : '#FCD34D',
+                                        color: isUnreadable ? '#FCD34D' : isPartial ? '#FCA5A5' : colors.textMuted,
                                       }}>
-                                        {errorMsg}
+                                        {subText}
                                       </span>
                                     )}
                                   </div>
+
+                                  {/* Right column: value display */}
                                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                    {isQualitativeSerology ? (
+                                    {isQualitative ? (
                                       <>
                                         <div style={{
-                                          display: 'inline-block',
-                                          padding: '4px 12px',
-                                          borderRadius: '20px',
-                                          backgroundColor: s.bg,
+                                          display: 'inline-block', padding: '4px 12px',
+                                          borderRadius: '20px', backgroundColor: s.bg,
                                           border: `1px solid ${s.border}`,
-                                          fontSize: '11px',
-                                          fontWeight: 700,
-                                          letterSpacing: '0.06em',
-                                          color: s.dot,
+                                          fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', color: s.dot,
                                         }}>
-                                          {qualBadgeLabel}
+                                          {qualBadgeLabel ?? '—'}
                                         </div>
+                                        {markerCategoryLabel && (
+                                          <div style={{
+                                            fontSize: '10px', fontWeight: 700, marginTop: '4px',
+                                            letterSpacing: '0.04em', color: s.dot,
+                                          }}>
+                                            {markerCategoryLabel}
+                                          </div>
+                                        )}
+                                      </>
+                                    ) : isUnreadable ? (
+                                      <>
+                                        <span style={{ fontSize: '12px', color: '#FCD34D', fontStyle: 'italic' }}>—</span>
                                         <div style={{
-                                          fontSize: '10px', fontWeight: 700, marginTop: '4px', letterSpacing: '0.04em',
-                                          color: s.dot,
+                                          fontSize: '10px', fontWeight: 700, marginTop: '2px',
+                                          letterSpacing: '0.04em', color: '#FCD34D',
                                         }}>
-                                          SEROLOGY
+                                          NEEDS REVIEW
                                         </div>
                                       </>
-                                    ) : valueIsFinite ? (
+                                    ) : isOk || isPartial ? (
                                       <>
                                         <span style={{ fontSize: '18px', fontWeight: 700, color: colors.text }}>{b.value}</span>
                                         <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '4px' }}>{b.unit}</span>
+                                        <div style={{
+                                          fontSize: '10px', fontWeight: 700, marginTop: '2px',
+                                          letterSpacing: '0.04em', color: isPartial ? '#F87171' : s.dot,
+                                        }}>
+                                          {isPartial ? 'FLAG' : s.label}
+                                        </div>
                                       </>
                                     ) : (
                                       <span style={{ fontSize: '12px', color: colors.textMuted, fontStyle: 'italic' }}>—</span>
-                                    )}
-                                    {!isQualitativeSerology && (
-                                      <div style={{
-                                        fontSize: '10px', fontWeight: 700, marginTop: '2px', letterSpacing: '0.04em',
-                                        color: isRealError ? '#F87171' : isSoftIssue ? '#FCD34D' : s.dot,
-                                      }}>
-                                        {isRealError ? 'FLAG' : isSoftIssue ? 'SKIP' : s.label}
-                                      </div>
                                     )}
                                   </div>
                                 </div>
@@ -2327,7 +2373,7 @@ export default function LabsUploadPage() {
                     cursor: confirming || !labDate ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {confirming ? 'Saving...' : `Confirm ${staged.filter(b => !b.flag_error).length} markers`}
+                  {confirming ? 'Saving...' : `Confirm ${staged.filter(b => b.extraction_status === 'parsed').length} markers`}
                 </motion.button>
                 <button
                   onClick={handleReset}

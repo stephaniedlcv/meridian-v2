@@ -16,10 +16,24 @@
 
 export type RiskProfile = 'linear-high' | 'linear-low' | 'u-shaped' | 'context'
 
-// result_type distinguishes numeric biomarkers from qualitative clinical tests
-// (e.g. serology panels where results are REACTIVE / NON REACTIVE / POSITIVE / NEGATIVE).
-// Omitting result_type or setting it to 'quantitative' preserves existing behaviour.
+// result_type: distinguishes numeric biomarkers from qualitative clinical tests.
 export type ResultType = 'quantitative' | 'qualitative'
+
+// extraction_status: lifecycle state of a single extracted value before it is saved.
+//   parsed          — numeric value extracted, validated, and classified successfully
+//   unreadable      — value could not be reliably parsed from the source PDF
+//   partial         — value extracted but failed plausibility validation
+//   qualitative_only — marker is inherently qualitative; no numeric value exists
+export type ExtractionStatus = 'parsed' | 'unreadable' | 'partial' | 'qualitative_only'
+
+// marker_category: clinical domain classification for routing and UI grouping.
+export type MarkerCategory =
+  | 'quantitative'
+  | 'qualitative'
+  | 'urinalysis'
+  | 'infectious_disease'
+  | 'pathology'
+  | 'microbiology'
 
 export interface CanonicalMarker {
   slug: string
@@ -28,6 +42,10 @@ export interface CanonicalMarker {
   aliases: string[]
   system: string
   result_type?: ResultType
+  marker_category?: MarkerCategory
+  // Per-marker state mapping for qualitative values.
+  // Keys are QualitativeValue strings; values override the default serology state logic.
+  qualitative_state_map?: Record<string, 'Optimal' | 'Watch' | 'Attention'>
   riskProfile: RiskProfile
   normalF: { min: number; max: number }
   normalM: { min: number; max: number }
@@ -1273,6 +1291,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     name: 'Hepatitis A IgM Antibody',
     unit: '',
     result_type: 'qualitative',
+    marker_category: 'infectious_disease',
     aliases: [
       'hepatitis a igm ab', 'hav igm', 'hav igm ab',
       'hepatitis a igm antibody', 'hep a igm', 'hep a igm ab',
@@ -1296,6 +1315,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     name: 'Hepatitis B Core IgM',
     unit: '',
     result_type: 'qualitative',
+    marker_category: 'infectious_disease',
     aliases: [
       'hepatitis b core igm', 'hbcab igm', 'hbc igm',
       'hepatitis b core igm ab', 'anti hbc igm',
@@ -1319,6 +1339,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     name: 'Hepatitis B Surface Antigen',
     unit: '',
     result_type: 'qualitative',
+    marker_category: 'infectious_disease',
     aliases: [
       'hepatitis bs antigen', 'hepatitis b surface antigen', 'hbsag',
       'hbs ag', 'hbv surface antigen', 'hep b surface antigen',
@@ -1341,6 +1362,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     name: 'Hepatitis C Antibody',
     unit: '',
     result_type: 'qualitative',
+    marker_category: 'infectious_disease',
     aliases: [
       'hep c ab igg/igm', 'hep c ab igg igm', 'hepatitis c antibody',
       'hcv ab', 'hep c ab', 'anti hcv', 'hcv antibody',
@@ -1364,6 +1386,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     name: 'HIV-1/2 Antibody',
     unit: '',
     result_type: 'qualitative',
+    marker_category: 'infectious_disease',
     aliases: [
       'hiv 1 2 ab', 'hiv antibody', 'hiv ab',
       'hiv 1 2 antibody', 'hiv 1/2 ab', 'anti hiv',
@@ -1387,6 +1410,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     name: 'RPR (Syphilis)',
     unit: '',
     result_type: 'qualitative',
+    marker_category: 'infectious_disease',
     aliases: [
       'rpr', 'rpr syphilis', 'rapid plasma reagin',
       'vdrl', 'syphilis screen', 'syphilis ab',
@@ -1402,6 +1426,482 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     impossibleMin: 0,
     impossibleMax: 0,
     priorityWeight: 3,
+  },
+
+  // ===== URINALYSIS =====
+  // Urinalysis contains four sub-types:
+  //   1. Qualitative dipstick   — Color, Clarity, Nitrite, Ketones, etc.
+  //   2. Semi-quantitative      — Protein/Blood/Glucose as Trace/1+/2+/3+
+  //   3. Numeric semi-quant     — Specific Gravity, pH (true numbers with ranges)
+  //   4. Microscopy             — WBC/RBC /hpf, Bacteria, Casts, Epithelial Cells
+  //
+  // All qualitative urinalysis entries carry qualitative_state_map so state is
+  // determined per-marker rather than by the generic serology mapping.
+  // Numeric microscopy / specific gravity / pH entries use the standard classifier.
+  // None of these markers are saved to biomarkers_static in Phase 1.
+
+  urine_color: {
+    slug: 'urine_color',
+    name: 'Urine Color',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      yellow: 'Optimal', straw: 'Optimal',
+      clear: 'Watch', amber: 'Watch',
+      orange: 'Attention', red: 'Attention', brown: 'Attention',
+    },
+    aliases: [
+      'color', 'colour', 'urine color', 'urine colour',
+      'color, urine', 'colour, urine',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 2,
+  },
+
+  urine_clarity: {
+    slug: 'urine_clarity',
+    name: 'Urine Clarity',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      clear: 'Optimal',
+      hazy: 'Watch',
+      cloudy: 'Attention', turbid: 'Attention',
+    },
+    aliases: [
+      'clarity', 'appearance', 'turbidity', 'urine clarity',
+      'urine appearance', 'urine turbidity',
+      'clarity, urine', 'appearance, urine',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 2,
+  },
+
+  urine_glucose_ua: {
+    slug: 'urine_glucose_ua',
+    name: 'Glucose (Urine)',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      negative: 'Optimal', none: 'Optimal', none_seen: 'Optimal', absent: 'Optimal',
+      trace: 'Attention',
+      small: 'Attention', moderate: 'Attention', large: 'Attention',
+      plus_1: 'Attention', plus_2: 'Attention', plus_3: 'Attention', plus_4: 'Attention',
+    },
+    aliases: [
+      'glucose', 'glucose, urine', 'urine glucose',
+      'glucose ur', 'glu urine', 'glucose ua',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 2,
+  },
+
+  urine_protein_ua: {
+    slug: 'urine_protein_ua',
+    name: 'Protein (Urine)',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      negative: 'Optimal', none: 'Optimal', none_seen: 'Optimal', absent: 'Optimal',
+      trace: 'Watch',
+      small: 'Attention', moderate: 'Attention', large: 'Attention',
+      plus_1: 'Attention', plus_2: 'Attention', plus_3: 'Attention', plus_4: 'Attention',
+    },
+    aliases: [
+      'protein', 'protein, urine', 'urine protein',
+      'prot urine', 'protein ur', 'albumin urine', 'albumin, urine',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 2,
+  },
+
+  urine_blood_ua: {
+    slug: 'urine_blood_ua',
+    name: 'Blood (Urine)',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      negative: 'Optimal', none: 'Optimal', none_seen: 'Optimal', absent: 'Optimal',
+      trace: 'Watch',
+      small: 'Attention', moderate: 'Attention', large: 'Attention',
+      plus_1: 'Attention', plus_2: 'Attention', plus_3: 'Attention',
+    },
+    aliases: [
+      'blood', 'blood, urine', 'urine blood', 'occult blood urine',
+      'blood ur', 'hemogl urine', 'hemoglobin urine',
+      'rbc, urine', 'rbc/hpf',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 2,
+  },
+
+  urine_ketones_ua: {
+    slug: 'urine_ketones_ua',
+    name: 'Ketones (Urine)',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      negative: 'Optimal', none: 'Optimal', none_seen: 'Optimal', absent: 'Optimal',
+      trace: 'Watch',
+      small: 'Attention', moderate: 'Attention', large: 'Attention',
+      plus_1: 'Attention', plus_2: 'Attention', plus_3: 'Attention',
+    },
+    aliases: [
+      'ketones', 'ketone', 'ketones, urine', 'urine ketones',
+      'ketone bodies', 'acetone', 'acetone urine', 'ketone ur',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 2,
+  },
+
+  urine_bilirubin_ua: {
+    slug: 'urine_bilirubin_ua',
+    name: 'Bilirubin (Urine)',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      negative: 'Optimal', none: 'Optimal', none_seen: 'Optimal', absent: 'Optimal',
+      trace: 'Attention',
+      small: 'Attention', moderate: 'Attention', large: 'Attention',
+      plus_1: 'Attention', plus_2: 'Attention', plus_3: 'Attention',
+    },
+    aliases: [
+      'bilirubin', 'bilirubin, urine', 'urine bilirubin',
+      'bili urine', 'bili ur', 'bilirubin ur',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 2,
+  },
+
+  urine_urobilinogen_ua: {
+    slug: 'urine_urobilinogen_ua',
+    name: 'Urobilinogen (Urine)',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      negative: 'Optimal', normal: 'Optimal', none: 'Optimal', none_seen: 'Optimal',
+      trace: 'Watch', plus_1: 'Watch',
+      small: 'Attention', moderate: 'Attention', large: 'Attention',
+      plus_2: 'Attention', plus_3: 'Attention', plus_4: 'Attention',
+    },
+    aliases: [
+      'urobilinogen', 'urobilinogen, urine', 'urine urobilinogen',
+      'ubg urine', 'urobilinogen ur',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 2,
+  },
+
+  urine_nitrite_ua: {
+    slug: 'urine_nitrite_ua',
+    name: 'Nitrite (Urine)',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      negative: 'Optimal', none: 'Optimal', none_seen: 'Optimal', absent: 'Optimal',
+      positive: 'Attention', reactive: 'Attention', present: 'Attention',
+      trace: 'Watch',
+    },
+    aliases: [
+      'nitrite', 'nitrites', 'nitrite, urine', 'urine nitrite',
+      'urine nitrites', 'nitrite ur',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 2,
+  },
+
+  urine_leukocyte_esterase_ua: {
+    slug: 'urine_leukocyte_esterase_ua',
+    name: 'Leukocyte Esterase (Urine)',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      negative: 'Optimal', none: 'Optimal', none_seen: 'Optimal', absent: 'Optimal',
+      trace: 'Watch',
+      small: 'Attention', moderate: 'Attention', large: 'Attention',
+      plus_1: 'Attention', plus_2: 'Attention', plus_3: 'Attention',
+    },
+    aliases: [
+      'leukocyte esterase', 'leukocyte esterase, urine', 'urine leukocyte esterase',
+      'wbc esterase', 'leuk esterase', 'le urine',
+      'wbc, urine', 'white blood cells, urine',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 2,
+  },
+
+  urine_specific_gravity: {
+    slug: 'urine_specific_gravity',
+    name: 'Specific Gravity (Urine)',
+    unit: '',
+    result_type: 'quantitative',
+    marker_category: 'urinalysis',
+    aliases: [
+      'specific gravity', 'urine specific gravity',
+      'sp gr', 'sp grav', 'sg urine', 'specific gravity, urine',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'u-shaped',
+    normalF: { min: 1.005, max: 1.030 },
+    normalM: { min: 1.005, max: 1.030 },
+    optimalF: { min: 1.010, max: 1.025 },
+    optimalM: { min: 1.010, max: 1.025 },
+    impossibleMin: 1.000,
+    impossibleMax: 1.040,
+    priorityWeight: 1,
+  },
+
+  urine_ph: {
+    slug: 'urine_ph',
+    name: 'pH (Urine)',
+    unit: '',
+    result_type: 'quantitative',
+    marker_category: 'urinalysis',
+    aliases: [
+      'ph', 'urine ph', 'ph, urine', 'ph ur',
+      'reaction', 'urine reaction',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'u-shaped',
+    normalF: { min: 4.5, max: 8.5 },
+    normalM: { min: 4.5, max: 8.5 },
+    optimalF: { min: 5.5, max: 7.5 },
+    optimalM: { min: 5.5, max: 7.5 },
+    impossibleMin: 3.0,
+    impossibleMax: 10.0,
+    priorityWeight: 1,
+  },
+
+  urine_wbc_hpf: {
+    slug: 'urine_wbc_hpf',
+    name: 'WBC (Urine, /hpf)',
+    unit: '/hpf',
+    result_type: 'quantitative',
+    marker_category: 'urinalysis',
+    aliases: [
+      'wbc /hpf', 'wbc/hpf', 'wbcs /hpf', 'wbcs/hpf',
+      'white blood cells /hpf', 'white cells /hpf',
+      'leukocytes /hpf', 'wbc hpf', 'wbc, urine /hpf',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'linear-high',
+    normalF: { min: 0, max: 5 },
+    normalM: { min: 0, max: 5 },
+    optimalF: { min: 0, max: 2 },
+    optimalM: { min: 0, max: 2 },
+    impossibleMin: 0,
+    impossibleMax: 500,
+    priorityWeight: 2,
+  },
+
+  urine_rbc_hpf: {
+    slug: 'urine_rbc_hpf',
+    name: 'RBC (Urine, /hpf)',
+    unit: '/hpf',
+    result_type: 'quantitative',
+    marker_category: 'urinalysis',
+    aliases: [
+      'rbc /hpf', 'rbc/hpf', 'rbcs /hpf', 'rbcs/hpf',
+      'red blood cells /hpf', 'red cells /hpf',
+      'erythrocytes /hpf', 'rbc hpf', 'rbc, urine /hpf',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'linear-high',
+    normalF: { min: 0, max: 5 },
+    normalM: { min: 0, max: 2 },
+    optimalF: { min: 0, max: 2 },
+    optimalM: { min: 0, max: 1 },
+    impossibleMin: 0,
+    impossibleMax: 500,
+    priorityWeight: 2,
+  },
+
+  urine_bacteria_hpf: {
+    slug: 'urine_bacteria_hpf',
+    name: 'Bacteria (Urine)',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'microbiology',
+    qualitative_state_map: {
+      none: 'Optimal', none_seen: 'Optimal', absent: 'Optimal', negative: 'Optimal',
+      rare: 'Watch',
+      few: 'Attention', moderate: 'Attention', many: 'Attention',
+      positive: 'Attention', present: 'Attention',
+    },
+    aliases: [
+      'bacteria', 'bacteria /hpf', 'bacteria/hpf', 'bacteria hpf',
+      'bacteria, urine', 'urine bacteria', 'bacteriuria',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 2,
+  },
+
+  urine_epithelial_cells_hpf: {
+    slug: 'urine_epithelial_cells_hpf',
+    name: 'Epithelial Cells (Urine)',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      none: 'Optimal', none_seen: 'Optimal', absent: 'Optimal', negative: 'Optimal',
+      rare: 'Watch', few: 'Watch',
+      moderate: 'Attention', many: 'Attention',
+    },
+    aliases: [
+      'epithelial cells', 'epithelial cells /hpf', 'epithelial cells/hpf',
+      'squamous epithelial cells', 'squamous epithelial cells /hpf',
+      'squamous epithelial', 'epith cells', 'squamous cells',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 1,
+  },
+
+  urine_casts_hpf: {
+    slug: 'urine_casts_hpf',
+    name: 'Casts (Urine)',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      none: 'Optimal', none_seen: 'Optimal', absent: 'Optimal', negative: 'Optimal',
+      rare: 'Watch',
+      few: 'Attention', moderate: 'Attention', many: 'Attention',
+    },
+    aliases: [
+      'casts', 'casts /hpf', 'casts/hpf', 'casts /lpf', 'casts/lpf',
+      'granular casts', 'granular casts /lpf', 'granular casts/lpf',
+      'hyaline casts', 'hyaline casts /lpf', 'hyaline casts/lpf',
+      'waxy casts', 'muddy brown casts', 'cast',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 2,
+  },
+
+  urine_mucus_hpf: {
+    slug: 'urine_mucus_hpf',
+    name: 'Mucus (Urine)',
+    unit: '',
+    result_type: 'qualitative',
+    marker_category: 'urinalysis',
+    qualitative_state_map: {
+      none: 'Optimal', none_seen: 'Optimal', absent: 'Optimal', negative: 'Optimal',
+      rare: 'Watch', few: 'Watch',
+      moderate: 'Attention', many: 'Attention',
+    },
+    aliases: [
+      'mucus', 'mucus /hpf', 'mucus/hpf', 'mucous', 'mucous threads',
+      'mucus threads', 'mucus, urine',
+    ],
+    system: 'urinalysis',
+    riskProfile: 'context',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 0,
+    priorityWeight: 1,
   },
 }
 
