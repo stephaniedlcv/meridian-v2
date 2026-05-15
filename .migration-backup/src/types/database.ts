@@ -84,7 +84,11 @@ export type BiomarkerStatic = {
   user_id: string;
   marker_name: string;
   value: number | null;             // null for qualitative markers (serology, urinalysis dipstick)
-  value_qualitative: string | null; // non_null for qualitative markers; null for quantitative
+  value_qualitative: string | null; // non-null for qualitative markers; null for quantitative
+  result_type: string | null;       // 'quantitative' | 'qualitative' — mirrors canonical-dictionary result_type
+  source_marker_name: string | null; // raw label from the PDF before canonicalization
+  source_raw_value: string | null;  // raw string value from the PDF before parsing
+  panel_type: string | null;        // e.g. 'CBC', 'CMP', 'Lipid Panel', 'Urinalysis'
   unit: string;
   reference_range_min: number | null;
   reference_range_max: number | null;
@@ -182,6 +186,10 @@ export type Database = {
           marker_name: string;
           value?: number | null;
           value_qualitative?: string | null;
+          result_type?: string | null;
+          source_marker_name?: string | null;
+          source_raw_value?: string | null;
+          panel_type?: string | null;
           unit: string;
           reference_range_min?: number | null;
           reference_range_max?: number | null;
@@ -200,6 +208,10 @@ export type Database = {
           marker_name?: string;
           value?: number | null;
           value_qualitative?: string | null;
+          result_type?: string | null;
+          source_marker_name?: string | null;
+          source_raw_value?: string | null;
+          panel_type?: string | null;
           unit?: string;
           reference_range_min?: number | null;
           reference_range_max?: number | null;
