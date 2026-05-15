@@ -1,0 +1,115 @@
+Now that the architecture map is confirmed, produce a SAFE ZERO-REGRESSION STABILIZATION PLAN.
+
+IMPORTANT:
+Do NOT modify files yet.
+Do NOT move files yet.
+Do NOT delete files yet.
+Do NOT refactor yet.
+
+We are now transitioning from:
+- architecture discovery
+to:
+- controlled stabilization planning.
+
+GOAL:
+Create the safest possible path to:
+- eliminate architecture ambiguity
+- stabilize deployment
+- preserve all working Meridian functionality
+- reduce accidental workspace complexity
+- avoid regressions
+- avoid damaging the active runtime
+
+CONTEXT CONFIRMED:
+- `.migration-backup/` is the active Meridian runtime
+- root is mostly workspace/deployment plumbing
+- Meridian product logic lives inside `.migration-backup`
+- current runtime works
+- root does not contain equivalent runtime logic
+
+TASK:
+
+SECTION 1 — IMMEDIATE SAFETY ACTIONS
+What should be done FIRST before any cleanup?
+
+Include:
+- backup strategy
+- branch strategy
+- snapshot strategy
+- deployment verification
+- environment verification
+- rollback protection
+
+SECTION 2 — CANONICALIZATION PLAN
+How do we formally establish:
+`.migration-backup/`
+as the canonical Meridian runtime?
+
+Include:
+- documentation changes
+- workflow targeting
+- editor/AI-agent targeting
+- deployment targeting
+- developer mental model cleanup
+
+SECTION 3 — DEPLOYMENT STABILIZATION
+Explain:
+- safest Vercel configuration
+- safest Replit workflow configuration
+- how to ensure deploy/runtime always point to the same app
+- how to avoid future deployment drift
+
+SECTION 4 — SAFE CLEANUP PHASES
+Create cleanup phases ordered by risk level.
+
+For each phase:
+- goal
+- estimated risk
+- rollback strategy
+- validation checklist
+
+Example:
+Phase A — Documentation only
+Phase B — Workflow cleanup
+Phase C — Wrapper simplification
+Phase D — Config consolidation
+etc.
+
+SECTION 5 — REGRESSION PREVENTION
+What MUST be validated after every future architecture change?
+
+Include:
+- auth
+- onboarding
+- dashboard
+- OCR
+- labs
+- AI insight routes
+- Supabase
+- deployment
+- environment variables
+
+SECTION 6 — WHAT SHOULD WAIT
+Identify things that SHOULD NOT be touched yet.
+
+Examples:
+- monorepo removal
+- package restructuring
+- tsconfig merging
+- aggressive file movement
+- dependency deduplication
+
+SECTION 7 — FINAL STABILIZATION STRATEGY
+Provide:
+- safest overall strategy
+- safest sequencing
+- biggest remaining risks
+- expected difficulty level
+- expected stabilization timeline
+
+IMPORTANT:
+No code generation yet.
+No cleanup yet.
+No destructive changes yet.
+
+This is stabilization planning only.
