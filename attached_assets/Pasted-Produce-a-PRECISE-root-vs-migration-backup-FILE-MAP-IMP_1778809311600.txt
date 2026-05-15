@@ -1,0 +1,131 @@
+Produce a PRECISE root-vs-.migration-backup FILE MAP.
+
+IMPORTANT:
+Do NOT modify files.
+Do NOT move files.
+Do NOT delete files.
+Do NOT refactor anything.
+
+This is a READ-ONLY architecture mapping task.
+
+GOAL:
+We need a definitive map separating:
+1. Real Meridian product code
+2. Workspace/deployment wrapper code
+3. Dead/unused/generated scaffolding
+4. Critical configs that must be preserved
+5. Potential cleanup targets later
+
+OUTPUT FORMAT MUST BE EXTREMELY STRUCTURED.
+
+SECTION 1 — CANONICAL PRODUCT SURFACE
+List ALL directories/files inside `.migration-backup/` that are:
+- active runtime code
+- production logic
+- critical product infrastructure
+- actual Meridian functionality
+
+Group by:
+- app routes
+- components
+- lib
+- APIs
+- auth
+- OCR/labs
+- AI orchestration
+- safety engine
+- onboarding
+- Supabase
+- types/config
+- deployment/runtime config
+
+For each item:
+- path
+- purpose
+- criticality level:
+  - critical
+  - important
+  - optional
+
+SECTION 2 — ROOT WORKSPACE / WRAPPER LAYER
+Map the ROOT-level files/folders and classify them as:
+- workspace plumbing
+- deployment wrapper
+- Replit tooling
+- package orchestration
+- build/typecheck infra
+- possibly unused
+- unclear purpose
+
+For each:
+- path
+- purpose
+- whether Meridian runtime actually depends on it
+- risk if removed
+- whether it should eventually remain or disappear
+
+SECTION 3 — DEAD OR PROBABLY UNUSED ARTIFACTS
+Identify:
+- empty scaffolds
+- generated placeholders
+- unused workspace packages
+- unused references
+- dead configs
+- duplicate configs
+
+IMPORTANT:
+DO NOT recommend deleting yet.
+Only classify probable dead weight.
+
+SECTION 4 — DEPLOYMENT FLOW MAP
+Explain PRECISELY:
+- what command Replit runs
+- what package.json actually powers Meridian
+- what tsconfig actually matters
+- what Next.js config actually matters
+- what root configs are only wrappers
+- how Vercel likely reaches the active app
+
+SECTION 5 — CONFIGURATION OWNERSHIP MAP
+For each category, identify the TRUE owner:
+
+- package.json
+- tsconfig
+- next.config
+- env vars
+- middleware
+- API routes
+- Supabase config
+- OCR routes
+- intelligence engine
+- dashboard rendering
+- onboarding
+- safety engine
+
+Clarify whether the authoritative version lives:
+- in root
+- in `.migration-backup`
+- or both
+
+SECTION 6 — SAFE FUTURE CLEANUP CANDIDATES
+Create 3 lists:
+
+A) NEVER TOUCH
+B) TOUCH LATER WITH VALIDATION
+C) PROBABLY SAFE TO REMOVE EVENTUALLY
+
+IMPORTANT:
+No destructive recommendations yet.
+No migrations yet.
+No cleanup yet.
+
+SECTION 7 — FINAL ARCHITECTURE SUMMARY
+Give a final concise topology summary:
+
+Example:
+- root = workspace shell
+- X = deployment wrapper
+- Y = active product runtime
+- Z = generated scaffolding
+
+We want a DEFINITIVE architecture map before touching anything else.
