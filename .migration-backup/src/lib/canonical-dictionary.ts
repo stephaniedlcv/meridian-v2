@@ -142,9 +142,22 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'hba1c',
     name: 'Hemoglobin A1c',
     unit: '%',
-    aliases: ['hba1c', 'a1c', 'glycated hemoglobin', 'hemoglobina glicosilada', 'glycated hb', 'hemoglobin a1c', 'hb a1c',
-      // Phase 1 hardening — common real-world variants
-      'glycohemoglobin', 'glycohaemoglobin', 'hemoglobin a1c blood', 'glycated hemoglobin a1c', 'a1c blood',
+    aliases: [
+      'hba1c', 'a1c', 'hemoglobin a1c', 'hb a1c',
+      // Glycated / glycosylated variants — same substance, different vendor terminology
+      'glycated hemoglobin', 'glycated hb', 'glycated hemoglobin a1c',
+      'glycosylated hemoglobin', 'glycosylated hb', 'glycosylated hemoglobin a1c',
+      // Hgb abbreviation variants — "Hgb" is vendor-shorthand for "Hemoglobin"
+      'hgb a1c', 'glycosylated hgb', 'glycated hgb',
+      'total glycosylated hgb a1c', 'total glycosylated hemoglobin a1c',
+      'total glycosylated hgb', 'total glycosylated hemoglobin',
+      'total glycated hemoglobin', 'total hba1c',
+      // Spanish / multilingual
+      'hemoglobina glicosilada', 'hemoglobina glucosilada',
+      // Misc real-world lab report variants
+      'glycohemoglobin', 'glycohaemoglobin',
+      'hemoglobin a1c blood', 'a1c blood',
+      'hemoglobin a1c level', 'hba1c level',
     ],
     system: 'metabolic',
     riskProfile: 'linear-high',
@@ -1333,37 +1346,113 @@ const PROTECTED_SLUGS = new Set([
   'co2',
 ])
 
+// ── Abbreviation expansion map ────────────────────────────────────────────────
+// Applied before alias lookup so vendor-specific shorthand (e.g. "Hgb") maps
+// to the full word used in alias entries (e.g. "hemoglobin").
+// Only unambiguous, single-token expansions belong here.
+// DO NOT expand "hb" alone — it is too short and context-dependent.
+const _ABBREV_EXPANSIONS: Record<string, string> = {
+  'hgb': 'hemoglobin',
+  'hbg': 'hemoglobin',
+  'ser': 'serum',
+  'tot': 'total',
+}
+
+function _expandAbbreviations(text: string): string {
+  return text
+    .split(' ')
+    .map(word => _ABBREV_EXPANSIONS[word] ?? word)
+    .join(' ')
+}
+
+// ── Word-set Jaccard similarity ───────────────────────────────────────────────
+// Used as final fallback. Words of length ≤ 1 are ignored to reduce noise.
+// Returns 0–1; threshold 0.60 means ≥ 60% word-set overlap.
+function _jaccardWords(a: string, b: string): number {
+  const setA = new Set(a.split(' ').filter(w => w.length > 1))
+  const setB = new Set(b.split(' ').filter(w => w.length > 1))
+  if (setA.size === 0 || setB.size === 0) return 0
+  let intersection = 0
+  for (const word of setA) {
+    if (setB.has(word)) intersection++
+  }
+  const union = new Set([...setA, ...setB]).size
+  return intersection / union
+}
+const _JACCARD_THRESHOLD = 0.60
+
 /**
- * Fuzzy match with protection against false partial matches.
+ * Match a raw lab marker name to a canonical slug.
+ *
+ * Matching priority (highest → lowest):
+ *   1. Exact alias lookup on normalized string
+ *   2. Hyphen normalization variants (strip / replace with space)
+ *   3. Abbreviation expansion (hgb → hemoglobin) + alias lookup
+ *   4. Substring / partial match on normalized string (PROTECTED_SLUGS excluded)
+ *   5. Substring / partial match on abbreviation-expanded string
+ *   6. Word-set Jaccard similarity ≥ 0.60 (PROTECTED_SLUGS excluded)
+ *
+ * If none of the above produce a match, returns null and the marker is
+ * routed to the pending_biomarkers queue.
  */
 export function matchMarkerToSlug(rawName: string): string | null {
+  // Step 0: baseline normalization
   const normalized = rawName.toLowerCase().trim()
-    .replace(/[()]/g, '')
-    .replace(/,/g, '')
+    .replace(/[()[\]]/g, '')
+    .replace(/[,;:]/g, '')
     .replace(/\s+/g, ' ')
+    .trim()
 
-  // 1. Direct match (highest priority)
-  if (_aliasMap.has(normalized)) {
-    return _aliasMap.get(normalized)!
-  }
+  // 1. Exact alias match on normalized string
+  if (_aliasMap.has(normalized)) return _aliasMap.get(normalized)!
 
-  // 2. Normalize hyphens
+  // 2. Hyphen normalization variants
   const withoutHyphens = normalized.replace(/-/g, '')
-  if (_aliasMap.has(withoutHyphens)) {
-    return _aliasMap.get(withoutHyphens)!
-  }
-  const hyphensToSpaces = normalized.replace(/-/g, ' ')
-  if (_aliasMap.has(hyphensToSpaces)) {
-    return _aliasMap.get(hyphensToSpaces)!
+  if (_aliasMap.has(withoutHyphens)) return _aliasMap.get(withoutHyphens)!
+  const hyphensToSpaces = normalized.replace(/-/g, ' ').replace(/\s+/g, ' ').trim()
+  if (_aliasMap.has(hyphensToSpaces)) return _aliasMap.get(hyphensToSpaces)!
+
+  // 3. Abbreviation expansion — try alias lookup on expanded form
+  const expanded = _expandAbbreviations(normalized)
+  if (expanded !== normalized) {
+    if (_aliasMap.has(expanded)) return _aliasMap.get(expanded)!
+    const expandedNoHyphens = expanded.replace(/-/g, '')
+    if (_aliasMap.has(expandedNoHyphens)) return _aliasMap.get(expandedNoHyphens)!
+    const expandedHyphensToSpaces = expanded.replace(/-/g, ' ').replace(/\s+/g, ' ').trim()
+    if (_aliasMap.has(expandedHyphensToSpaces)) return _aliasMap.get(expandedHyphensToSpaces)!
   }
 
-  // 3. Partial match — but SKIP protected slugs to avoid false matches
+  // 4. Substring / partial match on normalized string — PROTECTED_SLUGS excluded
   for (const [alias, slug] of _aliasMap.entries()) {
     if (PROTECTED_SLUGS.has(slug)) continue
     if (alias.length >= 4 && (normalized.includes(alias) || alias.includes(normalized))) {
       return slug
     }
   }
+
+  // 5. Substring / partial match on abbreviation-expanded string
+  if (expanded !== normalized) {
+    for (const [alias, slug] of _aliasMap.entries()) {
+      if (PROTECTED_SLUGS.has(slug)) continue
+      if (alias.length >= 4 && (expanded.includes(alias) || alias.includes(expanded))) {
+        return slug
+      }
+    }
+  }
+
+  // 6. Word-set Jaccard similarity fallback — PROTECTED_SLUGS excluded
+  let bestSlug: string | null = null
+  let bestScore = 0
+  for (const [alias, slug] of _aliasMap.entries()) {
+    if (PROTECTED_SLUGS.has(slug)) continue
+    if (alias.length < 4) continue
+    const score = _jaccardWords(expanded, alias)
+    if (score >= _JACCARD_THRESHOLD && score > bestScore) {
+      bestScore = score
+      bestSlug = slug
+    }
+  }
+  if (bestSlug) return bestSlug
 
   return null
 }

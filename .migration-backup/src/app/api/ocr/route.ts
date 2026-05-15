@@ -17,6 +17,7 @@ interface RawExtraction {
 interface StagedBiomarker {
   slug: string
   name: string
+  source_marker_name: string
   value: number
   unit: string
   original_value: number
@@ -201,6 +202,7 @@ export async function POST(request: NextRequest) {
       stagedBiomarkers.push({
         slug,
         name: marker.name,
+        source_marker_name: raw.name,
         value: converted.value,
         unit: converted.unit,
         original_value: raw.value,

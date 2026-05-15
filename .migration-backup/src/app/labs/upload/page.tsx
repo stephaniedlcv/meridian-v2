@@ -38,6 +38,7 @@ const fonts = {
 interface StagedBiomarker {
   slug: string
   name: string
+  source_marker_name: string
   value: number
   unit: string
   original_value: number
