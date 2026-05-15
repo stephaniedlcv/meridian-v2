@@ -2077,15 +2077,18 @@ export default function LabsUploadPage() {
                                 ? (isLikelyQualitativeUrinalysis(b.name) ? 'URINALYSIS' : 'SEROLOGY')
                                 : null
 
-                              // Sub-text beneath the marker name
+                              // Sub-text beneath the marker name.
+                              // Priority: error states > unit conversion > original PDF name.
+                              const sourceNameDiffers =
+                                b.source_marker_name && b.source_marker_name !== b.name
                               const subText: string | null = isUnreadable
                                 ? 'Meridian could not confidently extract this value from the PDF.'
                                 : isPartial
                                   ? b.error_reason ?? 'Value outside plausible range — not saved.'
-                                  : isQualitative && b.source_marker_name && b.source_marker_name !== b.name
-                                    ? `From: ${b.source_marker_name}`
-                                    : !isQualitative && b.converted
-                                      ? `Converted from ${b.original_value} ${b.original_unit}`
+                                  : !isQualitative && b.converted
+                                    ? `Converted from ${b.original_value} ${b.original_unit}`
+                                    : sourceNameDiffers
+                                      ? `From: ${b.source_marker_name}`
                                       : null
 
                               const dotColor = isUnreadable ? '#FCD34D' : isPartial ? '#F87171' : s.dot

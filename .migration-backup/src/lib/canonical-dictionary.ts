@@ -36,18 +36,39 @@ export type MarkerCategory =
   | 'microbiology'
 
 // derived_metric_type: classifies computed / ratio markers by domain.
-// These are typically calculated from two primary analytes rather than measured directly.
-//   lipid_ratio            — cardiovascular ratio (LDL/HDL, TC/HDL, etc.)
-//   insulin_resistance_ratio — metabolic ratio (e.g. TG/HDL, HOMA-IR)
-//   inflammatory_ratio     — inflammation index (e.g. neutrophil/lymphocyte)
-//   renal_ratio            — kidney function ratio (e.g. BUN/Creatinine)
-//   hepatic_ratio          — liver function ratio (e.g. Albumin/Globulin)
 export type DerivedMetricType =
   | 'lipid_ratio'
   | 'insulin_resistance_ratio'
   | 'inflammatory_ratio'
   | 'renal_ratio'
   | 'hepatic_ratio'
+
+// panel_membership: standard clinical panels this marker belongs to.
+// A marker may appear in multiple panels (e.g. sodium is in both CMP and BMP).
+// Used for panel-level grouping, bulk import, and result context display.
+export type PanelType =
+  | 'CMP'          // Comprehensive Metabolic Panel
+  | 'BMP'          // Basic Metabolic Panel
+  | 'CBC'          // Complete Blood Count
+  | 'Lipid'        // Lipid Panel
+  | 'HbA1c'        // Glycated Hemoglobin
+  | 'Thyroid'      // Thyroid Panel
+  | 'Urinalysis'   // Urinalysis Panel
+  | 'Iron'         // Iron Studies
+  | 'Inflammation' // Inflammatory Markers
+  | 'Nutrients'    // Vitamin / Mineral Panel
+  | 'Hormones'     // Reproductive / Adrenal Hormones
+  | 'Coagulation'  // Coagulation Panel
+  | 'Infectious'   // Infectious Disease / Serology
+
+// match_confidence: describes how a raw marker name was resolved to a canonical slug.
+// Exposed via matchMarkerToSlugWithConfidence() for display and audit purposes.
+//   exact    — exact alias lookup after baseline normalization
+//   alias    — matched via parenthetical strip, hyphen variant, or abbreviation expansion
+//   semantic — matched by semantic pattern detection (e.g. ratio/risk-factor context)
+//   fuzzy    — matched by substring inclusion or Jaccard word-set similarity (≥ 0.60)
+export type MatchConfidence = 'exact' | 'alias' | 'semantic' | 'fuzzy'
+export interface SlugMatch { slug: string; confidence: MatchConfidence }
 
 export interface CanonicalMarker {
   slug: string
@@ -59,8 +80,13 @@ export interface CanonicalMarker {
   marker_category?: MarkerCategory
   // Classifies this marker as a derived / computed ratio metric.
   derived_metric_type?: DerivedMetricType
+  // Standard clinical panels this marker belongs to.
+  panel_membership?: PanelType[]
+  // Semantic equivalence group — links markers that are clinically interchangeable
+  // or measured by different methods but represent the same analyte
+  // (e.g. CO2 ↔ Bicarbonate, Total T4 ↔ Free T4 context, etc.).
+  marker_equivalence_group?: string
   // Per-marker state mapping for qualitative values.
-  // Keys are QualitativeValue strings; values override the default serology state logic.
   qualitative_state_map?: Record<string, 'Optimal' | 'Watch' | 'Attention'>
   riskProfile: RiskProfile
   normalF: { min: number; max: number }
@@ -78,6 +104,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'tsh',
     name: 'TSH',
     unit: 'mIU/L',
+    panel_membership: ['Thyroid'],
     aliases: [
       'tsh', 'thyrotropin', 't.s.h.', 'serum tsh',
       'thyroid stimulating hormone', 'hormona tiroestimulante', 'tirotropina',
@@ -104,6 +131,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'free_t4',
     name: 'Free T4',
     unit: 'ng/dL',
+    panel_membership: ['Thyroid'],
     aliases: ['free t4', 'ft4', 'free thyroxine', 'free thyroxine ft4', 't4 libre', 'tiroxina libre', 't4 free', 'thyroxine free',
       // additional real-world lab report variants
       't4 free thyroxine', 'thyroxine, free', 't4, free', 'free thyroxin', 't4 direct',
@@ -182,6 +210,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'hba1c',
     name: 'Hemoglobin A1c',
     unit: '%',
+    panel_membership: ['HbA1c'],
     aliases: [
       'hba1c', 'a1c', 'hemoglobin a1c', 'hb a1c',
       // Glycated / glycosylated variants — same substance, different vendor terminology
@@ -248,7 +277,15 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'total_cholesterol',
     name: 'Total Cholesterol',
     unit: 'mg/dL',
-    aliases: ['total cholesterol', 'cholesterol total', 'colesterol total', 'cholesterol'],
+    panel_membership: ['Lipid', 'CMP'],
+    aliases: [
+      'total cholesterol', 'cholesterol total', 'colesterol total', 'cholesterol',
+      // Serum / blood variants common on Lipid Panel printouts
+      'cholesterol, serum', 'cholesterol serum', 'chol, serum', 'chol serum',
+      'total chol', 'total chol serum', 'chol total',
+      // Additional real-world spellings
+      'cholesterol, total', 'tc', 'total cholesterol, serum',
+    ],
     system: 'cardiovascular',
     riskProfile: 'linear-high',
     normalF: { min: 100, max: 200 },
@@ -263,7 +300,14 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'hdl',
     name: 'HDL Cholesterol',
     unit: 'mg/dL',
-    aliases: ['hdl', 'hdl chol', 'hdl cholesterol', 'hdl-c', 'hdl-cholesterol', 'colesterol hdl', 'high density lipoprotein', 'lipoproteina alta densidad'],
+    panel_membership: ['Lipid'],
+    aliases: [
+      'hdl', 'hdl chol', 'hdl cholesterol', 'hdl-c', 'hdl-cholesterol',
+      'colesterol hdl', 'high density lipoprotein', 'lipoproteina alta densidad',
+      // Additional real-world spellings
+      'high-density lipoprotein', 'hdl cholesterol serum', 'hdl-c cholesterol',
+      'hdl chol serum', 'hdl, direct',
+    ],
     system: 'cardiovascular',
     riskProfile: 'linear-low',
     normalF: { min: 50, max: 100 },
@@ -278,7 +322,17 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'ldl',
     name: 'LDL Cholesterol',
     unit: 'mg/dL',
-    aliases: ['ldl', 'ldl chol', 'ldl cholesterol', 'ldl-c', 'ldl-cholesterol', 'colesterol ldl', 'low density lipoprotein', 'lipoproteina baja densidad', 'ldl calculated', 'ldl calc', 'ldl chol calc'],
+    panel_membership: ['Lipid'],
+    aliases: [
+      'ldl', 'ldl chol', 'ldl cholesterol', 'ldl-c', 'ldl-cholesterol',
+      'colesterol ldl', 'low density lipoprotein', 'lipoproteina baja densidad',
+      'ldl calculated', 'ldl calc', 'ldl chol calc',
+      // Additional real-world spellings
+      'low-density lipoprotein', 'ldl cholesterol serum', 'ldl-c cholesterol',
+      'ldl chol serum', 'ldl chol calculated', 'ldl direct',
+      // Spelled-out with cholesterol suffix (parenthetical form handled by Step 0.25)
+      'low density lipoprotein cholesterol', 'low-density lipoprotein cholesterol',
+    ],
     system: 'cardiovascular',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 130 },
@@ -328,7 +382,11 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'triglycerides',
     name: 'Triglycerides',
     unit: 'mg/dL',
-    aliases: ['triglycerides', 'trigliceridos', 'trig', 'tg', 'triacylglycerols'],
+    panel_membership: ['Lipid'],
+    aliases: [
+      'triglycerides', 'trigliceridos', 'trig', 'tg', 'triacylglycerols',
+      'triglycerides serum', 'triglyceride', 'trigs', 'tgs',
+    ],
     system: 'cardiovascular',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 150 },
@@ -537,7 +595,13 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'globulin',
     name: 'Globulin',
     unit: 'g/dL',
-    aliases: ['globulin', 'globulina'],
+    panel_membership: ['CMP'],
+    aliases: [
+      'globulin', 'globulina',
+      // Common CMP printout variants
+      'glob', 'globulin serum', 'globulin calculated', 'globulin calc',
+      'globulin, calculated', 'total globulin', 'serum globulin',
+    ],
     system: 'liver',
     riskProfile: 'u-shaped',
     normalF: { min: 1.5, max: 4.5 },
@@ -553,7 +617,15 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     name: 'Albumin/Globulin Ratio',
     unit: 'ratio',
     derived_metric_type: 'hepatic_ratio',
-    aliases: ['albumin/globulin ratio', 'a/g ratio', 'ag ratio', 'a:g ratio'],
+    panel_membership: ['CMP'],
+    aliases: [
+      'albumin/globulin ratio', 'a/g ratio', 'ag ratio', 'a:g ratio',
+      // Abbreviated forms used by LabCorp, Quest, and regional labs
+      'alb/glob ratio', 'alb/glob', 'alb glob ratio', 'alb glob',
+      // Unslashed variants (for Jaccard and substring matching)
+      'albumin globulin ratio', 'albumin to globulin ratio',
+      'albumin/globulin', 'alb/globulin ratio', 'albumin/glob ratio',
+    ],
     system: 'liver',
     riskProfile: 'u-shaped',
     normalF: { min: 1.0, max: 2.5 },
@@ -659,9 +731,15 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'bun',
     name: 'BUN',
     unit: 'mg/dL',
-    aliases: ['bun', 'blood urea nitrogen', 'urea nitrogen', 'urea', 'nitrogeno ureico',
-      // Phase 1 hardening — CMP printout variants
+    panel_membership: ['CMP', 'BMP'],
+    aliases: [
+      'bun', 'blood urea nitrogen', 'urea nitrogen', 'urea', 'nitrogeno ureico',
+      // CMP printout variants
       'bun serum', 'urea nitrogen serum', 'bun blood', 'urea nitrogen blood',
+      // Serum-qualified forms
+      'serum urea nitrogen', 'serum bun', 'urea nitrogen, serum',
+      // UK clinical terminology
+      'urea', 'blood urea',
     ],
     system: 'kidney',
     riskProfile: 'u-shaped',
@@ -749,9 +827,15 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'co2',
     name: 'CO2 (Bicarbonate)',
     unit: 'mmol/L',
-    aliases: ['co2', 'carbon dioxide', 'carbon dioxide total', 'bicarbonate', 'hco3', 'co2 total', 'total co2',
+    panel_membership: ['CMP', 'BMP'],
+    marker_equivalence_group: 'co2_bicarbonate',
+    aliases: [
+      'co2', 'carbon dioxide', 'carbon dioxide total', 'bicarbonate', 'hco3', 'co2 total', 'total co2',
       // Phase 1 hardening — common shorthand seen on CMP printouts
       'bicarb', 'co2 serum', 'co2, bicarbonate', 'co2 bicarbonate', 'carbon dioxide serum',
+      // Additional serum / total variants (parenthetical form handled by Step 0.25)
+      'serum bicarbonate', 'serum co2', 'bicarbonate serum', 'hco3 serum',
+      'co2/bicarbonate', 'co2 bicarbonate serum', 'total bicarbonate',
     ],
     system: 'electrolytes',
     riskProfile: 'u-shaped',
@@ -785,7 +869,12 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'anion_gap',
     name: 'Anion Gap',
     unit: 'mEq/L',
-    aliases: ['anion gap', 'agap', 'ag'],
+    panel_membership: ['CMP', 'BMP'],
+    aliases: [
+      'anion gap', 'agap', 'ag',
+      'anion gap serum', 'anion gap calculated', 'anion gap calc',
+      'anion gap, serum', 'anion gap mEq/L',
+    ],
     system: 'electrolytes',
     riskProfile: 'u-shaped',
     normalF: { min: 3, max: 18 },
@@ -802,7 +891,11 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'ferritin',
     name: 'Ferritin',
     unit: 'ng/mL',
-    aliases: ['ferritin', 'ferritina', 'fer', 's-ferritine', 'serum ferritin'],
+    panel_membership: ['Iron'],
+    aliases: [
+      'ferritin', 'ferritina', 'fer', 's-ferritine', 'serum ferritin',
+      'ferritin serum', 'ferritin blood', 'ferritin, serum',
+    ],
     system: 'iron',
     riskProfile: 'u-shaped',
     normalF: { min: 12, max: 150 },
@@ -819,7 +912,16 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'crp_hs',
     name: 'hs-CRP',
     unit: 'mg/L',
-    aliases: ['crp', 'hs-crp', 'crp-hs', 'pcr', 'pcr-us', 'c reactive protein', 'proteina c reactiva', 'high sensitivity crp', 'c-reactive protein'],
+    panel_membership: ['Inflammation'],
+    aliases: [
+      'crp', 'hs-crp', 'crp-hs', 'pcr', 'pcr-us', 'c reactive protein',
+      'proteina c reactiva', 'high sensitivity crp', 'c-reactive protein',
+      // Additional real-world naming variants
+      'hs crp', 'crp high sensitivity', 'high sensitivity c reactive protein',
+      'high sensitivity c-reactive protein', 'hsCRP', 'hscrp',
+      'crp cardiac', 'cardiac crp', 'c-reactive protein high sensitivity',
+      'crp, high sensitivity', 'c reactive protein high sensitivity',
+    ],
     system: 'inflammation',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 3.0 },
@@ -873,7 +975,13 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'folate',
     name: 'Folate',
     unit: 'ng/mL',
-    aliases: ['folate', 'folic acid', 'acido folico', 'folato'],
+    panel_membership: ['Nutrients'],
+    aliases: [
+      'folate', 'folic acid', 'acido folico', 'folato',
+      'folate serum', 'serum folate', 'folic acid serum',
+      'folate, serum', 'folate rbc', 'red blood cell folate',
+      'vitamin b9', 'vit b9',
+    ],
     system: 'nutrients',
     riskProfile: 'linear-low',
     normalF: { min: 3.0, max: 20.0 },
@@ -888,7 +996,12 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'magnesium',
     name: 'Magnesium',
     unit: 'mg/dL',
-    aliases: ['magnesium', 'magnesio', 'magnesio serico', 'serum magnesium'],
+    panel_membership: ['Nutrients'],
+    aliases: [
+      'magnesium', 'magnesio', 'magnesio serico', 'serum magnesium',
+      'magnesium serum', 'mg serum', 'magnesium, serum',
+      'mg2+', 'mg blood', 'magnesium blood',
+    ],
     system: 'nutrients',
     riskProfile: 'linear-low',
     normalF: { min: 1.7, max: 2.2 },
@@ -974,6 +1087,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'hemoglobin',
     name: 'Hemoglobin',
     unit: 'g/dL',
+    panel_membership: ['CBC'],
     aliases: ['hemoglobin', 'hemoglobina', 'hgb', 'hb',
       // Phase 1 hardening — UK spelling and blood qualifier variants
       'haemoglobin', 'haemoglobina', 'hemoglobin blood',
@@ -992,6 +1106,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'hematocrit',
     name: 'Hematocrit',
     unit: '%',
+    panel_membership: ['CBC'],
     aliases: ['hematocrit', 'hematocrito', 'hct',
       // Phase 1 hardening — UK spelling and packed-cell volume equivalents
       'haematocrit', 'pcv', 'packed cell volume',
@@ -1118,6 +1233,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'platelets',
     name: 'Platelets',
     unit: 'K/µL',
+    panel_membership: ['CBC'],
     aliases: ['platelets', 'plaquetas', 'platelet count', 'trombocitos', 'plt',
       // Phase 1 hardening — common abbreviations and unit-qualified labels
       'plts', 'platelet', 'thrombocytes', 'platelet #', 'plt count', 'blood platelets',
@@ -1138,6 +1254,7 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'wbc',
     name: 'White Blood Cells',
     unit: 'K/µL',
+    panel_membership: ['CBC'],
     aliases: ['wbc', 'white blood cells', 'leucocitos', 'globulos blancos', 'white blood cell count',
       // Phase 1 hardening — clinical synonym variants
       'white cell count', 'leukocytes', 'leukocyte count', 'total wbc',
@@ -2117,78 +2234,93 @@ function _semanticRatioMatch(normalized: string): string | null {
   return null
 }
 
-/**
- * Match a raw lab marker name to a canonical slug.
- *
- * Matching priority (highest → lowest):
- *   0.5 Semantic ratio / risk-factor normalization (vendor-proprietary names)
- *   1.  Exact alias lookup on normalized string
- *   2.  Hyphen normalization variants (strip / replace with space)
- *   3.  Abbreviation expansion (hgb → hemoglobin) + alias lookup
- *   4.  Substring / partial match on normalized string (PROTECTED_SLUGS excluded)
- *   5.  Substring / partial match on abbreviation-expanded string
- *   6.  Word-set Jaccard similarity ≥ 0.60 (PROTECTED_SLUGS excluded)
- *
- * If none of the above produce a match, returns null and the marker is
- * routed to the pending_biomarkers queue.
- */
-export function matchMarkerToSlug(rawName: string): string | null {
-  // Step 0: baseline normalization
-  // Note: colons are NOT stripped here so that "chol:hdl" etc. survive into the
-  // alias map (aliases include colon forms). Colons are stripped only for the
-  // semantic layer which does substring checks.
-  const normalized = rawName.toLowerCase().trim()
+// Internal normalization helper — shared by both public API functions.
+function _normalize(raw: string): string {
+  return raw.toLowerCase().trim()
     .replace(/[()[\]]/g, '')
     .replace(/[,;]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
+}
 
-  // Step 0.5: semantic ratio / risk-factor normalization.
-  // Runs before alias lookup so vendor-proprietary names (e.g. "HDL Risk Factor",
-  // "Cardiac Risk Ratio") resolve to the correct protected ratio slug.
-  // Uses a colon-stripped variant for reliable substring checks.
-  const normalizedForSemantic = normalized.replace(/:/g, ' ').replace(/\s+/g, ' ').trim()
-  const semanticSlug = _semanticRatioMatch(normalizedForSemantic)
-  if (semanticSlug) return semanticSlug
+// Internal core matching logic.
+// Returns { slug, confidence } or null.
+// Both public API functions wrap this to maintain backward compatibility.
+function _matchCore(rawName: string): SlugMatch | null {
+  // Step 0: baseline normalization.
+  // Colons are NOT stripped so "chol:hdl" alias forms survive into the map.
+  // Colons are stripped only for the semantic layer's substring checks.
+  const normalized = _normalize(rawName)
 
-  // 1. Exact alias match on normalized string
-  if (_aliasMap.has(normalized)) return _aliasMap.get(normalized)!
-
-  // 2. Hyphen normalization variants
-  const withoutHyphens = normalized.replace(/-/g, '')
-  if (_aliasMap.has(withoutHyphens)) return _aliasMap.get(withoutHyphens)!
-  const hyphensToSpaces = normalized.replace(/-/g, ' ').replace(/\s+/g, ' ').trim()
-  if (_aliasMap.has(hyphensToSpaces)) return _aliasMap.get(hyphensToSpaces)!
-
-  // 3. Abbreviation expansion — try alias lookup on expanded form
-  const expanded = _expandAbbreviations(normalized)
-  if (expanded !== normalized) {
-    if (_aliasMap.has(expanded)) return _aliasMap.get(expanded)!
-    const expandedNoHyphens = expanded.replace(/-/g, '')
-    if (_aliasMap.has(expandedNoHyphens)) return _aliasMap.get(expandedNoHyphens)!
-    const expandedHyphensToSpaces = expanded.replace(/-/g, ' ').replace(/\s+/g, ' ').trim()
-    if (_aliasMap.has(expandedHyphensToSpaces)) return _aliasMap.get(expandedHyphensToSpaces)!
-  }
-
-  // 4. Substring / partial match on normalized string — PROTECTED_SLUGS excluded
-  for (const [alias, slug] of _aliasMap.entries()) {
-    if (PROTECTED_SLUGS.has(slug)) continue
-    if (alias.length >= 4 && (normalized.includes(alias) || alias.includes(normalized))) {
-      return slug
+  // Step 0.25: parenthetical content strip.
+  // "Blood Urea Nitrogen (BUN)" → try "blood urea nitrogen" before falling through.
+  // "Carbon Dioxide (CO2)"      → try "carbon dioxide".
+  // "LDL Cholesterol (LDL-C)"  → try "ldl cholesterol".
+  // This step fires before PROTECTED_SLUGS checks, so protected markers are reachable.
+  const withoutParenContent = rawName
+    .replace(/\s*\([^)]*\)/g, ' ')
+    .replace(/\s*\[[^\]]*\]/g, ' ')
+    .trim()
+  if (withoutParenContent.toLowerCase().trim() !== rawName.toLowerCase().trim()) {
+    const strippedNorm = _normalize(withoutParenContent)
+    if (strippedNorm && _aliasMap.has(strippedNorm)) {
+      return { slug: _aliasMap.get(strippedNorm)!, confidence: 'alias' }
+    }
+    const strippedNoHyphens = strippedNorm.replace(/-/g, '')
+    if (_aliasMap.has(strippedNoHyphens)) {
+      return { slug: _aliasMap.get(strippedNoHyphens)!, confidence: 'alias' }
+    }
+    const strippedHyphensToSpaces = strippedNorm.replace(/-/g, ' ').replace(/\s+/g, ' ').trim()
+    if (_aliasMap.has(strippedHyphensToSpaces)) {
+      return { slug: _aliasMap.get(strippedHyphensToSpaces)!, confidence: 'alias' }
     }
   }
 
-  // 5. Substring / partial match on abbreviation-expanded string
+  // Step 0.5: semantic ratio / risk-factor normalization.
+  // Resolves vendor-proprietary names (e.g. "HDL Risk Factor", "Cardiac Risk Ratio")
+  // to the correct protected ratio slug before the generic alias lookup.
+  const normalizedForSemantic = normalized.replace(/:/g, ' ').replace(/\s+/g, ' ').trim()
+  const semanticSlug = _semanticRatioMatch(normalizedForSemantic)
+  if (semanticSlug) return { slug: semanticSlug, confidence: 'semantic' }
+
+  // Step 1: exact alias match on normalized string
+  if (_aliasMap.has(normalized)) return { slug: _aliasMap.get(normalized)!, confidence: 'exact' }
+
+  // Step 2: hyphen normalization variants
+  const withoutHyphens = normalized.replace(/-/g, '')
+  if (_aliasMap.has(withoutHyphens)) return { slug: _aliasMap.get(withoutHyphens)!, confidence: 'alias' }
+  const hyphensToSpaces = normalized.replace(/-/g, ' ').replace(/\s+/g, ' ').trim()
+  if (_aliasMap.has(hyphensToSpaces)) return { slug: _aliasMap.get(hyphensToSpaces)!, confidence: 'alias' }
+
+  // Step 3: abbreviation expansion → alias lookup
+  const expanded = _expandAbbreviations(normalized)
+  if (expanded !== normalized) {
+    if (_aliasMap.has(expanded)) return { slug: _aliasMap.get(expanded)!, confidence: 'alias' }
+    const expandedNoHyphens = expanded.replace(/-/g, '')
+    if (_aliasMap.has(expandedNoHyphens)) return { slug: _aliasMap.get(expandedNoHyphens)!, confidence: 'alias' }
+    const expandedHyphensToSpaces = expanded.replace(/-/g, ' ').replace(/\s+/g, ' ').trim()
+    if (_aliasMap.has(expandedHyphensToSpaces)) return { slug: _aliasMap.get(expandedHyphensToSpaces)!, confidence: 'alias' }
+  }
+
+  // Step 4: substring / partial match on normalized string — PROTECTED_SLUGS excluded
+  for (const [alias, slug] of _aliasMap.entries()) {
+    if (PROTECTED_SLUGS.has(slug)) continue
+    if (alias.length >= 4 && (normalized.includes(alias) || alias.includes(normalized))) {
+      return { slug, confidence: 'fuzzy' }
+    }
+  }
+
+  // Step 5: substring / partial match on abbreviation-expanded string
   if (expanded !== normalized) {
     for (const [alias, slug] of _aliasMap.entries()) {
       if (PROTECTED_SLUGS.has(slug)) continue
       if (alias.length >= 4 && (expanded.includes(alias) || alias.includes(expanded))) {
-        return slug
+        return { slug, confidence: 'fuzzy' }
       }
     }
   }
 
-  // 6. Word-set Jaccard similarity fallback — PROTECTED_SLUGS excluded
+  // Step 6: word-set Jaccard similarity ≥ 0.60 — PROTECTED_SLUGS excluded
   let bestSlug: string | null = null
   let bestScore = 0
   for (const [alias, slug] of _aliasMap.entries()) {
@@ -2200,9 +2332,43 @@ export function matchMarkerToSlug(rawName: string): string | null {
       bestSlug = slug
     }
   }
-  if (bestSlug) return bestSlug
+  if (bestSlug) return { slug: bestSlug, confidence: 'fuzzy' }
 
   return null
+}
+
+/**
+ * Match a raw lab marker name to a canonical slug.
+ *
+ * Matching priority (highest → lowest):
+ *   0.25 Parenthetical content strip — "Name (ABBR)" → "Name" (handles PROTECTED slugs)
+ *   0.5  Semantic ratio / risk-factor normalization (vendor-proprietary names)
+ *   1.   Exact alias lookup on normalized string
+ *   2.   Hyphen normalization variants (strip / replace with space)
+ *   3.   Abbreviation expansion (hgb → hemoglobin) + alias lookup
+ *   4.   Substring / partial match on normalized string (PROTECTED_SLUGS excluded)
+ *   5.   Substring / partial match on abbreviation-expanded string
+ *   6.   Word-set Jaccard similarity ≥ 0.60 (PROTECTED_SLUGS excluded)
+ *
+ * Returns null if no match — marker is routed to pending_biomarkers queue.
+ * For confidence scoring, use matchMarkerToSlugWithConfidence().
+ */
+export function matchMarkerToSlug(rawName: string): string | null {
+  return _matchCore(rawName)?.slug ?? null
+}
+
+/**
+ * Match a raw lab marker name to a canonical slug with confidence scoring.
+ *
+ * Returns { slug, confidence } or null.
+ * Confidence levels:
+ *   exact    — exact alias match after baseline normalization
+ *   alias    — parenthetical strip, hyphen variant, or abbreviation expansion
+ *   semantic — ratio / risk-factor semantic pattern detection
+ *   fuzzy    — substring inclusion or Jaccard word-set similarity (≥ 0.60)
+ */
+export function matchMarkerToSlugWithConfidence(rawName: string): SlugMatch | null {
+  return _matchCore(rawName)
 }
 
 export function convertToCanonicalUnit(
