@@ -2072,9 +2072,25 @@ export default function LabsUploadPage() {
                                 ? (QUALITATIVE_DISPLAY_LABELS[b.qualitative_value] ?? b.qualitative_value.toUpperCase())
                                 : null
 
+                              // CBC differential slug sets — used to drive category label below value
+                              const isDiffRelative = (
+                                b.slug === 'neutrophils_pct' || b.slug === 'lymphocytes_pct' ||
+                                b.slug === 'monocytes_pct' || b.slug === 'eosinophils_pct' ||
+                                b.slug === 'basophils_pct' || b.slug === 'immature_granulocytes_pct' ||
+                                b.slug === 'nrbc_pct'
+                              )
+                              const isDiffAbsolute = (
+                                b.slug === 'neutrophils_abs' || b.slug === 'lymphocytes_abs' ||
+                                b.slug === 'monocytes_abs' || b.slug === 'eosinophils_abs' ||
+                                b.slug === 'basophils_abs' || b.slug === 'immature_granulocytes_abs' ||
+                                b.slug === 'nrbc_abs'
+                              )
+
                               // Category label shown below the right-column value
                               const markerCategoryLabel = isQualitative
                                 ? (isLikelyQualitativeUrinalysis(b.name) ? 'URINALYSIS' : 'SEROLOGY')
+                                : isDiffRelative ? 'RELATIVE DIFFERENTIAL'
+                                : isDiffAbsolute ? 'ABSOLUTE DIFFERENTIAL'
                                 : null
 
                               // Sub-text beneath the marker name.
@@ -2169,6 +2185,14 @@ export default function LabsUploadPage() {
                                         }}>
                                           {isPartial ? 'FLAG' : s.label}
                                         </div>
+                                        {markerCategoryLabel && (
+                                          <div style={{
+                                            fontSize: '10px', fontWeight: 700, marginTop: '2px',
+                                            letterSpacing: '0.04em', color: s.dot, opacity: 0.75,
+                                          }}>
+                                            {markerCategoryLabel}
+                                          </div>
+                                        )}
                                       </>
                                     ) : (
                                       <span style={{ fontSize: '12px', color: colors.textMuted, fontStyle: 'italic' }}>—</span>

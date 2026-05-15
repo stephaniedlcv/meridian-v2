@@ -34,6 +34,7 @@ export type MarkerCategory =
   | 'infectious_disease'
   | 'pathology'
   | 'microbiology'
+  | 'cbc_differential'   // CBC differential hematology (relative % and absolute # counts)
 
 // derived_metric_type: classifies computed / ratio markers by domain.
 export type DerivedMetricType =
@@ -1273,7 +1274,19 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'neutrophils_pct',
     name: 'Neutrophils %',
     unit: '%',
-    aliases: ['neutrophils', 'neutrophils %', 'neut %', 'neutrofilos'],
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'neutrophils', 'neutrophils %', 'neut %', 'neutrofilos',
+      // Singular forms — common on many vendor printouts
+      'neutrophil', 'neutrophil %',
+      // Clinical abbreviations and alternate terminology
+      'neut', 'neuts', 'segs', 'segs %', 'pmn', 'pmn %', 'poly', 'polys',
+      'gran', 'gran %', 'granulocytes', 'granulocytes %',
+      // Spelled-out percent variants
+      'neutrophil pct', 'neutrophils pct', 'neutrophil percent', 'neutrophils percent',
+      'neut pct', 'seg pct', 'pmn pct',
+    ],
     system: 'immune',
     riskProfile: 'u-shaped',
     normalF: { min: 40, max: 70 },
@@ -1288,7 +1301,18 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'neutrophils_abs',
     name: 'Neutrophils #',
     unit: 'K/µL',
-    aliases: ['neutrophils #', 'neutrophils abs', 'absolute neutrophils', 'neut #', 'neut abs', 'abs neutrophils'],
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'neutrophils #', 'neutrophils abs', 'absolute neutrophils', 'neut #', 'neut abs', 'abs neutrophils',
+      // Singular forms
+      'neutrophil #', 'neutrophil abs', 'abs neutrophil',
+      // Standard clinical abbreviations (ANC = Absolute Neutrophil Count)
+      'anc', 'absolute neutrophil count', 'neutrophil count', 'neutrophil absolute',
+      'neutrophil absolute count', 'seg abs', 'pmn abs', 'segs abs',
+      // Spelled-out variants
+      'neutrophils absolute', 'neutrophils count', 'neut absolute', 'neut count',
+    ],
     system: 'immune',
     riskProfile: 'u-shaped',
     normalF: { min: 1.8, max: 7.7 },
@@ -1303,7 +1327,18 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'lymphocytes_pct',
     name: 'Lymphocytes %',
     unit: '%',
-    aliases: ['lymphocytes', 'lymphocytes %', 'lymph %', 'linfocitos'],
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'lymphocytes', 'lymphocytes %', 'lymph %', 'linfocitos',
+      // Singular forms
+      'lymphocyte', 'lymphocyte %',
+      // Clinical abbreviations
+      'lymph', 'lymp', 'lymphs',
+      // Spelled-out percent variants
+      'lymphocyte pct', 'lymphocytes pct', 'lymphocyte percent', 'lymphocytes percent',
+      'lymph pct',
+    ],
     system: 'immune',
     riskProfile: 'u-shaped',
     normalF: { min: 20, max: 40 },
@@ -1318,7 +1353,18 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'lymphocytes_abs',
     name: 'Lymphocytes #',
     unit: 'K/µL',
-    aliases: ['lymphocytes #', 'lymphocytes abs', 'absolute lymphocytes', 'lymph #', 'lymph abs', 'abs lymphocytes'],
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'lymphocytes #', 'lymphocytes abs', 'absolute lymphocytes', 'lymph #', 'lymph abs', 'abs lymphocytes',
+      // Singular forms
+      'lymphocyte #', 'lymphocyte abs', 'abs lymphocyte',
+      // Standard abbreviation (ALC = Absolute Lymphocyte Count)
+      'alc', 'absolute lymphocyte count', 'lymphocyte count', 'lymphocyte absolute',
+      'lymphocyte absolute count', 'lymph absolute', 'lymph count',
+      // Spelled-out variants
+      'lymphocytes absolute', 'lymphocytes count',
+    ],
     system: 'immune',
     riskProfile: 'u-shaped',
     normalF: { min: 1.0, max: 4.8 },
@@ -1333,7 +1379,18 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'monocytes_pct',
     name: 'Monocytes %',
     unit: '%',
-    aliases: ['monocytes', 'monocytes %', 'mono %', 'monocitos'],
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'monocytes', 'monocytes %', 'mono %', 'monocitos',
+      // Singular forms
+      'monocyte', 'monocyte %',
+      // Clinical abbreviation
+      'mono',
+      // Spelled-out percent variants
+      'monocyte pct', 'monocytes pct', 'monocyte percent', 'monocytes percent',
+      'mono pct',
+    ],
     system: 'immune',
     riskProfile: 'linear-high',
     normalF: { min: 2, max: 8 },
@@ -1348,7 +1405,18 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'monocytes_abs',
     name: 'Monocytes #',
     unit: 'K/µL',
-    aliases: ['monocytes #', 'monocytes abs', 'absolute monocytes', 'mono #', 'mono abs', 'abs monocytes'],
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'monocytes #', 'monocytes abs', 'absolute monocytes', 'mono #', 'mono abs', 'abs monocytes',
+      // Singular forms
+      'monocyte #', 'monocyte abs', 'abs monocyte',
+      // Standard abbreviation (AMC = Absolute Monocyte Count)
+      'amc', 'absolute monocyte count', 'monocyte count', 'monocyte absolute',
+      'monocyte absolute count', 'mono absolute', 'mono count',
+      // Spelled-out variants
+      'monocytes absolute', 'monocytes count',
+    ],
     system: 'immune',
     riskProfile: 'linear-high',
     normalF: { min: 0.1, max: 1.0 },
@@ -1363,7 +1431,18 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'eosinophils_pct',
     name: 'Eosinophils %',
     unit: '%',
-    aliases: ['eosinophils', 'eosinophils %', 'eos %', 'eosinofilos'],
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'eosinophils', 'eosinophils %', 'eos %', 'eosinofilos',
+      // Singular forms
+      'eosinophil', 'eosinophil %',
+      // Clinical abbreviations
+      'eos',
+      // Spelled-out percent variants
+      'eosinophil pct', 'eosinophils pct', 'eosinophil percent', 'eosinophils percent',
+      'eos pct',
+    ],
     system: 'immune',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 5 },
@@ -1378,7 +1457,18 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'eosinophils_abs',
     name: 'Eosinophils #',
     unit: 'K/µL',
-    aliases: ['eosinophils #', 'eosinophils abs', 'absolute eosinophils', 'eos #', 'eos abs', 'abs eosinophils'],
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'eosinophils #', 'eosinophils abs', 'absolute eosinophils', 'eos #', 'eos abs', 'abs eosinophils',
+      // Singular forms
+      'eosinophil #', 'eosinophil abs', 'abs eosinophil',
+      // Standard abbreviation (AEC = Absolute Eosinophil Count)
+      'aec', 'absolute eosinophil count', 'eosinophil count', 'eosinophil absolute',
+      'eosinophil absolute count', 'eos absolute', 'eos count',
+      // Spelled-out variants
+      'eosinophils absolute', 'eosinophils count',
+    ],
     system: 'immune',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 0.5 },
@@ -1393,7 +1483,18 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'basophils_pct',
     name: 'Basophils %',
     unit: '%',
-    aliases: ['basophils', 'basophils %', 'baso %', 'basofilos'],
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'basophils', 'basophils %', 'baso %', 'basofilos',
+      // Singular forms
+      'basophil', 'basophil %',
+      // Clinical abbreviation
+      'baso',
+      // Spelled-out percent variants
+      'basophil pct', 'basophils pct', 'basophil percent', 'basophils percent',
+      'baso pct',
+    ],
     system: 'immune',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 1 },
@@ -1408,7 +1509,18 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'basophils_abs',
     name: 'Basophils #',
     unit: 'K/µL',
-    aliases: ['basophils #', 'basophils abs', 'absolute basophils', 'baso #', 'baso abs', 'abs basophils'],
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'basophils #', 'basophils abs', 'absolute basophils', 'baso #', 'baso abs', 'abs basophils',
+      // Singular forms
+      'basophil #', 'basophil abs', 'abs basophil',
+      // Standard abbreviation (ABC = Absolute Basophil Count)
+      'abc', 'absolute basophil count', 'basophil count', 'basophil absolute',
+      'basophil absolute count', 'baso absolute', 'baso count',
+      // Spelled-out variants
+      'basophils absolute', 'basophils count',
+    ],
     system: 'immune',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 0.2 },
@@ -1423,7 +1535,19 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'immature_granulocytes_pct',
     name: 'Immature Granulocytes %',
     unit: '%',
-    aliases: ['immature granulocytes', 'immature granulocytes %', 'ig %', 'immature gran %'],
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'immature granulocytes', 'immature granulocytes %', 'ig %', 'immature gran %',
+      // Band / staff cell terminology (immature neutrophils = bands)
+      'bands', 'band cells', 'band neutrophils', 'band neutrophil',
+      'bands %', 'band %', 'band cells %', 'band neutrophils %',
+      // Additional abbreviations
+      'ig', 'ig percent', 'ig pct', 'immature gran',
+      'immature granulocyte', 'immature granulocyte %',
+      // Spelled-out percent variants
+      'immature granulocytes percent', 'immature granulocytes pct',
+    ],
     system: 'immune',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 1 },
@@ -1438,7 +1562,20 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     slug: 'immature_granulocytes_abs',
     name: 'Immature Granulocytes #',
     unit: 'K/µL',
-    aliases: ['immature granulocytes #', 'immature granulocytes abs', 'ig #', 'immature gran #'],
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'immature granulocytes #', 'immature granulocytes abs', 'ig #', 'immature gran #',
+      // Singular forms
+      'immature granulocyte #', 'immature granulocyte abs',
+      // Absolute count terminology
+      'absolute immature granulocytes', 'absolute ig', 'ig count', 'ig abs',
+      // Band / staff cell absolute forms
+      'bands #', 'bands abs', 'band cells #', 'band cells abs',
+      'band neutrophils #', 'band neutrophils abs', 'absolute bands',
+      // Spelled-out variants
+      'immature granulocytes absolute', 'immature granulocytes count',
+    ],
     system: 'immune',
     riskProfile: 'linear-high',
     normalF: { min: 0, max: 0.1 },
@@ -1447,6 +1584,58 @@ export const CANONICAL_DICTIONARY: Record<string, CanonicalMarker> = {
     optimalM: { min: 0, max: 0.05 },
     impossibleMin: 0,
     impossibleMax: 5,
+    priorityWeight: 1,
+  },
+
+  nrbc_pct: {
+    slug: 'nrbc_pct',
+    name: 'NRBC %',
+    unit: '%',
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'nrbc', 'nrbc %', 'nrbc percent', 'nrbc pct',
+      // Spelled-out forms
+      'nucleated rbc', 'nucleated rbc %', 'nucleated red blood cells', 'nucleated red blood cells %',
+      'nucleated red cell', 'nucleated red cells', 'nucleated red cell %',
+      // Additional vendor terminology
+      'nrbcs', 'erythroblasts', 'erythroblast %', 'normoblasts', 'normoblast %',
+      'nucleated erythrocytes', 'nucleated erythrocyte %',
+    ],
+    system: 'immune',
+    riskProfile: 'linear-high',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 50,
+    priorityWeight: 1,
+  },
+  nrbc_abs: {
+    slug: 'nrbc_abs',
+    name: 'NRBC #',
+    unit: 'K/µL',
+    panel_membership: ['CBC'],
+    marker_category: 'cbc_differential',
+    aliases: [
+      'nrbc #', 'nrbc abs', 'absolute nrbc', 'nrbc count', 'nrbc absolute',
+      // Spelled-out forms
+      'nucleated rbc #', 'nucleated rbc abs', 'nucleated red blood cells #',
+      'nucleated red blood cells abs', 'absolute nucleated rbc',
+      'nucleated red cell #', 'nucleated red cells abs', 'absolute nucleated red cells',
+      // Additional vendor terminology
+      'absolute nrbcs', 'absolute erythroblasts', 'absolute normoblasts',
+      'nucleated erythrocytes #', 'nucleated erythrocytes abs',
+    ],
+    system: 'immune',
+    riskProfile: 'linear-high',
+    normalF: { min: 0, max: 0 },
+    normalM: { min: 0, max: 0 },
+    optimalF: { min: 0, max: 0 },
+    optimalM: { min: 0, max: 0 },
+    impossibleMin: 0,
+    impossibleMax: 10,
     priorityWeight: 1,
   },
 
@@ -2157,6 +2346,7 @@ const PROTECTED_SLUGS = new Set([
   'eosinophils_pct', 'eosinophils_abs',
   'basophils_pct', 'basophils_abs',
   'immature_granulocytes_pct', 'immature_granulocytes_abs',
+  'nrbc_pct', 'nrbc_abs',
   'bun', 'bun_creatinine_ratio',
   'total_t3', 'free_t3',
   'co2',
