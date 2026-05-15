@@ -68,7 +68,7 @@ interface UnmatchedMarker {
 interface RecentBiomarker {
   id: string
   marker_name: string
-  value: number
+  value: number | null          // null for qualitative markers; always numeric for quantitative
   unit: string
   state: string | null
   reference_range_min: number | null
@@ -94,6 +94,7 @@ const SLUG_TO_PANEL: Record<string, string> = {
   eosinophils_pct: 'CBC', eosinophils_abs: 'CBC',
   basophils_pct: 'CBC', basophils_abs: 'CBC',
   immature_granulocytes_pct: 'CBC', immature_granulocytes_abs: 'CBC',
+  nrbc_pct: 'CBC', nrbc_abs: 'CBC',
   hba1c: 'Glycemic', insulin_fasting: 'Glycemic',
   total_cholesterol: 'Lipid Panel', hdl: 'Lipid Panel', ldl: 'Lipid Panel',
   vldl: 'Lipid Panel', triglycerides: 'Lipid Panel', non_hdl: 'Lipid Panel',
@@ -143,6 +144,7 @@ const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
   eosinophils_pct: 'CBC', eosinophils_abs: 'CBC',
   basophils_pct: 'CBC', basophils_abs: 'CBC',
   immature_granulocytes_pct: 'CBC', immature_granulocytes_abs: 'CBC',
+  nrbc_pct: 'CBC', nrbc_abs: 'CBC',
   // Comprehensive Metabolic Panel
   bun: 'Comprehensive Metabolic Panel', creatinine: 'Comprehensive Metabolic Panel',
   egfr: 'Comprehensive Metabolic Panel', egfr_african_american: 'Comprehensive Metabolic Panel',
@@ -430,6 +432,7 @@ const SYSTEMIC_MARKERS = new Set([
 
 function effectiveSnapshotState(b: RecentBiomarker): string | null {
   if (
+    b.value !== null &&
     b.state === 'Watch' &&
     SYSTEMIC_MARKERS.has(b.marker_name.toLowerCase().replace(/[\s-]+/g, '_')) &&
     b.reference_range_min !== null && b.reference_range_max !== null &&
@@ -1437,6 +1440,7 @@ export default function LabsUploadPage() {
   const [stats, setStats] = useState<{ extracted: number; matched: number; errors: number } | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   const [savedCount, setSavedCount] = useState(0)
+  const [savedQualCount, setSavedQualCount] = useState(0)
   const [labDate, setLabDate] = useState<string>('')
   const [duplicateWarning, setDuplicateWarning] = useState<{ count: number; slugs: string[]; total: number } | null>(null)
   // Tracks which unmatched markers the user has dismissed in the current review flow.
@@ -1582,10 +1586,13 @@ export default function LabsUploadPage() {
     setDuplicateWarning(null)
     try {
       const collectedAt = labDate ? new Date(labDate).toISOString() : new Date().toISOString()
-      // Only save markers that were fully parsed and classified.
-      // 'qualitative_only' markers (serology, urinalysis dipstick) are display-only in Phase 1.
+      // Save all markers that were fully classified.
+      // 'parsed' → quantitative markers with a valid numeric value.
+      // 'qualitative_only' → serology / urinalysis dipstick markers; saved with value_qualitative.
       // 'unreadable' / 'partial' markers must never be saved — their values are unreliable.
-      const safeBiomarkers = staged.filter(b => b.extraction_status === 'parsed')
+      const safeBiomarkers = staged.filter(b =>
+        b.extraction_status === 'parsed' || b.extraction_status === 'qualitative_only'
+      )
       const response = await fetch('/api/ocr/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1593,7 +1600,8 @@ export default function LabsUploadPage() {
       })
       const data = await response.json()
       if (!data.success) { setError(data.error || 'Failed to save biomarkers'); setConfirming(false); return }
-      setSavedCount(data.saved_count)
+      setSavedCount(data.quantitative_count ?? data.saved_count)
+      setSavedQualCount(data.qualitative_count ?? 0)
       setConfirmed(true)
       setConfirming(false)
 
@@ -1686,6 +1694,7 @@ export default function LabsUploadPage() {
     setError(null)
     setConfirmed(false)
     setSavedCount(0)
+    setSavedQualCount(0)
     setLabDate('')
     setIgnoredPending(new Set())
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -1744,8 +1753,10 @@ export default function LabsUploadPage() {
   }
 
   // ── Derived snapshot data ────────────────────────────────────────────────────
-  // Deduplicate — rows ordered collected_at DESC so first occurrence = most recent
-  const snapshotBiomarkers = deduplicateByMarker(recentBiomarkers)
+  // Deduplicate — rows ordered collected_at DESC so first occurrence = most recent.
+  // Qualitative markers (value === null) are excluded from the numeric snapshot display;
+  // they are persisted in the DB but shown in a separate serology UI in a future phase.
+  const snapshotBiomarkers = deduplicateByMarker(recentBiomarkers.filter(b => b.value !== null))
   const hasRecentLabs = snapshotBiomarkers.length > 0
   const currentYear = new Date().getFullYear()
   const panelSummaries = hasRecentLabs ? buildPanelSummaries(snapshotBiomarkers) : []
@@ -2385,6 +2396,27 @@ export default function LabsUploadPage() {
                 )
               })()}
 
+              {/* Pre-save serology notice — shown when any qualitative markers are staged */}
+              {(() => {
+                const qualCount = staged.filter(b => b.extraction_status === 'qualitative_only').length
+                if (qualCount === 0) return null
+                const quantCount = staged.filter(b => b.extraction_status === 'parsed').length
+                return (
+                  <div style={{
+                    padding: '10px 14px', marginBottom: '4px',
+                    backgroundColor: 'rgba(45,212,191,0.07)',
+                    border: '1px solid rgba(45,212,191,0.22)',
+                    borderRadius: '10px',
+                    fontSize: '12px', color: '#5F8E85', lineHeight: 1.5,
+                  }}>
+                    {quantCount > 0
+                      ? `${qualCount} serology ${qualCount === 1 ? 'result' : 'results'} included — these will be saved as qualitative diagnostics alongside your ${quantCount} numeric ${quantCount === 1 ? 'biomarker' : 'biomarkers'}.`
+                      : `${qualCount} serology ${qualCount === 1 ? 'result' : 'results'} detected — these qualitative diagnostics will be saved to your record.`
+                    }
+                  </div>
+                )
+              })()}
+
               {/* Action buttons */}
               <div style={{ display: 'flex', gap: '12px' }}>
                 <motion.button
@@ -2400,7 +2432,13 @@ export default function LabsUploadPage() {
                     cursor: confirming || !labDate ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {confirming ? 'Saving...' : `Confirm ${staged.filter(b => b.extraction_status === 'parsed').length} markers`}
+                  {(() => {
+                    if (confirming) return 'Saving...'
+                    const qCount = staged.filter(b => b.extraction_status === 'parsed').length
+                    const sCount = staged.filter(b => b.extraction_status === 'qualitative_only').length
+                    const total = qCount + sCount
+                    return `Confirm ${total} ${total === 1 ? 'result' : 'results'}`
+                  })()}
                 </motion.button>
                 <button
                   onClick={handleReset}
@@ -2465,7 +2503,12 @@ export default function LabsUploadPage() {
                   Lab saved
                 </h2>
                 <span style={{ fontSize: '12px', color: colors.textMuted }}>
-                  {savedCount} {savedCount === 1 ? 'biomarker' : 'biomarkers'} added to Snapshot
+                  {savedCount > 0 && savedQualCount > 0
+                    ? `${savedCount} ${savedCount === 1 ? 'biomarker' : 'biomarkers'} + ${savedQualCount} serology ${savedQualCount === 1 ? 'result' : 'results'} saved`
+                    : savedQualCount > 0
+                      ? `${savedQualCount} serology ${savedQualCount === 1 ? 'result' : 'results'} saved`
+                      : `${savedCount} ${savedCount === 1 ? 'biomarker' : 'biomarkers'} added to Snapshot`
+                  }
                 </span>
               </div>
             </div>

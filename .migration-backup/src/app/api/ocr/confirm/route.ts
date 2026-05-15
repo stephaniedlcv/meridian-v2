@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+// Qualitative result values that Meridian recognises and persists.
+// Any value outside this set is rejected to prevent garbage data.
+const VALID_QUALITATIVE_VALUES = new Set([
+  'positive', 'negative',
+  'reactive', 'non_reactive',
+  'detected', 'not_detected',
+  'equivocal', 'indeterminate',
+])
+
 interface ConfirmedBiomarker {
   slug: string
   name: string
@@ -13,6 +22,9 @@ interface ConfirmedBiomarker {
   state: 'Optimal' | 'Watch' | 'Attention' | 'Critical'
   flag_error: boolean
   collected_at: string
+  // Qualitative support fields (populated by the OCR pipeline for serology/urinalysis)
+  extraction_status: 'parsed' | 'unreadable' | 'partial' | 'qualitative_only'
+  qualitative_value: string | null
 }
 
 export async function POST(request: NextRequest) {
@@ -34,23 +46,38 @@ export async function POST(request: NextRequest) {
 
     const collectedDate = collected_at || new Date().toISOString()
 
+    // Separate quantitative (fully parsed numeric) from qualitative (serology/urinalysis) markers.
+    // Both paths are valid for persistence; they differ only in which value column is populated.
     const rows = (biomarkers as ConfirmedBiomarker[])
-      .filter(b => !b.flag_error)
-      .map(b => ({
-        user_id,
-        marker_name: b.slug,
-        value: b.value,
-        unit: b.unit,
-        reference_range_min: b.reference_range_min,
-        reference_range_max: b.reference_range_max,
-        optimal_range_min: b.optimal_range_min,
-        optimal_range_max: b.optimal_range_max,
-        state: b.state,
-        collected_at: collectedDate,
-        source_pdf_url: source_pdf_url || null,
-        flag_error: false,
-        validated: true,
-      }))
+      .filter(b => {
+        if (b.flag_error) return false
+        if (b.extraction_status === 'parsed') return true
+        if (b.extraction_status === 'qualitative_only') {
+          // Only persist qualitative values we explicitly recognise
+          return typeof b.qualitative_value === 'string' &&
+            VALID_QUALITATIVE_VALUES.has(b.qualitative_value)
+        }
+        return false
+      })
+      .map(b => {
+        const isQualitative = b.extraction_status === 'qualitative_only'
+        return {
+          user_id,
+          marker_name:          b.slug,
+          value:                isQualitative ? null : b.value,
+          value_qualitative:    isQualitative ? b.qualitative_value : null,
+          unit:                 isQualitative ? '' : b.unit,
+          reference_range_min:  isQualitative ? null : b.reference_range_min,
+          reference_range_max:  isQualitative ? null : b.reference_range_max,
+          optimal_range_min:    isQualitative ? null : b.optimal_range_min,
+          optimal_range_max:    isQualitative ? null : b.optimal_range_max,
+          state:                b.state,
+          collected_at:         collectedDate,
+          source_pdf_url:       source_pdf_url || null,
+          flag_error:           false,
+          validated:            true,
+        }
+      })
 
     if (rows.length === 0) {
       return NextResponse.json(
@@ -72,10 +99,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const quantitative_count = rows.filter(r => r.value !== null).length
+    const qualitative_count  = rows.filter(r => r.value === null).length
+
     return NextResponse.json({
-      success: true,
-      saved_count: rows.length,
-      biomarkers: data,
+      success:            true,
+      saved_count:        rows.length,
+      quantitative_count,
+      qualitative_count,
+      biomarkers:         data,
     })
   } catch (error) {
     console.error('Confirm biomarkers error:', error)

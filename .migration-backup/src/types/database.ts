@@ -83,7 +83,8 @@ export type BiomarkerStatic = {
   id: string;
   user_id: string;
   marker_name: string;
-  value: number;
+  value: number | null;             // null for qualitative markers (serology, urinalysis dipstick)
+  value_qualitative: string | null; // non_null for qualitative markers; null for quantitative
   unit: string;
   reference_range_min: number | null;
   reference_range_max: number | null;
@@ -179,7 +180,8 @@ export type Database = {
           id?: string;
           user_id: string;
           marker_name: string;
-          value: number;
+          value?: number | null;
+          value_qualitative?: string | null;
           unit: string;
           reference_range_min?: number | null;
           reference_range_max?: number | null;
@@ -196,7 +198,8 @@ export type Database = {
           id?: string;
           user_id?: string;
           marker_name?: string;
-          value?: number;
+          value?: number | null;
+          value_qualitative?: string | null;
           unit?: string;
           reference_range_min?: number | null;
           reference_range_max?: number | null;

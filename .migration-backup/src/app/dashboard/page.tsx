@@ -116,6 +116,7 @@ export default function DashboardPage() {
         if (recentForSafety && recentForSafety.length > 0) {
           const bioprofile = profile?.biological_profile ?? 'female'
           localCritical = recentForSafety.some(b =>
+            b.value !== null &&
             getSafetyStatusForBiomarker(b.marker_name, b.value, b.unit ?? '', bioprofile).status === 'critical'
           )
           if (localCritical) {
