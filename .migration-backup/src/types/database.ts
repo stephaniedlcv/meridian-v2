@@ -17,7 +17,16 @@ export type UserProfile =
   | 'condicion'
   | 'primer_paso';
 
-export type BiomarkerState = 'Optimal' | 'Watch' | 'Attention' | 'Critical';
+// Clinical Stability Phase states (new): Normal | Low | High | Critical
+// Legacy states (backward compat for existing DB records): Optimal | Watch | Attention
+export type BiomarkerState =
+  | 'Normal'    // value within clinical reference range (new engine)
+  | 'Low'       // value below reference range, <50% deviation (new engine)
+  | 'High'      // value above reference range, <50% deviation (new engine)
+  | 'Critical'  // severe deviation >50% OR impossible value (both engines)
+  | 'Optimal'   // legacy: was within optimal range (old engine — existing DB records)
+  | 'Watch'     // legacy: within clinical but outside optimal (old engine — existing DB records)
+  | 'Attention' // legacy: mildly outside clinical range (old engine — existing DB records)
 
 export type FeedbackEffectiveness = 'validated' | 'neutral' | 'failed';
 

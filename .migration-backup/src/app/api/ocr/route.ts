@@ -5,6 +5,7 @@ import {
   convertToCanonicalUnit,
   isImpossibleValue,
   classifyBiomarkerState,
+  getCanonicalFallbackRange,
   type ExtractionStatus,
   type CanonicalMarker,
 } from '@/lib/canonical-dictionary'
@@ -459,9 +460,27 @@ export async function POST(request: NextRequest) {
       }
 
       const impossible = isImpossibleValue(finalSlug, converted.value)
-      const refRange = parseReferenceRange(raw.reference_range ?? undefined)
       const optRange = bioProfile === 'female' ? marker.optimalF : marker.optimalM
       const state = impossible ? 'Critical' : classifyBiomarkerState(finalSlug, converted.value, bioProfile)
+
+      // ── Reference range: 3-tier resolution ────────────────────────────────
+      // Tier 1: PDF-extracted range, sanity-checked against physiological bounds.
+      // Tier 2: Canonical clinical reference range (normalF / normalM).
+      // A PDF range is accepted only when both bounds are present, min < max,
+      // and both values sit within the physiologically possible bounds for this marker.
+      const rawRefRange = parseReferenceRange(raw.reference_range ?? undefined)
+      const pdfRangeSane = (
+        rawRefRange.min !== null &&
+        rawRefRange.max !== null &&
+        rawRefRange.min < rawRefRange.max &&
+        rawRefRange.min >= marker.impossibleMin &&
+        rawRefRange.max <= marker.impossibleMax
+      )
+      const dictRange = getCanonicalFallbackRange(finalSlug, bioProfile)
+      const refRange = {
+        min: pdfRangeSane ? rawRefRange.min : (dictRange?.min ?? null),
+        max: pdfRangeSane ? rawRefRange.max : (dictRange?.max ?? null),
+      }
 
       stagedBiomarkers.push({
         slug: finalSlug,
