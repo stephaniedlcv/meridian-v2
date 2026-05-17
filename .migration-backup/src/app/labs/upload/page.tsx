@@ -565,8 +565,9 @@ function getRangeDirection(slug: string): RangeDirection {
 }
 
 // Gradient definitions — clinical position only, independent from severity
-const TRACK_LOW_NORMAL_HIGH = 'linear-gradient(to right, rgba(248,113,113,0.24) 0%, rgba(251,146,60,0.34) 14%, rgba(45,212,191,0.20) 32%, rgba(103,232,249,0.30) 50%, rgba(45,212,191,0.20) 68%, rgba(251,146,60,0.34) 86%, rgba(248,113,113,0.24) 100%)'
-const TRACK_UNKNOWN = 'linear-gradient(to right, rgba(95,142,133,0.20) 0%, rgba(95,142,133,0.32) 50%, rgba(95,142,133,0.20) 100%)'
+// 13-stop gradient: gradual spectral blending, muted warm tones, luminous teal center
+const TRACK_LOW_NORMAL_HIGH = 'linear-gradient(to right, rgba(248,113,113,0.12) 0%, rgba(248,113,113,0.16) 5%, rgba(251,146,60,0.17) 13%, rgba(251,146,60,0.09) 21%, rgba(45,212,191,0.07) 28%, rgba(45,212,191,0.17) 37%, rgba(103,232,249,0.25) 50%, rgba(45,212,191,0.17) 63%, rgba(45,212,191,0.07) 72%, rgba(251,146,60,0.09) 79%, rgba(251,146,60,0.17) 87%, rgba(248,113,113,0.16) 95%, rgba(248,113,113,0.12) 100%)'
+const TRACK_UNKNOWN = 'linear-gradient(to right, rgba(95,142,133,0.14) 0%, rgba(95,142,133,0.26) 50%, rgba(95,142,133,0.14) 100%)'
 
 interface RangeBarProps {
   value: number
@@ -590,24 +591,26 @@ function BiomarkerRangeBar({ value, refMin, refMax }: RangeBarProps) {
       <div style={{
         position: 'relative', height: '8px', borderRadius: '6px', width: '100%',
         background: TRACK_LOW_NORMAL_HIGH,
-        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.22), inset 0 0 14px rgba(103,232,249,0.06)',
+        boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.30), inset 0 0 20px rgba(103,232,249,0.07), 0 1px 0 rgba(103,232,249,0.03)',
         overflow: 'visible',
       }}>
+        {/* Healthy-zone overlay — feathered edges for atmospheric blending */}
         <div style={{
           position: 'absolute',
           left: `${leftPct}%`,
           width: `${Math.max(0, rightPct - leftPct)}%`,
           top: 0,
           bottom: 0,
-          background: 'linear-gradient(to right, rgba(45,212,191,0.12), rgba(103,232,249,0.18), rgba(45,212,191,0.12))',
+          background: 'linear-gradient(to right, transparent, rgba(45,212,191,0.09) 20%, rgba(103,232,249,0.19) 50%, rgba(45,212,191,0.09) 80%, transparent)',
         }} />
+        {/* Knob */}
         <div style={{
           position: 'absolute', top: '50%', left: `${dotPct}%`,
           transform: 'translate(-50%, -50%)',
           width: '12px', height: '12px', borderRadius: '50%',
-          backgroundColor: 'rgba(234,251,247,0.96)',
-          border: '1px solid rgba(103,232,249,0.48)',
-          boxShadow: '0 0 0 4px rgba(45,212,191,0.07), 0 0 12px rgba(103,232,249,0.16)',
+          backgroundColor: 'rgba(236,252,249,0.97)',
+          border: '1px solid rgba(103,232,249,0.52)',
+          boxShadow: '0 0 0 3px rgba(45,212,191,0.10), 0 0 0 6px rgba(45,212,191,0.04), 0 1px 8px rgba(0,0,0,0.34), 0 0 14px rgba(103,232,249,0.20)',
           zIndex: 2,
         }} />
       </div>
