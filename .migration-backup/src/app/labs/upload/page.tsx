@@ -692,228 +692,228 @@ const BIOMARKER_CONTEXT: Record<string, BiomarkerIntel> = {
   // ── Thyroid ─────────────────────────────────────────────────────────────────
   tsh: {
     why: 'TSH is the signal your brain sends to regulate how much thyroid hormone your body produces. Meridian watches it because changes over time can connect to metabolism, sustained energy, temperature regulation, sleep quality, and recovery — often before symptoms become obvious.',
-    context: 'Meridian evaluates TSH alongside Free T3, Free T4, and cortisol because thyroid function is best understood as a system rather than through any single reading.',
+    context: 'In context with Free T3, Free T4, and cortisol, Meridian is watching whether a TSH shift reflects a thyroid system pattern or a transient fluctuation. When multiple thyroid signals move together, the pattern carries more interpretive weight than any individual reading.',
   },
   free_t4: {
     why: 'Free T4 is the main storage form of thyroid hormone circulating in your blood. Meridian tracks it because it reflects the raw material your body converts into the active hormone that drives cellular metabolism and energy.',
-    context: 'This marker becomes more meaningful when read alongside TSH and Free T3 trends over time, as the relationship between these signals tells a richer story.',
+    context: 'A Free T4 shift in isolation can mean something different than a shift that moves alongside TSH or Free T3. Meridian is watching whether the thyroid cluster tells a consistent story — or whether this appears to be a fluctuation within one part of the system.',
   },
   free_t3: {
     why: 'Free T3 is the active thyroid hormone that directly drives cellular energy use. Meridian watches it because T3 levels can shift even when TSH appears stable, and it may better reflect how your body is actually using thyroid hormones day to day.',
-    context: 'Meridian tracks Free T3 alongside TSH and T4 to understand thyroid function as an integrated signal rather than a single snapshot.',
+    context: 'In context with TSH and Free T4, a Free T3 pattern can sometimes reveal more about how the body is using thyroid hormones than TSH alone would suggest. Meridian is watching whether T3 shifts persist across readings or appear as isolated fluctuations — the distinction tends to matter more than any single value.',
   },
   total_t3: {
     why: 'Total T3 reflects the overall circulating level of your body\'s primary active thyroid hormone. Meridian watches it as part of the thyroid picture — particularly when Free T3 is not available — to understand metabolic and energy signaling patterns over time.',
-    context: 'Meridian evaluates thyroid markers as a cluster. No single value tells the whole story, and trends across measurements are usually more informative than isolated readings.',
+    context: 'As part of the thyroid cluster, Total T3 adds interpretive weight when it moves in alignment with TSH and T4 shifts. Meridian is watching whether the thyroid picture appears consistent across related markers — or whether this represents an isolated fluctuation in one part of the system.',
   },
   // ── CBC ─────────────────────────────────────────────────────────────────────
   wbc: {
     why: 'White blood cells are your immune system\'s first responders. Meridian watches the total count alongside the differential breakdown because the pattern of which cell types are elevated or suppressed can provide context about immune activation, recovery stress, or physiological adaptation.',
-    context: 'Meridian evaluates WBC alongside neutrophils, lymphocytes, monocytes, and inflammatory markers like hs-CRP for a fuller immune picture.',
+    context: 'Alongside the differential breakdown and inflammatory markers, a WBC shift can help Meridian distinguish temporary immune activation — such as recent illness or physical stress — from a more persistent pattern. Which cell types are shifting tends to tell a more complete story than the total count alone.',
   },
   rbc: {
     why: 'Red blood cells carry oxygen from your lungs to every tissue in your body. Meridian tracks RBC count because changes over time can connect to nutrient availability, iron status, bone marrow activity, and how efficiently your body is maintaining its oxygen supply.',
-    context: 'Meridian evaluates RBC alongside hemoglobin, hematocrit, and ferritin to understand oxygen transport capacity as a complete system.',
+    context: 'In context with hemoglobin, hematocrit, and ferritin, a shift in RBC count may reflect changes in iron availability or nutrient status. Meridian is watching whether this represents an evolving oxygen-transport pattern or an isolated fluctuation — the cluster of signals together tends to be more informative than any single reading.',
   },
   hemoglobin: {
     why: 'Hemoglobin is the protein inside red blood cells that carries oxygen through your bloodstream. Meridian watches it because it\'s central to how your body fuels itself — shifts can connect to energy levels, endurance, recovery capacity, and iron or nutrient status.',
-    context: 'Meridian evaluates hemoglobin alongside RBC, hematocrit, and ferritin to understand the full oxygen-transport picture over time.',
+    context: 'In context with RBC, hematocrit, and ferritin, a hemoglobin shift may appear more consistent with iron or nutrient-related changes than a structural blood issue. Meridian is watching whether this pattern persists or resolves, and how the related signals move alongside it over time.',
   },
   hematocrit: {
     why: 'Hematocrit reflects what proportion of your blood volume is made up of red blood cells. Meridian tracks it as part of the oxygen-transport picture, since changes can connect to hydration status, iron stores, and red cell production.',
-    context: 'Meridian evaluates hematocrit alongside hemoglobin and RBC as interconnected signals rather than reading any one in isolation.',
+    context: 'When hematocrit shifts alongside hemoglobin and RBC, Meridian can begin to assess whether the change reflects a consistent oxygen-transport pattern or a transient fluctuation — sometimes connected to hydration changes or temporary iron depletion. Persistent movement across the cluster tends to carry more interpretive weight.',
   },
   mcv: {
     why: 'MCV measures the average size of your red blood cells. Meridian watches it because cell size can reflect nutrient availability — particularly iron, B12, and folate — and can sometimes shift before other markers show obvious changes.',
-    context: 'Meridian evaluates MCV alongside B12, folate, ferritin, and other CBC markers to understand cell production patterns and nutrient context.',
+    context: 'An MCV change becomes more interpretable in context with ferritin, B12, and folate. When MCV shifts alongside low ferritin, an iron-related cell production pattern may be emerging. When it shifts alongside low B12 or folate, a different nutrient pathway may be involved. Meridian is watching the cluster for directional consistency across readings.',
   },
   mch: {
     why: 'MCH reflects how much hemoglobin is packed into the average red blood cell. Meridian tracks it because it provides context on red cell quality and oxygen-carrying efficiency alongside other CBC signals.',
-    context: 'Meridian evaluates MCH as part of the complete red blood cell picture rather than interpreting it in isolation.',
+    context: 'MCH changes rarely carry strong standalone signal — but in context with MCV, MCHC, and nutrient markers, they can add texture to the red cell picture. Meridian is watching whether this reflects an evolving production pattern or sits within normal biological variation.',
   },
   mchc: {
     why: 'MCHC measures the concentration of hemoglobin within your red blood cells. Meridian watches it alongside MCV and MCH because together these indices give context on whether cells are being produced efficiently and carrying oxygen optimally.',
-    context: 'Meridian tracks MCHC alongside other CBC markers for a complete view of red blood cell health and quality.',
+    context: 'When MCHC moves alongside MCV and MCH, the combined pattern can sometimes help Meridian distinguish between different types of red cell changes. An isolated MCHC shift often reflects normal variation; consistent movement across the CBC cluster may suggest a more persistent pattern worth continuing to track.',
   },
   rdw: {
     why: 'RDW measures how much variation there is in the size of your red blood cells. Meridian watches it because elevated variation can sometimes connect to iron deficiency, B12 status, or emerging changes in cell production — often before other markers shift.',
-    context: 'Meridian evaluates RDW alongside ferritin, B12, folate, and CBC markers to understand nutrient-related cell context.',
+    context: 'An elevated RDW can be one of the earliest signals in a developing nutrient-related cell pattern. In context with ferritin, B12, and MCV, Meridian is watching whether this reflects an early iron or B-vitamin signal — or a transient fluctuation. When multiple markers in this cluster shift together, the pattern tends to be more meaningful.',
   },
   platelets: {
     why: 'Platelets are essential for clotting and vascular repair. Meridian tracks platelet count because significant shifts in either direction can provide context on immune activity, inflammatory patterns, and overall blood health.',
-    context: 'Meridian evaluates platelet count alongside other CBC and inflammatory markers rather than interpreting it as a standalone signal.',
+    context: 'Alongside other CBC markers and inflammatory signals, platelet count shifts can sometimes reflect immune activation or recovery stress rather than a primary platelet issue. Meridian is watching whether this appears isolated or moves as part of a broader inflammatory or recovery pattern over time.',
   },
   // ── Glycemic ────────────────────────────────────────────────────────────────
   hba1c: {
     why: 'A1c reflects your average blood sugar exposure over approximately the past three months. Meridian watches it because it\'s one of the clearest long-term windows into how well your body is regulating glucose — a signal that connects to energy, metabolic health, and long-term tissue resilience.',
-    context: 'Meridian evaluates A1c alongside fasting glucose and insulin to build a fuller picture of glycemic regulation and metabolic efficiency over time.',
+    context: 'In context with fasting glucose and insulin, A1c shifts can help Meridian assess whether the glycemic picture appears to be improving, drifting, or holding steady. A rising A1c alongside elevated fasting glucose may suggest a broader regulation pattern; a stable A1c in the context of shifting fasting glucose may reflect short-term variation rather than a persistent trend.',
   },
   insulin_fasting: {
     why: 'Fasting insulin reveals how hard your body is working to keep blood sugar stable between meals. Meridian watches it because elevated fasting insulin can sometimes precede changes in glucose or A1c — and may connect to metabolic efficiency, energy patterns, and long-term cardiovascular context.',
-    context: 'Meridian tracks fasting insulin alongside glucose and A1c because together they tell a more complete story about insulin sensitivity than any single marker alone.',
+    context: 'In context with fasting glucose and A1c, elevated fasting insulin can sometimes suggest the body is working harder than expected to maintain blood sugar stability — a pattern that may precede visible changes in other glycemic markers. Meridian is watching whether this resolves or persists across readings, since the trajectory carries more signal than any single value.',
   },
   glucose_fasting: {
     why: 'Fasting glucose gives Meridian a snapshot of how your body manages blood sugar at rest — a fundamental window into metabolic health. Meridian watches trends here because small, sustained changes over time can connect to energy regulation, metabolic resilience, and long-term health patterns.',
-    context: 'Meridian evaluates fasting glucose alongside A1c and insulin to understand how your body is managing glucose as an integrated system.',
+    context: 'In isolation this shift may appear mild, but together with A1c and fasting insulin, Meridian can begin to assess whether this reflects transient variation or a broader glucose regulation pattern. When fasting glucose moves consistently across visits — even within reference range — it can sometimes suggest an evolving metabolic signal worth continuing to monitor.',
   },
   // ── Lipid Panel ─────────────────────────────────────────────────────────────
   total_cholesterol: {
     why: 'Total cholesterol reflects the sum of all cholesterol particles in your blood. On its own it tells an incomplete story — Meridian uses it as a starting point, always evaluated in the context of HDL, LDL, triglycerides, and inflammation.',
-    context: 'Meridian treats total cholesterol as part of a broader lipid picture rather than as a standalone risk signal.',
+    context: 'Total cholesterol carries most of its interpretive value through its component parts. In context with HDL, LDL, triglycerides, and hs-CRP, Meridian is watching whether the cholesterol picture appears more consistent with a metabolically favorable pattern or one that warrants continued attention as trends develop.',
   },
   hdl: {
     why: 'HDL helps transport excess cholesterol away from blood vessels and back to the liver. Meridian watches it because consistently low HDL alongside elevated triglycerides and inflammation can sometimes connect to cardiovascular and metabolic risk patterns that no single number fully captures.',
-    context: 'Meridian evaluates HDL alongside LDL, triglycerides, and inflammatory markers like hs-CRP because the relationships between these signals often matter more than any individual value.',
+    context: 'Meridian watches HDL together with triglycerides, inflammation markers, and long-term metabolic trends because the relationship between these signals can sometimes reveal more than a single cholesterol value alone. A low HDL pattern alongside elevated triglycerides may suggest a broader metabolic context — while HDL that is stable or rising within a favorable lipid cluster is generally a reassuring signal.',
   },
   ldl: {
     why: 'LDL carries cholesterol to tissues throughout the body and is one of the most tracked cardiovascular markers. Meridian watches it over time because long-term trends — rather than isolated readings — provide the most useful context, particularly alongside inflammation and metabolic signals.',
-    context: 'Meridian evaluates LDL alongside HDL ratio, triglycerides, hs-CRP, and metabolic markers for a fuller cardiovascular picture.',
+    context: 'In context with HDL ratio, triglycerides, and hs-CRP, an LDL shift can take on very different meanings. An elevated LDL alongside high triglycerides and elevated inflammation may suggest a more metabolically significant pattern than elevated LDL in an otherwise favorable lipid and inflammatory picture. Meridian is watching how this fits the broader cardiovascular cluster over time.',
   },
   vldl: {
     why: 'VLDL is responsible for carrying triglycerides through the bloodstream. Meridian tracks it because elevated VLDL can sometimes overlap with metabolic patterns like insulin resistance, elevated triglycerides, and cardiovascular risk signals.',
-    context: 'Meridian evaluates VLDL alongside triglycerides and other lipid markers as part of the broader metabolic and cardiovascular context.',
+    context: 'VLDL tends to track closely with triglyceride levels. When both are elevated, Meridian is watching whether the combined pattern may reflect broader metabolic signaling — such as insulin sensitivity or dietary fat patterns — rather than an isolated lipid fluctuation.',
   },
   triglycerides: {
     why: 'Triglycerides reflect how much fat is circulating in your blood after fasting. Meridian watches them because elevated levels over time can connect to dietary patterns, insulin sensitivity, metabolic health, and cardiovascular risk — particularly when combined with low HDL.',
-    context: 'Meridian evaluates triglycerides alongside HDL, fasting insulin, and glucose because this cluster of signals can reveal metabolic patterns that individual markers sometimes miss.',
+    context: 'In context with HDL and fasting insulin, a triglyceride shift can sometimes suggest a broader metabolic pattern. Elevated triglycerides alongside low HDL is a cluster Meridian watches carefully — this combination can sometimes reflect insulin sensitivity or dietary patterns that no single marker would reveal on its own.',
   },
   non_hdl: {
     why: 'Non-HDL cholesterol captures all the cholesterol-carrying particles that can contribute to arterial buildup — including LDL, VLDL, and others. Meridian watches it because it may give a more complete cardiovascular picture than LDL alone.',
-    context: 'Meridian tracks non-HDL alongside LDL, triglycerides, and inflammatory markers as part of the comprehensive cardiovascular context.',
+    context: 'Non-HDL adds interpretive depth to the lipid picture when LDL and VLDL are considered together. In context with the full lipid cluster and hs-CRP, Meridian is watching whether non-HDL appears to reflect a consistent atherogenic pattern or whether the broader cardiovascular signals remain favorable.',
   },
   ldl_hdl_ratio: {
     why: 'The LDL/HDL ratio reflects the balance between a key atherosclerotic particle and its protective counterpart. Meridian watches this ratio because it can sometimes carry more signal than either number independently.',
-    context: 'Meridian uses lipid ratios as one layer of context alongside absolute values and inflammatory markers.',
+    context: 'The LDL/HDL ratio often carries more cardiovascular signal than either marker alone. Meridian is watching whether this ratio is moving in a favorable or unfavorable direction alongside inflammation and metabolic markers — a ratio trend across multiple readings tends to be more meaningful than any single value.',
   },
   chol_hdl_ratio: {
     why: 'The total cholesterol/HDL ratio is a cardiovascular signal that reflects how much of your total cholesterol is in a protective form. Meridian tracks it over time alongside absolute values for a fuller picture.',
-    context: 'Meridian evaluates this ratio alongside LDL, triglycerides, and inflammation markers as part of the lipid system context.',
+    context: 'In context with the full lipid and inflammatory picture, this ratio gives Meridian a view of the overall cardiovascular signal balance. A worsening ratio in the presence of elevated triglycerides or inflammation may suggest a broader pattern; a stable or improving ratio alongside favorable lipid trends is generally an encouraging signal.',
   },
   // ── Hormones ────────────────────────────────────────────────────────────────
   testosterone_total: {
     why: 'Testosterone plays a role in energy, muscle maintenance, recovery, libido, mood, and metabolic signaling in both men and women. Meridian watches it because sustained changes can connect to how the body is managing stress, recovery, and hormonal balance more broadly.',
-    context: 'Meridian evaluates testosterone alongside cortisol, DHEA-S, and metabolic markers because these hormones function as an integrated system.',
+    context: 'In context with cortisol and DHEA-S, a testosterone shift may sometimes reflect broader hormonal system balance rather than an isolated change. Elevated cortisol alongside suppressed testosterone is a pattern Meridian watches, as it can sometimes connect to chronic stress load or recovery capacity. A stable testosterone within a balanced hormonal cluster is generally a favorable signal.',
   },
   cortisol_am: {
     why: 'Morning cortisol represents the first wave of your body\'s daily stress and activation response. Meridian watches it because sustained elevations or significant drops can connect to recovery quality, immune function, metabolic balance, sleep patterns, and adrenal signaling over time.',
-    context: 'Meridian evaluates cortisol alongside thyroid hormones, glucose, and inflammatory markers to understand the broader stress-recovery picture.',
+    context: 'In context with thyroid markers, glucose, and inflammatory signals, a morning cortisol pattern can help Meridian assess whether the stress-recovery picture appears balanced or shifted. A persistently elevated cortisol alongside disrupted thyroid or metabolic signals may reflect a broader physiological adaptation; an isolated fluctuation without related cluster changes is generally less significant.',
   },
   dhea_s: {
     why: 'DHEA-S is an adrenal hormone that serves as a precursor to sex hormones and is associated with resilience, recovery, and hormonal reserve. Meridian watches it because levels often decline gradually with age and stress, and the trend over time can be more informative than a single reading.',
-    context: 'Meridian tracks DHEA-S alongside cortisol and testosterone because together they give context on adrenal function and hormonal system balance.',
+    context: 'In context with cortisol and testosterone, a DHEA-S trend can help Meridian assess the overall balance of adrenal and hormonal signaling. A falling DHEA-S alongside persistently elevated cortisol may suggest an adrenal pattern worth monitoring over time. When the hormonal cluster appears balanced and stable, an isolated DHEA-S reading carries less weight than a persistent trend.',
   },
   // ── Inflammation / Cardiac Risk ─────────────────────────────────────────────
   crp_hs: {
     why: 'High-sensitivity CRP is one of the most sensitive markers Meridian watches for low-grade systemic inflammation. Persistently elevated levels — even within the conventional normal range — can sometimes connect to cardiovascular risk, metabolic stress, recovery patterns, and how the body is responding to ongoing physiological demands.',
-    context: 'Meridian evaluates hs-CRP alongside homocysteine, lipid, and metabolic markers because inflammation rarely exists as an isolated signal.',
+    context: 'In context with lipid, metabolic, and hormonal markers, a sustained hs-CRP elevation can sometimes suggest that inflammation is part of a broader biological pattern rather than a temporary response. Meridian is watching whether this signal appears alongside other cluster shifts — or whether it appears isolated, which may be more consistent with transient physiological stress.',
   },
   homocysteine: {
     why: 'Homocysteine is an amino acid that accumulates when B-vitamin metabolism is impaired. Meridian watches it because elevated levels over time have been associated with cardiovascular risk, vascular inflammation, and methylation patterns — even in people with otherwise normal cholesterol.',
-    context: 'Meridian evaluates homocysteine alongside B12, folate, and inflammatory markers as part of the cardiovascular and nutrient context.',
+    context: 'In context with B12, folate, and inflammatory markers, an elevated homocysteine may reflect either a nutrient pathway impairment or a broader cardiovascular risk signal — sometimes both. Meridian is watching whether related nutrient markers support a methylation or B-vitamin pattern, which can help distinguish a nutritional origin from a more complex vascular picture.',
   },
   // ── Vitamins & Nutrients ────────────────────────────────────────────────────
   vitamin_d: {
     why: 'Vitamin D plays a role in immune signaling, recovery, bone health, mood regulation, and metabolic function. Meridian watches long-term trends because consistently low levels can sometimes overlap with broader patterns in recovery, inflammation, immune resilience, and energy.',
-    context: 'Meridian evaluates vitamin D alongside inflammatory markers and hormonal signals to understand its broader biological context over time.',
+    context: 'In context with inflammatory markers and hormonal signals, a consistently low Vitamin D pattern can sometimes overlap with broader immune and recovery signaling — particularly when it persists across multiple readings. Meridian is watching whether Vitamin D appears as an isolated deficiency or as part of a wider pattern that may connect to inflammatory tone or recovery quality.',
   },
   vitamin_b12: {
     why: 'Vitamin B12 supports nerve conduction, red blood cell production, DNA synthesis, and cellular energy metabolism. Meridian watches it because deficiency often develops quietly over time and can connect to fatigue, cognitive patterns, and neurological signals before it becomes clinically obvious.',
-    context: 'Meridian tracks B12 alongside folate, homocysteine, and CBC markers — particularly MCV and RDW — for a fuller nutrient and cell context.',
+    context: 'In context with folate, homocysteine, and CBC markers — particularly MCV and RDW — a B12 pattern can help Meridian assess whether nutrient status may be quietly affecting cell production or neurological signaling. When B12 shifts alongside elevated homocysteine or enlarged red cells, the cluster may suggest an active nutrient pattern rather than isolated variation.',
   },
   folate: {
     why: 'Folate is essential for DNA repair, cell division, and red blood cell production. Meridian watches it because low levels can connect to elevated homocysteine, red cell changes, recovery capacity, and long-term cellular health patterns.',
-    context: 'Meridian evaluates folate alongside B12, homocysteine, and CBC markers because these nutrients work together in closely linked metabolic pathways.',
+    context: 'In context with B12 and homocysteine, a folate shift can help Meridian assess whether a methylation or B-vitamin pattern may be emerging. When folate, B12, and homocysteine move together in a consistent direction, the combined signal tends to be more interpretively meaningful than any single nutrient marker alone.',
   },
   magnesium: {
     why: 'Magnesium is involved in over 300 enzymatic reactions in the body — including energy production, muscle contraction, nerve signaling, and sleep regulation. Meridian watches it because insufficient levels can sometimes connect to fatigue, muscle recovery, stress response, and cardiovascular patterns.',
-    context: 'Meridian tracks magnesium alongside electrolytes and metabolic markers, noting that serum levels may not fully reflect total body stores.',
+    context: 'Serum magnesium may not fully reflect intracellular stores, which means Meridian watches it alongside electrolyte balance and metabolic markers rather than in isolation. A consistently low-normal magnesium pattern — particularly alongside fatigue signals, cardiovascular markers, or stress indicators — may be worth continuing to track over time.',
   },
   ferritin: {
     why: 'Ferritin reflects your body\'s stored iron reserves — the backup supply your body draws on before anaemia becomes apparent. Meridian watches it because low ferritin can quietly connect to fatigue, poor recovery, cognitive fog, and immune resilience, often well before other markers shift.',
-    context: 'Meridian evaluates ferritin alongside hemoglobin, RBC, and other CBC markers to understand iron status and oxygen-transport capacity together.',
+    context: 'In context with hemoglobin, RBC, and MCV, a ferritin pattern can help Meridian assess whether iron availability may be quietly affecting oxygen transport or recovery capacity. A low ferritin alongside stable hemoglobin may reflect early iron depletion before anaemia develops; when ferritin, hemoglobin, and MCV all shift together, the pattern tends to suggest a more established iron-related change.',
   },
   // ── Kidney / Renal ──────────────────────────────────────────────────────────
   creatinine: {
     why: 'Creatinine is a waste product of muscle activity that your kidneys continuously filter from the blood. Meridian watches it as a proxy for kidney filtration efficiency — levels that trend upward over time can sometimes signal changes in how well the kidneys are clearing metabolic waste.',
-    context: 'Meridian evaluates creatinine alongside eGFR and BUN because these three markers together provide a fuller picture of kidney function than any one in isolation.',
+    context: 'In context with eGFR and BUN, a creatinine shift may appear more consistent with hydration variation or muscle load than with kidney function change — particularly if eGFR remains stable. When creatinine and eGFR move together in the same direction across readings, Meridian places more interpretive weight on the pattern as potentially reflecting kidney filtration trends.',
   },
   bun: {
     why: 'BUN (blood urea nitrogen) reflects how well your kidneys are filtering protein waste from your blood. Meridian watches it alongside creatinine because the ratio between them can also provide context on hydration status and protein metabolism.',
-    context: 'Meridian evaluates BUN alongside creatinine and eGFR for kidney function context, as well as hydration and dietary protein patterns.',
+    context: 'In context with creatinine and eGFR, a BUN shift can help Meridian distinguish between a kidney filtration change and a variation in hydration or protein metabolism. An isolated BUN fluctuation alongside stable creatinine and eGFR may be more consistent with hydration or dietary protein variation than a kidney pattern.',
   },
   bun_creatinine_ratio: {
     why: 'The BUN/creatinine ratio gives Meridian additional context on kidney function relative to muscle mass and hydration state. It can sometimes help distinguish between different reasons for kidney marker changes.',
-    context: 'Meridian uses this ratio as part of the broader renal and hydration picture alongside absolute BUN, creatinine, and eGFR values.',
+    context: 'A shifting BUN/creatinine ratio, read in context with the full renal cluster, can help Meridian interpret the likely origin of a kidney marker change. A high ratio with stable eGFR can sometimes suggest dehydration or high protein turnover; a broadly elevated renal cluster may suggest a different pattern. Meridian is watching whether these signals remain consistent or converge across readings.',
   },
   egfr: {
     why: 'eGFR estimates how well your kidneys are filtering waste from your blood — one of the most direct measures of kidney function available from standard bloodwork. Meridian watches it over time because kidney capacity tends to change gradually, and early trends can carry long-term significance.',
-    context: 'Meridian tracks eGFR over time alongside creatinine and BUN for comprehensive kidney context. A single reading is always less informative than a trend.',
+    context: 'Meridian watches eGFR over time because a single reading reflects a snapshot — while a consistent directional drift across visits carries more interpretive weight. In context with creatinine and BUN, Meridian is watching whether the renal picture appears stable, improving, or showing a sustained pattern of change that warrants continued attention.',
   },
   egfr_african_american: {
     why: 'This eGFR calculation accounts for biological variation in creatinine production and provides an adjusted estimate of kidney filtration capacity. Meridian watches it as part of long-term kidney context.',
-    context: 'Meridian evaluates this alongside creatinine and BUN for kidney function context over time.',
+    context: 'In context with creatinine and BUN, Meridian uses this adjusted eGFR to assess kidney filtration patterns over time. A single reading reflects a snapshot — consistent directional trends across visits are what Meridian watches most closely.',
   },
   egfr_non_african_american: {
     why: 'eGFR estimates how well your kidneys are filtering waste from your blood — one of the most direct measures of kidney function from standard bloodwork. Meridian watches it over time because kidney capacity tends to change gradually.',
-    context: 'Meridian tracks eGFR over time alongside creatinine and BUN for comprehensive kidney context.',
+    context: 'In context with creatinine and BUN, Meridian uses this eGFR estimate to assess kidney filtration patterns over time. A single reading reflects a snapshot — consistent directional trends across visits are what Meridian watches most closely.',
   },
   // ── Liver ───────────────────────────────────────────────────────────────────
   ast: {
     why: 'AST is an enzyme found in the liver, heart, and muscles that gets released when cells are under stress or damaged. Meridian watches it because changes over time can provide context on liver health, muscle stress, recovery patterns, and broader tissue inflammation.',
-    context: 'Meridian evaluates AST alongside ALT and alkaline phosphatase — the pattern across liver enzymes often carries more information than any single marker.',
+    context: 'In context with ALT and alkaline phosphatase, an AST shift can help Meridian assess whether a change may reflect a hepatic pattern or a non-liver origin. An AST shift without corresponding ALT elevation can sometimes connect to muscle stress or recovery; when AST and ALT move together, a hepatic origin is more likely. The pattern across the enzyme cluster tends to carry more signal than any single marker.',
   },
   alt: {
     why: 'ALT is one of the markers your liver releases when it\'s under strain or irritation. Meridian watches it because changes over time can help reveal how your body may be responding to inflammation, recovery, medications, alcohol, metabolic health, or broader liver stress patterns.',
-    context: 'Meridian evaluates ALT alongside AST and alkaline phosphatase for liver enzyme context — the relationship between these signals often matters more than any individual value.',
+    context: 'In context with the related liver markers Meridian is tracking, a shift in ALT may appear more consistent with metabolic inflammation, recovery stress, or transient dietary patterns than a persistent liver issue — particularly if the shift is mild and the surrounding cluster remains favorable. Meridian is watching whether this resolves or persists over subsequent readings.',
   },
   alkaline_phosphatase: {
     why: 'Alkaline phosphatase is produced by the liver, bile ducts, and bone. Meridian watches it because elevated levels can sometimes connect to liver health, bile flow, bone turnover, or inflammatory patterns — and the context of which other markers are shifting helps interpret it.',
-    context: 'Meridian evaluates alkaline phosphatase alongside AST, ALT, and bilirubin to understand where in the liver or tissue system changes may be originating.',
+    context: 'In context with AST, ALT, and bilirubin, an alkaline phosphatase shift can help Meridian assess whether a change may relate to liver and bile flow, bone turnover, or a broader inflammatory signal. When alkaline phosphatase rises alongside AST and ALT, a hepatic pattern may be more likely; a rise in isolation may suggest a different origin worth watching over time.',
   },
   bilirubin_total: {
     why: 'Bilirubin is a byproduct of red blood cell breakdown that the liver processes and clears. Meridian watches it because changes can connect to liver processing capacity, bile flow, or red blood cell turnover — signals that help build a fuller hepatic picture.',
-    context: 'Meridian tracks bilirubin alongside liver enzymes and CBC markers to understand both hepatic and red cell context.',
+    context: 'In context with AST, ALT, and CBC markers, a bilirubin shift can help Meridian assess whether the pattern may connect to liver processing, bile flow, or red blood cell turnover. When bilirubin shifts in isolation without corresponding liver enzyme changes, red blood cell turnover is sometimes the more likely origin — though Meridian continues to watch how the cluster evolves.',
   },
   albumin: {
     why: 'Albumin is the most abundant protein in your blood and is produced by the liver. Meridian watches it because it reflects nutritional status, liver synthetic function, and overall protein balance — signals that can shift with illness, inflammation, or long-term dietary patterns.',
-    context: 'Meridian evaluates albumin alongside total protein, A/G ratio, and liver markers to understand protein metabolism and liver health together.',
+    context: 'In context with total protein, A/G ratio, and liver markers, an albumin shift can sometimes reflect changes in liver synthetic function, nutritional status, or inflammatory state. A low albumin alongside elevated globulin may suggest an inflammatory or immune-related protein shift; when albumin shifts alongside liver enzymes, a hepatic production pattern may be more likely.',
   },
   globulin: {
     why: 'Globulins are a group of proteins that include immune-related antibodies and carrier proteins. Meridian watches them because changes can provide context on immune activity, liver function, chronic inflammation, and overall protein balance.',
-    context: 'Meridian evaluates globulin alongside albumin, total protein, and liver enzymes for a fuller picture of protein metabolism and immune activity.',
+    context: 'In context with albumin and the A/G ratio, a globulin shift can help Meridian assess whether a protein pattern may reflect immune activation, chronic inflammation, or liver-related changes. When globulin rises as albumin falls, Meridian is watching this as a potentially meaningful protein balance shift — rather than an isolated fluctuation in one marker.',
   },
   total_protein: {
     why: 'Total protein reflects both albumin and globulins together, giving Meridian a broad view of how well the body is producing and maintaining protein. Changes can connect to nutritional status, liver function, immune activity, and recovery.',
-    context: 'Meridian evaluates total protein alongside albumin, globulin, and liver markers rather than reading it in isolation.',
+    context: 'In context with albumin and globulin, total protein adds a summary view of overall protein balance. When albumin and globulin move in opposite directions while total protein remains stable, Meridian is watching this as a protein balance shift rather than a synthesis problem — a pattern worth continuing to track alongside liver and immune markers.',
   },
   ag_ratio: {
     why: 'The albumin/globulin ratio reflects the balance between two major protein groups in your blood. Meridian watches it because shifts in this ratio can sometimes provide early context on liver function, immune activity, or chronic inflammation before individual markers become obviously abnormal.',
-    context: 'Meridian evaluates the A/G ratio alongside albumin, globulin, and liver enzyme markers for fuller context.',
+    context: 'When the A/G ratio shifts, Meridian is watching which component — albumin or globulin — is driving the change, as this can sometimes help distinguish a liver production pattern from an immune or inflammatory one. A persistently falling A/G ratio, particularly alongside other liver or immune signals, may carry more interpretive weight than an isolated reading.',
   },
   // ── CMP electrolytes ────────────────────────────────────────────────────────
   sodium: {
     why: 'Sodium is the primary electrolyte governing fluid balance in your body. Meridian watches it because shifts — even subtle ones — can connect to hydration status, kidney regulation, adrenal signaling, and how the body is managing fluid across cells.',
-    context: 'Meridian evaluates sodium alongside potassium, chloride, and CO2 as part of the integrated electrolyte and acid-base balance.',
+    context: 'In context with potassium, chloride, and CO2, a sodium shift can help Meridian assess whether fluid balance appears broadly stable or may be part of a wider electrolyte pattern. Sodium fluctuations are often transient and hydration-related; when multiple electrolytes shift together, Meridian considers whether a more integrated kidney or adrenal pattern may be emerging.',
   },
   potassium: {
     why: 'Potassium is critical for heart rhythm, muscle contraction, and cellular energy balance. Meridian watches it because significant deviations in either direction can carry cardiovascular implications, and it provides important context on kidney function and adrenal regulation.',
-    context: 'Meridian tracks potassium alongside sodium and other electrolytes as part of the cardiovascular and metabolic picture.',
+    context: 'In context with sodium and the broader electrolyte cluster, a potassium shift can help Meridian assess whether the change appears consistent with hydration variation, dietary patterns, or a more persistent renal or adrenal signal. When potassium moves outside of normal range consistently, or alongside other electrolyte changes, Meridian watches this cluster more closely.',
   },
   chloride: {
     why: 'Chloride works alongside sodium and bicarbonate to maintain fluid balance and acid-base stability in the body. Meridian watches it as part of the electrolyte system, where the pattern across multiple markers is usually more informative than any single value.',
-    context: 'Meridian evaluates chloride alongside sodium, CO2, and other CMP markers for electrolyte and acid-base context.',
+    context: 'In context with sodium and CO2, a chloride shift can help Meridian assess whether the acid-base and electrolyte picture appears balanced. An isolated chloride fluctuation is often transient; when chloride moves alongside CO2 in an opposing direction, Meridian may be watching for an evolving acid-base pattern.',
   },
   co2: {
     why: 'CO2 (reported as bicarbonate) reflects how well your body is managing acid-base balance — the chemical equilibrium that underpins most cellular processes. Meridian watches it because shifts can connect to metabolic changes, kidney function, respiratory patterns, and hydration status.',
-    context: 'Meridian tracks CO2 alongside chloride and electrolytes for acid-base context, often reading it in relation to the anion gap.',
+    context: 'In context with chloride and the anion gap, a CO2 shift can help Meridian assess whether the acid-base picture is stable or showing a directional pattern. A falling CO2 alongside a rising anion gap may suggest an accumulating acid load; when CO2 fluctuates without supporting cluster changes, it is more often consistent with transient variation.',
   },
   calcium: {
     why: 'Calcium supports bone integrity, muscle contraction, nerve signaling, and heart function. Meridian watches it because blood calcium is tightly regulated — significant deviations can sometimes reflect parathyroid signaling, vitamin D status, or other metabolic patterns.',
-    context: 'Meridian evaluates calcium alongside vitamin D and metabolic markers for a fuller mineral and bone health picture.',
+    context: 'Blood calcium is tightly regulated, so meaningful shifts — particularly persistent ones — are worth watching in context with vitamin D and metabolic markers. Meridian is watching whether a calcium change appears isolated or moves alongside related signals that might suggest a broader mineral balance or parathyroid-related pattern.',
   },
   anion_gap: {
     why: 'The anion gap is a calculated value that reflects the balance of charged particles in your blood. Meridian watches it because elevated levels can sometimes signal metabolic acid accumulation — shifts that might not be obvious from individual electrolyte readings alone.',
-    context: 'Meridian evaluates the anion gap alongside CO2, chloride, and other CMP markers as part of the integrated metabolic and acid-base context.',
+    context: 'In context with CO2 and chloride, an elevated anion gap can help Meridian assess whether the acid-base picture may reflect metabolic acid accumulation. When the anion gap rises alongside a falling CO2 and stable chloride, the pattern may be more interpretively significant than an isolated value — Meridian watches the electrolyte cluster together rather than any single marker.',
   },
 }
 
