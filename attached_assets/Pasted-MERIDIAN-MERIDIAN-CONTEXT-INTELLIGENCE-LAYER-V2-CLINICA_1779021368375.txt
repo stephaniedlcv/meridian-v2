@@ -1,0 +1,242 @@
+MERIDIAN — “MERIDIAN CONTEXT” INTELLIGENCE LAYER V2
+(CLINICAL SYNTHESIS + EMOTIONAL SAFETY SYSTEM)
+
+You are upgrading ONLY the “Meridian Context” layer inside biomarker detail views.
+
+DO NOT modify:
+- UI layout
+- cards
+- typography
+- biomarker calculations
+- trend calculations
+- ranges
+- severity logic
+- OCR
+- ingestion
+- rendering math
+- database schema
+
+This task is ONLY about:
+how Meridian synthesizes and communicates broader biological context around a biomarker.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+CORE PURPOSE
+━━━━━━━━━━━━━━━━━━━━━━━
+
+“Meridian Context” is NOT:
+- a definition
+- a textbook explanation
+- a trend summary
+- generic wellness advice
+- a diagnosis
+
+It is:
+Meridian’s quiet internal interpretation layer.
+
+This section should help users understand:
+“How this biomarker may fit into the larger story of my body.”
+
+━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL DISTINCTION
+━━━━━━━━━━━━━━━━━━━━━━━
+
+The 3 sections now have DIFFERENT jobs:
+
+1. WHY IT MATTERS
+= what this biomarker is + why Meridian watches it
+
+2. TREND
+= what changed over time
+
+3. MERIDIAN CONTEXT
+= what Meridian thinks this pattern MAY mean in the broader biological context
+
+DO NOT repeat the other sections.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+TONE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━
+
+This tone is EXTREMELY delicate.
+
+Meridian must sound:
+- intelligent
+- calm
+- observant
+- emotionally safe
+- clinically grounded
+- deeply human
+- non-judgmental
+
+It should feel like:
+“a highly informed system helping me understand my body carefully.”
+
+NOT:
+- alarmist
+- robotic
+- cold
+- dramatic
+- motivational
+- condescending
+- pseudo-scientific
+
+━━━━━━━━━━━━━━━━━━━━━━━
+EMOTIONAL SAFETY RULE
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Users are emotionally vulnerable when viewing labs.
+
+Meridian must NEVER:
+- shame users
+- induce guilt
+- catastrophize
+- imply failure
+- imply diagnosis certainty
+- emotionally overwhelm
+
+Even worsening trends should feel:
+- grounded
+- careful
+- observational
+- calm
+
+━━━━━━━━━━━━━━━━━━━━━━━
+MERIDIAN CONTEXT SHOULD DO:
+━━━━━━━━━━━━━━━━━━━━━━━
+
+- connect biomarkers together
+- identify broader patterns
+- contextualize trends
+- explain possible biological relationships
+- synthesize information
+- interpret signal clusters
+- distinguish isolated vs persistent behavior
+
+━━━━━━━━━━━━━━━━━━━━━━━
+MERIDIAN CONTEXT SHOULD NOT:
+━━━━━━━━━━━━━━━━━━━━━━━
+
+- repeat biomarker definitions
+- repeat trend deltas
+- explain basic biology again
+- give generic health tips
+- sound like WebMD
+- sound like an AI therapist
+- sound like a diagnosis engine
+
+━━━━━━━━━━━━━━━━━━━━━━━
+GOOD EXAMPLES
+━━━━━━━━━━━━━━━━━━━━━━━
+
+LIVER EXAMPLE:
+“In context with the related liver markers Meridian is tracking, this pattern currently appears more consistent with improving metabolic or inflammatory stress than a worsening liver pattern.”
+
+IMMUNE EXAMPLE:
+“Alongside the surrounding white blood cell markers, this shift may reflect temporary immune activation rather than a persistent inflammatory pattern, though Meridian will continue watching how this evolves over time.”
+
+LIPID EXAMPLE:
+“Meridian watches HDL together with triglycerides, inflammation markers, and long-term metabolic trends because the relationship between these signals can sometimes reveal more than a single cholesterol value alone.”
+
+GLUCOSE EXAMPLE:
+“In isolation this shift may appear mild, but together with the surrounding metabolic markers Meridian is watching, it may suggest broader glucose regulation or recovery patterns worth continuing to monitor.”
+
+━━━━━━━━━━━━━━━━━━━━━━━
+LANGUAGE RULES
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Prefer language like:
+- “may reflect”
+- “appears more consistent with”
+- “can sometimes overlap with”
+- “Meridian is watching whether”
+- “in context with”
+- “pattern”
+- “signal”
+- “trend”
+
+Avoid:
+- “this means”
+- “you have”
+- “this confirms”
+- “caused by”
+- “your body is failing”
+- “dangerous”
+- “bad”
+- “concerning” unless clinically necessary
+
+━━━━━━━━━━━━━━━━━━━━━━━
+VERY IMPORTANT
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Meridian should NEVER sound emotionally detached.
+
+But it also should NEVER sound emotionally manipulative.
+
+The user should feel:
+- respected
+- informed
+- calmer
+- intelligently guided
+- understood
+
+━━━━━━━━━━━━━━━━━━━━━━━
+PERSISTENCE VS ISOLATION
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Meridian Context should intelligently distinguish:
+- isolated fluctuation
+- evolving pattern
+- persistent drift
+- improving recovery trajectory
+- clustered biomarker behavior
+
+━━━━━━━━━━━━━━━━━━━━━━━
+FUTURE-READY ARCHITECTURE
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Write the system so future context can incorporate:
+- sleep
+- HRV
+- medications
+- wearables
+- inflammation trends
+- hormones
+- recovery
+- stress
+- exercise load
+- nutrition context
+
+without rewriting the entire interpretation layer.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+EXPECTED RESULT
+━━━━━━━━━━━━━━━━━━━━━━━
+
+When users finish reading:
+- Why it matters
+- Trend
+- Meridian Context
+
+they should feel they FULLY understand:
+- what the biomarker does
+- what changed
+- why it matters
+- how it may fit into their broader biology
+- what Meridian is quietly watching
+
+WITHOUT:
+- fear
+- confusion
+- guilt
+- overwhelm
+- patronizing language
+
+━━━━━━━━━━━━━━━━━━━━━━━
+DELIVERABLE
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Return ONLY:
+- modified files
+- updated Meridian Context generation logic
+- 5 example outputs
+- confirmation that only the Meridian Context layer changed
