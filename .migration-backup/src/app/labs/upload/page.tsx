@@ -112,8 +112,8 @@ const SLUG_TO_PANEL: Record<string, string> = {
   ast: 'Liver', alt: 'Liver', alkaline_phosphatase: 'Liver',
   bilirubin_total: 'Liver', albumin: 'Liver', globulin: 'Liver',
   ag_ratio: 'Liver', total_protein: 'Liver',
-  glucose_fasting: 'CMP', sodium: 'CMP', potassium: 'CMP',
-  chloride: 'CMP', co2: 'CMP', calcium: 'CMP', anion_gap: 'CMP',
+  glucose_fasting: 'Glycemic', sodium: 'Electrolytes', potassium: 'Electrolytes',
+  chloride: 'Electrolytes', co2: 'Electrolytes', calcium: 'Electrolytes', anion_gap: 'Electrolytes',
   // Urinalysis — dipstick, physical, and microscopy
   urine_color: 'Urinalysis', urine_clarity: 'Urinalysis',
   urine_specific_gravity: 'Urinalysis', urine_ph: 'Urinalysis',
@@ -131,8 +131,8 @@ function inferPanel(slug: string): string {
 }
 
 const PANEL_ORDER = [
-  'CBC', 'Lipid Panel', 'CMP', 'Kidney / Renal', 'Liver',
-  'Glycemic', 'Thyroid Panel', 'Vitamins & Nutrients',
+  'CBC', 'Lipid Panel', 'Glycemic', 'Kidney / Renal', 'Liver', 'Electrolytes',
+  'Thyroid Panel', 'Vitamins & Nutrients',
   'Hormones', 'Inflammation / Cardiac Risk', 'Urinalysis', 'Other',
 ]
 
@@ -166,39 +166,32 @@ const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
   basophils_pct: 'CBC', basophils_abs: 'CBC',
   immature_granulocytes_pct: 'CBC', immature_granulocytes_abs: 'CBC',
   nrbc_pct: 'CBC', nrbc_abs: 'CBC',
-  // Comprehensive Metabolic Panel
-  bun: 'Comprehensive Metabolic Panel', creatinine: 'Comprehensive Metabolic Panel',
-  egfr: 'Comprehensive Metabolic Panel', egfr_african_american: 'Comprehensive Metabolic Panel',
-  egfr_non_african_american: 'Comprehensive Metabolic Panel',
-  bun_creatinine_ratio: 'Comprehensive Metabolic Panel',
-  sodium: 'Comprehensive Metabolic Panel', potassium: 'Comprehensive Metabolic Panel',
-  chloride: 'Comprehensive Metabolic Panel', co2: 'Comprehensive Metabolic Panel',
-  calcium: 'Comprehensive Metabolic Panel', total_protein: 'Comprehensive Metabolic Panel',
-  albumin: 'Comprehensive Metabolic Panel', globulin: 'Comprehensive Metabolic Panel',
-  ag_ratio: 'Comprehensive Metabolic Panel', bilirubin_total: 'Comprehensive Metabolic Panel',
-  alkaline_phosphatase: 'Comprehensive Metabolic Panel',
-  ast: 'Comprehensive Metabolic Panel', alt: 'Comprehensive Metabolic Panel',
-  glucose_fasting: 'Comprehensive Metabolic Panel',
-  anion_gap: 'Comprehensive Metabolic Panel',
   // Lipid Panel
   total_cholesterol: 'Lipid Panel', hdl: 'Lipid Panel', ldl: 'Lipid Panel',
   vldl: 'Lipid Panel', non_hdl: 'Lipid Panel', triglycerides: 'Lipid Panel',
   ldl_hdl_ratio: 'Lipid Panel', chol_hdl_ratio: 'Lipid Panel',
-  // Glycemic Panel
-  hba1c: 'Glycemic Panel', insulin_fasting: 'Glycemic Panel',
+  // Glycemic
+  hba1c: 'Glycemic', insulin_fasting: 'Glycemic', glucose_fasting: 'Glycemic',
+  // Kidney / Renal
+  creatinine: 'Kidney / Renal', bun: 'Kidney / Renal', bun_creatinine_ratio: 'Kidney / Renal',
+  egfr: 'Kidney / Renal', egfr_african_american: 'Kidney / Renal', egfr_non_african_american: 'Kidney / Renal',
+  // Liver
+  ast: 'Liver', alt: 'Liver', alkaline_phosphatase: 'Liver', bilirubin_total: 'Liver',
+  albumin: 'Liver', globulin: 'Liver', ag_ratio: 'Liver', total_protein: 'Liver',
+  // Electrolytes
+  sodium: 'Electrolytes', potassium: 'Electrolytes', chloride: 'Electrolytes',
+  co2: 'Electrolytes', calcium: 'Electrolytes', anion_gap: 'Electrolytes',
   // Thyroid Panel
   tsh: 'Thyroid Panel', free_t4: 'Thyroid Panel', free_t3: 'Thyroid Panel', total_t3: 'Thyroid Panel',
   tpo_antibodies: 'Thyroid Panel',
-  // Vitamin & Nutrient Panel
-  vitamin_d: 'Vitamin & Nutrient Panel', vitamin_b12: 'Vitamin & Nutrient Panel',
-  folate: 'Vitamin & Nutrient Panel', magnesium: 'Vitamin & Nutrient Panel',
-  // Iron Panel
-  ferritin: 'Iron Panel',
-  // Hormone Panel
-  testosterone_total: 'Hormone Panel', dhea_s: 'Hormone Panel', cortisol_am: 'Hormone Panel',
-  acth: 'Hormone Panel',
-  // Inflammation Markers
-  crp_hs: 'Inflammation Markers', homocysteine: 'Inflammation Markers',
+  // Vitamins & Nutrients (includes ferritin / iron stores)
+  vitamin_d: 'Vitamins & Nutrients', vitamin_b12: 'Vitamins & Nutrients',
+  folate: 'Vitamins & Nutrients', magnesium: 'Vitamins & Nutrients', ferritin: 'Vitamins & Nutrients',
+  // Hormones
+  testosterone_total: 'Hormones', dhea_s: 'Hormones', cortisol_am: 'Hormones',
+  acth: 'Hormones',
+  // Inflammation / Cardiac Risk
+  crp_hs: 'Inflammation / Cardiac Risk', homocysteine: 'Inflammation / Cardiac Risk',
   // Urinalysis — dipstick, physical, and microscopy
   urine_color: 'Urinalysis', urine_clarity: 'Urinalysis',
   urine_specific_gravity: 'Urinalysis', urine_ph: 'Urinalysis',
@@ -212,23 +205,24 @@ const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
 }
 
 const CLINICAL_PANEL_ORDER = [
-  'CBC', 'Comprehensive Metabolic Panel', 'Lipid Panel', 'Glycemic Panel',
-  'Thyroid Panel', 'Vitamin & Nutrient Panel', 'Iron Panel', 'Hormone Panel',
-  'Inflammation Markers', 'Urinalysis', 'Other',
+  'CBC', 'Lipid Panel', 'Glycemic', 'Kidney / Renal', 'Liver', 'Electrolytes',
+  'Thyroid Panel', 'Vitamins & Nutrients', 'Hormones', 'Inflammation / Cardiac Risk',
+  'Urinalysis', 'Other',
 ]
 
 const CLINICAL_PANEL_EDUCATION: Record<string, string> = {
-  'CBC':                           'Your CBC gives Meridian a window into immune activity, oxygen-carrying capacity, and red and white cell patterns — signals that can shift in response to stress, recovery, nutrition, and more.',
-  'Comprehensive Metabolic Panel': 'The CMP maps your body\'s chemical balance — kidney filtration, liver enzymes, electrolytes, and blood sugar markers that together reveal how well your metabolism and organs are functioning.',
-  'Lipid Panel':                   'Cholesterol markers tell a story about how your body transports fats. Meridian watches trends here over time because single readings rarely capture the full cardiovascular picture.',
-  'Glycemic Panel':                'Blood sugar regulation shapes energy, metabolism, and long-term tissue health. Meridian watches glycemic markers together because the pattern across multiple results matters more than any one number.',
-  'Thyroid Panel':                 'Your thyroid influences metabolism, energy, temperature regulation, and recovery. Meridian tracks these signals over time because thyroid function tends to shift gradually.',
-  'Vitamin & Nutrient Panel':      'Micronutrient levels can quietly influence energy, immunity, mood, and recovery. Meridian watches trends here because deficiencies and changes often develop slowly over time.',
-  'Iron Panel':                    'Iron supports oxygen delivery to every cell in the body. Meridian watches storage and supply markers together because iron status can affect energy, endurance, and immune resilience.',
-  'Hormone Panel':                 'Hormonal signals shape energy, recovery, stress response, libido, and mood. Meridian watches these as an interconnected system because no single hormone operates alone.',
-  'Inflammation Markers':          'Low-grade inflammation is a background signal linked to cardiovascular risk, metabolic health, and recovery. Meridian watches it over time because sustained elevation can matter more than a one-off reading.',
-  'Urinalysis':                    'Urine findings give Meridian a snapshot of kidney and urinary tract health, hydration balance, and chemical patterns that complement bloodwork context.',
-  'Other':                         'These markers add additional context to your biological profile. Meridian tracks them alongside related signals for a more complete picture.',
+  'CBC':                         'Your CBC gives Meridian a window into immune activity, oxygen-carrying capacity, and red and white cell patterns — signals that can shift in response to stress, recovery, nutrition, and more.',
+  'Lipid Panel':                 'Cholesterol markers tell a story about how your body transports fats. Meridian watches trends here over time because single readings rarely capture the full cardiovascular picture.',
+  'Glycemic':                    'Blood sugar regulation shapes energy, metabolism, and long-term tissue health. Meridian watches glycemic markers together because the pattern across multiple results matters more than any one number.',
+  'Kidney / Renal':              'Kidney filtration and waste-clearance markers that Meridian watches over time — because kidney capacity tends to shift gradually, and trends carry more signal than any single reading.',
+  'Liver':                       'Liver enzyme and protein markers that can reflect how the liver is responding to stress, recovery, nutrition, and metabolic demands over time.',
+  'Electrolytes':                'Electrolyte balance governs fluid regulation, acid-base chemistry, and cellular signaling. Meridian watches these together because shifts in one often reflect shifts in the broader system.',
+  'Thyroid Panel':               'Your thyroid influences metabolism, energy, temperature regulation, and recovery. Meridian tracks these signals over time because thyroid function tends to shift gradually.',
+  'Vitamins & Nutrients':        'Micronutrient levels — including iron stores — can quietly influence energy, immunity, mood, and recovery. Meridian watches trends here because deficiencies often develop slowly over time.',
+  'Hormones':                    'Hormonal signals shape energy, recovery, stress response, libido, and mood. Meridian watches these as an interconnected system because no single hormone operates alone.',
+  'Inflammation / Cardiac Risk': 'Low-grade inflammation is a background signal linked to cardiovascular risk, metabolic health, and recovery. Meridian watches it over time because sustained elevation can matter more than a one-off reading.',
+  'Urinalysis':                  'Urine findings give Meridian a snapshot of kidney and urinary tract health, hydration balance, and chemical patterns that complement bloodwork context.',
+  'Other':                       'These markers add additional context to your biological profile. Meridian tracks them alongside related signals for a more complete picture.',
 }
 
 // ── Signal Map mapping ────────────────────────────────────────────────────────
@@ -236,7 +230,7 @@ const SIGNAL_SLUG_TO_LAYER: Record<string, string> = {
   // Cardiovascular
   total_cholesterol: 'Cardiovascular', hdl: 'Cardiovascular', ldl: 'Cardiovascular',
   vldl: 'Cardiovascular', non_hdl: 'Cardiovascular', triglycerides: 'Cardiovascular',
-  ldl_hdl_ratio: 'Cardiovascular', chol_hdl_ratio: 'Cardiovascular', homocysteine: 'Cardiovascular',
+  ldl_hdl_ratio: 'Cardiovascular', chol_hdl_ratio: 'Cardiovascular',
   // Metabolic
   glucose_fasting: 'Metabolic', hba1c: 'Metabolic', insulin_fasting: 'Metabolic',
   sodium: 'Metabolic', potassium: 'Metabolic', chloride: 'Metabolic', co2: 'Metabolic', calcium: 'Metabolic',
@@ -269,7 +263,7 @@ const SIGNAL_SLUG_TO_LAYER: Record<string, string> = {
   // Hormones
   testosterone_total: 'Hormones', dhea_s: 'Hormones', cortisol_am: 'Hormones', acth: 'Hormones',
   // Inflammation
-  crp_hs: 'Inflammation',
+  crp_hs: 'Inflammation', homocysteine: 'Inflammation',
   // RDW-SD maps to Blood / Oxygen layer (same as RDW-CV)
   rdw_sd: 'Blood / Oxygen',
   // Urinary — all urinalysis slugs map to the existing 'Urinary' signal layer
@@ -305,18 +299,18 @@ const SIGNAL_LAYER_EDUCATION: Record<string, string> = {
 }
 
 const PANEL_EDUCATION: Record<string, string> = {
-  'CBC':                      'Your CBC helps Meridian understand blood cell patterns, oxygen transport, and immune cell distribution — signals that can shift in response to stress, nutrition, recovery, and more.',
-  'CMP':                      'Your CMP gives Meridian context on metabolism, electrolytes, kidney filtration, liver enzymes, and protein balance — a broad view of how your body\'s chemistry is functioning.',
-  'Lipid Panel':              'Your lipid panel helps Meridian understand how your body transports cholesterol and fats. Trends here matter more than individual readings.',
-  'Thyroid Panel':            'Your thyroid panel gives Meridian context on hormone signaling that influences metabolism, energy, temperature regulation, and recovery patterns over time.',
-  'Glycemic':                 'Your glycemic markers help Meridian understand blood sugar regulation and longer-term glucose patterns that can connect to metabolic health and energy.',
-  'Kidney / Renal':           'These markers give Meridian context on kidney filtration capacity, hydration balance, and waste clearance — signals that tend to shift gradually over time.',
-  'Liver':                    'Your liver markers help Meridian understand enzyme patterns and protein metabolism that can reflect how your liver is responding to stress, recovery, medications, and lifestyle patterns.',
-  'Urinalysis':               'Your urinalysis adds context on kidney and urinary tract health, hydration, and chemical patterns that complement your bloodwork.',
-  'Vitamins & Nutrients':     'Your nutrient markers help Meridian understand micronutrient status that can quietly affect energy, immunity, mood, and recovery over time.',
-  'Hormones':                 'Your hormone panel gives Meridian context on the signals that shape energy, recovery, stress response, and metabolic balance as an integrated system.',
+  'CBC':                         'Your CBC helps Meridian understand blood cell patterns, oxygen transport, and immune cell distribution — signals that can shift in response to stress, nutrition, recovery, and more.',
+  'Lipid Panel':                 'Your lipid panel helps Meridian understand how your body transports cholesterol and fats. Trends here matter more than individual readings.',
+  'Glycemic':                    'Your glycemic markers help Meridian understand blood sugar regulation and longer-term glucose patterns that can connect to metabolic health and energy.',
+  'Kidney / Renal':              'These markers give Meridian context on kidney filtration capacity, hydration balance, and waste clearance — signals that tend to shift gradually over time.',
+  'Liver':                       'Your liver markers help Meridian understand enzyme patterns and protein metabolism that can reflect how your liver is responding to stress, recovery, medications, and lifestyle patterns.',
+  'Electrolytes':                'Your electrolyte markers give Meridian context on fluid balance, acid-base regulation, and cellular signaling — the chemical environment that underpins most physiological processes.',
+  'Thyroid Panel':               'Your thyroid panel gives Meridian context on hormone signaling that influences metabolism, energy, temperature regulation, and recovery patterns over time.',
+  'Vitamins & Nutrients':        'Your nutrient markers — including iron stores — help Meridian understand micronutrient status that can quietly affect energy, immunity, mood, and recovery over time.',
+  'Hormones':                    'Your hormone markers give Meridian context on the signals that shape energy, recovery, stress response, and metabolic balance as an integrated system.',
   'Inflammation / Cardiac Risk': 'Your inflammation and cardiac risk markers help Meridian understand low-grade systemic inflammation and cardiovascular signal patterns over time.',
-  'Other':                    'These markers add additional context to your broader biological profile alongside related signals.',
+  'Urinalysis':                  'Your urinalysis adds context on kidney and urinary tract health, hydration, and chemical patterns that complement your bloodwork.',
+  'Other':                       'These markers add additional context to your broader biological profile alongside related signals.',
 }
 
 // ── OCR artifact / worksheet code detection ────────────────────────────────────
@@ -1164,24 +1158,25 @@ const HIST_SLUG_TO_PANEL: Record<string, string> = {
   // Lipid
   total_cholesterol: 'Lipid Panel', hdl: 'Lipid Panel', ldl: 'Lipid Panel', vldl: 'Lipid Panel',
   triglycerides: 'Lipid Panel', non_hdl: 'Lipid Panel', ldl_hdl_ratio: 'Lipid Panel', chol_hdl_ratio: 'Lipid Panel',
-  // CMP (kidney, liver, electrolytes, basic metabolic)
-  creatinine: 'CMP', bun: 'CMP', bun_creatinine_ratio: 'CMP', egfr: 'CMP',
-  egfr_african_american: 'CMP', egfr_non_african_american: 'CMP',
-  ast: 'CMP', alt: 'CMP', alkaline_phosphatase: 'CMP', bilirubin_total: 'CMP',
-  albumin: 'CMP', globulin: 'CMP', ag_ratio: 'CMP', total_protein: 'CMP',
-  glucose_fasting: 'CMP', sodium: 'CMP', potassium: 'CMP', chloride: 'CMP',
-  co2: 'CMP', calcium: 'CMP', anion_gap: 'CMP',
-  // Glycemic (dedicated panel — A1c and fasting insulin are not CMP)
-  hba1c: 'Glycemic Panel',
-  insulin_fasting: 'Glycemic Panel',
-  // Hormone Panel
-  testosterone_total: 'Hormone Panel', cortisol_am: 'Hormone Panel', dhea_s: 'Hormone Panel',
-  acth: 'Hormone Panel',
+  // Kidney / Renal
+  creatinine: 'Kidney / Renal', bun: 'Kidney / Renal', bun_creatinine_ratio: 'Kidney / Renal',
+  egfr: 'Kidney / Renal', egfr_african_american: 'Kidney / Renal', egfr_non_african_american: 'Kidney / Renal',
+  // Liver
+  ast: 'Liver', alt: 'Liver', alkaline_phosphatase: 'Liver', bilirubin_total: 'Liver',
+  albumin: 'Liver', globulin: 'Liver', ag_ratio: 'Liver', total_protein: 'Liver',
+  // Electrolytes
+  sodium: 'Electrolytes', potassium: 'Electrolytes', chloride: 'Electrolytes',
+  co2: 'Electrolytes', calcium: 'Electrolytes', anion_gap: 'Electrolytes',
+  // Glycemic
+  hba1c: 'Glycemic', insulin_fasting: 'Glycemic', glucose_fasting: 'Glycemic',
+  // Hormones
+  testosterone_total: 'Hormones', cortisol_am: 'Hormones', dhea_s: 'Hormones',
+  acth: 'Hormones',
   // Inflammation / Cardiac Risk
   crp_hs: 'Inflammation / Cardiac Risk', homocysteine: 'Inflammation / Cardiac Risk',
-  // Vitamin & Nutrient Panel
-  vitamin_d: 'Vitamin & Nutrient Panel', vitamin_b12: 'Vitamin & Nutrient Panel',
-  folate: 'Vitamin & Nutrient Panel', magnesium: 'Vitamin & Nutrient Panel', ferritin: 'Vitamin & Nutrient Panel',
+  // Vitamins & Nutrients
+  vitamin_d: 'Vitamins & Nutrients', vitamin_b12: 'Vitamins & Nutrients',
+  folate: 'Vitamins & Nutrients', magnesium: 'Vitamins & Nutrients', ferritin: 'Vitamins & Nutrients',
   // Urinalysis — dipstick, physical, and microscopy
   urine_color: 'Urinalysis', urine_clarity: 'Urinalysis',
   urine_specific_gravity: 'Urinalysis', urine_ph: 'Urinalysis',
@@ -1196,8 +1191,9 @@ const HIST_SLUG_TO_PANEL: Record<string, string> = {
 function histInferPanel(slug: string): string { return HIST_SLUG_TO_PANEL[slug] ?? 'Other' }
 
 const HIST_PANEL_DISPLAY_ORDER = [
-  'CBC', 'Lipid Panel', 'CMP', 'Glycemic Panel', 'Thyroid Panel',
-  'Hormone Panel', 'Vitamin & Nutrient Panel', 'Inflammation / Cardiac Risk', 'Urinalysis', 'Other',
+  'CBC', 'Lipid Panel', 'Glycemic', 'Kidney / Renal', 'Liver', 'Electrolytes',
+  'Thyroid Panel', 'Vitamins & Nutrients', 'Hormones', 'Inflammation / Cardiac Risk',
+  'Urinalysis', 'Other',
 ]
 function histPanelSortIndex(name: string): number {
   const i = HIST_PANEL_DISPLAY_ORDER.indexOf(name)
