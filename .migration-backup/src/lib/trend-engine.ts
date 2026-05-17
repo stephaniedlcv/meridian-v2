@@ -288,9 +288,9 @@ export function getClinicalContextualState(
 //   critical   → red (#F87171) — safety note handles the narrative, not the trend card
 //
 // contextLine (T006 emotional UX guardrails):
-//   improving_abnormal  → softer language acknowledging direction without implying recovery
-//   worsening_normal    → watch language without alarming
-//   monitored_stable    → steady monitoring language
+//   improving_abnormal  → calm acknowledgment of meaningful improvement
+//   worsening_normal    → safe observational language without alarm
+//   monitored_stable    → persistent deviation language without panic
 //   critical_override   → null — safety note in the UI handles framing entirely
 export function getTrendDisplayProps(
   severity: ContextualSeverity,
@@ -317,13 +317,19 @@ export function getTrendDisplayProps(
   let contextLine: string | null = null
   switch (severity) {
     case 'improving_abnormal':
-      contextLine = 'Still outside reference range, but trending in the right direction.'
+      contextLine = 'This marker has improved meaningfully since your last upload. Sustained shifts like this can sometimes be seen when a health pattern is moving in a more favorable direction.'
       break
     case 'worsening_normal':
-      contextLine = 'Within range, but drifting. Worth watching at the next lab.'
+      contextLine = 'This marker has moved away from its prior pattern since your last upload. Small shifts can occur with stress, illness, inflammation, sleep disruption, hydration changes, medications, recovery load, or evolving metabolic patterns.'
       break
     case 'monitored_stable':
-      contextLine = 'Remained outside range at this level. Continued monitoring is relevant.'
+      contextLine = 'This marker has remained outside its usual range across multiple uploads, which may make the pattern more meaningful than an isolated deviation.'
+      break
+    case 'stable_abnormal':
+      contextLine = 'This appears more consistent with a temporary fluctuation than a long-term pattern, though continued tracking can clarify whether it persists.'
+      break
+    case 'stable_normal':
+      contextLine = 'Minor movement from the prior result, though still within the type of variation commonly seen between lab draws.'
       break
     default:
       contextLine = null
