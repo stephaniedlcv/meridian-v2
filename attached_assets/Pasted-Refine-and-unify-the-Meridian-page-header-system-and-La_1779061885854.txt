@@ -1,0 +1,200 @@
+Refine and unify the Meridian page header system and Labs snapshot section to fully align with the newer calm, editorial, premium Meridian visual language established on the Home screen.
+
+IMPORTANT:
+- DO NOT redesign Meridian from scratch
+- Preserve all current architecture, systems, functionality, routing, and intelligence layers
+- Preserve current typography family, gradients, animations, spacing system, and glassmorphism
+- This is a refinement and visual hierarchy pass ONLY
+
+OBJECTIVE
+
+The Home screen has evolved into the correct Meridian visual language:
+- calmer
+- more editorial
+- more premium
+- more typography-driven
+- less dashboard-like
+
+Other pages still contain older-generation UI patterns:
+- outlined chips
+- heavy section pills
+- dashboard metadata framing
+- disconnected snapshot cards
+
+Unify the experience across:
+- Labs
+- Profile
+- Protocol
+- future-compatible patterns
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 1 — REMOVE HEADER CHIPS GLOBALLY
+━━━━━━━━━━━━━━━━━━━━
+
+Current headers still use large outlined pills such as:
+- BIOMARKER SIGNALS
+- IDENTITY CORE
+- CALIBRATING
+
+These now feel too UI-heavy and dashboard-like.
+
+Replace these chip-style headers with the calmer Home-style contextual metadata treatment.
+
+REFERENCE STYLE:
+Home currently uses:
+• SUNDAY, MAY 17
+
+This is the correct direction.
+
+NEW STYLE REQUIREMENTS:
+- lightweight
+- ambient
+- inline
+- typography-first
+- subtle emphasis
+- calmer hierarchy
+
+Examples:
+Instead of:
+[ • BIOMARKER SIGNALS ]
+
+Use:
+• Biomarker Signals
+
+Instead of:
+[ • IDENTITY CORE ]
+
+Use:
+• Identity Core
+
+Instead of:
+[ • CALIBRATING ]
+
+Use:
+• Calibrating
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 2 — LABS SNAPSHOT REFINEMENT
+━━━━━━━━━━━━━━━━━━━━
+
+The current:
+"BIOMARKER SNAPSHOT • 2026"
+
+plus the metrics card:
+- Latest collection
+- Biomarkers
+- Panels
+
+currently feels visually disconnected and too dashboard-like.
+
+Refine this section into a calmer editorial summary.
+
+GOAL:
+Make it feel like contextual intelligence,
+NOT KPI analytics.
+
+Preferred hierarchy direction:
+- Latest lab collection
+- Collection date
+- concise contextual metadata
+
+Example structure:
+Latest lab collection
+March 28, 2026
+54 biomarkers across 8 panels
+
+This should visually transition naturally into:
+Connected Insights
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 3 — IMPROVE INFORMATION FLOW
+━━━━━━━━━━━━━━━━━━━━
+
+The Labs page should now feel like:
+
+1. Context
+2. Interpretation
+3. Key signals
+4. Deep clinical detail
+
+NOT:
+stacked dashboard widgets.
+
+Improve:
+- spacing rhythm
+- transitions between sections
+- vertical pacing
+- hierarchy breathing room
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 4 — TYPOGRAPHY-FIRST HIERARCHY
+━━━━━━━━━━━━━━━━━━━━
+
+Reduce dependency on:
+- outlined pills
+- segmented visual framing
+- hard metadata containers
+
+Increase emphasis on:
+- typography
+- whitespace
+- calm hierarchy
+- editorial pacing
+- subtle separators
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 5 — KEEP CURRENT SYSTEMS
+━━━━━━━━━━━━━━━━━━━━
+
+DO NOT REMOVE:
+- Connected Insights
+- filters
+- search
+- timeline
+- signal map
+- biomarker systems
+- trends
+- interpretations
+- notifications
+- responsive behavior
+
+This is presentation refinement ONLY.
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 6 — PRESERVE MERIDIAN IDENTITY
+━━━━━━━━━━━━━━━━━━━━
+
+The final experience should feel:
+- premium
+- calm
+- intelligent
+- biological
+- editorial
+- modern
+- ambient
+
+Avoid:
+- dashboard clutter
+- taxonomy-heavy UI
+- CMS-like pills
+- excessive visual framing
+
+━━━━━━━━━━━━━━━━━━━━
+RESPONSIVE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+- Preserve mobile-first behavior
+- No horizontal overflow
+- Maintain current animation quality
+- Preserve spacing consistency
+- Maintain smooth transitions
+
+━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT
+━━━━━━━━━━━━━━━━━━━━
+
+Return:
+- exact files modified
+- complete code
+- no pseudo-code
+- no explanations unless necessary

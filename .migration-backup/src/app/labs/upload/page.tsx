@@ -2377,19 +2377,12 @@ export default function LabsUploadPage() {
         {/* ── Page header ── */}
         {!inUploadFlow && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            {/* BIOMARKER SIGNALS chip */}
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              padding: '8px 18px', borderRadius: '999px',
-              border: '1px solid rgba(45,212,191,0.38)',
-              background: 'rgba(20,184,166,0.08)',
-              color: '#2DD4BF',
-              fontSize: '12px', fontWeight: 800, letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              marginBottom: '28px',
-            }}>
-              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 8px rgba(45,212,191,0.7)', flexShrink: 0 }} />
-              Biomarker Signals
+            {/* Page context label */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '20px' }}>
+              <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.6)', flexShrink: 0 }} />
+              <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted }}>
+                Biomarker Signals
+              </span>
             </div>
             <h1 style={{
               fontFamily: fonts.heading,
@@ -3069,14 +3062,25 @@ export default function LabsUploadPage() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 style={{ marginBottom: '32px' }}
               >
-                {/* Section label */}
-                <p style={{
-                  fontSize: '11px', fontWeight: 700, letterSpacing: '0.07em',
-                  color: colors.textMuted, textTransform: 'uppercase',
-                  margin: '0 0 14px',
-                }}>
-                  Biomarker Snapshot · {currentYear}
-                </p>
+                {/* Editorial snapshot header */}
+                <div style={{ marginBottom: '20px' }}>
+                  <p style={{
+                    fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em',
+                    color: colors.textMuted, textTransform: 'uppercase', margin: '0 0 6px',
+                  }}>
+                    Latest lab collection
+                  </p>
+                  <p style={{
+                    fontFamily: fonts.heading, fontSize: '26px', fontWeight: 700,
+                    color: colors.text, margin: '0 0 5px', lineHeight: 1.15,
+                    letterSpacing: '-0.02em',
+                  }}>
+                    {latestDate ? formatDateLong(latestDate) : '—'}
+                  </p>
+                  <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0, lineHeight: 1.5 }}>
+                    {snapshotBiomarkers.length} biomarkers across {panelSummaries.length} {panelSummaries.length === 1 ? 'panel' : 'panels'}
+                  </p>
+                </div>
 
                 {/* Snapshot / Timeline toggle */}
                 <div style={{ marginBottom: '16px' }}>
@@ -3120,37 +3124,6 @@ export default function LabsUploadPage() {
                         </button>
                       )
                     })}
-                  </div>
-                </div>
-                {/* Summary bar */}
-                <div style={{
-                  padding: '16px 20px',
-                  backgroundColor: colors.cardBg,
-                  border: `1px solid ${colors.cardBorder}`,
-                  borderRadius: '14px',
-                  backdropFilter: 'blur(24px)',
-                  WebkitBackdropFilter: 'blur(24px)',
-                  marginBottom: '12px',
-                  display: 'flex',
-                  gap: '20px',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                }}>
-                  <div>
-                    <span style={{ fontSize: '11px', color: colors.textMuted, display: 'block', marginBottom: '2px' }}>Latest collection</span>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>
-                      {latestDate ? formatDateLong(latestDate) : '—'}
-                    </span>
-                  </div>
-                  <div style={{ width: '1px', height: '32px', backgroundColor: colors.cardBorder, flexShrink: 0 }} />
-                  <div>
-                    <span style={{ fontSize: '11px', color: colors.textMuted, display: 'block', marginBottom: '2px' }}>Biomarkers</span>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{snapshotBiomarkers.length}</span>
-                  </div>
-                  <div style={{ width: '1px', height: '32px', backgroundColor: colors.cardBorder, flexShrink: 0 }} />
-                  <div>
-                    <span style={{ fontSize: '11px', color: colors.textMuted, display: 'block', marginBottom: '2px' }}>Panels</span>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{panelSummaries.length}</span>
                   </div>
                 </div>
 

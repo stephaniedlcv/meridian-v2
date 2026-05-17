@@ -508,19 +508,12 @@ export default function ProfilePage() {
 
       <div style={{ maxWidth: '540px', margin: '0 auto', padding: '0 20px 120px', position: 'relative', zIndex: 1 }}>
 
-        {/* ════════════════════════════ IDENTITY CORE chip — left-aligned ═══ */}
-        <div style={{ paddingTop: '44px', marginBottom: '28px' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            padding: '8px 18px', borderRadius: '999px',
-            border: '1px solid rgba(45,212,191,0.38)',
-            background: 'rgba(20,184,166,0.08)',
-            color: '#2DD4BF',
-            fontSize: '12px', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase',
-          }}>
-            <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 8px rgba(45,212,191,0.7)', flexShrink: 0 }} />
+        {/* Page context label */}
+        <div style={{ paddingTop: '44px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.6)', flexShrink: 0 }} />
+          <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted }}>
             Identity Core
-          </div>
+          </span>
         </div>
 
         {/* ════════════════════════════════ HERO — centered ═══ */}

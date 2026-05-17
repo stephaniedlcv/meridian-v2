@@ -37,17 +37,10 @@ export default function ProtocolPage() {
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <div style={{ marginBottom: '28px' }}>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              padding: '8px 18px', borderRadius: '999px',
-              border: '1px solid rgba(45,212,191,0.38)',
-              background: 'rgba(20,184,166,0.08)',
-              color: '#2DD4BF',
-              fontSize: '12px', fontWeight: 800, letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-            }}>
-              <span style={{ display: 'block', width: '7px', height: '7px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 8px rgba(45,212,191,0.7)', flexShrink: 0 }} />
+          {/* Page context label */}
+          <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.6)', flexShrink: 0 }} />
+            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted }}>
               Calibrating
             </span>
           </div>
