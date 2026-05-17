@@ -1,0 +1,245 @@
+MERIDIAN — CLINICAL RANGE BAR VISUALIZATION FIX V1
+
+You are fixing ONLY the biomarker range-bar visualization logic.
+
+DO NOT modify:
+- layout
+- typography
+- spacing
+- cards
+- navigation
+- animations
+- data architecture
+- ingestion logic
+- OCR
+- grouping system
+- dashboard structure
+
+This task is ONLY about the clinical positioning + coloring behavior of biomarker range bars.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+PROBLEM
+━━━━━━━━━━━━━━━━━━━━━━━
+
+The current bars mix:
+1. physiological position
+2. severity interpretation
+
+This creates clinically misleading visuals.
+
+Examples of current bad behavior:
+- markers still inside reference range appear visually “danger red”
+- high-normal values look critical
+- low-normal values look abnormal
+- severity colors are affecting positional rendering incorrectly
+- normalized runtime states (Optimal/Watch/Attention/Critical) are being confused with actual numeric lab position
+
+This is NOT acceptable clinically.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+GOAL
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Separate these concepts completely:
+
+A) VALUE POSITION
+Where the biomarker sits numerically relative to the clinical reference range.
+
+B) INTERPRETATION SEVERITY
+The semantic interpretation layer:
+- Optimal
+- Watch
+- Attention
+- Critical
+
+These MUST be visually independent.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL VISUAL RULES
+━━━━━━━━━━━━━━━━━━━━━━━
+
+RULE 1 — BAR POSITION MUST BE PURELY NUMERIC
+
+The marker dot/knob position MUST be calculated ONLY from:
+
+value
+reference_range_min
+reference_range_max
+
+NOT from:
+- state
+- severity
+- Watch
+- Attention
+- Critical
+- optimal ranges
+
+The physical knob location MUST reflect true physiological location ONLY.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+RULE 2 — REFERENCE RANGE IS THE PRIMARY VISUAL TRUTH
+
+The center “healthy” region of the bar MUST represent the clinical reference range.
+
+Behavior:
+
+LOW SIDE:
+below ref min
+
+CENTER:
+inside reference range
+
+HIGH SIDE:
+above ref max
+
+This must work proportionally.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+RULE 3 — COLORS MUST MATCH CLINICAL POSITION
+
+The bar gradient must visually communicate:
+
+LOW → NORMAL → HIGH
+
+NOT severity.
+
+Required behavior:
+
+- below range:
+  amber/red side
+
+- inside range:
+  teal/cyan healthy zone
+
+- above range:
+  amber/red side
+
+A value INSIDE the clinical reference range MUST NEVER render visually as critical red.
+
+Even if the interpretation state is:
+- Watch
+- Attention
+
+because contextual interpretation is separate from numeric physiology.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+RULE 4 — SEVERITY COLORS BELONG ONLY TO BADGES
+
+These:
+- Optimal
+- Watch
+- Attention
+- Critical
+
+should affect ONLY:
+- badge color
+- badge glow
+- optional subtle accent
+
+NOT:
+- bar gradient structure
+- knob position
+- physiological zone rendering
+
+━━━━━━━━━━━━━━━━━━━━━━━
+RULE 5 — HIGH-NORMAL IS NOT CRITICAL
+
+Example:
+
+Hematocrit
+Ref 37–47
+Value 46.1
+
+This should render:
+- knob near upper edge of teal zone
+- NOT deep orange/red danger styling
+
+Because it is still clinically inside range.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+RULE 6 — LOW-NORMAL IS NOT WARNING
+
+Example:
+
+Basophils
+Ref 0–0.2
+Value 0.04
+
+Should render:
+- left side of teal zone
+- NOT warning yellow/red
+
+━━━━━━━━━━━━━━━━━━━━━━━
+RULE 7 — OUTSIDE RANGE MUST BE CLEAR
+
+If value exceeds clinical range:
+- move into warm/red danger zones proportionally
+
+Examples:
+- low outside range → left amber/red
+- high outside range → right amber/red
+
+━━━━━━━━━━━━━━━━━━━━━━━
+RULE 8 — EXTREME VALUES
+
+Prevent knob overflow outside card.
+
+Clamp visual position safely:
+0% → 100%
+
+while preserving proportionality.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+RULE 9 — SUPPORT ALL LAB TYPES
+
+This logic must work consistently for:
+- CBC
+- CMP
+- Lipids
+- Hormones
+- Vitamins
+- Urinalysis quantitative values
+- Any future numeric biomarker
+
+━━━━━━━━━━━━━━━━━━━━━━━
+RULE 10 — DO NOT BREAK EXISTING STATES
+
+Do NOT modify:
+- state engine
+- classification logic
+- insight logic
+- severity engine
+
+This is VISUALIZATION ONLY.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+EXPECTED FINAL RESULT
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Users should instantly understand:
+
+1. Where the value sits physiologically
+2. Whether Meridian considers it worth attention
+
+WITHOUT confusing:
+“high-normal”
+with
+“critical”.
+
+The visualization should feel:
+- clinically trustworthy
+- calm
+- premium
+- medically intelligent
+- non-alarmist
+- mathematically accurate
+
+━━━━━━━━━━━━━━━━━━━━━━━
+DELIVERABLE
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Return ONLY:
+- modified files
+- exact changed logic
+- explanation of positioning math
+- confirmation that bar rendering now depends ONLY on numeric relation to clinical reference ranges

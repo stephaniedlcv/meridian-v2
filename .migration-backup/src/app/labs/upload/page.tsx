@@ -564,98 +564,52 @@ function getRangeDirection(slug: string): RangeDirection {
   return 'unknown'
 }
 
-// Gradient definitions — each direction gets its own track color
-const TRACK_MIDDLE_IS_BEST = 'linear-gradient(to right, rgba(248,113,113,0.65) 0%, rgba(251,146,60,0.50) 20%, rgba(45,212,191,0.72) 50%, rgba(251,146,60,0.50) 80%, rgba(248,113,113,0.65) 100%)'
-const TRACK_LOWER_IS_BETTER = 'linear-gradient(to right, rgba(45,212,191,0.72) 0%, rgba(103,232,249,0.55) 28%, rgba(251,146,60,0.50) 68%, rgba(248,113,113,0.65) 100%)'
-const TRACK_HIGHER_IS_BETTER = 'linear-gradient(to right, rgba(248,113,113,0.65) 0%, rgba(251,146,60,0.50) 32%, rgba(103,232,249,0.55) 72%, rgba(45,212,191,0.72) 100%)'
+// Gradient definitions — clinical position only, independent from severity
+const TRACK_LOW_NORMAL_HIGH = 'linear-gradient(to right, rgba(248,113,113,0.62) 0%, rgba(251,146,60,0.45) 20%, rgba(45,212,191,0.76) 50%, rgba(251,146,60,0.45) 80%, rgba(248,113,113,0.62) 100%)'
 const TRACK_UNKNOWN = 'linear-gradient(to right, rgba(95,142,133,0.20) 0%, rgba(95,142,133,0.32) 50%, rgba(95,142,133,0.20) 100%)'
 
 interface RangeBarProps {
   value: number
   refMin: number
   refMax: number
-  state: string | null
-  slug?: string
-  // compact=true → slim bar for Normal/in-range markers; no labels, reduced dot
-  compact?: boolean
 }
 
-function BiomarkerRangeBar({ value, refMin, refMax, state, slug, compact = false }: RangeBarProps) {
-  const rawPct   = ((value - refMin) / (refMax - refMin)) * 100
-  const dotPct   = Math.max(0, Math.min(100, rawPct))
-  const dotColor = getStateColor(state)
-  const dir      = slug ? getRangeDirection(slug) : 'unknown'
-
-  const trackGradient = dir === 'lower_is_better'  ? TRACK_LOWER_IS_BETTER
-                      : dir === 'higher_is_better' ? TRACK_HIGHER_IS_BETTER
-                      : dir === 'middle_is_best'   ? TRACK_MIDDLE_IS_BEST
-                      : TRACK_UNKNOWN
-
-  // Compact mode: slim bar, smaller dot, no direction labels, no ref pill
-  if (compact) {
-    return (
-      <div style={{ width: '100%', paddingTop: '4px' }}>
-        <div style={{
-          position: 'relative', height: '4px', borderRadius: '4px', width: '100%',
-          background: trackGradient,
-          boxShadow: 'inset 0 1px 1px rgba(0,0,0,0.22)',
-          overflow: 'visible',
-        }}>
-          <div style={{
-            position: 'absolute', top: '50%', left: `${dotPct}%`,
-            transform: 'translate(-50%, -50%)',
-            width: '10px', height: '10px', borderRadius: '50%',
-            backgroundColor: dotColor,
-            border: '2px solid rgba(255,255,255,0.18)',
-            boxShadow: `0 0 6px ${dotColor}70, inset 0 1px 0 rgba(255,255,255,0.20)`,
-            zIndex: 2,
-          }} />
-        </div>
-      </div>
-    )
-  }
-
-  // Standard (expanded) mode — full bar with direction labels and ref pill
-  const labelLeft  = dir === 'lower_is_better'  ? 'Lower'
-                   : dir === 'higher_is_better' ? 'Low'
-                   : dir === 'middle_is_best'   ? 'Low'
-                   : null
-  const labelRight = dir === 'lower_is_better'  ? 'Higher'
-                   : dir === 'higher_is_better' ? 'Higher'
-                   : dir === 'middle_is_best'   ? 'High'
-                   : null
-
-  const labelStyle: React.CSSProperties = { fontSize: '9px', color: 'rgba(95,142,133,0.7)', letterSpacing: '0.04em' }
+function BiomarkerRangeBar({ value, refMin, refMax }: RangeBarProps) {
+  const span = Math.max(refMax - refMin, 1e-6)
+  const padding = Math.max(span * 0.75, 1)
+  const visualMin = refMin - padding
+  const visualMax = refMax + padding
+  const visualSpan = Math.max(visualMax - visualMin, 1e-6)
+  const safeValue = Number.isFinite(value) ? value : refMin
+  const dotPct = Math.min(100, Math.max(0, ((safeValue - visualMin) / visualSpan) * 100))
+  const leftPct = Math.min(100, Math.max(0, ((refMin - visualMin) / visualSpan) * 100))
+  const rightPct = Math.min(100, Math.max(0, ((refMax - visualMin) / visualSpan) * 100))
 
   return (
     <div style={{ width: '100%', paddingTop: '6px' }}>
       <div style={{
         position: 'relative', height: '8px', borderRadius: '6px', width: '100%',
-        background: trackGradient,
+        background: TRACK_LOW_NORMAL_HIGH,
         boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)',
         overflow: 'visible',
       }}>
         <div style={{
+          position: 'absolute',
+          left: `${leftPct}%`,
+          width: `${Math.max(0, rightPct - leftPct)}%`,
+          top: 0,
+          bottom: 0,
+          background: 'rgba(45,212,191,0.20)',
+        }} />
+        <div style={{
           position: 'absolute', top: '50%', left: `${dotPct}%`,
           transform: 'translate(-50%, -50%)',
-          width: '16px', height: '16px', borderRadius: '50%',
-          backgroundColor: dotColor,
-          border: '2px solid rgba(255,255,255,0.22)',
-          boxShadow: `0 0 10px ${dotColor}88, 0 0 4px ${dotColor}48, inset 0 1px 0 rgba(255,255,255,0.24)`,
+          width: '12px', height: '12px', borderRadius: '50%',
+          backgroundColor: '#EAFBF7',
+          border: '1px solid rgba(103,232,249,0.65)',
+          boxShadow: '0 0 0 4px rgba(45,212,191,0.10), 0 0 14px rgba(103,232,249,0.24)',
           zIndex: 2,
         }} />
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '5px' }}>
-        {labelLeft  ? <span style={labelStyle}>{labelLeft}</span>  : <span />}
-        <span style={{
-          fontSize: '9px', color: 'rgba(154,203,193,0.65)',
-          backgroundColor: 'rgba(103,232,249,0.05)',
-          border: '1px solid rgba(103,232,249,0.10)',
-          borderRadius: '20px', padding: '1px 7px', letterSpacing: '0.02em',
-        }}>
-          Ref {refMin}–{refMax}
-        </span>
-        {labelRight ? <span style={labelStyle}>{labelRight}</span> : <span />}
       </div>
     </div>
   )
@@ -1313,8 +1267,6 @@ function BiomarkerDetailSheet({
                   value={biomarker.value}
                   refMin={resolvedRange.min}
                   refMax={resolvedRange.max}
-                  state={biomarker.state}
-                  slug={biomarker.marker_name}
                 />
               </>
             ) : (
@@ -1487,7 +1439,7 @@ function HistoryDetailSheet({
             {resolvedRange ? (
               <>
                 <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 8px' }}>Clinical reference: <span style={{ fontWeight: 600, color: colors.text }}>{resolvedRange.min} – {resolvedRange.max}</span>{biomarker.unit ? ` ${biomarker.unit}` : ''}</p>
-                <BiomarkerRangeBar value={biomarker.value} refMin={resolvedRange.min} refMax={resolvedRange.max} state={biomarker.state} slug={biomarker.marker_name} />
+                <BiomarkerRangeBar value={biomarker.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
               </>
             ) : (
               <div style={{ width: '100%', paddingTop: '6px' }}>
@@ -2912,7 +2864,7 @@ export default function LabsUploadPage() {
                                       {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                     </div>
                                     {resolvedRange ? (
-                                      <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} state={b.state} slug={b.marker_name} />
+                                      <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
                                     ) : (
                                       <div style={{ width: '100%', paddingTop: '6px' }}>
                                         <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
@@ -3069,7 +3021,7 @@ export default function LabsUploadPage() {
                                             </div>
                                           </div>
                                           {resolvedRange ? (
-                                            <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} state={b.state} slug={b.marker_name} />
+                                            <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
                                           ) : (
                                             <div style={{ width: '100%', paddingTop: '6px' }}>
                                               <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
@@ -3116,7 +3068,7 @@ export default function LabsUploadPage() {
                                             </div>
                                           </div>
                                           {resolvedRange && (
-                                            <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} state={b.state} slug={b.marker_name} compact />
+                                            <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
                                           )}
                                         </div>
                                       )
@@ -3371,7 +3323,7 @@ export default function LabsUploadPage() {
                                                 {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                               </div>
                                               {resolvedRange ? (
-                                                <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} state={b.state} slug={b.marker_name} />
+                                                <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
                                               ) : (
                                                 <div style={{ width: '100%', paddingTop: '6px' }}>
                                                   <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
