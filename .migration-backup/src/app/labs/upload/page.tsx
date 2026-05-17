@@ -3001,7 +3001,9 @@ export default function LabsUploadPage() {
                           const optKey      = `${snapshotViewMode}::${group.key}`
                           const isOptExp    = optimalExpanded.has(optKey)
                           const hiddenOpt   = Math.max(0, optimal.length - OPTIMAL_SHOW_LIMIT)
-                          const visibleOpt  = isOptExp ? optimal : optimal.slice(0, OPTIMAL_SHOW_LIMIT)
+                          // Sprint 4.1 T002: auto-expand when only 1 marker would be hidden — no CTA for a single hidden item
+                          const autoExpand  = hiddenOpt <= 1
+                          const visibleOpt  = (isOptExp || autoExpand) ? optimal : optimal.slice(0, OPTIMAL_SHOW_LIMIT)
                           const sc          = group.stateCounts
                           return (
                             <div key={group.key} style={{
@@ -3118,8 +3120,8 @@ export default function LabsUploadPage() {
                                   </div>
                                 )}
 
-                                {/* Progressive disclosure */}
-                                {!isOptExp && hiddenOpt > 0 && (
+                                {/* Progressive disclosure — Sprint 4.1 T003: CTA only when hiddenOpt >= 2 */}
+                                {!isOptExp && hiddenOpt >= 2 && (
                                   <button
                                     onClick={() => toggleOptimalExpand(optKey)}
                                     style={{
@@ -3132,7 +3134,7 @@ export default function LabsUploadPage() {
                                     View {hiddenOpt} more optimal {hiddenOpt === 1 ? 'marker' : 'markers'}
                                   </button>
                                 )}
-                                {isOptExp && optimal.length > OPTIMAL_SHOW_LIMIT && (
+                                {isOptExp && hiddenOpt >= 2 && (
                                   <button
                                     onClick={() => toggleOptimalExpand(optKey)}
                                     style={{

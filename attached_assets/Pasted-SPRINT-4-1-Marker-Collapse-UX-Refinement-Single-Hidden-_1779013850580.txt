@@ -1,0 +1,138 @@
+SPRINT 4.1 — Marker Collapse UX Refinement (Single-Hidden Marker Auto-Expand)
+
+You are working on Meridian (.migration-backup runtime only).
+
+STACK:
+- Next.js 14 App Router
+- TypeScript strict
+- Inline styles only
+- DO NOT add dependencies
+- DO NOT change architecture
+- DO NOT touch trend-engine, panel reconstruction, range resolver, or safety engine logic
+- ONLY refine the marker collapse UX behavior
+
+CONTEXT:
+After Sprint 3 panel reconstruction, panel grouping and counts are now deterministic and stable.
+
+However, the current collapse behavior still renders:
+- "View 1 more marker"
+- "Hide 1 extra marker"
+
+This feels unfinished and creates unnecessary interaction friction on mobile.
+
+We want intelligent auto-expansion behavior.
+
+GOAL:
+If ONLY ONE marker would remain hidden:
+- auto-show it
+- do NOT render collapse CTA
+
+Collapse UX should only exist when:
+hiddenCount >= 2
+
+────────────────────
+TASKS
+────────────────────
+
+T001 — Find collapse logic
+
+Locate:
+- visible marker count logic
+- hidden marker calculation
+- "View more markers"
+- "Hide extra markers"
+
+Likely inside:
+- Labs page panel renderer
+- compact marker rendering region
+- extra markers section
+
+Read first before editing.
+
+────────────────────
+
+T002 — Intelligent hidden-count resolver
+
+Create safe derived values:
+
+Example intent:
+- totalMarkers
+- defaultVisibleCount
+- hiddenCount
+
+New behavior:
+
+IF:
+hiddenCount <= 1
+
+THEN:
+- visibleCount becomes totalMarkers
+- no collapse CTA renders
+- panel auto-expands fully
+
+ELSE:
+- preserve existing collapse behavior
+
+DO NOT hardcode specific panel names.
+
+────────────────────
+
+T003 — CTA rendering guard
+
+Update rendering conditions:
+
+OLD:
+render CTA whenever hiddenCount > 0
+
+NEW:
+render CTA ONLY when:
+hiddenCount >= 2
+
+Applies to:
+- View more
+- Hide extra markers
+
+────────────────────
+
+T004 — Preserve existing UX
+
+DO NOT modify:
+- marker ordering
+- panel reconstruction
+- severity colors
+- trend engine
+- range rendering
+- animations
+- spacing
+- typography
+- gradients
+- safety logic
+
+This is ONLY a collapse-behavior refinement sprint.
+
+────────────────────
+
+T005 — Mobile UX validation
+
+Ensure:
+- panels with exactly 1 hidden marker now fully display automatically
+- no awkward empty spacing remains
+- no orphan divider lines
+- no duplicated markers
+- no layout shift bugs
+
+────────────────────
+
+T006 — Build verification
+
+Run full build verification.
+
+Success criteria:
+- 22/22 pages
+- 0 TypeScript errors
+- no regressions
+
+Return:
+- exact files modified
+- exact logic changed
+- hiddenCount behavior summary
