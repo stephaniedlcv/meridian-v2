@@ -1589,19 +1589,23 @@ export default function LabsUploadPage() {
   // ── Auth + data fetch ────────────────────────────────────────────────────────
   useEffect(() => {
     async function checkAuth() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
         router.push('/onboarding/welcome')
         return
       }
-      setUserId(user.id)
 
       // Biological profile (unchanged)
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('biological_profile, onboarding_completed, full_name, birth_date, user_profile')
         .eq('id', user.id)
         .single()
+      if (profileError || !profile) {
+        router.push('/onboarding/welcome')
+        return
+      }
+      setUserId(user.id)
       const nextStep = getNextOnboardingStep(profile)
       if (nextStep) { router.push(nextStep); return }
       if (profile?.biological_profile) setBioProfile(profile.biological_profile)
