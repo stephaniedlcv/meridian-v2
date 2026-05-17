@@ -577,7 +577,9 @@ interface RangeBarProps {
 
 function BiomarkerRangeBar({ value, refMin, refMax }: RangeBarProps) {
   const span = Math.max(refMax - refMin, 1e-6)
-  const padding = Math.max(span * 0.75, 1)
+  // padding = 0.40× span → ref range occupies 55.6% of bar (22%–78%)
+  // gives clear visual spread: edge values near edge, out-of-range clearly outside
+  const padding = Math.max(span * 0.40, 1)
   const visualMin = refMin - padding
   const visualMax = refMax + padding
   const visualSpan = Math.max(visualMax - visualMin, 1e-6)
