@@ -624,7 +624,7 @@ function renderClinicalReferenceBar(value: number, refMin: number, refMax: numbe
   return (
     <>
       <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 8px' }}>
-        Clinical reference: <span style={{ fontWeight: 600, color: colors.text }}>{refMin} – {refMax}</span>
+        <span style={{ fontWeight: 600, color: colors.text }}>{refMin} – {refMax}</span>
       </p>
       <BiomarkerRangeBar value={value} refMin={refMin} refMax={refMax} />
     </>
@@ -635,15 +635,27 @@ function renderClinicalReferenceBar(value: number, refMin: number, refMax: numbe
 function getStateStyles(state: string) {
   switch (state) {
     // ── Clinical Stability Phase states ───────────────────────────────────────
-    case 'Normal':    return { bg: colors.optimal,   border: colors.optimalBorder,   label: 'Normal',    dot: '#2DD4BF' }
-    case 'Low':       return { bg: colors.attention, border: colors.attentionBorder, label: 'Low',       dot: '#FB923C' }
-    case 'High':      return { bg: colors.attention, border: colors.attentionBorder, label: 'High',      dot: '#FB923C' }
-    case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  label: 'Critical',  dot: '#F87171' }
+    case 'Normal':    return { bg: colors.optimal,   border: colors.optimalBorder,   label: 'Normal',   dot: '#2DD4BF' }
+    case 'Low':       return { bg: colors.attention, border: colors.attentionBorder, label: 'Low',      dot: '#FB923C' }
+    case 'High':      return { bg: colors.attention, border: colors.attentionBorder, label: 'High',     dot: '#FB923C' }
+    case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  label: 'Critical', dot: '#F87171' }
     // ── Legacy states (backward compat for existing DB records) ───────────────
-    case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   label: 'Normal',    dot: '#2DD4BF' }
-    case 'Watch':     return { bg: colors.watch,      border: colors.watchBorder,     label: 'Watch',     dot: '#FCD34D' }
-    case 'Attention': return { bg: colors.attention,  border: colors.attentionBorder, label: 'Attention', dot: '#FB923C' }
-    default:          return { bg: colors.cardBg,     border: colors.cardBorder,      label: '—',         dot: colors.textMuted }
+    case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   label: 'Normal',   dot: '#2DD4BF' }
+    case 'Watch':     return { bg: colors.watch,      border: colors.watchBorder,     label: 'Tracking', dot: '#FCD34D' }
+    case 'Attention': return { bg: colors.attention,  border: colors.attentionBorder, label: 'Review',   dot: '#FB923C' }
+    default:          return { bg: colors.cardBg,     border: colors.cardBorder,      label: '—',        dot: colors.textMuted }
+  }
+}
+
+// Returns a small contextual descriptor shown beneath the badge in detail sheets.
+// Explains Meridian's interpretation intent vs the clinical range bar — two distinct signals.
+function getStateBadgeMeta(state: string): string | null {
+  switch (state) {
+    case 'Watch':     return 'Meridian observing a contextual pattern'
+    case 'Attention': return 'Shifted from clinical reference range'
+    case 'Low':       return 'Below clinical reference range'
+    case 'High':      return 'Above clinical reference range'
+    default:          return null
   }
 }
 
@@ -1138,14 +1150,14 @@ function histMarkerDisplayName(slug: string): string {
 function histGetStateStyle(state: string | null) {
   switch (state) {
     // ── Clinical Stability Phase states ───────────────────────────────────────
-    case 'Normal':    return { bg: colors.optimal,   border: colors.optimalBorder,   dot: '#2DD4BF', label: 'Normal'    }
-    case 'Low':       return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'Low'       }
-    case 'High':      return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'High'      }
-    case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  dot: '#F87171', label: 'Critical'  }
+    case 'Normal':    return { bg: colors.optimal,   border: colors.optimalBorder,   dot: '#2DD4BF', label: 'Normal'   }
+    case 'Low':       return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'Low'      }
+    case 'High':      return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'High'     }
+    case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  dot: '#F87171', label: 'Critical' }
     // ── Legacy states (backward compat for existing DB records) ───────────────
-    case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   dot: '#2DD4BF', label: 'Normal'    }
-    case 'Watch':     return { bg: colors.watch,      border: colors.watchBorder,     dot: '#FCD34D', label: 'Watch'     }
-    case 'Attention': return { bg: colors.attention,  border: colors.attentionBorder, dot: '#FB923C', label: 'Attention' }
+    case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   dot: '#2DD4BF', label: 'Normal'   }
+    case 'Watch':     return { bg: colors.watch,      border: colors.watchBorder,     dot: '#FCD34D', label: 'Tracking' }
+    case 'Attention': return { bg: colors.attention,  border: colors.attentionBorder, dot: '#FB923C', label: 'Review'   }
     default:          return { bg: colors.cardBg,     border: colors.cardBorder,      dot: colors.textMuted, label: '—' }
   }
 }
@@ -1337,6 +1349,7 @@ function BiomarkerDetailSheet({
   const panel       = SLUG_TO_PANEL[biomarker.marker_name] ?? null
   // If safety engine flags critical, always show Critical badge regardless of stored state
   const s           = getStateStyles(isCritical ? 'Critical' : (biomarker.state ?? ''))
+  const badgeMeta   = getStateBadgeMeta(isCritical ? 'Critical' : (biomarker.state ?? ''))
   const dotColor    = isCritical ? '#F87171' : getStateColor(biomarker.state)
   const resolvedRange = resolveDisplayRange(biomarker.marker_name, biomarker.reference_range_min, biomarker.reference_range_max, biomarker.unit, bioProfile)
   const intel       = BIOMARKER_CONTEXT[biomarker.marker_name]
@@ -1424,9 +1437,16 @@ function BiomarkerDetailSheet({
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, paddingTop: '4px' }}>
             {biomarker.state && (
-              <span style={{ padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot, letterSpacing: '0.04em' }}>
-                {s.label}
-              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
+                <span style={{ padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot, letterSpacing: '0.04em' }}>
+                  {s.label}
+                </span>
+                {badgeMeta && (
+                  <span style={{ fontSize: '10px', color: colors.textMuted, lineHeight: 1.3, textAlign: 'right', maxWidth: '140px' }}>
+                    {badgeMeta}
+                  </span>
+                )}
+              </div>
             )}
             <button onClick={onClose} aria-label="Close" style={{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: 'rgba(103,232,249,0.07)', border: '1px solid rgba(103,232,249,0.15)', color: colors.textMuted, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: fonts.ui, lineHeight: '1' }}>
               ✕
@@ -1456,7 +1476,7 @@ function BiomarkerDetailSheet({
 
           {/* Range card — always rendered; optimal range removed in Sprint 1 */}
           <div style={cardStyle}>
-            <p style={labelStyle}>Range</p>
+            <p style={labelStyle}>Clinical reference</p>
             {resolvedRange ? (
               renderClinicalReferenceBar(biomarker.value, resolvedRange.min, resolvedRange.max)
             ) : (
@@ -1569,6 +1589,7 @@ function HistoryDetailSheet({
   const displayName = histMarkerDisplayName(biomarker.marker_name)
   const panel       = HIST_SLUG_TO_PANEL[biomarker.marker_name] ?? null
   const s           = histGetStateStyle(isCritical ? 'Critical' : biomarker.state)
+  const badgeMeta   = getStateBadgeMeta(isCritical ? 'Critical' : (biomarker.state ?? ''))
   const dotColor    = isCritical ? '#F87171' : getStateColor(biomarker.state)
   const resolvedRange = resolveDisplayRange(biomarker.marker_name, biomarker.reference_range_min, biomarker.reference_range_max, biomarker.unit, bioProfile)
   const interp      = histGetInterpretation(biomarker.marker_name)
@@ -1611,7 +1632,12 @@ function HistoryDetailSheet({
             <h2 style={{ fontFamily: fonts.heading, fontSize: '22px', fontWeight: 700, color: colors.text, lineHeight: 1.2, margin: 0 }}>{displayName}</h2>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, paddingTop: '4px' }}>
-            {biomarker.state && <span style={{ padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot, letterSpacing: '0.04em' }}>{s.label}</span>}
+            {biomarker.state && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
+                <span style={{ padding: '3px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot, letterSpacing: '0.04em' }}>{s.label}</span>
+                {badgeMeta && <span style={{ fontSize: '10px', color: colors.textMuted, lineHeight: 1.3, textAlign: 'right', maxWidth: '140px' }}>{badgeMeta}</span>}
+              </div>
+            )}
             <button onClick={onClose} aria-label="Close" style={{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: 'rgba(103,232,249,0.07)', border: '1px solid rgba(103,232,249,0.15)', color: colors.textMuted, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: fonts.ui, lineHeight: '1' }}>✕</button>
           </div>
         </div>
@@ -1625,10 +1651,10 @@ function HistoryDetailSheet({
           </div>
           {/* Range card — optimal range removed in Sprint 1 */}
           <div style={cardStyle}>
-            <p style={labelStyle}>Range</p>
+            <p style={labelStyle}>Clinical reference</p>
             {resolvedRange ? (
               <>
-                <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 8px' }}>Clinical reference: <span style={{ fontWeight: 600, color: colors.text }}>{resolvedRange.min} – {resolvedRange.max}</span>{biomarker.unit ? ` ${biomarker.unit}` : ''}</p>
+                <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 8px' }}><span style={{ fontWeight: 600, color: colors.text }}>{resolvedRange.min} – {resolvedRange.max}</span>{biomarker.unit ? ` ${biomarker.unit}` : ''}</p>
                 <BiomarkerRangeBar value={biomarker.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
               </>
             ) : (
@@ -2944,7 +2970,7 @@ export default function LabsUploadPage() {
                       }}
                     >
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />
-                      {totalStateCounts.Optimal} Optimal
+                      {totalStateCounts.Optimal} Normal
                     </button>
                   )}
                   {totalStateCounts.Watch > 0 && (
@@ -2962,7 +2988,7 @@ export default function LabsUploadPage() {
                       }}
                     >
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#FCD34D', display: 'inline-block' }} />
-                      {totalStateCounts.Watch} Watch
+                      {totalStateCounts.Watch} Tracking
                     </button>
                   )}
                   {totalStateCounts.Attention > 0 && (
@@ -2980,7 +3006,7 @@ export default function LabsUploadPage() {
                       }}
                     >
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />
-                      {totalStateCounts.Attention} Attention
+                      {totalStateCounts.Attention} Review
                     </button>
                   )}
                   {totalStateCounts.Critical > 0 && (
