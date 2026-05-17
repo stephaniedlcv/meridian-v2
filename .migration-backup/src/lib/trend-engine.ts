@@ -317,19 +317,19 @@ export function getTrendDisplayProps(
   let contextLine: string | null = null
   switch (severity) {
     case 'improving_abnormal':
-      contextLine = 'This marker has improved meaningfully since your last upload. Sustained shifts like this can sometimes be seen when a health pattern is moving in a more favorable direction.'
+      contextLine = 'This marker has moved in an encouraging direction since your last upload. If this improvement holds across future readings, it may reflect a meaningful shift in the underlying pattern — that kind of sustained progress is worth acknowledging.'
       break
     case 'worsening_normal':
-      contextLine = 'This marker has moved away from its prior pattern since your last upload. Small shifts can occur with stress, illness, inflammation, sleep disruption, hydration changes, medications, recovery load, or evolving metabolic patterns.'
+      contextLine = 'This marker has shifted from its prior pattern since your last upload. Small movements like this are common and can reflect temporary changes in recovery, activity, hydration, or other everyday factors. A single shift rarely defines a trend on its own.'
       break
     case 'monitored_stable':
       contextLine = 'This marker has remained outside its usual range across multiple uploads, which may make the pattern more meaningful than an isolated deviation.'
       break
     case 'stable_abnormal':
-      contextLine = 'This appears more consistent with a persistent pattern than an isolated fluctuation. Continued tracking over time will help Meridian build a clearer picture of what this signal may reflect.'
+      contextLine = 'This marker has appeared outside its reference range across multiple uploads. Meridian is building a longer-term view of this signal — consistent patterns across readings carry more weight than any single result, and continued tracking adds context over time.'
       break
     case 'stable_normal':
-      contextLine = 'Minor movement from the prior result — within the type of variation commonly seen between draws.'
+      contextLine = 'Minor movement from the prior result — the kind of small fluctuation that typically reflects normal biological variability rather than a meaningful shift.'
       break
     default:
       contextLine = null

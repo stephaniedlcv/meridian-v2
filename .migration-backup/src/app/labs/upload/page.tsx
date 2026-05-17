@@ -1055,6 +1055,81 @@ const BIOMARKER_CONTEXT: Record<string, BiomarkerIntel> = {
     why: 'ACTH is a pituitary hormone that signals the adrenal glands to produce cortisol. Meridian watches it because ACTH and cortisol together give context on adrenal and stress-response signaling that neither marker reveals fully on its own.',
     context: 'In context with cortisol AM and DHEA-S, an ACTH pattern can help Meridian assess whether the adrenal signaling picture appears balanced or shifted. When ACTH and cortisol move in opposing directions across readings, Meridian is watching whether this reflects a pituitary or adrenal-origin pattern — a distinction that context from the full hormonal cluster helps clarify.',
   },
+  // ── Urinalysis — Physical ────────────────────────────────────────────────
+  urine_color: {
+    why: 'Urine color is one of the simplest physical properties Meridian tracks as part of a complete urinalysis. While color varies widely with hydration, diet, and medications, unusual or persistent changes can sometimes provide early context alongside the chemical and microscopy findings.',
+    context: 'Urine color carries most of its interpretive value alongside hydration and chemical markers. Changes attributable to diet or hydration rarely require further attention; unusual or persistent color findings, particularly in the presence of other abnormal urinalysis signals, may be worth continued monitoring over time.',
+  },
+  urine_clarity: {
+    why: 'Urine clarity reflects whether the sample is clear or turbid. Meridian tracks it as part of the complete urinalysis picture because cloudiness can sometimes coincide with elevated cell counts or bacteria — though an isolated turbidity finding is rarely significant on its own.',
+    context: 'In context with microscopy and chemical markers, a turbid urine finding can sometimes align with elevated cell counts or infection-related signals. When clarity is the only finding in an otherwise unremarkable urinalysis, it is typically less interpretively significant than when it appears alongside other abnormal markers.',
+  },
+  urine_specific_gravity: {
+    why: 'Specific gravity reflects how concentrated your urine is — how much dissolved material the kidneys are retaining or releasing relative to water. Meridian tracks it because patterns over time can provide context on hydration status and kidney concentrating ability.',
+    context: 'Specific gravity varies considerably with fluid intake and hydration, which limits the interpretive value of any single reading. In context with sodium and kidney markers, a consistently high or low specific gravity pattern across readings may sometimes reflect hydration habits or kidney concentrating function — though isolated values are rarely independently significant.',
+  },
+  urine_ph: {
+    why: 'Urine pH reflects the acidity or alkalinity of your urine. Meridian watches it as a physical property of the urinalysis because it can sometimes provide background context on metabolic patterns, diet, and urinary tract chemistry — though it varies widely with normal, everyday factors.',
+    context: 'Urine pH fluctuates naturally with diet, hydration, and time of day, which limits the weight Meridian places on any single reading. In context with other chemical urinalysis markers, a persistently alkaline pattern can sometimes connect to bacterial activity; a consistently acidic pattern may reflect dietary or metabolic factors. Meridian watches these tendencies over multiple readings rather than reacting to isolated values.',
+  },
+  // ── Urinalysis — Chemical (Dipstick) ────────────────────────────────────
+  urine_protein_ua: {
+    why: 'Protein is not normally present in significant amounts in urine — the kidneys are designed to keep it in the bloodstream. Meridian watches this marker because a pattern of urine protein can sometimes connect to kidney filtration health, and it is worth tracking alongside bloodwork markers over time.',
+    context: 'In context with creatinine, eGFR, and BUN, a urine protein result can help Meridian assess whether the kidney picture appears stable or whether this may be part of a broader renal pattern. An isolated mild finding — particularly after exercise, with concurrent illness, or in a single sample — is often transient; a pattern across multiple readings, especially alongside other renal signals, carries more interpretive weight.',
+  },
+  urine_blood_ua: {
+    why: 'The presence of blood in urine is something Meridian watches carefully. While it can sometimes reflect entirely benign causes — such as vigorous exercise, minor irritation, or sample timing — it can also provide important context when it appears alongside other urinary findings or persists across readings.',
+    context: 'In context with urine WBC, bacteria, and protein findings, a blood marker can help Meridian assess whether the pattern may connect to a possible infection, a benign cause, or a urinary finding worth following. A single isolated finding is often transient; a pattern that persists or appears alongside other abnormal urinalysis markers carries more interpretive weight.',
+  },
+  urine_glucose_ua: {
+    why: 'Glucose is not normally found in urine. Meridian watches urine glucose because its presence can sometimes indicate that blood sugar has reached levels where the kidneys begin to pass it through — a finding that may complement the bloodwork picture even when fasting glucose appears within range.',
+    context: 'In context with fasting glucose, A1c, and fasting insulin, a urine glucose result can help Meridian assess whether blood sugar regulation may be shifting in ways not yet fully visible in bloodwork. A single finding is worth noting; a persistent pattern alongside moving glycemic markers tends to carry more interpretive significance.',
+  },
+  urine_ketones_ua: {
+    why: 'Ketones in urine indicate the body is using fat for fuel instead of glucose. Meridian watches this marker because ketone presence can connect to several different physiological states — including dietary choices, prolonged fasting, intense exercise, or, at elevated levels, certain metabolic patterns worth monitoring.',
+    context: 'In context with fasting glucose and A1c, a urine ketone result can help Meridian assess whether the finding reflects a dietary or fasting pattern versus something worth closer attention. A mild isolated finding is often benign and diet-related; high levels, particularly alongside elevated glucose markers, are a pattern Meridian watches more carefully alongside the full glycemic picture.',
+  },
+  urine_nitrite_ua: {
+    why: 'Nitrite in urine can form when certain bacteria metabolize compounds in the urinary tract. Meridian watches it because a positive result can sometimes be one of the signals that connects to a urinary tract infection pattern — though it is most meaningful when viewed alongside supporting markers.',
+    context: 'In context with leukocyte esterase, urine WBC, and bacteria findings, a positive nitrite result adds weight to the picture of possible urinary tract immune activity. The combination of nitrite and leukocyte esterase together tends to carry more interpretive significance than either in isolation. A negative nitrite result does not rule out infection — some bacteria do not produce detectable nitrite levels.',
+  },
+  urine_leukocyte_esterase_ua: {
+    why: 'Leukocyte esterase is an enzyme released by white blood cells. Meridian watches it because its presence in urine can indicate immune cell activity in the urinary tract — which may connect to inflammation or infection-related patterns when viewed alongside supporting markers.',
+    context: 'In context with nitrite, urine WBC, and bacteria findings, leukocyte esterase adds to the picture of whether urinary tract white cell activity may be present. A positive result is most meaningful when it persists or appears alongside other infection-related signals; an isolated mild finding can sometimes reflect sample timing, hydration, or transient factors rather than an active infection pattern.',
+  },
+  urine_bilirubin_ua: {
+    why: 'Bilirubin is not normally present in urine. Meridian watches it because urine bilirubin can sometimes reflect liver processing patterns or bile flow — a finding that is worth tracking alongside bloodwork liver markers when both are available.',
+    context: 'In context with serum bilirubin, AST, and ALT, urine bilirubin adds context to the hepatic picture. A positive finding alongside elevated liver enzymes may align with a hepatic pattern; an isolated urine bilirubin finding without supporting bloodwork changes is less interpretively significant, but worth continued monitoring if it persists.',
+  },
+  urine_urobilinogen_ua: {
+    why: 'Urobilinogen is a byproduct of bilirubin breakdown that normally appears in small amounts in urine. Meridian watches it because values outside the expected range can sometimes provide context on liver function, bile flow, or red blood cell turnover patterns.',
+    context: 'In context with serum bilirubin, AST, ALT, and CBC markers, urobilinogen adds one more layer to the liver and red blood cell picture. Mildly elevated urobilinogen is common and often unremarkable; a consistently elevated pattern alongside other hepatic or hemolytic signals may carry more interpretive weight.',
+  },
+  // ── Urinalysis — Microscopy ──────────────────────────────────────────────
+  urine_wbc_hpf: {
+    why: 'Urine WBC count reflects how many white blood cells are present in a microscopy field. Meridian watches it because elevated counts can indicate immune cell activity in the urinary tract — a direct signal that can sometimes connect to inflammation or infection-related patterns.',
+    context: 'In context with leukocyte esterase, nitrite, and bacteria findings, urine WBC count provides quantitative precision to the infection-related picture. An elevated count alongside positive leukocyte esterase and bacteria tends to be more interpretively significant than any single finding alone; isolated mild elevations can sometimes reflect sample handling or transient factors.',
+  },
+  urine_rbc_hpf: {
+    why: 'Urine RBC count reflects how many red blood cells appear in urine microscopy. Meridian watches it because while small numbers are often benign, consistently elevated counts — particularly when they appear alongside other urinary findings — can be worth following over time.',
+    context: 'In context with urine blood, protein, and other urinalysis markers, urine RBC adds quantitative context to the blood-in-urine picture. The significance of an RBC count depends greatly on its context — isolated small elevations are common and often transient; persistent or elevated counts, particularly alongside other abnormal findings, tend to carry more interpretive weight.',
+  },
+  urine_bacteria_hpf: {
+    why: 'Bacteria detected in urine microscopy can reflect a urinary tract infection pattern or, in some cases, sample handling and collection factors. Meridian watches it alongside infection-related chemical markers to build a more complete picture.',
+    context: 'In context with nitrite, leukocyte esterase, and urine WBC, bacteria detection adds to the infection-related picture. Bacterial findings are most informative when they appear alongside multiple supporting signals; an isolated bacteria finding without other infection markers may sometimes reflect specimen collection factors or transient activity rather than an active infection pattern.',
+  },
+  urine_epithelial_cells_hpf: {
+    why: 'Epithelial cells in urine come from the lining of the urinary tract. Small numbers are normal and expected; Meridian tracks elevated counts because they can sometimes reflect local tissue activity — or, in some cases, sample handling factors worth noting alongside other urinary findings.',
+    context: 'In context with other microscopy findings, urine epithelial cell counts add texture to the overall urinary picture. Mildly elevated counts are often benign and may reflect normal cellular turnover or specimen collection; elevated counts alongside infection-related markers may be more meaningful as part of a broader urinary pattern.',
+  },
+  urine_casts_hpf: {
+    why: 'Urinary casts are protein structures that form in the kidney tubules and can shed into urine. Meridian watches them because certain cast types can sometimes provide context on kidney health patterns — though many casts, particularly hyaline casts, are benign and often related to physical activity.',
+    context: 'The type and number of urinary casts matters considerably for interpretation. Hyaline casts after exercise are common and generally benign; other cast types may warrant clinical context. Meridian watches cast findings alongside kidney markers like creatinine and eGFR rather than interpreting them in isolation.',
+  },
+  urine_mucus_hpf: {
+    why: 'Mucus in urine is a common finding that typically reflects normal secretions from the urinary tract lining. Meridian tracks it as part of the complete urinalysis, though it is rarely clinically significant when it appears in isolation.',
+    context: 'Isolated urine mucus in microscopy is most often benign and related to normal urinary tract secretions. In context with other microscopy and infection-related markers, persistent or heavy mucus findings can add background texture — though they are typically among the least interpretively significant urinalysis signals Meridian tracks.',
+  },
 }
 
 // ── History view — types & helpers ────────────────────────────────────────────
@@ -1460,10 +1535,10 @@ function BiomarkerDetailSheet({
                 Safety Note
               </p>
               <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: '0 0 10px' }}>
-                This result may require prompt medical review. Meridian will not generate optimization guidance for this marker.
+                Meridian has flagged this result for clinical review. For markers at this level, Meridian steps back from generating interpretive context and encourages you to share this result with your doctor or care team.
               </p>
               <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>
-                Review this result with a qualified healthcare professional, especially if it is unexpected or you are experiencing symptoms.
+                This is educational context only — not a diagnosis. If this result is new or unexpected, or if you are experiencing symptoms, please discuss it with a healthcare professional.
               </p>
             </div>
           ) : (
@@ -1608,8 +1683,8 @@ function HistoryDetailSheet({
           {isCritical ? (
             <div style={{ backgroundColor: 'rgba(248,113,113,0.07)', border: '1px solid rgba(248,113,113,0.22)', borderRadius: '14px', padding: '14px 16px', marginBottom: 0 }}>
               <p style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#F87171', marginBottom: '8px', marginTop: 0 }}>Safety Note</p>
-              <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: '0 0 8px' }}>This result may require prompt medical review. Meridian will not generate optimisation guidance for this marker.</p>
-              <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>Review this result with a qualified healthcare professional. This is educational context only, not a diagnosis.</p>
+              <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: '0 0 8px' }}>Meridian has flagged this result for clinical review. For markers at this level, Meridian steps back from generating interpretive context and encourages you to share this result with your doctor or care team.</p>
+              <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>This is educational context only — not a diagnosis. If this result is new or unexpected, or if you are experiencing symptoms, please discuss it with a healthcare professional.</p>
             </div>
           ) : (
             <>
