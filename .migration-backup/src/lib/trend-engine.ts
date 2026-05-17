@@ -326,10 +326,10 @@ export function getTrendDisplayProps(
       contextLine = 'This marker has remained outside its usual range across multiple uploads, which may make the pattern more meaningful than an isolated deviation.'
       break
     case 'stable_abnormal':
-      contextLine = 'This appears more consistent with a temporary fluctuation than a long-term pattern, though continued tracking can clarify whether it persists.'
+      contextLine = 'This appears more consistent with a persistent pattern than an isolated fluctuation. Continued tracking over time will help Meridian build a clearer picture of what this signal may reflect.'
       break
     case 'stable_normal':
-      contextLine = 'Minor movement from the prior result, though still within the type of variation commonly seen between lab draws.'
+      contextLine = 'Minor movement from the prior result — within the type of variation commonly seen between draws.'
       break
     default:
       contextLine = null
@@ -402,7 +402,7 @@ export function getPanelTrendSummary<T extends TrendBiomarker>(
       summaryText = `${n} ${n === 1 ? 'marker' : 'markers'} improving since previous lab.`
     } else if (worseningCount > 0 && improvingCount === 0) {
       const n = worseningCount
-      summaryText = `${n} ${n === 1 ? 'marker' : 'markers'} trending higher risk since previous lab.`
+      summaryText = `${n} ${n === 1 ? 'marker' : 'markers'} shifted since previous lab — worth continuing to watch.`
     } else if (improvingCount > 0 && worseningCount > 0) {
       summaryText = `${improvingCount} improving, ${worseningCount} worsening since previous lab.`
     }
