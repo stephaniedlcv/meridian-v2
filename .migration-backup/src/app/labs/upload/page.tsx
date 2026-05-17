@@ -8,6 +8,7 @@ import NavBar from '@/components/NavBar'
 import { getSafetyStatusForBiomarker } from '@/lib/safety-engine'
 import { getNextOnboardingStep } from '@/lib/onboarding'
 import { resolveDisplayRange } from '@/lib/range-resolver'
+import { buildClinicalSnapshot, isUrinalysisCategorical } from '@/lib/panel-reconstruction'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const colors = {
@@ -1093,20 +1094,20 @@ interface HistMonthGroup { monthKey: string; label: string; dates: HistDateGroup
 interface HistYearGroup  { year: string; months: HistMonthGroup[] }
 
 function histGroupRows(rows: HistBiomarkerRow[]): HistYearGroup[] {
-  const yearMap = new Map<string, Map<string, Map<string, Map<string, HistBiomarkerRow[]>>>>()
+  // Sprint 3 — T004: 3-level grouping (year → month → date → rows[]).
+  // Panel grouping, dedup, and canonical ordering are delegated to
+  // buildClinicalSnapshot — the canonical entry point for all history paths.
+  const yearMap = new Map<string, Map<string, Map<string, HistBiomarkerRow[]>>>()
   for (const row of rows) {
     const dateKey = histUtcDateKey(row.collected_at)
     const [y, m] = dateKey.split('-')
     const monthKey = `${y}-${m}`
-    const panel = histInferPanel(row.marker_name)
     if (!yearMap.has(y)) yearMap.set(y, new Map())
     const monthMap = yearMap.get(y)!
     if (!monthMap.has(monthKey)) monthMap.set(monthKey, new Map())
     const dateMap = monthMap.get(monthKey)!
-    if (!dateMap.has(dateKey)) dateMap.set(dateKey, new Map())
-    const panelMap = dateMap.get(dateKey)!
-    if (!panelMap.has(panel)) panelMap.set(panel, [])
-    panelMap.get(panel)!.push(row)
+    if (!dateMap.has(dateKey)) dateMap.set(dateKey, [])
+    dateMap.get(dateKey)!.push(row)
   }
   return Array.from(yearMap.entries())
     .sort(([a], [b]) => b.localeCompare(a))
@@ -1119,19 +1120,29 @@ function histGroupRows(rows: HistBiomarkerRow[]): HistYearGroup[] {
           label: histFormatMonthLabel(monthKey),
           dates: Array.from(dateMap.entries())
             .sort(([a], [b]) => b.localeCompare(a))
-            .map(([dateKey, panelMap]) => {
-              const panels: HistPanelGroup[] = Array.from(panelMap.entries())
-                .sort(([a], [b]) => histPanelSortIndex(a) - histPanelSortIndex(b))
-                .map(([panel, items]) => {
-                  const seen = new Map<string, HistBiomarkerRow>()
-                  for (const row of items) {
-                    const ex = seen.get(row.marker_name)
-                    if (!ex || row.created_at > ex.created_at) seen.set(row.marker_name, row)
-                  }
-                  const deduped = Array.from(seen.values())
-                  return { panel, items: deduped, stateCounts: { Optimal: deduped.filter(i => i.state === 'Optimal').length, Watch: deduped.filter(i => i.state === 'Watch').length, Attention: deduped.filter(i => i.state === 'Attention').length, Critical: deduped.filter(i => i.state === 'Critical').length } }
-                })
-              return { dateKey, label: histFormatDateLabel(dateKey), total: panels.reduce((s, p) => s + p.items.length, 0), panelCount: panelMap.size, panels }
+            .map(([dateKey, dateRows]) => {
+              // Sprint 3 — T002/T004: canonical snapshot reconstruction per date.
+              // buildClinicalSnapshot applies: panel grouping, dedup (T003),
+              // canonical marker ordering (T007), and integrity scoring (T005).
+              const snapshot = buildClinicalSnapshot(dateRows)
+              const panels: HistPanelGroup[] = snapshot.map(({ panel, items }) => ({
+                panel,
+                items,
+                stateCounts: {
+                  // Sprint 3 fix: count both legacy (Optimal) and Sprint 1 (Normal) in-range states
+                  Optimal:   items.filter(i => i.state === 'Optimal' || i.state === 'Normal').length,
+                  Watch:     items.filter(i => i.state === 'Watch').length,
+                  Attention: items.filter(i => i.state === 'Attention' || i.state === 'Low' || i.state === 'High').length,
+                  Critical:  items.filter(i => i.state === 'Critical').length,
+                },
+              }))
+              return {
+                dateKey,
+                label: histFormatDateLabel(dateKey),
+                total: panels.reduce((s, p) => s + p.items.length, 0),
+                panelCount: panels.length,
+                panels,
+              }
             }),
         })),
     }))
@@ -3296,8 +3307,12 @@ export default function LabsUploadPage() {
                                         {panelGroup.items.map(b => {
                                           // Sprint 2: unified card layout — always render a bar for every marker.
                                           // Range resolved via 3-tier hierarchy: stored → canonical → null (neutral track).
+                                          // Sprint 3 T006: categorical urinalysis markers (qualitative dipstick/microscopy)
+                                          // are explicitly excluded from range-bar logic regardless of stored values.
                                           const s = histGetStateStyle(b.state)
-                                          const resolvedRange = !b.flag_error ? resolveDisplayRange(b.marker_name, b.reference_range_min, b.reference_range_max, b.unit, bioProfile) : null
+                                          const resolvedRange = (!b.flag_error && !isUrinalysisCategorical(b.marker_name))
+                                            ? resolveDisplayRange(b.marker_name, b.reference_range_min, b.reference_range_max, b.unit, bioProfile)
+                                            : null
                                           return (
                                             <div key={b.id} style={{ backgroundColor: b.flag_error ? 'rgba(248,113,113,0.06)' : 'rgba(232,248,245,0.055)', border: `1px solid ${b.flag_error ? '#F87171' : s.dot}30`, borderRadius: '10px', padding: '14px 16px', cursor: 'pointer', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.18)' }} onClick={() => setHistSelectedBiomarker(b)}>
                                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', gap: '8px' }}>
