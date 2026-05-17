@@ -325,6 +325,142 @@ export type Database = {
         };
         Relationships: [];
       };
+      admin_users: {
+        Row: {
+          id: string;
+          user_id: string;
+          role: string;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          role: string;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          role?: string;
+          created_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      admin_activity_logs: {
+        Row: {
+          id: string;
+          admin_user_id: string;
+          action: string;
+          resource_type: string | null;
+          resource_id: string | null;
+          metadata: Record<string, unknown> | null;
+          ip_address: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          admin_user_id: string;
+          action: string;
+          resource_type?: string | null;
+          resource_id?: string | null;
+          metadata?: Record<string, unknown> | null;
+          ip_address?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          admin_user_id?: string;
+          action?: string;
+          resource_type?: string | null;
+          resource_id?: string | null;
+          metadata?: Record<string, unknown> | null;
+          ip_address?: string | null;
+        };
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          title: string;
+          body: string;
+          type: string;
+          status: string;
+          target_segment: string;
+          segment_filters: Record<string, unknown> | null;
+          recipient_count: number;
+          created_by: string | null;
+          scheduled_for: string | null;
+          sent_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          body: string;
+          type: string;
+          status?: string;
+          target_segment?: string;
+          segment_filters?: Record<string, unknown> | null;
+          recipient_count?: number;
+          created_by?: string | null;
+          scheduled_for?: string | null;
+          sent_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          body?: string;
+          type?: string;
+          status?: string;
+          target_segment?: string;
+          segment_filters?: Record<string, unknown> | null;
+          recipient_count?: number;
+          scheduled_for?: string | null;
+          sent_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      notification_recipients: {
+        Row: {
+          id: string;
+          notification_id: string;
+          user_id: string;
+          delivered: boolean;
+          opened: boolean;
+          clicked: boolean;
+          delivered_at: string | null;
+          opened_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          notification_id: string;
+          user_id: string;
+          delivered?: boolean;
+          opened?: boolean;
+          clicked?: boolean;
+          delivered_at?: string | null;
+          opened_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          delivered?: boolean;
+          opened?: boolean;
+          clicked?: boolean;
+          delivered_at?: string | null;
+          opened_at?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
