@@ -615,6 +615,17 @@ function BiomarkerRangeBar({ value, refMin, refMax }: RangeBarProps) {
   )
 }
 
+function renderClinicalReferenceBar(value: number, refMin: number, refMax: number) {
+  return (
+    <>
+      <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 8px' }}>
+        Clinical reference: <span style={{ fontWeight: 600, color: colors.text }}>{refMin} – {refMax}</span>
+      </p>
+      <BiomarkerRangeBar value={value} refMin={refMin} refMax={refMax} />
+    </>
+  )
+}
+
 // ── State style helpers ────────────────────────────────────────────────────────
 function getStateStyles(state: string) {
   switch (state) {
@@ -1258,17 +1269,7 @@ function BiomarkerDetailSheet({
           <div style={cardStyle}>
             <p style={labelStyle}>Range</p>
             {resolvedRange ? (
-              <>
-                <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 8px' }}>
-                  Clinical reference: <span style={{ fontWeight: 600, color: colors.text }}>{resolvedRange.min} – {resolvedRange.max}</span>
-                  {biomarker.unit ? ` ${biomarker.unit}` : ''}
-                </p>
-                <BiomarkerRangeBar
-                  value={biomarker.value}
-                  refMin={resolvedRange.min}
-                  refMax={resolvedRange.max}
-                />
-              </>
+              renderClinicalReferenceBar(biomarker.value, resolvedRange.min, resolvedRange.max)
             ) : (
               <div style={{ width: '100%', paddingTop: '6px' }}>
                 <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
@@ -3021,7 +3022,7 @@ export default function LabsUploadPage() {
                                             </div>
                                           </div>
                                           {resolvedRange ? (
-                                            <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
+                                            renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max)
                                           ) : (
                                             <div style={{ width: '100%', paddingTop: '6px' }}>
                                               <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
@@ -3067,9 +3068,7 @@ export default function LabsUploadPage() {
                                               <span style={{ fontSize: '13px', color: colors.textMuted, opacity: 0.4, lineHeight: 1 }}>›</span>
                                             </div>
                                           </div>
-                                          {resolvedRange && (
-                                            <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
-                                          )}
+                                          {resolvedRange && renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max)}
                                         </div>
                                       )
                                     })}
@@ -3323,7 +3322,7 @@ export default function LabsUploadPage() {
                                                 {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                               </div>
                                               {resolvedRange ? (
-                                                <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
+                                                renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max)
                                               ) : (
                                                 <div style={{ width: '100%', paddingTop: '6px' }}>
                                                   <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
