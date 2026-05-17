@@ -1,0 +1,205 @@
+Refine the Meridian Labs experience and global UI hierarchy to fully transition Meridian into a calmer, more curated, interpretation-first biological operating system experience.
+
+IMPORTANT:
+- DO NOT redesign Meridian from scratch
+- Preserve all current architecture, systems, functionality, filters, trends, ranges, signal map, timeline, uploads, and intelligence engines
+- Preserve the Meridian premium visual identity
+- Maintain current typography family, gradients, glassmorphism, animations, and motion quality
+- This is a hierarchy + UX refinement pass ONLY
+
+OBJECTIVE
+
+Meridian should feel less like:
+- a biomarker dashboard
+- a clinical monitoring interface
+- a taxonomy-heavy system
+
+And more like:
+- a calm biological operating system
+- an intelligent interpretation layer
+- a premium editorial health intelligence experience
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 1 — REORGANIZE LABS INFORMATION HIERARCHY
+━━━━━━━━━━━━━━━━━━━━
+
+The current Labs page still exposes too much equal-weight information simultaneously.
+
+Connected Insights currently appear too low in the experience and get lost beneath many biomarker panels.
+
+Reorganize the Labs flow into clear intelligence layers.
+
+NEW ORDER:
+
+1. HERO / CURRENT STATE
+2. CONNECTED INSIGHTS
+3. KEY BIOMARKERS
+4. FULL CLINICAL VIEW (expandable)
+5. DEEP DETAIL / TIMELINE / SIGNAL MAP
+
+Connected Insights should become the primary interpretation layer directly beneath the hero.
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 2 — CURATED KEY BIOMARKERS
+━━━━━━━━━━━━━━━━━━━━
+
+DO NOT show every biomarker immediately by default.
+
+Instead:
+surface ONLY the 4–6 most important biomarkers initially.
+
+Selection logic should prioritize:
+- dominant biological signal relevance
+- abnormality severity
+- strongest trend movement
+- cross-system impact
+- active interpretation relevance
+
+The visible biomarkers should feel:
+- curated
+- prioritized
+- intentional
+
+NOT:
+random or exhaustive.
+
+Add:
+"View Full Clinical Data"
+or
+"Expand Full Biomarker View"
+
+This reveals:
+- all panel groups
+- all biomarkers
+- advanced clinical detail
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 3 — CONNECTED INSIGHTS AS THE INTELLIGENCE LAYER
+━━━━━━━━━━━━━━━━━━━━
+
+Connected Insights should feel like:
+"What your biology means"
+
+NOT:
+secondary content.
+
+Refine:
+- spacing
+- typography hierarchy
+- visual prominence
+- card calmness
+
+Limit visible insights:
+maximum 3 initially.
+
+Add:
+"View more insights"
+for expansion if more exist.
+
+Connected Insights should become the emotional/intelligence centerpiece of Labs.
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 4 — GLOBAL CHIP / METADATA REFINEMENT
+━━━━━━━━━━━━━━━━━━━━
+
+The Home screen has evolved into the correct visual language.
+
+The rest of Meridian still contains:
+- overly solid chips
+- dashboard-like pills
+- taxonomy-heavy metadata
+- visual clutter
+
+Refine chips and metadata styling ACROSS the app:
+- Labs
+- Protocol
+- Profile
+- future compatible patterns
+
+Move toward:
+- softer metadata
+- inline contextual labels
+- typography-first hierarchy
+- subtle separators
+- calmer emphasis
+
+REDUCE:
+- glowing pills
+- hard segmented chips
+- excessive colored labels
+- redundant taxonomy tags
+
+PREFERRED STYLE:
+Instead of:
+[Cardio] [Review] [Tracking]
+
+Use:
+Cardiometabolic • Review State
+
+Subtle.
+Elegant.
+Integrated into typography.
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 5 — PRESERVE INTELLIGENCE DEPTH
+━━━━━━━━━━━━━━━━━━━━
+
+DO NOT REMOVE:
+- filters
+- search
+- ranges
+- trends
+- signal map
+- timeline
+- upload systems
+- biomarker detail sheets
+- clinical grouping
+- interpretation engine
+
+The goal is:
+better curation,
+better hierarchy,
+better pacing,
+better emotional readability.
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 6 — CALMER VISUAL RHYTHM
+━━━━━━━━━━━━━━━━━━━━
+
+Increase:
+- whitespace
+- breathing room
+- hierarchy pacing
+- visual focus
+
+Reduce:
+- equal visual weight everywhere
+- stacked dashboard feeling
+- metadata overload
+
+The Labs experience should feel:
+- focused
+- premium
+- intelligent
+- calm
+- biologically aware
+
+━━━━━━━━━━━━━━━━━━━━
+RESPONSIVE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+- Preserve mobile-first behavior
+- No horizontal overflow
+- Smooth animations
+- Maintain current performance
+- Preserve responsive layouts
+
+━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT
+━━━━━━━━━━━━━━━━━━━━
+
+Return:
+- exact files modified
+- complete code
+- no pseudo-code
+- no explanations unless necessary

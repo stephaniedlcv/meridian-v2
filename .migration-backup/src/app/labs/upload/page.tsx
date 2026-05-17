@@ -1708,6 +1708,7 @@ interface ConnectedInsight {
   tagline: string
   synthesis: string
   markers: string[]
+  slugSet: Set<string>
   severity: 'attention' | 'watch'
   dotColor: string
   borderColor: string
@@ -1736,6 +1737,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         tagline: 'Lipid · glycemic signals',
         synthesis: 'Triglycerides, HDL, and glycemic markers are part of the same metabolic picture. When they shift together, the combined signal tends to carry more interpretive weight than any marker alone — Meridian watches this cluster for directional consistency across readings.',
         markers: present.map(markerDisplayName),
+        slugSet: new Set(present),
         severity: sev,
         dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
         borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
@@ -1756,6 +1758,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         tagline: 'Iron · red cell signals',
         synthesis: 'Iron stores and red cell markers are connected through the same oxygen-delivery system. When ferritin, hemoglobin, or cell size markers shift together, the pattern may connect to energy, recovery capacity, and how efficiently the body is maintaining its oxygen supply.',
         markers: present.map(markerDisplayName),
+        slugSet: new Set(present),
         severity: sev,
         dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
         borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
@@ -1776,6 +1779,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         tagline: 'TSH · thyroid hormone signals',
         synthesis: 'TSH and thyroid hormone levels form an interconnected feedback loop. When multiple markers in this cluster shift in alignment, Meridian places more weight on the pattern — isolated changes in one marker can mean something different than shifts that move across the full thyroid picture.',
         markers: present.map(markerDisplayName),
+        slugSet: new Set(present),
         severity: sev,
         dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
         borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
@@ -1796,6 +1800,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         tagline: 'CRP · immune markers',
         synthesis: 'Inflammatory and immune markers are shifting alongside each other — a combination Meridian watches as part of the broader stress, recovery, and cardiovascular risk picture rather than as isolated values.',
         markers: present.map(markerDisplayName),
+        slugSet: new Set(present),
         severity: sev,
         dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
         borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
@@ -1816,6 +1821,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         tagline: 'Cortisol · sex hormone signals',
         synthesis: 'Cortisol, DHEA-S, and testosterone are connected through the adrenal and hormonal reserve system. When they shift together, the combined pattern can sometimes reflect stress load, recovery capacity, or hormonal balance — signals that any single hormone reading would not clearly reveal on its own.',
         markers: present.map(markerDisplayName),
+        slugSet: new Set(present),
         severity: sev,
         dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
         borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
@@ -1836,6 +1842,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         tagline: 'B-vitamin · homocysteine signals',
         synthesis: 'B12, folate, and homocysteine operate through the same metabolic pathway. When they shift in a consistent direction, the pattern may reflect a nutrient availability signal — one that individual marker readings can easily miss when viewed in isolation.',
         markers: present.map(markerDisplayName),
+        slugSet: new Set(present),
         severity: sev,
         dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
         borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
@@ -1856,6 +1863,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         tagline: 'Kidney filtration signals',
         synthesis: 'Creatinine, eGFR, and BUN are all windows into the same kidney filtration system. When they shift in alignment, the pattern carries more interpretive weight than any individual reading — Meridian watches directional trends across this cluster over time.',
         markers: present.map(markerDisplayName),
+        slugSet: new Set(present),
         severity: sev,
         dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
         borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
@@ -1863,10 +1871,28 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
     }
   }
 
-  // Sort attention-first, then limit to 3
+  // Sort attention-first; display limit controlled in render via moreInsightsExpanded
   return insights
     .sort((a, b) => (a.severity === 'attention' ? -1 : 1) - (b.severity === 'attention' ? -1 : 1))
-    .slice(0, 3)
+}
+
+// ── Key Biomarkers — curated priority selection ─────────────────────────────────
+function computeKeyBiomarkers(
+  biomarkers: RecentBiomarker[],
+  insights: ConnectedInsight[],
+): RecentBiomarker[] {
+  const insightSlugs = new Set(insights.flatMap(ins => [...ins.slugSet]))
+  const SEVERITY_SCORE: Record<string, number> = {
+    Critical: 100, Low: 60, High: 60, Attention: 60, Watch: 20,
+  }
+  const scored = biomarkers.map(b => {
+    let score = SEVERITY_SCORE[b.state ?? ''] ?? 5
+    if (insightSlugs.has(b.marker_name)) score += 25
+    return { b, score }
+  })
+  const sorted = scored.sort((a, b) => b.score - a.score)
+  const topCount = Math.min(6, Math.max(4, sorted.filter(x => x.score >= 50).length + 2))
+  return sorted.slice(0, topCount).map(x => x.b)
 }
 
 export default function LabsUploadPage() {
@@ -1917,6 +1943,9 @@ export default function LabsUploadPage() {
   // ── Snapshot view mode + progressive disclosure ──────────────────────────────
   const [snapshotViewMode, setSnapshotViewMode] = useState<SnapshotViewMode>('clinical_panels')
   const [optimalExpanded, setOptimalExpanded] = useState<Set<string>>(new Set())
+  // ── Curated hierarchy expansion state ────────────────────────────────────────
+  const [fullClinicalExpanded, setFullClinicalExpanded] = useState(false)
+  const [moreInsightsExpanded, setMoreInsightsExpanded] = useState(false)
 
   // ── Auth + data fetch ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -2298,6 +2327,12 @@ export default function LabsUploadPage() {
   const connectedInsights = useMemo(
     () => computeConnectedInsights(snapshotBiomarkersDisplay),
     [snapshotBiomarkersDisplay]
+  )
+
+  // Curated priority biomarkers — top 4–6 by severity + insight cluster membership
+  const keyBiomarkers = useMemo(
+    () => computeKeyBiomarkers(snapshotBiomarkersDisplay, connectedInsights),
+    [snapshotBiomarkersDisplay, connectedInsights]
   )
 
   // Whether the active upload flow is in progress
@@ -3119,12 +3154,159 @@ export default function LabsUploadPage() {
                   </div>
                 </div>
 
+                {/* ── Connected Insights — primary intelligence layer ── */}
+                {!activeFilter && connectedInsights.length > 0 && (
+                  <div style={{ marginBottom: '36px', marginTop: '20px' }}>
+                    <div style={{ marginBottom: '20px' }}>
+                      <p style={{
+                        fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
+                        letterSpacing: '0.07em', color: colors.textMuted, margin: '0 0 8px',
+                      }}>
+                        Connected Insights
+                      </p>
+                      <h2 style={{
+                        fontFamily: fonts.heading, fontSize: '22px', fontWeight: 700,
+                        color: colors.text, margin: 0, lineHeight: 1.25,
+                      }}>
+                        What your biology is telling you
+                      </h2>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {(moreInsightsExpanded ? connectedInsights : connectedInsights.slice(0, 3)).map(insight => (
+                        <div key={insight.id} style={{
+                          padding: '20px',
+                          backgroundColor: colors.cardBg,
+                          border: `1px solid ${insight.borderColor}`,
+                          borderRadius: '16px',
+                          backdropFilter: 'blur(24px)',
+                          WebkitBackdropFilter: 'blur(24px)',
+                        }}>
+                          <div style={{ marginBottom: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                              <p style={{
+                                fontFamily: fonts.heading, fontSize: '18px', fontWeight: 700,
+                                color: colors.text, margin: 0,
+                              }}>
+                                {insight.title}
+                              </p>
+                              <span style={{ fontSize: '11px', color: insight.dotColor, fontWeight: 600, letterSpacing: '0.03em' }}>
+                                {insight.severity === 'attention' ? '· pattern detected' : '· tracking'}
+                              </span>
+                            </div>
+                            <p style={{ fontSize: '11px', color: colors.textMuted, margin: 0 }}>
+                              {insight.tagline}
+                            </p>
+                          </div>
+                          <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.7, margin: '0 0 14px' }}>
+                            {insight.synthesis}
+                          </p>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            {insight.markers.map(m => (
+                              <span key={m} style={{
+                                fontSize: '11px', color: colors.textMuted,
+                                padding: '2px 8px', borderRadius: '4px',
+                                backgroundColor: 'rgba(103,232,249,0.05)',
+                                border: '1px solid rgba(103,232,249,0.11)',
+                              }}>
+                                {m}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {!moreInsightsExpanded && connectedInsights.length > 3 && (
+                      <button
+                        onClick={() => setMoreInsightsExpanded(true)}
+                        style={{
+                          marginTop: '10px', width: '100%', padding: '10px',
+                          background: 'transparent',
+                          border: `1px solid rgba(103,232,249,0.13)`,
+                          borderRadius: '10px', color: colors.textMuted,
+                          fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                          fontFamily: fonts.ui, outline: 'none',
+                        }}
+                      >
+                        View {connectedInsights.length - 3} more {connectedInsights.length - 3 === 1 ? 'insight' : 'insights'}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Key Signals — curated priority biomarkers ── */}
+                {!activeFilter && keyBiomarkers.length > 0 && (
+                  <div style={{ marginBottom: '28px' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
+                      <p style={{
+                        fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
+                        letterSpacing: '0.07em', color: colors.textMuted, margin: 0,
+                      }}>
+                        Key Signals
+                      </p>
+                      <span style={{ fontSize: '11px', color: colors.textMuted, opacity: 0.6 }}>
+                        Tap any to explore
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {keyBiomarkers.map(b => {
+                        const s = getStateStyles(b.state ?? '')
+                        const resolvedRange = !b.flag_error ? resolveDisplayRange(b.marker_name, b.reference_range_min, b.reference_range_max, b.unit, bioProfile) : null
+                        const why = BIOMARKER_CONTEXT[b.marker_name]?.why
+                        const sentence = why ? why.split('.')[0] + '.' : null
+                        const bIsAbnormal = isOutOfRangeState(b.state) || b.state === 'Watch'
+                        return (
+                          <div
+                            key={b.id}
+                            onClick={() => setSelectedBiomarker(b)}
+                            style={{
+                              padding: '16px 18px', borderRadius: '14px', cursor: 'pointer',
+                              backgroundColor: colors.cardBg,
+                              border: `1px solid ${bIsAbnormal ? s.dot + '25' : colors.cardBorder}`,
+                              backdropFilter: 'blur(24px)',
+                              WebkitBackdropFilter: 'blur(24px)',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
+                              <p style={{ fontSize: '13px', fontWeight: 700, color: colors.text, margin: 0, flex: 1, minWidth: 0 }}>
+                                {markerDisplayName(b.marker_name)}
+                                {bIsAbnormal && (
+                                  <span style={{ fontSize: '12px', fontWeight: 400, color: s.dot, marginLeft: '6px' }}>
+                                    · {s.label}
+                                  </span>
+                                )}
+                              </p>
+                              <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px', flexShrink: 0 }}>
+                                <span style={{ fontFamily: fonts.heading, fontSize: '22px', fontWeight: 700, color: bIsAbnormal ? s.dot : colors.text }}>
+                                  {b.value}
+                                </span>
+                                {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
+                              </div>
+                            </div>
+                            {resolvedRange ? (
+                              renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max, b.unit || undefined)
+                            ) : (
+                              <div style={{ width: '100%', paddingTop: '4px' }}>
+                                <div style={{ height: '7px', borderRadius: '6px', background: TRACK_UNKNOWN }} />
+                              </div>
+                            )}
+                            {sentence && (
+                              <p style={{ fontSize: '11px', color: colors.textMuted, margin: '8px 0 0', lineHeight: 1.55 }}>
+                                {sentence}
+                              </p>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Status filter chips — tap to filter, tap again to clear */}
                 <div style={{
                   display: 'flex',
                   gap: '8px',
                   flexWrap: 'wrap',
-                  marginBottom: '16px',
+                  marginBottom: '10px',
                 }}>
                   {totalStateCounts.Optimal > 0 && (
                     <button
@@ -3200,7 +3382,32 @@ export default function LabsUploadPage() {
                   )}
                 </div>
 
-                {/* Filtered view OR default (Needs Attention + Panel summary) */}
+                {/* ── View Full Clinical Data expand / collapse ── */}
+                {!activeFilter && (
+                  <button
+                    onClick={() => setFullClinicalExpanded(prev => !prev)}
+                    style={{
+                      width: '100%', marginBottom: '20px', padding: '13px 18px',
+                      backgroundColor: fullClinicalExpanded ? 'rgba(45,212,191,0.05)' : colors.cardBg,
+                      border: `1px solid ${fullClinicalExpanded ? 'rgba(45,212,191,0.22)' : colors.cardBorder}`,
+                      borderRadius: '12px', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      fontFamily: fonts.ui, outline: 'none',
+                      backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+                    }}
+                  >
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: fullClinicalExpanded ? colors.teal : colors.textSoft }}>
+                      {fullClinicalExpanded ? 'Hide full clinical data' : 'View full clinical data'}
+                    </span>
+                    <span style={{
+                      fontSize: '16px', color: colors.textMuted, display: 'inline-block',
+                      transform: fullClinicalExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                    }}>›</span>
+                  </button>
+                )}
+
+                {/* Filtered view OR full clinical view */}
                 {activeFilter ? (
 
                   /* ── Status-filtered list ── */
@@ -3282,7 +3489,7 @@ export default function LabsUploadPage() {
                     )}
                   </div>
 
-                ) : (
+                ) : fullClinicalExpanded ? (
                   <>
                     {/* ── View mode control ── */}
                     <div style={{ marginBottom: '20px', marginTop: '32px' }}>
@@ -3373,12 +3580,15 @@ export default function LabsUploadPage() {
                                   <span style={{ fontSize: '11px', color: colors.textMuted, whiteSpace: 'nowrap' }}>
                                     {group.count} {group.count === 1 ? 'marker' : 'markers'}
                                   </span>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
-                                    {sc.Critical > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#F87171' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#F87171', display: 'inline-block' }} />{sc.Critical}</span>}
-                                    {sc.Attention > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FB923C' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />{sc.Attention}</span>}
-                                    {sc.Watch > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FCD34D' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#FCD34D', display: 'inline-block' }} />{sc.Watch}</span>}
-                                    {sc.Optimal > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#2DD4BF' }}><span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />{sc.Optimal}</span>}
-                                  </div>
+                                  <span style={{ fontSize: '11px', flexShrink: 0 }}>
+                                    {sc.Critical > 0 && <span style={{ color: '#F87171', fontWeight: 600 }}>{sc.Critical} critical</span>}
+                                    {sc.Critical > 0 && (sc.Attention > 0 || sc.Watch > 0) && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
+                                    {sc.Attention > 0 && <span style={{ color: '#FB923C', fontWeight: 600 }}>{sc.Attention} review</span>}
+                                    {sc.Attention > 0 && sc.Watch > 0 && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
+                                    {sc.Watch > 0 && <span style={{ color: '#FCD34D' }}>{sc.Watch} tracking</span>}
+                                    {(sc.Critical > 0 || sc.Attention > 0 || sc.Watch > 0) && sc.Optimal > 0 && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
+                                    {sc.Optimal > 0 && <span style={{ color: colors.textMuted }}>{sc.Optimal} normal</span>}
+                                  </span>
                                 </div>
                                 <span style={{ fontSize: '11px', color: colors.textMuted, lineHeight: 1.5, display: 'block' }}>
                                   {group.education}
@@ -3512,77 +3722,8 @@ export default function LabsUploadPage() {
                       </div>
                     </div>
 
-                    {/* ── Connected Insights ── */}
-                    {connectedInsights.length > 0 && (
-                      <div style={{ marginTop: '32px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                          <p style={{
-                            fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
-                            letterSpacing: '0.07em', color: colors.textMuted, margin: 0,
-                            whiteSpace: 'nowrap',
-                          }}>
-                            Connected Insights
-                          </p>
-                          <div style={{ flex: 1, height: '1px', backgroundColor: colors.cardBorder }} />
-                        </div>
-                        <p style={{ fontSize: '12px', color: colors.textMuted, margin: '0 0 14px', lineHeight: 1.55 }}>
-                          Cross-system patterns detected across your current markers.
-                        </p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          {connectedInsights.map(insight => (
-                            <div key={insight.id} style={{
-                              padding: '16px 18px',
-                              backgroundColor: colors.cardBg,
-                              border: `1px solid ${insight.borderColor}`,
-                              borderRadius: '14px',
-                              backdropFilter: 'blur(24px)',
-                              WebkitBackdropFilter: 'blur(24px)',
-                            }}>
-                              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <p style={{ fontSize: '14px', fontWeight: 700, color: colors.text, margin: '0 0 2px' }}>
-                                    {insight.title}
-                                  </p>
-                                  <p style={{ fontSize: '11px', color: colors.textMuted, margin: 0, letterSpacing: '0.02em' }}>
-                                    {insight.tagline}
-                                  </p>
-                                </div>
-                                <div style={{
-                                  display: 'flex', alignItems: 'center', gap: '5px',
-                                  padding: '3px 9px', borderRadius: '5px', flexShrink: 0,
-                                  backgroundColor: insight.severity === 'attention' ? 'rgba(251,146,60,0.09)' : 'rgba(250,204,21,0.09)',
-                                  border: `1px solid ${insight.borderColor}`,
-                                  marginTop: '1px',
-                                }}>
-                                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: insight.dotColor, flexShrink: 0 }} />
-                                  <span style={{ fontSize: '10px', fontWeight: 700, color: insight.dotColor, letterSpacing: '0.04em' }}>
-                                    {insight.severity === 'attention' ? 'Pattern' : 'Tracking'}
-                                  </span>
-                                </div>
-                              </div>
-                              <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: '0 0 12px' }}>
-                                {insight.synthesis}
-                              </p>
-                              <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                                {insight.markers.map(m => (
-                                  <span key={m} style={{
-                                    padding: '2px 8px', borderRadius: '4px',
-                                    fontSize: '10px', fontWeight: 600,
-                                    backgroundColor: 'rgba(103,232,249,0.06)',
-                                    border: '1px solid rgba(103,232,249,0.12)',
-                                    color: colors.textMuted,
-                                  }}>
-                                    {m}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </>
-                )}
+                ) : null}
               </motion.div>
             )}
 
