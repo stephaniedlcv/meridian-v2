@@ -1,0 +1,212 @@
+MERIDIAN — COHERENCE HARDENING SPRINT A
+(HISTORY PARITY + FILTER SYSTEM + CANONICAL EXPLANATION UNIFICATION)
+
+This sprint is NOT about adding new features.
+
+This is a coherence hardening sprint focused on:
+- trust
+- consistency
+- architectural maturity
+- emotional continuity
+- intelligence-system cohesion
+
+The audit identified several places where Meridian stops feeling like:
+“one coherent intelligence system”
+and instead feels like disconnected UI layers.
+
+This sprint fixes the highest-impact coherence gaps before family/private beta.
+
+==================================================
+DO NOT
+==================================================
+
+Do NOT:
+- redesign layouts
+- change range math
+- modify state engine logic
+- modify ingestion
+- modify database schema
+- add wearable integrations
+- add predictive features
+- rewrite AI systems
+- alter visual identity
+
+This sprint is:
+CONSISTENCY + PARITY + ARCHITECTURAL CLEANUP ONLY.
+
+==================================================
+PHASE A TASKS
+==================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━
+1. FILTER PILL SYSTEM FIX
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Current issue:
+The filter pill row only supports legacy states:
+- Optimal
+- Watch
+- Attention
+- Critical
+
+New-engine users with:
+- Normal
+- Low
+- High
+
+can currently see:
+- missing filter pills
+- empty filter rows
+
+This breaks trust immediately.
+
+Required:
+- add proper filter pills for:
+  - Normal
+  - Low
+  - High
+- ensure Snapshot and Timeline remain behaviorally consistent
+- preserve current emotional-safe badge semantics
+
+IMPORTANT:
+Use current display language:
+- Normal
+- Tracking
+- Review
+- Critical
+
+NOT legacy wording.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+2. HISTORY DETAIL PARITY
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Current issue:
+HistoryDetailSheet feels less intelligent than BiomarkerDetailSheet.
+
+The most differentiated Meridian layer:
+“Meridian Context”
+is missing entirely from Timeline/history detail.
+
+Required:
+- add Meridian Context card to HistoryDetailSheet
+- preserve current premium detail-sheet hierarchy
+- preserve emotional tone
+- preserve spacing rhythm
+
+Goal:
+Opening a biomarker from:
+- Snapshot
+OR
+- Timeline
+
+should feel like:
+the SAME intelligence system.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+3. CANONICAL EXPLANATION SOURCE UNIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Current issue:
+Three overlapping explanation systems exist:
+
+- BIOMARKER_CONTEXT
+- INTERPRETATIONS
+- HIST_INTERPRETATIONS
+
+There is duplicated content and divergence risk.
+
+Required:
+- establish ONE canonical explanation source hierarchy
+- eliminate unnecessary duplication
+- ensure Snapshot and History use the SAME underlying explanation logic whenever possible
+
+Preferred hierarchy:
+1. BIOMARKER_CONTEXT
+2. fallback explanation layer
+3. generic fallback only if absolutely necessary
+
+IMPORTANT:
+Do NOT regress current explanation quality.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+4. DISPLAY NAME NORMALIZATION
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Fix malformed display names:
+
+- rdw_sd → RDW-SD
+- mpv → MPV
+- tpo_antibodies → TPO Antibodies
+- acth → ACTH
+
+Ensure:
+- Snapshot
+- Timeline
+- detail sheets
+- panel views
+
+all display consistently.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+5. CLINICAL REFERENCE PARITY
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Current issue:
+Clinical reference card:
+- shows units in History
+- omits units in Snapshot
+
+Required:
+- ensure parity
+- preserve current visual hierarchy
+- preserve current renderer math
+
+━━━━━━━━━━━━━━━━━━━━━━━
+6. “OPTIMAL” → “NORMAL” TERMINOLOGY CLEANUP
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Current issue:
+Progressive disclosure CTA still says:
+- “View more optimal markers”
+
+while badges now say:
+- “Normal”
+
+Required:
+- normalize wording everywhere
+- remove remaining legacy “optimal” terminology from active UI
+
+==================================================
+IMPORTANT
+==================================================
+
+This sprint is fundamentally about:
+REMOVING DISCONNECTED PRODUCT FEELING.
+
+The goal is:
+users should never feel:
+- Snapshot is smarter than Timeline
+- Meridian contradicts itself
+- labels drift between systems
+- explanations differ depending on entry point
+
+Everything should feel:
+- unified
+- intentional
+- premium
+- emotionally coherent
+- architecturally mature
+
+==================================================
+RETURN
+==================================================
+
+Return:
+1. exact files changed
+2. exact systems unified
+3. duplicated explanation layers removed/refactored
+4. parity fixes implemented
+5. terminology fixes completed
+6. remaining divergence risks (if any)
+7. build verification

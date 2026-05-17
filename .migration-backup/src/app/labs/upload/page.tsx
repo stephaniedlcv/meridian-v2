@@ -620,11 +620,11 @@ function BiomarkerRangeBar({ value, refMin, refMax }: RangeBarProps) {
   )
 }
 
-function renderClinicalReferenceBar(value: number, refMin: number, refMax: number) {
+function renderClinicalReferenceBar(value: number, refMin: number, refMax: number, unit?: string) {
   return (
     <>
       <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 8px' }}>
-        <span style={{ fontWeight: 600, color: colors.text }}>{refMin} – {refMax}</span>
+        <span style={{ fontWeight: 600, color: colors.text }}>{refMin} – {refMax}</span>{unit ? ` ${unit}` : ''}
       </p>
       <BiomarkerRangeBar value={value} refMin={refMin} refMax={refMax} />
     </>
@@ -665,9 +665,10 @@ const NAME_OVERRIDES: Record<string, string> = {
   ldl_hdl_ratio: 'LDL/HDL Ratio', chol_hdl_ratio: 'Cholesterol/HDL Ratio', non_hdl: 'Non-HDL Cholesterol',
   hba1c: 'Hemoglobin A1c', crp_hs: 'hs-CRP', dhea_s: 'DHEA-S', bun: 'BUN',
   bun_creatinine_ratio: 'BUN/Creatinine Ratio', wbc: 'WBC', rbc: 'RBC',
-  mcv: 'MCV', mch: 'MCH', mchc: 'MCHC', rdw: 'RDW',
+  mcv: 'MCV', mch: 'MCH', mchc: 'MCHC', rdw: 'RDW', rdw_sd: 'RDW-SD', mpv: 'MPV',
   co2: 'CO₂ (Bicarbonate)', ast: 'AST', alt: 'ALT', tsh: 'TSH',
   ag_ratio: 'A/G Ratio', free_t4: 'Free T4', free_t3: 'Free T3', total_t3: 'Total T3',
+  tpo_antibodies: 'TPO Antibodies', acth: 'ACTH',
   cortisol_am: 'Cortisol AM', testosterone_total: 'Total Testosterone',
   insulin_fasting: 'Fasting Insulin', glucose_fasting: 'Fasting Glucose',
   vitamin_d: 'Vitamin D', vitamin_b12: 'Vitamin B12',
@@ -1134,9 +1135,10 @@ function histMarkerDisplayName(slug: string): string {
     ldl_hdl_ratio: 'LDL/HDL Ratio', chol_hdl_ratio: 'Cholesterol/HDL Ratio', non_hdl: 'Non-HDL Cholesterol',
     hba1c: 'Hemoglobin A1c', crp_hs: 'hs-CRP', dhea_s: 'DHEA-S', bun: 'BUN',
     bun_creatinine_ratio: 'BUN/Creatinine Ratio', wbc: 'WBC', rbc: 'RBC',
-    mcv: 'MCV', mch: 'MCH', mchc: 'MCHC', rdw: 'RDW',
+    mcv: 'MCV', mch: 'MCH', mchc: 'MCHC', rdw: 'RDW', rdw_sd: 'RDW-SD', mpv: 'MPV',
     co2: 'CO₂ (Bicarbonate)', ast: 'AST', alt: 'ALT', tsh: 'TSH',
     ag_ratio: 'A/G Ratio', free_t4: 'Free T4', free_t3: 'Free T3', total_t3: 'Total T3',
+    tpo_antibodies: 'TPO Antibodies', acth: 'ACTH',
     anion_gap: 'Anion Gap', cortisol_am: 'Cortisol AM', testosterone_total: 'Total Testosterone',
     insulin_fasting: 'Fasting Insulin', glucose_fasting: 'Fasting Glucose',
     vitamin_d: 'Vitamin D', vitamin_b12: 'Vitamin B12',
@@ -1162,85 +1164,9 @@ function histGetStateStyle(state: string | null) {
   }
 }
 
-const HIST_INTERPRETATIONS: Record<string, string> = {
-  // ── CBC ───────────────────────────────────────────────────────────────────────
-  wbc:                    'WBC gives Meridian a window into immune activity — how many white blood cells are circulating and, alongside the differential, which types are elevated or suppressed. Shifts can connect to immune activation, recovery, physiological stress, or adaptation.',
-  rbc:                    'Red blood cells carry oxygen from your lungs to every tissue in your body. Meridian tracks the count because changes over time can connect to iron status, nutrient availability, bone marrow activity, and how efficiently the body is maintaining its oxygen supply.',
-  hemoglobin:             'Hemoglobin carries oxygen through your bloodstream and is central to how your body fuels itself. Meridian tracks it alongside RBC and ferritin to understand oxygen transport capacity and how it changes over time.',
-  hematocrit:             'Hematocrit reflects what proportion of your blood volume is made up of red blood cells. Meridian watches it as part of the oxygen-transport picture — changes can connect to hydration status, iron stores, and red cell production patterns.',
-  mcv:                    'MCV measures the average size of your red blood cells. Meridian watches it because cell size can reflect nutrient availability — particularly iron, B12, and folate — and can sometimes shift before other markers show obvious changes.',
-  mch:                    'MCH reflects how much hemoglobin is packed into the average red blood cell. Meridian tracks it alongside MCV and MCHC as part of the red cell quality picture — together these indices give context on how cells are being produced and how efficiently they carry oxygen.',
-  mchc:                   'MCHC measures the concentration of hemoglobin inside your red blood cells. Meridian watches it alongside MCV and MCH because together these indices give context on whether cells are being produced efficiently and carrying oxygen optimally.',
-  rdw:                    'RDW measures variation in the size of your red blood cells. Meridian watches it because elevated variation can sometimes connect to iron deficiency, B12 status, or emerging changes in cell production — often before other CBC markers shift.',
-  platelets:              'Platelets are essential for clotting and vascular repair. Meridian tracks platelet count over time because shifts in either direction can connect to immune activity, inflammatory patterns, and overall blood health.',
-  neutrophils_pct:        'Neutrophils are your immune system\'s most abundant first responders — cells that mobilize quickly to sites of infection or inflammation. Meridian watches their proportion because shifts can reflect acute immune activity, physiological stress, or more persistent patterns depending on the surrounding context.',
-  neutrophils_abs:        'The absolute neutrophil count reflects how many first-responder immune cells are actively circulating. Meridian tracks it because shifts can connect to immune activation, physiological stress, or recovery — most meaningfully read alongside the full white cell differential.',
-  lymphocytes_pct:        'Lymphocytes are the immune cells that coordinate targeted defense — including T cells and B cells. Meridian watches their proportion because changes can connect to immune resilience, recovery patterns, and how the body is managing ongoing physiological demands.',
-  lymphocytes_abs:        'The absolute lymphocyte count reflects the circulating level of your targeted immune defense cells. Meridian watches it because changes can connect to immune resilience and recovery — most informative when read alongside the full white cell differential.',
-  monocytes_pct:          'Monocytes are immune cells that patrol the bloodstream before maturing into tissue macrophages. Meridian tracks their proportion because elevated counts can sometimes connect to low-grade inflammation, immune activation, or recovery patterns.',
-  monocytes_abs:          'The absolute monocyte count reflects how many of your blood-based immune patrol cells are circulating. Meridian watches it because shifts can sometimes connect to inflammatory activity or immune signaling when read alongside the full differential.',
-  eosinophils_pct:        'Eosinophils are involved in allergic responses and certain types of tissue inflammation. Meridian watches their proportion because persistently elevated counts can sometimes connect to allergic or inflammatory patterns not obvious from other markers alone.',
-  eosinophils_abs:        'The absolute eosinophil count reflects how many of your allergy-related immune cells are circulating. Meridian watches it because elevated counts — particularly when persistent — can connect to allergic inflammation or immune-mediated patterns.',
-  basophils_pct:          'Basophils are the least abundant white blood cells, involved in allergic and inflammatory signaling. Meridian tracks them as part of the complete differential picture — changes are most meaningful when read alongside the broader white cell pattern.',
-  basophils_abs:          'The absolute basophil count is most relevant as part of the full white cell differential. Meridian watches it as one piece of the immune pattern — most informative alongside the complete differential rather than in isolation.',
-  mpv:                    'Mean platelet volume reflects the average size of platelets. Meridian watches it as part of the platelet picture because changes can sometimes connect to platelet production patterns, inflammatory activity, or cardiovascular context.',
-  // ── Lipid Panel ───────────────────────────────────────────────────────────────
-  hdl:                    'HDL helps transport excess cholesterol away from blood vessels. Meridian watches it alongside triglycerides, inflammation markers, and metabolic trends because the relationship between these signals can sometimes reveal more than a single cholesterol number alone.',
-  ldl:                    'LDL is one of the primary cholesterol transport markers in your blood. Meridian tracks it over time as part of a broader cardiovascular picture, since long-term trends tend to be more meaningful than any isolated reading.',
-  triglycerides:          'Triglycerides reflect how much fat is circulating in your blood. Meridian watches them alongside HDL and metabolic markers because elevated levels over time can connect to insulin sensitivity, diet patterns, and cardiovascular context.',
-  total_cholesterol:      'Total cholesterol on its own tells an incomplete story. Meridian uses it as a starting point — always evaluated alongside HDL, LDL, triglycerides, and inflammation markers to understand the fuller cardiovascular picture.',
-  vldl:                   'VLDL carries triglycerides through the bloodstream. Meridian tracks it because elevated VLDL can sometimes connect to metabolic patterns like insulin resistance and elevated triglycerides — signals more meaningful together than in isolation.',
-  non_hdl:                'Non-HDL cholesterol captures all the atherogenic particles in your blood — including LDL and VLDL. Meridian watches it because it may give a more complete cardiovascular picture than LDL alone, particularly over time.',
-  ldl_hdl_ratio:          'The LDL/HDL ratio reflects the balance between a key atherogenic particle and its protective counterpart. Meridian watches this ratio because it can sometimes carry more cardiovascular signal than either number independently.',
-  chol_hdl_ratio:         'The total cholesterol/HDL ratio reflects how much of your total cholesterol is in a protective form. Meridian tracks it over time because the trend in this ratio can sometimes be more meaningful than any individual cholesterol value.',
-  // ── CMP / Electrolytes ────────────────────────────────────────────────────────
-  glucose_fasting:        'Fasting glucose reflects your blood sugar at rest — a snapshot of how your body is managing energy between meals. Meridian tracks it alongside A1c and insulin to understand glucose regulation patterns over time.',
-  sodium:                 'Sodium is the primary electrolyte governing fluid balance in your body. Meridian watches it because shifts — even subtle ones — can connect to hydration status, kidney regulation, adrenal signaling, and how the body is managing fluid at a cellular level.',
-  potassium:              'Potassium is critical for heart rhythm, muscle contraction, and cellular energy balance. Meridian watches it because significant deviations in either direction can carry cardiovascular implications and provide context on kidney function and adrenal regulation.',
-  chloride:               'Chloride works alongside sodium and bicarbonate to maintain fluid balance and acid-base stability. Meridian watches it as part of the electrolyte system, where patterns across multiple markers are usually more informative than any single value.',
-  co2:                    'CO₂ (bicarbonate) reflects how well your body is managing acid-base balance — the chemical equilibrium that underpins most cellular processes. Meridian watches it because shifts can connect to metabolic changes, kidney function, respiratory patterns, and hydration status.',
-  calcium:                'Calcium supports bone integrity, muscle contraction, nerve signaling, and heart function. Meridian watches it because blood calcium is tightly regulated — significant deviations can sometimes reflect parathyroid signaling, vitamin D status, or other metabolic patterns.',
-  anion_gap:              'The anion gap is a calculated value reflecting the balance of charged particles in your blood. Meridian watches it because elevated levels can sometimes signal metabolic acid accumulation — shifts that may not be obvious from individual electrolyte readings alone.',
-  // ── Kidney / Renal ────────────────────────────────────────────────────────────
-  creatinine:             'Creatinine is a waste product your kidneys filter continuously. Meridian watches it alongside eGFR and BUN because together they give a fuller picture of kidney filtration and muscle metabolism.',
-  egfr:                   'eGFR estimates how efficiently your kidneys are filtering waste from your blood. Meridian tracks it over time because kidney function tends to change gradually, and early directional trends can carry long-term significance.',
-  egfr_african_american:  'This adjusted eGFR estimate accounts for biological variation in creatinine production. Meridian watches it as part of long-term kidney context — consistent trends across visits carry more interpretive weight than any single reading.',
-  egfr_non_african_american: 'This eGFR estimate reflects how efficiently your kidneys are filtering waste. Meridian tracks it over time because kidney function tends to change gradually, and directional trends across readings carry more significance than any individual result.',
-  bun:                    'BUN (blood urea nitrogen) reflects how well your kidneys are filtering protein waste. Meridian watches it alongside creatinine because the ratio between them can also provide context on hydration status and dietary protein patterns.',
-  bun_creatinine_ratio:   'The BUN/creatinine ratio gives Meridian additional context on kidney function relative to hydration and muscle mass. It can sometimes help distinguish between different reasons why kidney markers may be shifting.',
-  // ── Liver ─────────────────────────────────────────────────────────────────────
-  ast:                    'AST is an enzyme released when liver, heart, or muscle cells are under stress. Meridian watches it alongside ALT because the pattern across liver enzymes — particularly whether AST and ALT move together — often carries more information than any single marker.',
-  alt:                    'ALT is released by the liver when it\'s under strain or irritation. Meridian watches it because changes over time can reflect how the body may be responding to inflammation, recovery, medications, alcohol, or metabolic stress patterns.',
-  alkaline_phosphatase:   'Alkaline phosphatase is produced by the liver, bile ducts, and bone. Meridian watches it because elevated levels can connect to liver health, bile flow, bone turnover, or inflammatory patterns — and the context of surrounding markers helps identify the most likely origin.',
-  bilirubin_total:        'Bilirubin is a byproduct of red blood cell breakdown that the liver processes and clears. Meridian watches it because changes can connect to liver processing capacity, bile flow, or red blood cell turnover — all part of a fuller hepatic picture.',
-  albumin:                'Albumin is the most abundant protein in your blood, produced by the liver. Meridian watches it because it reflects nutritional status, liver synthetic function, and overall protein balance — signals that can shift with illness, inflammation, or long-term dietary patterns.',
-  globulin:               'Globulins include immune-related antibodies and carrier proteins. Meridian watches them because changes can provide context on immune activity, liver function, chronic inflammation, and protein balance over time.',
-  total_protein:          'Total protein reflects both albumin and globulins together — a broad view of how well the body is producing and maintaining protein. Changes can connect to nutritional status, liver function, immune activity, and recovery.',
-  ag_ratio:               'The albumin/globulin ratio reflects the balance between two major protein groups in your blood. Meridian watches it because shifts can sometimes provide early context on liver function, immune activity, or chronic inflammation before individual markers become obviously abnormal.',
-  // ── Glycemic ──────────────────────────────────────────────────────────────────
-  hba1c:                  'A1c gives Meridian a view of your average blood sugar exposure over approximately the past three months. It\'s one of the clearest long-term windows into glycemic regulation and metabolic health.',
-  insulin_fasting:        'Fasting insulin reveals how hard your body is working to keep blood sugar stable between meals. Meridian watches it because elevated fasting insulin can sometimes precede changes in glucose or A1c — connecting to metabolic efficiency and long-term health patterns.',
-  // ── Thyroid ───────────────────────────────────────────────────────────────────
-  tsh:                    'TSH is the signal your brain sends to regulate your thyroid. Meridian watches it because changes over time can connect to metabolism, sustained energy, temperature regulation, sleep quality, and recovery.',
-  free_t4:                'Free T4 is the main storage form of thyroid hormone in your blood. Meridian tracks it because it reflects the raw material your body converts into the active hormone that drives cellular metabolism — a key part of the thyroid system picture.',
-  free_t3:                'Free T3 is the active thyroid hormone that directly drives cellular energy use. Meridian watches it because T3 levels can shift even when TSH appears stable, and it may better reflect how your body is actually using thyroid hormones day to day.',
-  total_t3:               'Total T3 reflects the overall circulating level of your primary active thyroid hormone. Meridian watches it as part of the thyroid picture — particularly when Free T3 is not available — to understand metabolic and energy signaling patterns over time.',
-  tpo_antibodies:         'TPO antibodies are immune proteins that can attack thyroid tissue. Meridian watches them because elevated levels are associated with autoimmune thyroid patterns — including Hashimoto\'s thyroiditis — that often develop gradually and are best understood through long-term trend monitoring.',
-  // ── Vitamins & Nutrients ──────────────────────────────────────────────────────
-  vitamin_d:              'Vitamin D plays a role in immune signaling, recovery, bone health, mood regulation, and metabolic function. Meridian watches long-term trends because consistently low levels can sometimes overlap with broader recovery, inflammation, or energy-related patterns.',
-  vitamin_b12:            'Vitamin B12 supports nerve function, red blood cell production, and energy metabolism at a cellular level. Meridian tracks trends here because deficiency often develops quietly and can connect to fatigue, cognition, and neurological patterns.',
-  ferritin:               'Ferritin reflects your body\'s stored iron reserves. Meridian watches it because low stores can affect energy, oxygen delivery, and immune resilience — often before anaemia becomes apparent.',
-  folate:                 'Folate is essential for DNA repair, cell division, and red blood cell production. Meridian watches it because low levels can connect to elevated homocysteine, red cell changes, and long-term cellular health patterns — often developing quietly over time.',
-  magnesium:              'Magnesium is involved in hundreds of enzymatic reactions — including energy production, muscle function, nerve signaling, and sleep regulation. Meridian watches it because insufficient levels can sometimes connect to fatigue, muscle recovery, and cardiovascular patterns.',
-  // ── Hormones ──────────────────────────────────────────────────────────────────
-  testosterone_total:     'Testosterone plays a role in energy, recovery, muscle maintenance, mood, and metabolic signaling. Meridian watches it alongside cortisol and DHEA-S because hormonal patterns rarely exist in isolation.',
-  cortisol_am:            'Morning cortisol reflects the first wave of your body\'s daily stress and energy response. Meridian watches it because sustained shifts can connect to recovery, immune function, metabolic balance, and adrenal signaling.',
-  dhea_s:                 'DHEA-S is an adrenal hormone associated with resilience and hormonal reserve. Meridian watches it because levels often decline gradually with age and stress — the trend over time tends to be more informative than any single reading.',
-  acth:                   'ACTH is the pituitary signal that tells your adrenal glands to produce cortisol. Meridian tracks it alongside cortisol because together they help build a picture of adrenal and stress-response signaling that neither marker reveals fully on its own.',
-  // ── Inflammation / Cardiac Risk ───────────────────────────────────────────────
-  crp_hs:                 'High-sensitivity CRP is one of the markers Meridian watches for low-grade systemic inflammation. Persistently elevated levels can sometimes connect to cardiovascular risk, metabolic stress, and recovery patterns over time.',
-  homocysteine:           'Homocysteine is an amino acid that accumulates when B-vitamin metabolism is impaired. Meridian watches it because elevated levels have been associated with cardiovascular risk and vascular inflammation — even in people with otherwise normal cholesterol.',
-}
+// Canonical explanation source: HIST_INTERPRETATIONS points to the same dict as INTERPRETATIONS.
+// Both Snapshot and Timeline detail sheets draw from the same single source of truth.
+const HIST_INTERPRETATIONS = INTERPRETATIONS
 function histGetInterpretation(slug: string): string {
   return HIST_INTERPRETATIONS[slug] ?? 'This biomarker is part of the picture Meridian is building over time. Patterns across related markers tend to carry more weight than any single reading.'
 }
@@ -1478,7 +1404,7 @@ function BiomarkerDetailSheet({
           <div style={cardStyle}>
             <p style={labelStyle}>Clinical reference</p>
             {resolvedRange ? (
-              renderClinicalReferenceBar(biomarker.value, resolvedRange.min, resolvedRange.max)
+              renderClinicalReferenceBar(biomarker.value, resolvedRange.min, resolvedRange.max, biomarker.unit || undefined)
             ) : (
               <div style={{ width: '100%', paddingTop: '6px' }}>
                 <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
@@ -1593,6 +1519,7 @@ function HistoryDetailSheet({
   const dotColor    = isCritical ? '#F87171' : getStateColor(biomarker.state)
   const resolvedRange = resolveDisplayRange(biomarker.marker_name, biomarker.reference_range_min, biomarker.reference_range_max, biomarker.unit, bioProfile)
   const interp      = histGetInterpretation(biomarker.marker_name)
+  const intel       = BIOMARKER_CONTEXT[biomarker.marker_name] as BiomarkerIntel | undefined
 
   const _histCurrentDateKey = biomarker.collected_at.split('T')[0]
   const prev = allBiomarkers
@@ -1687,13 +1614,12 @@ function HistoryDetailSheet({
           ) : (
             <>
               <div style={cardStyle}>
-                <p style={labelStyle}>About this marker</p>
-                <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: 0 }}>{interp}</p>
+                <p style={labelStyle}>Why it matters</p>
+                <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: 0 }}>{intel?.why ?? interp}</p>
               </div>
               <div style={{ ...cardStyle, marginBottom: 0 }}>
-                <p style={labelStyle}>Context</p>
-                <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.65, margin: '0 0 5px' }}>Meridian watches this marker as part of a wider biological picture. No single biomarker tells the whole story — the pattern across related signals over time is usually far more meaningful than any one reading.</p>
-                <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.65, margin: 0 }}>This is educational context only, not a diagnosis.</p>
+                <p style={labelStyle}>Meridian context</p>
+                <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.65, margin: 0 }}>{intel?.context ?? 'Meridian evaluates this signal alongside related markers rather than in isolation. Trends over time carry more weight than any individual result.'}</p>
               </div>
             </>
           )}
@@ -2056,7 +1982,7 @@ export default function LabsUploadPage() {
     // New engine: Normal → Optimal bucket; Low/High → Attention bucket.
     // Legacy engine: Optimal/Watch/Attention/Critical map to same buckets.
     Optimal:   snapshotBiomarkersDisplay.filter(b => isInRangeState(b.state)).length,
-    Watch:     0,  // Watch no longer produced by new engine; absorbed into Optimal bucket above
+    Watch:     snapshotBiomarkersDisplay.filter(b => b.state === 'Watch').length,
     Attention: snapshotBiomarkersDisplay.filter(b => b.state === 'Low' || b.state === 'High' || b.state === 'Attention').length,
     Critical:  snapshotBiomarkersDisplay.filter(b => b.state === 'Critical').length,
   }
@@ -3035,7 +2961,7 @@ export default function LabsUploadPage() {
                   /* ── Status-filtered list ── */
                   <div style={{ marginBottom: '8px' }}>
                     <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '10px' }}>
-                      {activeFilter} Biomarkers
+                      {{ Optimal: 'Normal', Watch: 'Tracking', Attention: 'Review', Critical: 'Critical' }[activeFilter ?? ''] ?? activeFilter} Biomarkers
                     </p>
                     {filteredBiomarkers.length > 0 ? (
                       <div>
@@ -3236,7 +3162,7 @@ export default function LabsUploadPage() {
                                             </div>
                                           </div>
                                           {resolvedRange ? (
-                                            renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max)
+                                            renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max, b.unit || undefined)
                                           ) : (
                                             <div style={{ width: '100%', paddingTop: '6px' }}>
                                               <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
@@ -3282,7 +3208,7 @@ export default function LabsUploadPage() {
                                               <span style={{ fontSize: '13px', color: colors.textMuted, opacity: 0.4, lineHeight: 1 }}>›</span>
                                             </div>
                                           </div>
-                                          {resolvedRange && renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max)}
+                                          {resolvedRange && renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max, b.unit || undefined)}
                                         </div>
                                       )
                                     })}
@@ -3300,7 +3226,7 @@ export default function LabsUploadPage() {
                                       cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', textAlign: 'center',
                                     }}
                                   >
-                                    View {hiddenOpt} more optimal {hiddenOpt === 1 ? 'marker' : 'markers'}
+                                    View {hiddenOpt} more normal {hiddenOpt === 1 ? 'marker' : 'markers'}
                                   </button>
                                 )}
                                 {isOptExp && hiddenOpt >= 2 && (
@@ -3313,7 +3239,7 @@ export default function LabsUploadPage() {
                                       cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', textAlign: 'center',
                                     }}
                                   >
-                                    Hide extra optimal markers
+                                    Hide normal markers
                                   </button>
                                 )}
                               </div>
@@ -3536,7 +3462,7 @@ export default function LabsUploadPage() {
                                                 {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                               </div>
                                               {resolvedRange ? (
-                                                renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max)
+                                                renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max, b.unit || undefined)
                                               ) : (
                                                 <div style={{ width: '100%', paddingTop: '6px' }}>
                                                   <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
