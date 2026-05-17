@@ -84,34 +84,42 @@ const NAV = [
 ]
 
 interface Props {
-  role: string
+  role:        string
   displayName: string | null
-  email: string | null
+  email:       string | null
+  onClose?:    () => void
 }
 
-export default function AdminSidebar({ role, displayName, email }: Props) {
+export default function AdminSidebar({ role, displayName, email, onClose }: Props) {
   const pathname = usePathname()
   const router   = useRouter()
 
   function isActive(href: string, exact: boolean) {
-    return exact ? pathname === href : pathname.startsWith(href)
+    return exact ? pathname === href : pathname === href || pathname.startsWith(href + '/')
+  }
+
+  function handleNav(href: string) {
+    router.push(href)
+    onClose?.()
   }
 
   return (
     <aside style={{
       width:           '220px',
       minWidth:        '220px',
-      height:          '100vh',
-      position:        'sticky',
-      top:             0,
+      height:          '100%',
+      minHeight:       '100vh',
       display:         'flex',
       flexDirection:   'column',
       backgroundColor: 'rgba(4,14,16,0.98)',
       borderRight:     `1px solid ${colors.cardBorder}`,
       backdropFilter:  'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      position:        'sticky',
+      top:             0,
     }}>
-      {/* Logo */}
-      <div style={{ padding: '28px 22px 20px', borderBottom: `1px solid ${colors.cardBorder}` }}>
+      {/* Logo + close button row */}
+      <div style={{ padding: '24px 20px 18px', borderBottom: `1px solid ${colors.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{
             fontFamily:           fonts.heading,
@@ -127,21 +135,43 @@ export default function AdminSidebar({ role, displayName, email }: Props) {
             <div style={{ fontFamily: fonts.ui, fontSize: '10px', color: colors.textMuted, letterSpacing: '0.05em' }}>Admin</div>
           </div>
         </div>
+        {/* Close button — visible on mobile via topbar, but also available in drawer */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            aria-label="Close menu"
+            style={{
+              background:  'none',
+              border:      'none',
+              cursor:      'pointer',
+              color:       colors.textMuted,
+              fontSize:    '20px',
+              lineHeight:  1,
+              padding:     '4px 6px',
+              borderRadius:'6px',
+              display:     'flex',
+              alignItems:  'center',
+              justifyContent: 'center',
+            }}
+          >
+            ×
+          </button>
+        )}
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      <nav style={{ flex: 1, padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '2px', overflowY: 'auto' }}>
         {NAV.map(item => {
           const active = isActive(item.href, item.exact)
           return (
             <button
               key={item.href}
-              onClick={() => router.push(item.href)}
+              onClick={() => handleNav(item.href)}
               style={{
                 display:         'flex',
                 alignItems:      'center',
                 gap:             '10px',
-                padding:         '9px 12px',
+                padding:         '11px 12px',
                 borderRadius:    '8px',
                 border:          'none',
                 cursor:          'pointer',
@@ -154,12 +184,14 @@ export default function AdminSidebar({ role, displayName, email }: Props) {
                 backgroundColor: active ? 'rgba(45,212,191,0.10)' : 'transparent',
                 boxShadow:       active ? 'inset 0 0 0 1px rgba(45,212,191,0.18)' : 'none',
                 transition:      'all 0.15s ease',
+                touchAction:     'manipulation',
+                minHeight:       '44px',
               }}
             >
               {item.icon(active)}
               {item.label}
               {active && (
-                <span style={{ marginLeft: 'auto', width: '4px', height: '4px', borderRadius: '50%', backgroundColor: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.8)' }} />
+                <span style={{ marginLeft: 'auto', width: '4px', height: '4px', borderRadius: '50%', backgroundColor: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.8)', flexShrink: 0 }} />
               )}
             </button>
           )
@@ -168,7 +200,7 @@ export default function AdminSidebar({ role, displayName, email }: Props) {
 
       {/* User info */}
       <div style={{ padding: '16px 14px', borderTop: `1px solid ${colors.cardBorder}` }}>
-        <div style={{ fontFamily: fonts.ui, fontSize: '12px', fontWeight: 600, color: colors.textSoft, marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontFamily: fonts.ui, fontSize: '12px', fontWeight: 600, color: colors.textSoft, marginBottom: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {displayName ?? email ?? 'Admin'}
         </div>
         <div style={{

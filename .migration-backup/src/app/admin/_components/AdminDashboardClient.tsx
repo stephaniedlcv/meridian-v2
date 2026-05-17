@@ -29,7 +29,7 @@ function Sparkline({ data }: { data: { date: string; count: number }[] }) {
   const step = w / Math.max(data.length - 1, 1)
   const points = data.map((d, i) => `${i * step},${h - (d.count / max) * (h - 4)}`)
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ overflow: 'visible' }}>
+    <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ overflow: 'visible', display: 'block' }}>
       <defs>
         <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={colors.teal} stopOpacity="0.3" />
@@ -51,12 +51,12 @@ function MetricCard({ label, value, sub, accent }: { label: string; value: strin
       backgroundColor: colors.cardBg,
       border:          `1px solid ${colors.cardBorder}`,
       borderRadius:    '14px',
-      padding:         '20px 22px',
+      padding:         '18px 20px',
       boxShadow:       'inset 0 1px 0 rgba(255,255,255,0.04)',
     }}>
-      <div style={{ fontFamily: fonts.ui, fontSize: '11px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '10px' }}>{label}</div>
-      <div style={{ fontFamily: fonts.heading, fontSize: '32px', fontWeight: 700, color: accent ?? colors.text, lineHeight: 1, marginBottom: sub ? '6px' : 0 }}>{value}</div>
-      {sub && <div style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.textMuted }}>{sub}</div>}
+      <div style={{ fontFamily: fonts.ui, fontSize: '10px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '10px' }}>{label}</div>
+      <div style={{ fontFamily: fonts.heading, fontSize: '30px', fontWeight: 700, color: accent ?? colors.text, lineHeight: 1, marginBottom: sub ? '6px' : 0 }}>{value}</div>
+      {sub && <div style={{ fontFamily: fonts.ui, fontSize: '11px', color: colors.textMuted }}>{sub}</div>}
     </div>
   )
 }
@@ -65,11 +65,11 @@ function BarRow({ label, value, max, color }: { label: string; value: number; ma
   const pct = max > 0 ? Math.round((value / max) * 100) : 0
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-      <div style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.textSoft, width: '140px', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</div>
+      <div style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.textSoft, width: '130px', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</div>
       <div style={{ flex: 1, height: '6px', borderRadius: '3px', backgroundColor: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', borderRadius: '3px', backgroundColor: color, transition: 'width 0.4s ease' }} />
       </div>
-      <div style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.textMuted, width: '36px', textAlign: 'right' }}>{value}</div>
+      <div style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.textMuted, width: '36px', textAlign: 'right', flexShrink: 0 }}>{value}</div>
     </div>
   )
 }
@@ -80,15 +80,18 @@ export default function AdminDashboardClient({ stats }: Props) {
   const topCount = stats.topBiomarkers[0]?.count ?? 1
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: '1200px' }}>
+    <div className="admin-page-pad" style={{ padding: '32px 36px', maxWidth: '1200px' }}>
       {/* Header */}
-      <div style={{ marginBottom: '32px' }}>
+      <div style={{ marginBottom: '28px' }}>
         <h1 style={{ fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '6px' }}>Dashboard</h1>
         <p style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, margin: 0 }}>Platform overview — live data</p>
       </div>
 
       {/* Primary metrics */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '14px', marginBottom: '28px' }}>
+      <div
+        className="admin-grid-metrics"
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px' }}
+      >
         <MetricCard label="Total Users"        value={stats.totalUsers} />
         <MetricCard label="Active 7d"          value={stats.activeUsers7d}  sub={`${stats.totalUsers > 0 ? Math.round(stats.activeUsers7d / stats.totalUsers * 100) : 0}% of users`} accent={colors.teal} />
         <MetricCard label="Active 30d"         value={stats.activeUsers30d} sub={`${stats.totalUsers > 0 ? Math.round(stats.activeUsers30d / stats.totalUsers * 100) : 0}% of users`} />
@@ -100,11 +103,13 @@ export default function AdminDashboardClient({ stats }: Props) {
       </div>
 
       {/* Two-column charts row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '28px' }}>
-
+      <div
+        className="admin-grid-2col"
+        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}
+      >
         {/* Signups sparkline */}
-        <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '22px 24px' }}>
-          <div style={{ fontFamily: fonts.ui, fontSize: '11px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '16px' }}>User Growth — Last 30 Days</div>
+        <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '20px 22px' }}>
+          <div style={{ fontFamily: fonts.ui, fontSize: '11px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '14px' }}>User Growth — Last 30 Days</div>
           {stats.signupsByDay.length > 0 ? (
             <>
               <Sparkline data={stats.signupsByDay} />
@@ -119,8 +124,8 @@ export default function AdminDashboardClient({ stats }: Props) {
         </div>
 
         {/* Biomarker state distribution */}
-        <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '22px 24px' }}>
-          <div style={{ fontFamily: fonts.ui, fontSize: '11px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '16px' }}>Result State Distribution</div>
+        <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '20px 22px' }}>
+          <div style={{ fontFamily: fonts.ui, fontSize: '11px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '14px' }}>Result State Distribution</div>
           {stats.stateDistribution.length > 0 ? (
             stats.stateDistribution.map(s => (
               <BarRow key={s.state} label={s.state} value={s.count} max={stats.stateDistribution[0].count} color={STATE_COLOR[s.state] ?? colors.textMuted} />
@@ -132,11 +137,13 @@ export default function AdminDashboardClient({ stats }: Props) {
       </div>
 
       {/* Three-column lower row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '14px' }}>
-
+      <div
+        className="admin-grid-3col"
+        style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}
+      >
         {/* Top biomarkers */}
-        <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '22px 24px' }}>
-          <div style={{ fontFamily: fonts.ui, fontSize: '11px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '16px' }}>Most Uploaded Biomarkers</div>
+        <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '20px 22px' }}>
+          <div style={{ fontFamily: fonts.ui, fontSize: '11px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '14px' }}>Most Uploaded Biomarkers</div>
           {stats.topBiomarkers.length > 0 ? (
             stats.topBiomarkers.map(b => (
               <BarRow key={b.name} label={b.name} value={b.count} max={topCount} color={colors.teal} />
@@ -147,8 +154,8 @@ export default function AdminDashboardClient({ stats }: Props) {
         </div>
 
         {/* Biological profile */}
-        <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '22px 24px' }}>
-          <div style={{ fontFamily: fonts.ui, fontSize: '11px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '16px' }}>Biological Profile</div>
+        <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '20px 22px' }}>
+          <div style={{ fontFamily: fonts.ui, fontSize: '11px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '14px' }}>Biological Profile</div>
           {stats.biologicalProfileSplit.map((bp, i) => (
             <div key={bp.profile} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textSoft, textTransform: 'capitalize' }}>{bp.profile}</span>
@@ -158,8 +165,8 @@ export default function AdminDashboardClient({ stats }: Props) {
         </div>
 
         {/* User profile */}
-        <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '22px 24px' }}>
-          <div style={{ fontFamily: fonts.ui, fontSize: '11px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '16px' }}>User Profile</div>
+        <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '20px 22px' }}>
+          <div style={{ fontFamily: fonts.ui, fontSize: '11px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '14px' }}>User Profile</div>
           {stats.userProfileSplit.map(up => (
             <div key={up.profile} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.textSoft, textTransform: 'capitalize' }}>{up.profile.replace(/_/g, ' ')}</span>

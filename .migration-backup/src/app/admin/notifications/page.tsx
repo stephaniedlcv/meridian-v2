@@ -76,7 +76,7 @@ function CreateNotificationDrawer({ onClose, onCreated }: { onClose: () => void;
     setSaving(true); setError('')
     try {
       const res = await fetch('/api/admin/notifications', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title:          title.trim(),
@@ -90,22 +90,78 @@ function CreateNotificationDrawer({ onClose, onCreated }: { onClose: () => void;
       if (!res.ok) { setError(data.error ?? 'Failed to create notification'); return }
       onCreated()
       onClose()
-    } catch (e) {
+    } catch {
       setError('Network error')
     } finally { setSaving(false) }
   }
 
-  const labelStyle: React.CSSProperties = { fontFamily: fonts.ui, fontSize: '11px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }
-  const inputStyle: React.CSSProperties = { width: '100%', fontFamily: fonts.ui, fontSize: '13px', color: colors.text, backgroundColor: 'rgba(255,255,255,0.04)', border: `1px solid ${colors.cardBorder}`, borderRadius: '8px', padding: '10px 12px', outline: 'none', boxSizing: 'border-box', resize: 'none' }
+  const labelStyle: React.CSSProperties = {
+    fontFamily:    fonts.ui,
+    fontSize:      '11px',
+    fontWeight:    600,
+    color:         colors.textMuted,
+    letterSpacing: '0.07em',
+    textTransform: 'uppercase',
+    display:       'block',
+    marginBottom:  '6px',
+  }
+  const inputStyle: React.CSSProperties = {
+    width:           '100%',
+    fontFamily:      fonts.ui,
+    fontSize:        '13px',
+    color:           colors.text,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    border:          `1px solid ${colors.cardBorder}`,
+    borderRadius:    '8px',
+    padding:         '10px 12px',
+    outline:         'none',
+    boxSizing:       'border-box',
+    resize:          'none',
+    minHeight:       '44px',
+  }
   const selectStyle: React.CSSProperties = { ...inputStyle, cursor: 'pointer' }
 
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 40, backdropFilter: 'blur(4px)' }} />
-      <div style={{ position: 'fixed', right: 0, top: 0, bottom: 0, width: '460px', zIndex: 50, backgroundColor: '#071517', borderLeft: `1px solid ${colors.cardBorder}`, overflowY: 'auto', display: 'flex', flexDirection: 'column', boxShadow: '-20px 0 60px rgba(0,0,0,0.5)' }}>
-        <div style={{ padding: '24px 24px 20px', borderBottom: `1px solid ${colors.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, backgroundColor: '#071517', zIndex: 1 }}>
+      <div
+        onClick={onClose}
+        style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.55)', zIndex: 40, backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
+      />
+      {/* Drawer — admin-drawer class handles full-width + bottom-sheet on mobile */}
+      <div
+        className="admin-drawer"
+        style={{
+          position:        'fixed',
+          right:           0,
+          top:             0,
+          bottom:          0,
+          width:           '460px',
+          zIndex:          50,
+          backgroundColor: '#071517',
+          borderLeft:      `1px solid ${colors.cardBorder}`,
+          overflowY:       'auto',
+          display:         'flex',
+          flexDirection:   'column',
+          boxShadow:       '-20px 0 60px rgba(0,0,0,0.5)',
+        }}
+      >
+        {/* Drawer header */}
+        <div style={{
+          padding:         '24px 24px 20px',
+          borderBottom:    `1px solid ${colors.cardBorder}`,
+          display:         'flex',
+          alignItems:      'center',
+          justifyContent:  'space-between',
+          position:        'sticky',
+          top:             0,
+          backgroundColor: '#071517',
+          zIndex:          1,
+        }}>
           <div style={{ fontFamily: fonts.heading, fontSize: '18px', fontWeight: 700, color: colors.text }}>New Notification</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: '20px', lineHeight: 1 }}>×</button>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: '20px', lineHeight: 1, padding: '4px 8px', minWidth: '36px', minHeight: '36px' }}
+          >×</button>
         </div>
 
         <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
@@ -115,9 +171,13 @@ function CreateNotificationDrawer({ onClose, onCreated }: { onClose: () => void;
           </div>
           <div>
             <label style={labelStyle}>Body</label>
-            <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Notification body…" rows={4} style={inputStyle} />
+            <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Notification body…" rows={4} style={{ ...inputStyle, minHeight: '96px' }} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          {/* Type + Segment — stacks on mobile via admin-notif-type-grid */}
+          <div
+            className="admin-notif-type-grid"
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
+          >
             <div>
               <label style={labelStyle}>Type</label>
               <select value={type} onChange={e => setType(e.target.value as NotificationType)} style={selectStyle}>
@@ -136,17 +196,25 @@ function CreateNotificationDrawer({ onClose, onCreated }: { onClose: () => void;
             <input type="datetime-local" value={scheduledFor} onChange={e => setScheduledFor(e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }} />
           </div>
 
-          {error && <div style={{ fontFamily: fonts.ui, fontSize: '12px', color: '#F87171', padding: '10px 12px', backgroundColor: 'rgba(248,113,113,0.07)', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.2)' }}>{error}</div>}
+          {error && (
+            <div style={{ fontFamily: fonts.ui, fontSize: '12px', color: '#F87171', padding: '10px 12px', backgroundColor: 'rgba(248,113,113,0.07)', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.2)' }}>{error}</div>
+          )}
         </div>
 
         <div style={{ padding: '20px 24px', borderTop: `1px solid ${colors.cardBorder}`, display: 'flex', gap: '10px' }}>
-          <button onClick={() => handleSubmit(true)} disabled={saving}
-            style={{ flex: 1, fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, color: colors.textSoft, backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '10px', padding: '12px', cursor: saving ? 'not-allowed' : 'pointer' }}>
+          <button
+            onClick={() => handleSubmit(true)}
+            disabled={saving}
+            style={{ flex: 1, fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, color: colors.textSoft, backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '10px', padding: '14px', cursor: saving ? 'not-allowed' : 'pointer', minHeight: '48px', touchAction: 'manipulation' }}
+          >
             Save Draft
           </button>
-          <button onClick={() => handleSubmit(false)} disabled={saving}
-            style={{ flex: 1, fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, color: '#061316', backgroundColor: colors.teal, border: 'none', borderRadius: '10px', padding: '12px', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-            {scheduledFor ? 'Schedule' : 'Create Notification'}
+          <button
+            onClick={() => handleSubmit(false)}
+            disabled={saving}
+            style={{ flex: 1, fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, color: '#061316', backgroundColor: colors.teal, border: 'none', borderRadius: '10px', padding: '14px', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1, minHeight: '48px', touchAction: 'manipulation' }}
+          >
+            {scheduledFor ? 'Schedule' : 'Create'}
           </button>
         </div>
       </div>
@@ -174,7 +242,7 @@ export default function AdminNotificationsPage() {
 
   async function archive(id: string) {
     await fetch('/api/admin/notifications', {
-      method: 'PATCH',
+      method:  'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, status: 'archived' }),
     })
@@ -182,16 +250,18 @@ export default function AdminNotificationsPage() {
   }
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: '960px' }}>
+    <div className="admin-page-pad" style={{ padding: '32px 36px', maxWidth: '960px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px', gap: '12px', flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '6px' }}>Notifications</h1>
-          <p style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, margin: 0 }}>{notifications.length} notification{notifications.length !== 1 ? 's' : ''}</p>
+          <p style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, margin: 0 }}>
+            {notifications.length} notification{notifications.length !== 1 ? 's' : ''}
+          </p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          style={{ fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, color: '#061316', backgroundColor: colors.teal, border: 'none', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', boxShadow: '0 0 20px rgba(45,212,191,0.25)' }}
+          style={{ fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, color: '#061316', backgroundColor: colors.teal, border: 'none', borderRadius: '10px', padding: '11px 22px', cursor: 'pointer', boxShadow: '0 0 20px rgba(45,212,191,0.25)', touchAction: 'manipulation', minHeight: '44px', whiteSpace: 'nowrap' }}
         >
           + New Notification
         </button>
@@ -204,12 +274,19 @@ export default function AdminNotificationsPage() {
             key={s}
             onClick={() => setFilterStatus(s)}
             style={{
-              fontFamily: fonts.ui, fontSize: '12px', fontWeight: 600,
-              color: filterStatus === s ? colors.text : colors.textMuted,
+              fontFamily:      fonts.ui,
+              fontSize:        '12px',
+              fontWeight:      600,
+              color:           filterStatus === s ? colors.text : colors.textMuted,
               backgroundColor: filterStatus === s ? 'rgba(45,212,191,0.12)' : colors.cardBg,
-              border: `1px solid ${filterStatus === s ? 'rgba(45,212,191,0.3)' : colors.cardBorder}`,
-              borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', transition: 'all 0.15s',
-              textTransform: 'capitalize',
+              border:          `1px solid ${filterStatus === s ? 'rgba(45,212,191,0.3)' : colors.cardBorder}`,
+              borderRadius:    '8px',
+              padding:         '8px 16px',
+              cursor:          'pointer',
+              transition:      'all 0.15s',
+              textTransform:   'capitalize',
+              touchAction:     'manipulation',
+              minHeight:       '40px',
             }}
           >
             {s || 'All'}
@@ -221,26 +298,32 @@ export default function AdminNotificationsPage() {
       {loading ? (
         <div style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, padding: '40px 0' }}>Loading…</div>
       ) : notifications.length === 0 ? (
-        <div style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, padding: '60px 0', textAlign: 'center' }}>
+        <div style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, padding: '60px 0', textAlign: 'center', lineHeight: 2 }}>
           No notifications yet.<br />
-          <span style={{ color: colors.teal, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setShowCreate(true)}>Create your first one →</span>
+          <span
+            style={{ color: colors.teal, cursor: 'pointer', textDecoration: 'underline' }}
+            onClick={() => setShowCreate(true)}
+          >Create your first one →</span>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {notifications.map(n => (
-            <div key={n.id} style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '18px 20px' }}>
+            <div
+              key={n.id}
+              style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '18px 20px' }}
+            >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: fonts.ui, fontSize: '14px', fontWeight: 600, color: colors.text, marginBottom: '4px' }}>{n.title}</div>
                   <div style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textSoft, lineHeight: 1.5 }}>{n.body}</div>
                 </div>
-                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                  <Pill label={n.status}                         color={STATUS_COLOR[n.status]  ?? colors.textMuted} />
-                  <Pill label={TYPE_LABEL[n.type] ?? n.type}     color={colors.cyan} />
+                <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap' }}>
+                  <Pill label={n.status}                       color={STATUS_COLOR[n.status]  ?? colors.textMuted} />
+                  <Pill label={TYPE_LABEL[n.type] ?? n.type}   color={colors.cyan} />
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', gap: '10px', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: fonts.ui, fontSize: '11px', color: colors.textMuted }}>
                     Segment: <span style={{ color: colors.textSoft }}>{SEGMENT_LABEL[n.target_segment] ?? n.target_segment}</span>
                   </span>
@@ -259,7 +342,7 @@ export default function AdminNotificationsPage() {
                 {n.status !== 'archived' && n.status !== 'sent' && (
                   <button
                     onClick={() => archive(n.id)}
-                    style={{ fontFamily: fonts.ui, fontSize: '11px', color: colors.textMuted, background: 'none', border: `1px solid ${colors.cardBorder}`, borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}
+                    style={{ fontFamily: fonts.ui, fontSize: '11px', color: colors.textMuted, background: 'none', border: `1px solid ${colors.cardBorder}`, borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', touchAction: 'manipulation', minHeight: '36px' }}
                   >
                     Archive
                   </button>

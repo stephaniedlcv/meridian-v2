@@ -1,0 +1,119 @@
+Implement two UX improvements for Meridian before continuing Admin Panel work.
+
+IMPORTANT:
+- DO NOT redesign the Meridian aesthetic
+- Preserve all existing typography, spacing, gradients, glassmorphism, motion, and layout patterns
+- Maintain the premium Meridian visual identity exactly
+- All additions should feel native to Meridian, not bolted on
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 1 — USER NOTIFICATIONS BUTTON
+━━━━━━━━━━━━━━━━━━━━
+
+Add a Notifications entry point for regular users.
+
+OBJECTIVE:
+Users should have access to a notifications/inbox experience inside Meridian.
+
+Add:
+- notification bell icon
+- unread indicator badge
+- navigation entry to `/notifications`
+
+The button should appear:
+- in the app top navigation/header
+OR
+- wherever the current Meridian navigation pattern makes the most sense
+
+Requirements:
+- elegant subtle animation
+- unread count badge
+- hover states
+- mobile responsive
+- preserve current visual hierarchy
+
+Create:
+`/notifications`
+
+This should be a clean Meridian-style inbox page prepared for future notification delivery.
+
+Include:
+- empty state
+- notification cards
+- read/unread states
+- timestamps
+- categories:
+  - insights
+  - system
+  - reminders
+  - safety
+  - updates
+
+Use mock data structure if backend delivery is not connected yet, BUT architect it cleanly for future real integration with the notifications table already created.
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 2 — ADMIN ACCESS ENTRY + EXIT
+━━━━━━━━━━━━━━━━━━━━
+
+For authenticated users that exist in `admin_users`,
+add a subtle additional section inside Profile/Settings.
+
+ONLY visible to admins.
+
+Section title:
+SYSTEM ACCESS
+
+Subtext:
+Operator Console Enabled
+
+Inside:
+- Open Admin Console
+
+This should navigate to:
+`/admin`
+
+IMPORTANT:
+This should feel elegant and premium.
+NOT loud.
+NOT corporate.
+NOT debug/developer-looking.
+
+━━━━━━━━━━━━━━━━━━━━
+ADMIN EXIT / RETURN FLOW
+━━━━━━━━━━━━━━━━━━━━
+
+Inside the Admin Panel, add a clear but elegant way to return to the normal Meridian app.
+
+Add:
+- “Return to Meridian”
+OR
+- “Back to App”
+
+This should:
+- appear in sidebar or topbar
+- preserve Meridian styling
+- work on mobile and desktop
+
+Route:
+`/dashboard`
+
+━━━━━━━━━━━━━━━━━━━━
+TECHNICAL REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+- Use server-side admin verification
+- No hardcoded admin IDs
+- No client-only auth checks
+- Preserve current middleware architecture
+- Avoid duplicate auth queries where possible
+- Keep responsive behavior clean
+
+━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT
+━━━━━━━━━━━━━━━━━━━━
+
+Return:
+- exact files modified
+- complete code
+- no pseudo-code
+- no explanations unless necessary

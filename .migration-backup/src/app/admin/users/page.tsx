@@ -23,7 +23,17 @@ const STATE_DOT: Record<string, string> = {
 }
 
 function Dot({ state }: { state: string }) {
-  return <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: STATE_DOT[state] ?? colors.textMuted, display: 'inline-block', boxShadow: `0 0 5px ${STATE_DOT[state] ?? colors.textMuted}80`, flexShrink: 0 }} />
+  return (
+    <span style={{
+      width:           '7px',
+      height:          '7px',
+      borderRadius:    '50%',
+      backgroundColor: STATE_DOT[state] ?? colors.textMuted,
+      display:         'inline-block',
+      boxShadow:       `0 0 5px ${STATE_DOT[state] ?? colors.textMuted}80`,
+      flexShrink:      0,
+    }} />
+  )
 }
 
 function Pill({ label, color }: { label: string; color?: string }) {
@@ -35,14 +45,32 @@ function Pill({ label, color }: { label: string; color?: string }) {
   )
 }
 
-function FilterSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) {
+function FilterSelect({ label, value, onChange, options }: {
+  label:    string
+  value:    string
+  onChange: (v: string) => void
+  options:  { value: string; label: string }[]
+}) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+    <div className="admin-filter-item" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       <label style={{ fontFamily: fonts.ui, fontSize: '10px', fontWeight: 600, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase' }}>{label}</label>
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.textSoft, backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '8px', padding: '6px 10px', outline: 'none', cursor: 'pointer' }}
+        style={{
+          fontFamily:      fonts.ui,
+          fontSize:        '12px',
+          color:           colors.textSoft,
+          backgroundColor: colors.cardBg,
+          border:          `1px solid ${colors.cardBorder}`,
+          borderRadius:    '8px',
+          padding:         '8px 10px',
+          outline:         'none',
+          cursor:          'pointer',
+          minHeight:       '38px',
+          width:           '100%',
+          boxSizing:       'border-box',
+        }}
       >
         {options.map(o => <option key={o.value} value={o.value} style={{ backgroundColor: '#061316' }}>{o.label}</option>)}
       </select>
@@ -51,7 +79,7 @@ function FilterSelect({ label, value, onChange, options }: { label: string; valu
 }
 
 function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }) {
-  const [user, setUser] = useState<AdminUserDetail | null>(null)
+  const [user,    setUser]    = useState<AdminUserDetail | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -65,18 +93,45 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
   return (
     <>
       {/* Backdrop */}
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 40, backdropFilter: 'blur(4px)' }} />
-      {/* Drawer */}
-      <div style={{
-        position: 'fixed', right: 0, top: 0, bottom: 0, width: '420px', zIndex: 50,
-        backgroundColor: '#071517', borderLeft: `1px solid ${colors.cardBorder}`,
-        overflowY: 'auto', display: 'flex', flexDirection: 'column',
-        boxShadow: '-20px 0 60px rgba(0,0,0,0.5)',
-      }}>
+      <div
+        onClick={onClose}
+        style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.55)', zIndex: 40, backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
+      />
+      {/* Drawer — admin-drawer class makes it full-width bottom sheet on mobile */}
+      <div
+        className="admin-drawer"
+        style={{
+          position:        'fixed',
+          right:           0,
+          top:             0,
+          bottom:          0,
+          width:           '420px',
+          zIndex:          50,
+          backgroundColor: '#071517',
+          borderLeft:      `1px solid ${colors.cardBorder}`,
+          overflowY:       'auto',
+          display:         'flex',
+          flexDirection:   'column',
+          boxShadow:       '-20px 0 60px rgba(0,0,0,0.5)',
+        }}
+      >
         {/* Drawer header */}
-        <div style={{ padding: '24px 24px 20px', borderBottom: `1px solid ${colors.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, backgroundColor: '#071517', zIndex: 1 }}>
+        <div style={{
+          padding:         '24px 24px 20px',
+          borderBottom:    `1px solid ${colors.cardBorder}`,
+          display:         'flex',
+          alignItems:      'center',
+          justifyContent:  'space-between',
+          position:        'sticky',
+          top:             0,
+          backgroundColor: '#071517',
+          zIndex:          1,
+        }}>
           <div style={{ fontFamily: fonts.heading, fontSize: '18px', fontWeight: 700, color: colors.text }}>User Detail</div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: '20px', lineHeight: 1, padding: '4px' }}>×</button>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', fontSize: '20px', lineHeight: 1, padding: '4px 8px', minWidth: '36px', minHeight: '36px' }}
+          >×</button>
         </div>
 
         {loading ? (
@@ -88,7 +143,7 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
             {/* Identity */}
             <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '12px', padding: '18px' }}>
               <div style={{ fontFamily: fonts.heading, fontSize: '20px', fontWeight: 700, color: colors.text, marginBottom: '4px' }}>{user.display_name ?? user.full_name ?? '—'}</div>
-              <div style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, marginBottom: '12px' }}>{user.email ?? '—'}</div>
+              <div style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, marginBottom: '12px', wordBreak: 'break-all' }}>{user.email ?? '—'}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {user.biological_profile && <Pill label={user.biological_profile} color={colors.teal} />}
                 {user.user_profile       && <Pill label={user.user_profile.replace(/_/g, ' ')} color="#A78BFA" />}
@@ -124,11 +179,11 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {user.recentBiomarkers.map(b => (
-                    <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '8px' }}>
+                    <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '8px', flexWrap: 'wrap' }}>
                       <Dot state={b.state} />
-                      <span style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.textSoft, flex: 1 }}>{b.marker_name}</span>
-                      <span style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.text, fontWeight: 600 }}>{b.value ?? '—'} {b.unit}</span>
-                      <span style={{ fontFamily: fonts.ui, fontSize: '11px', color: colors.textMuted }}>{b.collected_at.slice(0, 10)}</span>
+                      <span style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.textSoft, flex: 1, minWidth: '80px' }}>{b.marker_name}</span>
+                      <span style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.text, fontWeight: 600, whiteSpace: 'nowrap' }}>{b.value ?? '—'} {b.unit}</span>
+                      <span style={{ fontFamily: fonts.ui, fontSize: '11px', color: colors.textMuted, whiteSpace: 'nowrap' }}>{b.collected_at.slice(0, 10)}</span>
                     </div>
                   ))}
                 </div>
@@ -144,11 +199,11 @@ function UserDrawer({ userId, onClose }: { userId: string; onClose: () => void }
 const PAGE_SIZE = 25
 
 export default function AdminUsersPage() {
-  const [users,   setUsers]   = useState<AdminUserRow[]>([])
-  const [total,   setTotal]   = useState(0)
-  const [page,    setPage]    = useState(1)
-  const [loading, setLoading] = useState(true)
-  const [search,  setSearch]  = useState('')
+  const [users,        setUsers]        = useState<AdminUserRow[]>([])
+  const [total,        setTotal]        = useState(0)
+  const [page,         setPage]         = useState(1)
+  const [loading,      setLoading]      = useState(true)
+  const [search,       setSearch]       = useState('')
   const [onboarding,   setOnboarding]   = useState('')
   const [bioProfile,   setBioProfile]   = useState('')
   const [safety,       setSafety]       = useState('')
@@ -164,14 +219,14 @@ export default function AdminUsersPage() {
     try {
       const params = new URLSearchParams({
         page: String(pg), sort: sortBy, dir: sortDir,
-        ...(s            && { search: s }),
-        ...(onboarding   && { onboarding }),
-        ...(bioProfile   && { bio_profile: bioProfile }),
-        ...(safety       && { safety }),
-        ...(userProfile  && { user_profile: userProfile }),
-        ...(hasLabs      && { has_labs: hasLabs }),
+        ...(s           && { search: s }),
+        ...(onboarding  && { onboarding }),
+        ...(bioProfile  && { bio_profile: bioProfile }),
+        ...(safety      && { safety }),
+        ...(userProfile && { user_profile: userProfile }),
+        ...(hasLabs     && { has_labs: hasLabs }),
       })
-      const res = await fetch(`/api/admin/users?${params}`)
+      const res  = await fetch(`/api/admin/users?${params}`)
       const data = await res.json()
       setUsers(data.users ?? [])
       setTotal(data.total ?? 0)
@@ -195,137 +250,199 @@ export default function AdminUsersPage() {
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
   return (
-    <div style={{ padding: '32px 36px' }}>
+    <div className="admin-page-pad" style={{ padding: '32px 36px' }}>
       {/* Header */}
-      <div style={{ marginBottom: '28px' }}>
+      <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '6px' }}>Users</h1>
         <p style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, margin: 0 }}>{total} total users</p>
       </div>
 
       {/* Search + Filters */}
-      <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '20px 22px', marginBottom: '20px' }}>
+      <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '18px 20px', marginBottom: '18px' }}>
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by name or email…"
           style={{
-            width: '100%', fontFamily: fonts.ui, fontSize: '14px', color: colors.text,
-            backgroundColor: 'rgba(255,255,255,0.04)', border: `1px solid ${colors.cardBorder}`,
-            borderRadius: '10px', padding: '10px 14px', outline: 'none', marginBottom: '16px', boxSizing: 'border-box',
+            width:           '100%',
+            fontFamily:      fonts.ui,
+            fontSize:        '14px',
+            color:           colors.text,
+            backgroundColor: 'rgba(255,255,255,0.04)',
+            border:          `1px solid ${colors.cardBorder}`,
+            borderRadius:    '10px',
+            padding:         '10px 14px',
+            outline:         'none',
+            marginBottom:    '14px',
+            boxSizing:       'border-box',
+            minHeight:       '44px',
           }}
         />
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
-          <FilterSelect label="Onboarding" value={onboarding} onChange={v => { setOnboarding(v); setPage(1) }} options={[
-            { value: '', label: 'All' }, { value: 'true', label: 'Completed' }, { value: 'false', label: 'Incomplete' },
-          ]} />
-          <FilterSelect label="Bio Profile" value={bioProfile} onChange={v => { setBioProfile(v); setPage(1) }} options={[
-            { value: '', label: 'All' }, { value: 'male', label: 'Male' }, { value: 'female', label: 'Female' },
-          ]} />
-          <FilterSelect label="Safety" value={safety} onChange={v => { setSafety(v); setPage(1) }} options={[
-            { value: '', label: 'All' }, { value: 'active', label: 'Active' }, { value: 'medical_alert', label: 'Alert' },
-          ]} />
-          <FilterSelect label="User Profile" value={userProfile} onChange={v => { setUserProfile(v); setPage(1) }} options={[
-            { value: '', label: 'All' },
-            { value: 'bienestar',   label: 'Bienestar' },
-            { value: 'optimizacion', label: 'Optimización' },
-            { value: 'rendimiento', label: 'Rendimiento' },
-            { value: 'condicion',   label: 'Condición' },
-            { value: 'primer_paso', label: 'Primer Paso' },
-          ]} />
-          <FilterSelect label="Labs" value={hasLabs} onChange={v => { setHasLabs(v); setPage(1) }} options={[
-            { value: '', label: 'All' }, { value: 'true', label: 'Has Labs' }, { value: 'false', label: 'No Labs' },
-          ]} />
+        {/* Filters row — becomes column on mobile */}
+        <div className="admin-filters" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+          <FilterSelect
+            label="Onboarding" value={onboarding}
+            onChange={v => { setOnboarding(v); setPage(1) }}
+            options={[{ value: '', label: 'All' }, { value: 'true', label: 'Completed' }, { value: 'false', label: 'Incomplete' }]}
+          />
+          <FilterSelect
+            label="Bio Profile" value={bioProfile}
+            onChange={v => { setBioProfile(v); setPage(1) }}
+            options={[{ value: '', label: 'All' }, { value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }]}
+          />
+          <FilterSelect
+            label="Safety" value={safety}
+            onChange={v => { setSafety(v); setPage(1) }}
+            options={[{ value: '', label: 'All' }, { value: 'active', label: 'Active' }, { value: 'medical_alert', label: 'Alert' }]}
+          />
+          <FilterSelect
+            label="User Profile" value={userProfile}
+            onChange={v => { setUserProfile(v); setPage(1) }}
+            options={[
+              { value: '', label: 'All' },
+              { value: 'bienestar',    label: 'Bienestar' },
+              { value: 'optimizacion', label: 'Optimización' },
+              { value: 'rendimiento',  label: 'Rendimiento' },
+              { value: 'condicion',    label: 'Condición' },
+              { value: 'primer_paso',  label: 'Primer Paso' },
+            ]}
+          />
+          <FilterSelect
+            label="Labs" value={hasLabs}
+            onChange={v => { setHasLabs(v); setPage(1) }}
+            options={[{ value: '', label: 'All' }, { value: 'true', label: 'Has Labs' }, { value: 'false', label: 'No Labs' }]}
+          />
         </div>
       </div>
 
-      {/* Table */}
-      <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', overflow: 'hidden', marginBottom: '16px' }}>
-        {/* Table header */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 80px 80px 100px', padding: '12px 20px', borderBottom: `1px solid ${colors.cardBorder}`, backgroundColor: 'rgba(45,212,191,0.03)' }}>
-          {[
-            { label: 'User', col: 'full_name' },
-            { label: 'Profile', col: null },
-            { label: 'Safety', col: null },
-            { label: 'Onboarding', col: null },
-            { label: 'Labs', col: null },
-            { label: 'Joined', col: 'created_at' },
-            { label: '', col: null },
-          ].map((h, i) => (
-            <div
-              key={i}
-              onClick={h.col ? () => toggleSort(h.col!) : undefined}
-              style={{ fontFamily: fonts.ui, fontSize: '10px', fontWeight: 700, color: colors.textMuted, letterSpacing: '0.07em', textTransform: 'uppercase', cursor: h.col ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: '4px', userSelect: 'none' }}
-            >
-              {h.label}
-              {h.col && sortBy === h.col && <span style={{ color: colors.teal }}>{sortDir === 'asc' ? '↑' : '↓'}</span>}
-            </div>
-          ))}
-        </div>
+      {/* Table — horizontal scroll on mobile */}
+      <div
+        className="admin-table-scroll"
+        style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', overflow: 'hidden', marginBottom: '16px' }}
+      >
+        {/* Inner min-width wrapper */}
+        <div className="admin-table-min">
+          {/* Table header */}
+          <div style={{
+            display:             'grid',
+            gridTemplateColumns: '2fr 1fr 1fr 1fr 70px 80px 90px',
+            padding:             '12px 20px',
+            borderBottom:        `1px solid ${colors.cardBorder}`,
+            backgroundColor:     'rgba(45,212,191,0.03)',
+          }}>
+            {[
+              { label: 'User',       col: 'full_name' },
+              { label: 'Profile',    col: null },
+              { label: 'Safety',     col: null },
+              { label: 'Onboarding', col: null },
+              { label: 'Labs',       col: null },
+              { label: 'Joined',     col: 'created_at' },
+              { label: '',           col: null },
+            ].map((h, i) => (
+              <div
+                key={i}
+                onClick={h.col ? () => toggleSort(h.col!) : undefined}
+                style={{
+                  fontFamily:    fonts.ui,
+                  fontSize:      '10px',
+                  fontWeight:    700,
+                  color:         colors.textMuted,
+                  letterSpacing: '0.07em',
+                  textTransform: 'uppercase',
+                  cursor:        h.col ? 'pointer' : 'default',
+                  display:       'flex',
+                  alignItems:    'center',
+                  gap:           '4px',
+                  userSelect:    'none',
+                }}
+              >
+                {h.label}
+                {h.col && sortBy === h.col && <span style={{ color: colors.teal }}>{sortDir === 'asc' ? '↑' : '↓'}</span>}
+              </div>
+            ))}
+          </div>
 
-        {loading ? (
-          <div style={{ padding: '40px 20px', fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted }}>Loading…</div>
-        ) : users.length === 0 ? (
-          <div style={{ padding: '40px 20px', fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted }}>No users match the current filters.</div>
-        ) : (
-          users.map((u, idx) => (
-            <div
-              key={u.id}
-              style={{
-                display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 80px 80px 100px',
-                padding: '14px 20px', borderBottom: idx < users.length - 1 ? `1px solid ${colors.cardBorder}` : 'none',
-                cursor: 'pointer', transition: 'background 0.12s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = colors.rowHover)}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-              onClick={() => setSelectedId(u.id)}
-            >
-              <div>
-                <div style={{ fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, color: colors.text, marginBottom: '2px' }}>{u.display_name ?? u.full_name ?? '—'}</div>
-                <div style={{ fontFamily: fonts.ui, fontSize: '11px', color: colors.textMuted }}>{u.email ?? '—'}</div>
+          {loading ? (
+            <div style={{ padding: '40px 20px', fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted }}>Loading…</div>
+          ) : users.length === 0 ? (
+            <div style={{ padding: '40px 20px', fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted }}>No users match the current filters.</div>
+          ) : (
+            users.map((u, idx) => (
+              <div
+                key={u.id}
+                style={{
+                  display:             'grid',
+                  gridTemplateColumns: '2fr 1fr 1fr 1fr 70px 80px 90px',
+                  padding:             '14px 20px',
+                  borderBottom:        idx < users.length - 1 ? `1px solid ${colors.cardBorder}` : 'none',
+                  cursor:              'pointer',
+                  transition:          'background 0.12s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = colors.rowHover)}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                onClick={() => setSelectedId(u.id)}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, color: colors.text, marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {u.display_name ?? u.full_name ?? '—'}
+                  </div>
+                  <div style={{ fontFamily: fonts.ui, fontSize: '11px', color: colors.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {u.email ?? '—'}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {u.biological_profile
+                    ? <Pill label={u.biological_profile} color={colors.teal} />
+                    : <span style={{ color: colors.textMuted, fontSize: '12px', fontFamily: fonts.ui }}>—</span>
+                  }
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {u.safety_status === 'medical_alert'
+                    ? <Pill label="Alert"  color="#F87171" />
+                    : <Pill label="Active" color={colors.teal} />
+                  }
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {u.onboarding_completed
+                    ? <Pill label="Done"    color={colors.teal} />
+                    : <Pill label="Pending" color="#FCD34D" />
+                  }
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', fontFamily: fonts.ui, fontSize: '13px', color: u.labs_count > 0 ? colors.textSoft : colors.textMuted }}>
+                  {u.labs_count}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', fontFamily: fonts.ui, fontSize: '12px', color: colors.textMuted }}>
+                  {new Date(u.created_at).toLocaleDateString()}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={e => { e.stopPropagation(); setSelectedId(u.id) }}
+                    style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.teal, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', touchAction: 'manipulation' }}
+                  >
+                    View →
+                  </button>
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                {u.biological_profile ? <Pill label={u.biological_profile} color={colors.teal} /> : <span style={{ color: colors.textMuted, fontSize: '12px', fontFamily: fonts.ui }}>—</span>}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                {u.safety_status === 'medical_alert'
-                  ? <Pill label="Alert" color="#F87171" />
-                  : <Pill label="Active" color={colors.teal} />
-                }
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                {u.onboarding_completed
-                  ? <Pill label="Done" color={colors.teal} />
-                  : <Pill label="Pending" color="#FCD34D" />
-                }
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', fontFamily: fonts.ui, fontSize: '13px', color: u.labs_count > 0 ? colors.textSoft : colors.textMuted }}>{u.labs_count}</div>
-              <div style={{ display: 'flex', alignItems: 'center', fontFamily: fonts.ui, fontSize: '12px', color: colors.textMuted }}>{new Date(u.created_at).toLocaleDateString()}</div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                <button
-                  onClick={e => { e.stopPropagation(); setSelectedId(u.id) }}
-                  style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.teal, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}
-                >
-                  View →
-                </button>
-              </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="admin-pagination" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.textMuted }}>Page {page} of {totalPages}</span>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-              style={{ fontFamily: fonts.ui, fontSize: '12px', color: page === 1 ? colors.textMuted : colors.teal, background: 'none', border: `1px solid ${colors.cardBorder}`, borderRadius: '6px', padding: '6px 12px', cursor: page === 1 ? 'not-allowed' : 'pointer' }}>
-              ← Prev
-            </button>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-              style={{ fontFamily: fonts.ui, fontSize: '12px', color: page === totalPages ? colors.textMuted : colors.teal, background: 'none', border: `1px solid ${colors.cardBorder}`, borderRadius: '6px', padding: '6px 12px', cursor: page === totalPages ? 'not-allowed' : 'pointer' }}>
-              Next →
-            </button>
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              style={{ fontFamily: fonts.ui, fontSize: '12px', color: page === 1 ? colors.textMuted : colors.teal, background: 'none', border: `1px solid ${colors.cardBorder}`, borderRadius: '6px', padding: '8px 14px', cursor: page === 1 ? 'not-allowed' : 'pointer', minHeight: '38px', touchAction: 'manipulation' }}
+            >← Prev</button>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              style={{ fontFamily: fonts.ui, fontSize: '12px', color: page === totalPages ? colors.textMuted : colors.teal, background: 'none', border: `1px solid ${colors.cardBorder}`, borderRadius: '6px', padding: '8px 14px', cursor: page === totalPages ? 'not-allowed' : 'pointer', minHeight: '38px', touchAction: 'manipulation' }}
+            >Next →</button>
           </div>
         </div>
       )}

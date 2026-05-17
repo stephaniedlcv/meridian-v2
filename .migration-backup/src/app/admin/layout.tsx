@@ -1,7 +1,8 @@
-import { redirect }        from 'next/navigation'
-import { getAdminUser }    from '@/lib/auth/is-admin'
+import { redirect }          from 'next/navigation'
+import { getAdminUser }      from '@/lib/auth/is-admin'
 import { createAdminClient } from '@/lib/supabase/admin'
-import AdminSidebar        from './_components/AdminSidebar'
+import AdminShell            from './_components/AdminShell'
+import './admin-responsive.css'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const adminUser = await getAdminUser()
@@ -19,11 +20,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const email: string | null       = authRes.data?.user?.email ?? null
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#061316' }}>
-      <AdminSidebar role={adminUser.role} displayName={displayName} email={email} />
-      <main style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
-        {children}
-      </main>
-    </div>
+    <AdminShell role={adminUser.role} displayName={displayName} email={email}>
+      {children}
+    </AdminShell>
   )
 }
