@@ -1,0 +1,224 @@
+Extend the existing Meridian Admin Panel with a complete Admin User Access & Moderation Management system.
+
+IMPORTANT:
+- DO NOT redesign the current Meridian Admin aesthetic
+- Preserve all typography, spacing, gradients, glassmorphism, cards, animations, and responsive behavior
+- Extend the existing architecture cleanly
+- Maintain the premium operator-console feel
+- This must be production-grade and secure
+
+OBJECTIVE
+
+Allow super_admin users to:
+- promote users to admin
+- assign admin roles
+- update admin permissions
+- revoke admin access
+- suspend users
+- ban users
+- disable access
+- soft delete users
+- manage internal access directly from the Admin Dashboard
+
+━━━━━━━━━━━━━━━━━━━━
+ACCESS CONTROL RULES
+━━━━━━━━━━━━━━━━━━━━
+
+ONLY:
+`super_admin`
+can:
+- create admins
+- change admin roles
+- revoke admin access
+- suspend users
+- ban users
+- delete users
+
+Regular admins CANNOT:
+- promote themselves
+- escalate privileges
+- modify super_admin users
+- delete super_admin users
+
+Prevent privilege escalation completely.
+
+━━━━━━━━━━━━━━━━━━━━
+NEW USER MODERATION FEATURES
+━━━━━━━━━━━━━━━━━━━━
+
+Inside:
+`/admin/users`
+
+Add:
+- "Access" column
+- Admin role badges
+- Account status badges
+- Internal access indicators
+
+Statuses:
+- active
+- suspended
+- banned
+- disabled
+- pending_review
+
+━━━━━━━━━━━━━━━━━━━━
+USER DETAIL DRAWER / MODAL
+━━━━━━━━━━━━━━━━━━━━
+
+Add a new section:
+SYSTEM ACCESS
+
+This section should allow authorized super_admins to:
+
+- Grant Admin Access
+- Remove Admin Access
+- Change Role
+- Suspend User
+- Ban User
+- Disable Login Access
+- Restore User Access
+- Soft Delete User
+
+Roles available:
+- super_admin
+- admin
+- analyst
+- support
+- clinician_readonly
+
+━━━━━━━━━━━━━━━━━━━━
+ACCOUNT MODERATION BEHAVIOR
+━━━━━━━━━━━━━━━━━━━━
+
+SUSPENDED
+- user can login
+- limited/restricted access
+- warning state
+
+BANNED
+- login blocked completely
+- session invalidated
+- future login denied
+
+DISABLED
+- account inaccessible
+- hidden from active systems
+- recoverable
+
+SOFT DELETE
+- preserve data integrity
+- mark deleted_at timestamp
+- user removed from active experience
+- reversible by super_admin
+
+━━━━━━━━━━━━━━━━━━━━
+UX REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+Use:
+- elegant segmented selectors
+- dropdowns
+- Meridian glass cards
+- subtle cyan highlights
+- premium status chips
+- confirmation modals for destructive actions
+
+NOT:
+- ugly CMS controls
+- default browser selects
+- loud warning styling
+
+Admin role chips should visually distinguish:
+- super_admin
+- analyst
+- support
+without breaking Meridian color language.
+
+Danger actions:
+- visually separated
+- subtle but clear
+- require confirmation
+
+━━━━━━━━━━━━━━━━━━━━
+DATABASE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+Extend profiles table if needed with:
+- account_status
+- suspended_at
+- banned_at
+- disabled_at
+- deleted_at
+- moderation_reason
+
+Add SQL migrations if necessary.
+
+━━━━━━━━━━━━━━━━━━━━
+API / SECURITY REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+Use existing:
+`admin_users`
+
+Add:
+- secure moderation API routes
+- server-side validation
+- activity log creation
+
+Every role or moderation change must create:
+`admin_activity_logs`
+
+Track:
+- acting admin
+- target user
+- previous state
+- new state
+- reason
+- timestamp
+
+CRITICAL:
+- Never trust client role state
+- Verify permissions server-side
+- Prevent self-escalation
+- Prevent deleting the last super_admin
+- Prevent admins from editing users above their permission level
+- Prevent self-ban/self-delete
+
+ALL mutations must:
+- validate session
+- validate role
+- validate target user
+
+━━━━━━━━━━━━━━━━━━━━
+USER SEARCH IMPROVEMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+Add filters:
+- only admins
+- only non-admins
+- by role
+- by permission level
+- by account status
+- suspended users
+- banned users
+
+━━━━━━━━━━━━━━━━━━━━
+RESPONSIVE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+- Fully mobile friendly
+- Drawers work as bottom sheets on mobile
+- Controls remain touch-friendly
+- No horizontal overflow
+
+━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT
+━━━━━━━━━━━━━━━━━━━━
+
+Return:
+- exact files modified
+- complete code
+- SQL migrations if needed
+- no pseudo-code
+- no explanations unless necessary

@@ -1,0 +1,133 @@
+Refine the Meridian navigation UX with a cleaner global notification system and remove redundant actions.
+
+IMPORTANT:
+- DO NOT redesign Meridian
+- Preserve all existing visual identity, spacing, gradients, glassmorphism, typography, motion, and layout hierarchy
+- This is a navigation/UX refinement pass ONLY
+- Maintain the premium Apple-like Meridian feel
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 1 — REMOVE LOG OUT BUTTON FROM HOME
+━━━━━━━━━━━━━━━━━━━━
+
+Remove the current "Log out" button from the Home dashboard hero area.
+
+The logout action should remain accessible ONLY from:
+- Profile
+OR
+- Settings
+
+The Home screen should feel cleaner and more immersive.
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 2 — GLOBAL NOTIFICATIONS BUTTON
+━━━━━━━━━━━━━━━━━━━━
+
+Move Notifications OUT of the bottom navigation.
+
+Notifications should become a GLOBAL floating/topbar action visible across the app.
+
+OBJECTIVE:
+Notifications should behave like a system-level inbox,
+not a primary navigation tab.
+
+━━━━━━━━━━━━━━━━━━━━
+NEW NOTIFICATION PLACEMENT
+━━━━━━━━━━━━━━━━━━━━
+
+Add a fixed notification bell button in the TOP RIGHT across all authenticated app pages.
+
+Requirements:
+- visible globally
+- fixed/sticky positioning
+- respects safe-area inset on iPhone
+- elegant subtle animation
+- Meridian glass styling
+- unread badge count
+- smooth transitions
+- mobile optimized
+
+Pages:
+- dashboard
+- labs
+- protocol
+- profile
+- notifications
+- future pages
+
+━━━━━━━━━━━━━━━━━━━━
+BOTTOM NAVIGATION UPDATE
+━━━━━━━━━━━━━━━━━━━━
+
+Remove:
+- Notifications tab from bottom nav
+
+Rebalance spacing so the remaining nav items feel intentional.
+
+Current remaining tabs:
+- Home
+- Labs
+- Protocol
+- Profile
+
+Ensure:
+- spacing stays symmetrical
+- icons remain centered
+- no awkward gaps
+
+━━━━━━━━━━━━━━━━━━━━
+NOTIFICATION BUTTON BEHAVIOR
+━━━━━━━━━━━━━━━━━━━━
+
+Bell tap should:
+- navigate to `/notifications`
+OR
+- open notification drawer/sheet if that architecture already exists
+
+Badge behavior:
+- show unread count
+- hide when count = 0
+- subtle pulse animation only when unread exists
+
+━━━━━━━━━━━━━━━━━━━━
+UX REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+The global notification button should feel:
+- OS-level
+- elegant
+- intelligent
+- ambient
+- not distracting
+
+NOT:
+- loud red social-media style
+- oversized
+- cartoonish
+
+Use:
+- cyan/teal Meridian language
+- soft glow
+- blurred background
+- premium micro-interactions
+
+━━━━━━━━━━━━━━━━━━━━
+TECHNICAL REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+- Avoid duplicate notification components
+- Implement centrally if possible
+- Preserve current responsive architecture
+- No hydration mismatch
+- Safe-area support required
+- Works on mobile + desktop
+
+━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT
+━━━━━━━━━━━━━━━━━━━━
+
+Return:
+- exact files modified
+- complete code
+- no pseudo-code
+- no explanations unless necessary

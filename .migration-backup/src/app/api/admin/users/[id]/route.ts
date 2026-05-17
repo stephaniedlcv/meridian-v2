@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminUser }     from '@/lib/auth/is-admin'
 import { createAdminClient } from '@/lib/supabase/admin'
+import type { AdminRole, AccountStatus } from '@/types/admin'
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const admin = await getAdminUser()
@@ -9,7 +10,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const { id } = params
   const db = createAdminClient()
 
-  const [profileRes, bioRes, authRes] = await Promise.all([
+  const [profileRes, bioRes, authRes, adminRes] = await Promise.all([
     db.from('profiles').select('*').eq('id', id).single(),
     db.from('biomarkers_static')
       .select('id, marker_name, value, unit, state, collected_at')
@@ -17,6 +18,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       .order('collected_at', { ascending: false })
       .limit(20),
     db.auth.admin.getUserById(id),
+    db.from('admin_users').select('role').eq('user_id', id).maybeSingle(),
   ])
 
   if (profileRes.error || !profileRes.data) {
@@ -27,13 +29,21 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   return NextResponse.json({
     id:                   p.id,
-    email:                authRes.data?.user?.email ?? null,
+    email:                authRes.data?.user?.email                 ?? null,
     display_name:         p.display_name,
     full_name:            p.full_name,
     biological_profile:   p.biological_profile,
     user_profile:         p.user_profile,
-    safety_status:        p.safety_status,
+    safety_status:        p.safety_status                          ?? 'active',
     onboarding_completed: p.onboarding_completed,
+    account_status:       (p.account_status                        ?? 'active') as AccountStatus,
+    suspended_at:         p.suspended_at                           ?? null,
+    banned_at:            p.banned_at                              ?? null,
+    disabled_at:          p.disabled_at                            ?? null,
+    deleted_at:           p.deleted_at                             ?? null,
+    moderation_reason:    p.moderation_reason                      ?? null,
+    admin_role:           (adminRes.data?.role                     ?? null) as AdminRole | null,
+    is_admin:             !!adminRes.data,
     birth_date:           p.birth_date,
     height_cm:            p.height_cm,
     weight_kg:            p.weight_kg,

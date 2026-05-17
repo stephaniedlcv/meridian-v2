@@ -86,6 +86,13 @@ export type Profile = {
   training_days: number | null;
   body_goal_phase: string | null;
   diet_pattern: string | null;
+  // Moderation columns — added by migration 003_admin_moderation.sql
+  account_status: string;
+  suspended_at: string | null;
+  banned_at: string | null;
+  disabled_at: string | null;
+  deleted_at: string | null;
+  moderation_reason: string | null;
 };
 
 export type BiomarkerStatic = {
@@ -162,6 +169,12 @@ export type Database = {
           training_days?: number | null;
           body_goal_phase?: string | null;
           diet_pattern?: string | null;
+          account_status?: string;
+          suspended_at?: string | null;
+          banned_at?: string | null;
+          disabled_at?: string | null;
+          deleted_at?: string | null;
+          moderation_reason?: string | null;
         };
         Update: {
           id?: string;
@@ -184,6 +197,12 @@ export type Database = {
           training_days?: number | null;
           body_goal_phase?: string | null;
           diet_pattern?: string | null;
+          account_status?: string;
+          suspended_at?: string | null;
+          banned_at?: string | null;
+          disabled_at?: string | null;
+          deleted_at?: string | null;
+          moderation_reason?: string | null;
         };
         Relationships: [];
       };
