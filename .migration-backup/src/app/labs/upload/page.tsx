@@ -565,7 +565,7 @@ function getRangeDirection(slug: string): RangeDirection {
 }
 
 // Gradient definitions — clinical position only, independent from severity
-const TRACK_LOW_NORMAL_HIGH = 'linear-gradient(to right, rgba(248,113,113,0.62) 0%, rgba(251,146,60,0.45) 20%, rgba(45,212,191,0.76) 50%, rgba(251,146,60,0.45) 80%, rgba(248,113,113,0.62) 100%)'
+const TRACK_LOW_NORMAL_HIGH = 'linear-gradient(to right, rgba(248,113,113,0.24) 0%, rgba(251,146,60,0.34) 14%, rgba(45,212,191,0.20) 32%, rgba(103,232,249,0.30) 50%, rgba(45,212,191,0.20) 68%, rgba(251,146,60,0.34) 86%, rgba(248,113,113,0.24) 100%)'
 const TRACK_UNKNOWN = 'linear-gradient(to right, rgba(95,142,133,0.20) 0%, rgba(95,142,133,0.32) 50%, rgba(95,142,133,0.20) 100%)'
 
 interface RangeBarProps {
@@ -590,7 +590,7 @@ function BiomarkerRangeBar({ value, refMin, refMax }: RangeBarProps) {
       <div style={{
         position: 'relative', height: '8px', borderRadius: '6px', width: '100%',
         background: TRACK_LOW_NORMAL_HIGH,
-        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)',
+        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.22), inset 0 0 14px rgba(103,232,249,0.06)',
         overflow: 'visible',
       }}>
         <div style={{
@@ -599,15 +599,15 @@ function BiomarkerRangeBar({ value, refMin, refMax }: RangeBarProps) {
           width: `${Math.max(0, rightPct - leftPct)}%`,
           top: 0,
           bottom: 0,
-          background: 'rgba(45,212,191,0.20)',
+          background: 'linear-gradient(to right, rgba(45,212,191,0.12), rgba(103,232,249,0.18), rgba(45,212,191,0.12))',
         }} />
         <div style={{
           position: 'absolute', top: '50%', left: `${dotPct}%`,
           transform: 'translate(-50%, -50%)',
           width: '12px', height: '12px', borderRadius: '50%',
-          backgroundColor: '#EAFBF7',
-          border: '1px solid rgba(103,232,249,0.65)',
-          boxShadow: '0 0 0 4px rgba(45,212,191,0.10), 0 0 14px rgba(103,232,249,0.24)',
+          backgroundColor: 'rgba(234,251,247,0.96)',
+          border: '1px solid rgba(103,232,249,0.48)',
+          boxShadow: '0 0 0 4px rgba(45,212,191,0.07), 0 0 12px rgba(103,232,249,0.16)',
           zIndex: 2,
         }} />
       </div>
