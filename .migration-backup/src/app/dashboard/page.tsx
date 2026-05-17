@@ -163,10 +163,6 @@ export default function DashboardPage() {
     loadDashboard()
   }, [router, supabase])
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/onboarding/welcome')
-  }
 
   if (loading) {
     return (
@@ -263,23 +259,6 @@ export default function DashboardPage() {
               Let&apos;s see what changed today.
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: colors.cardBg,
-              border: `1px solid ${colors.cardBorder}`,
-              borderRadius: '10px',
-              color: colors.textMuted,
-              fontSize: '13px',
-              cursor: 'pointer',
-              fontFamily: fonts.ui,
-              backdropFilter: 'blur(16px)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
-            }}
-          >
-            Log out
-          </button>
         </motion.div>
 
         {/* Intelligence Block */}

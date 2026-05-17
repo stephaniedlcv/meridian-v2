@@ -13,15 +13,15 @@ const colors = {
   cardBorder: 'rgba(103,232,249,0.13)',
 }
 
+// 4-item nav — Notifications moved to global bell
 const navConfig = [
-  { path: '/dashboard',      label: 'Home',          id: 'home'          },
-  { path: '/labs/upload',    label: 'Labs',           id: 'labs'          },
-  { path: '/protocol',       label: 'Protocol',       id: 'protocol'      },
-  { path: '/notifications',  label: 'Notifications',  id: 'notifications' },
-  { path: '/profile',        label: 'Profile',        id: 'profile'       },
+  { path: '/dashboard',   label: 'Home',     id: 'home'     },
+  { path: '/labs/upload', label: 'Labs',     id: 'labs'     },
+  { path: '/protocol',    label: 'Protocol', id: 'protocol' },
+  { path: '/profile',     label: 'Profile',  id: 'profile'  },
 ]
 
-function NavIcon({ id, isActive, unreadCount }: { id: string; isActive: boolean; unreadCount?: number }) {
+function NavIcon({ id, isActive }: { id: string; isActive: boolean }) {
   const stroke = isActive ? colors.teal : colors.textMuted
 
   if (id === 'home') {
@@ -65,48 +65,6 @@ function NavIcon({ id, isActive, unreadCount }: { id: string; isActive: boolean;
     )
   }
 
-  if (id === 'notifications') {
-    const hasUnread = (unreadCount ?? 0) > 0 && !isActive
-    return (
-      <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M10 2A4.5 4.5 0 0 0 5.5 6.5v3.2L4 12h12l-1.5-2.3V6.5A4.5 4.5 0 0 0 10 2Z" />
-          <path d="M8.5 14.5a1.5 1.5 0 0 0 3 0" />
-        </svg>
-        {hasUnread && (
-          <span style={{
-            position:        'absolute',
-            top:             '-2px',
-            right:           '-3px',
-            minWidth:        (unreadCount ?? 0) > 9 ? '16px' : '12px',
-            height:          '12px',
-            borderRadius:    '6px',
-            backgroundColor: '#F87171',
-            border:          '1.5px solid #061316',
-            display:         'flex',
-            alignItems:      'center',
-            justifyContent:  'center',
-            padding:         (unreadCount ?? 0) > 9 ? '0 2px' : '0',
-            animation:       'meridian-badge-pulse 2s ease-in-out infinite',
-          }}>
-            {(unreadCount ?? 0) > 0 && (
-              <span style={{
-                fontSize:      '8px',
-                fontWeight:    700,
-                color:         '#FFFFFF',
-                fontFamily:    '"Plus Jakarta Sans", sans-serif',
-                lineHeight:    1,
-                letterSpacing: '-0.02em',
-              }}>
-                {(unreadCount ?? 0) > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </span>
-        )}
-      </div>
-    )
-  }
-
   if (id === 'profile') {
     return (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
@@ -119,9 +77,90 @@ function NavIcon({ id, isActive, unreadCount }: { id: string; isActive: boolean;
   return null
 }
 
+// ── Global notification bell ──────────────────────────────────────
+function NotificationBell({ unreadCount, pathname }: { unreadCount: number; pathname: string }) {
+  const router    = useRouter()
+  const isActive  = pathname === '/notifications' || pathname?.startsWith('/notifications/')
+  const hasUnread = unreadCount > 0 && !isActive
+  const stroke    = isActive ? colors.teal : colors.textSoft
+
+  return (
+    <button
+      onClick={() => router.push('/notifications')}
+      aria-label="Notifications"
+      style={{
+        position:            'fixed',
+        top:                 'calc(env(safe-area-inset-top, 0px) + 14px)',
+        right:               'calc(env(safe-area-inset-right, 0px) + 16px)',
+        zIndex:              90,
+        width:               '42px',
+        height:              '42px',
+        borderRadius:        '13px',
+        background:          isActive
+          ? 'rgba(45,212,191,0.08)'
+          : 'rgba(6,19,22,0.82)',
+        border:              isActive
+          ? '1px solid rgba(45,212,191,0.22)'
+          : `1px solid ${colors.cardBorder}`,
+        backdropFilter:      'blur(20px)',
+        WebkitBackdropFilter:'blur(20px)',
+        boxShadow:           hasUnread
+          ? '0 4px 20px rgba(0,0,0,0.35), 0 0 0 1px rgba(45,212,191,0.15), inset 0 1px 0 rgba(255,255,255,0.04)'
+          : '0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)',
+        cursor:              'pointer',
+        display:             'flex',
+        alignItems:          'center',
+        justifyContent:      'center',
+        padding:             0,
+        transition:          'box-shadow 0.3s ease, border 0.3s ease, background 0.2s ease',
+        animation:           hasUnread ? 'meridian-bell-glow 3s ease-in-out infinite' : 'none',
+      }}
+    >
+      {/* Bell icon */}
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 2A4.5 4.5 0 0 0 5.5 6.5v3.2L4 12h12l-1.5-2.3V6.5A4.5 4.5 0 0 0 10 2Z" />
+        <path d="M8.5 14.5a1.5 1.5 0 0 0 3 0" />
+      </svg>
+
+      {/* Unread badge */}
+      {hasUnread && (
+        <span style={{
+          position:        'absolute',
+          top:             '7px',
+          right:           '7px',
+          minWidth:        unreadCount > 9 ? '15px' : '8px',
+          height:          '8px',
+          borderRadius:    '4px',
+          backgroundColor: colors.teal,
+          border:          '1.5px solid #061316',
+          display:         'flex',
+          alignItems:      'center',
+          justifyContent:  'center',
+          padding:         unreadCount > 9 ? '0 2px' : '0',
+          animation:       'meridian-badge-pulse 2.5s ease-in-out infinite',
+          boxSizing:       'border-box',
+        }}>
+          {unreadCount > 9 && (
+            <span style={{
+              fontSize:      '7px',
+              fontWeight:    700,
+              color:         '#061316',
+              fontFamily:    '"Plus Jakarta Sans", sans-serif',
+              lineHeight:    1,
+              letterSpacing: '-0.02em',
+            }}>
+              9+
+            </span>
+          )}
+        </span>
+      )}
+    </button>
+  )
+}
+
 export default function NavBar() {
-  const router   = useRouter()
-  const pathname = usePathname()
+  const router        = useRouter()
+  const pathname      = usePathname()
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
@@ -133,32 +172,40 @@ export default function NavBar() {
 
   return (
     <>
-      {/* Keyframe for badge pulse */}
+      {/* Keyframes */}
       <style>{`
         @keyframes meridian-badge-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0.5); }
-          50%       { box-shadow: 0 0 0 3px rgba(248,113,113,0); }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(45,212,191,0.55); }
+          50%       { box-shadow: 0 0 0 3px rgba(45,212,191,0); }
+        }
+        @keyframes meridian-bell-glow {
+          0%, 100% { filter: none; }
+          50%       { filter: drop-shadow(0 0 6px rgba(45,212,191,0.3)); }
         }
       `}</style>
 
+      {/* Global notification bell — top-right across all NavBar pages */}
+      <NotificationBell unreadCount={unreadCount} pathname={pathname ?? ''} />
+
+      {/* Bottom navigation — 4 items */}
       <nav style={{
-        position:           'fixed',
-        bottom:             0,
-        left:               0,
-        right:              0,
-        backgroundColor:    'rgba(6,19,22,0.95)',
-        borderTop:          `1px solid ${colors.cardBorder}`,
-        backdropFilter:     'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        zIndex:             100,
-        padding:            '8px 0 env(safe-area-inset-bottom, 8px)',
+        position:              'fixed',
+        bottom:                0,
+        left:                  0,
+        right:                 0,
+        backgroundColor:       'rgba(6,19,22,0.95)',
+        borderTop:             `1px solid ${colors.cardBorder}`,
+        backdropFilter:        'blur(20px)',
+        WebkitBackdropFilter:  'blur(20px)',
+        zIndex:                100,
+        padding:               '8px 0 env(safe-area-inset-bottom, 8px)',
       }}>
         <div style={{
-          maxWidth:      '680px',
-          margin:        '0 auto',
-          display:       'flex',
-          justifyContent:'space-around',
-          alignItems:    'center',
+          maxWidth:       '560px',
+          margin:         '0 auto',
+          display:        'flex',
+          justifyContent: 'space-around',
+          alignItems:     'center',
         }}>
           {navConfig.map((item) => {
             const isActive = pathname === item.path || pathname?.startsWith(item.path + '/')
@@ -168,22 +215,22 @@ export default function NavBar() {
                 key={item.path}
                 onClick={() => router.push(item.path)}
                 style={{
-                  background:   isActive ? 'rgba(45,212,191,0.07)' : 'none',
-                  border:       isActive ? '1px solid rgba(45,212,191,0.12)' : '1px solid transparent',
-                  borderRadius: '12px',
-                  cursor:       'pointer',
-                  display:      'flex',
-                  flexDirection:'column',
-                  alignItems:   'center',
-                  gap:          '4px',
-                  padding:      '8px 10px',
-                  fontFamily:   '"Plus Jakarta Sans", sans-serif',
-                  transition:   'all 0.2s ease',
-                  minWidth:     '52px',
-                  touchAction:  'manipulation',
+                  background:    isActive ? 'rgba(45,212,191,0.07)' : 'none',
+                  border:        isActive ? '1px solid rgba(45,212,191,0.12)' : '1px solid transparent',
+                  borderRadius:  '12px',
+                  cursor:        'pointer',
+                  display:       'flex',
+                  flexDirection: 'column',
+                  alignItems:    'center',
+                  gap:           '4px',
+                  padding:       '8px 14px',
+                  fontFamily:    '"Plus Jakarta Sans", sans-serif',
+                  transition:    'all 0.2s ease',
+                  minWidth:      '60px',
+                  touchAction:   'manipulation',
                 }}
               >
-                <NavIcon id={item.id} isActive={isActive} unreadCount={item.id === 'notifications' ? unreadCount : undefined} />
+                <NavIcon id={item.id} isActive={isActive} />
                 <span style={{
                   fontSize:      '9px',
                   fontWeight:    600,
