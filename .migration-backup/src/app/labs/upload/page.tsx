@@ -140,7 +140,15 @@ type SnapshotViewMode = 'clinical_panels' | 'signal_map'
 const OPTIMAL_SHOW_LIMIT = 5
 
 // Marker state sort priority (Critical first)
-const SNAPSHOT_STATE_SORT: Record<string, number> = { Critical: 0, Attention: 1, Watch: 2, Optimal: 3 }
+// Sprint 1: Clinical Stability Phase — new states sort alongside legacy equivalents.
+// Critical (0) → Low/High (1) → Attention (2) → Watch (3) → Normal/Optimal (4)
+const SNAPSHOT_STATE_SORT: Record<string, number> = {
+  Critical: 0,
+  Low: 1, High: 1,
+  Attention: 2,
+  Watch: 3,
+  Normal: 4, Optimal: 4,
+}
 
 // ── Clinical Panels mapping ───────────────────────────────────────────────────
 const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
@@ -423,10 +431,10 @@ function buildPanelSummaries(rows: RecentBiomarker[]): PanelSummary[] {
       latestDate,
       latestDateLabel: formatDateShort(latestDate),
       stateCounts: {
-        Optimal: items.filter(i => i.state === 'Optimal').length,
-        Watch: items.filter(i => i.state === 'Watch').length,
-        Attention: items.filter(i => i.state === 'Attention').length,
-        Critical: items.filter(i => i.state === 'Critical').length,
+        Optimal:   items.filter(i => isInRangeState(i.state)).length,
+        Watch:     0,
+        Attention: items.filter(i => i.state === 'Low' || i.state === 'High' || i.state === 'Attention').length,
+        Critical:  items.filter(i => i.state === 'Critical').length,
       },
     }))
     .sort((a, b) => {
@@ -447,35 +455,19 @@ function deduplicateByMarker(rows: RecentBiomarker[]): RecentBiomarker[] {
   })
 }
 
-// ── Phase 1 Watch guardrail: systemic / calculated markers ────────────────────
-// Systemic markers are those whose clinical reference range is well-established and
-// whose Watch state is frequently triggered only because the value sits outside
-// Meridian's narrower optimal range — not because it is clinically out of range.
-// When the value is inside the clinical reference range, we suppress Watch in the
-// display layer so the marker does not surface as Needs Attention.
-// Preventive/optimization markers (lipids, glycemic, vitamins, hormones, CRP, TSH)
-// are intentionally excluded — Watch is meaningful for those regardless.
-// No database values are changed; this is display-only.
-const SYSTEMIC_MARKERS = new Set([
-  'anion_gap', 'sodium', 'potassium', 'chloride', 'co2', 'calcium',
-  'creatinine', 'egfr', 'bun', 'bun_creatinine_ratio',
-  'ast', 'alt', 'alkaline_phosphatase', 'bilirubin_total',
-  'albumin', 'globulin', 'total_protein', 'ag_ratio',
-])
+// Sprint 1 — Clinical Stability Phase:
+// The Watch guardrail and SYSTEMIC_MARKERS set are no longer needed.
+// The new state engine (classifyBiomarkerState) uses only clinical reference ranges
+// and never produces a Watch state for new data. Legacy Watch records in the DB
+// are handled by backward-compat cases in getStateStyles / getStateColor.
 
-function effectiveSnapshotState(b: RecentBiomarker): string | null {
-  if (
-    b.value !== null &&
-    b.state === 'Watch' &&
-    SYSTEMIC_MARKERS.has(b.marker_name.toLowerCase().replace(/[\s-]+/g, '_')) &&
-    b.reference_range_min !== null && b.reference_range_max !== null &&
-    Number.isFinite(b.reference_range_min) && Number.isFinite(b.reference_range_max) &&
-    b.reference_range_min < b.reference_range_max &&
-    b.value >= b.reference_range_min && b.value <= b.reference_range_max
-  ) {
-    return 'Optimal'
-  }
-  return b.state
+// ── State bucket helpers ────────────────────────────────────────────────────────
+// Used for snapshot grouping: compact/quiet row vs emphasized/flagged row.
+function isInRangeState(state: string | null): boolean {
+  return state === 'Normal' || state === 'Optimal' || state === 'Watch'
+}
+function isOutOfRangeState(state: string | null): boolean {
+  return state === 'Low' || state === 'High' || state === 'Attention' || state === 'Critical'
 }
 
 // ── Date helpers ───────────────────────────────────────────────────────────────
@@ -496,11 +488,16 @@ function formatDateLong(iso: string): string {
 // ── Range bar helpers ──────────────────────────────────────────────────────────
 function getStateColor(state: string | null): string {
   switch (state) {
-    case 'Optimal':   return '#2DD4BF'  // teal
-    case 'Watch':     return '#FCD34D'  // amber-yellow
-    case 'Attention': return '#FB923C'  // orange
-    case 'Critical':  return '#F87171'  // red
-    default:          return '#67E8F9'  // cyan fallback
+    // ── Clinical Stability Phase states ───────────────────────────────────────
+    case 'Normal':    return '#2DD4BF'  // teal — within reference range
+    case 'Low':       return '#FB923C'  // orange — below reference range
+    case 'High':      return '#FB923C'  // orange — above reference range
+    case 'Critical':  return '#F87171'  // red — severe deviation
+    // ── Legacy states (backward compat for existing DB records) ───────────────
+    case 'Optimal':   return '#2DD4BF'
+    case 'Watch':     return '#FCD34D'
+    case 'Attention': return '#FB923C'
+    default:          return '#67E8F9'
   }
 }
 
@@ -576,9 +573,11 @@ interface RangeBarProps {
   refMax: number
   state: string | null
   slug?: string
+  // compact=true → slim bar for Normal/in-range markers; no labels, reduced dot
+  compact?: boolean
 }
 
-function BiomarkerRangeBar({ value, refMin, refMax, state, slug }: RangeBarProps) {
+function BiomarkerRangeBar({ value, refMin, refMax, state, slug, compact = false }: RangeBarProps) {
   const rawPct   = ((value - refMin) / (refMax - refMin)) * 100
   const dotPct   = Math.max(0, Math.min(100, rawPct))
   const dotColor = getStateColor(state)
@@ -589,7 +588,31 @@ function BiomarkerRangeBar({ value, refMin, refMax, state, slug }: RangeBarProps
                       : dir === 'middle_is_best'   ? TRACK_MIDDLE_IS_BEST
                       : TRACK_UNKNOWN
 
-  // Label semantics differ by direction
+  // Compact mode: slim bar, smaller dot, no direction labels, no ref pill
+  if (compact) {
+    return (
+      <div style={{ width: '100%', paddingTop: '4px' }}>
+        <div style={{
+          position: 'relative', height: '4px', borderRadius: '4px', width: '100%',
+          background: trackGradient,
+          boxShadow: 'inset 0 1px 1px rgba(0,0,0,0.22)',
+          overflow: 'visible',
+        }}>
+          <div style={{
+            position: 'absolute', top: '50%', left: `${dotPct}%`,
+            transform: 'translate(-50%, -50%)',
+            width: '10px', height: '10px', borderRadius: '50%',
+            backgroundColor: dotColor,
+            border: '2px solid rgba(255,255,255,0.18)',
+            boxShadow: `0 0 6px ${dotColor}70, inset 0 1px 0 rgba(255,255,255,0.20)`,
+            zIndex: 2,
+          }} />
+        </div>
+      </div>
+    )
+  }
+
+  // Standard (expanded) mode — full bar with direction labels and ref pill
   const labelLeft  = dir === 'lower_is_better'  ? 'Lower'
                    : dir === 'higher_is_better' ? 'Low'
                    : dir === 'middle_is_best'   ? 'Low'
@@ -638,11 +661,16 @@ function BiomarkerRangeBar({ value, refMin, refMax, state, slug }: RangeBarProps
 // ── State style helpers ────────────────────────────────────────────────────────
 function getStateStyles(state: string) {
   switch (state) {
-    case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   label: 'Optimal',   dot: '#2DD4BF' }
+    // ── Clinical Stability Phase states ───────────────────────────────────────
+    case 'Normal':    return { bg: colors.optimal,   border: colors.optimalBorder,   label: 'Normal',    dot: '#2DD4BF' }
+    case 'Low':       return { bg: colors.attention, border: colors.attentionBorder, label: 'Low',       dot: '#FB923C' }
+    case 'High':      return { bg: colors.attention, border: colors.attentionBorder, label: 'High',      dot: '#FB923C' }
+    case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  label: 'Critical',  dot: '#F87171' }
+    // ── Legacy states (backward compat for existing DB records) ───────────────
+    case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   label: 'Normal',    dot: '#2DD4BF' }
     case 'Watch':     return { bg: colors.watch,      border: colors.watchBorder,     label: 'Watch',     dot: '#FCD34D' }
     case 'Attention': return { bg: colors.attention,  border: colors.attentionBorder, label: 'Attention', dot: '#FB923C' }
-    case 'Critical':  return { bg: colors.critical,   border: colors.criticalBorder,  label: 'Critical',  dot: '#F87171' }
-    default:          return { bg: colors.cardBg,     border: colors.cardBorder,      label: 'Unknown',   dot: colors.textMuted }
+    default:          return { bg: colors.cardBg,     border: colors.cardBorder,      label: '—',         dot: colors.textMuted }
   }
 }
 
@@ -1014,10 +1042,15 @@ function histMarkerDisplayName(slug: string): string {
 
 function histGetStateStyle(state: string | null) {
   switch (state) {
-    case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   dot: '#2DD4BF', label: 'Optimal'   }
+    // ── Clinical Stability Phase states ───────────────────────────────────────
+    case 'Normal':    return { bg: colors.optimal,   border: colors.optimalBorder,   dot: '#2DD4BF', label: 'Normal'    }
+    case 'Low':       return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'Low'       }
+    case 'High':      return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'High'      }
+    case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  dot: '#F87171', label: 'Critical'  }
+    // ── Legacy states (backward compat for existing DB records) ───────────────
+    case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   dot: '#2DD4BF', label: 'Normal'    }
     case 'Watch':     return { bg: colors.watch,      border: colors.watchBorder,     dot: '#FCD34D', label: 'Watch'     }
     case 'Attention': return { bg: colors.attention,  border: colors.attentionBorder, dot: '#FB923C', label: 'Attention' }
-    case 'Critical':  return { bg: colors.critical,   border: colors.criticalBorder,  dot: '#F87171', label: 'Critical'  }
     default:          return { bg: colors.cardBg,     border: colors.cardBorder,      dot: colors.textMuted, label: '—' }
   }
 }
@@ -1139,7 +1172,6 @@ function BiomarkerDetailSheet({
   const s           = getStateStyles(isCritical ? 'Critical' : (biomarker.state ?? ''))
   const dotColor    = isCritical ? '#F87171' : getStateColor(biomarker.state)
   const hasRange    = isUsableRange(biomarker.reference_range_min, biomarker.reference_range_max)
-  const hasOptimal  = isUsableRange(biomarker.optimal_range_min, biomarker.optimal_range_max)
   const intel       = BIOMARKER_CONTEXT[biomarker.marker_name]
 
   const prev = allBiomarkers
@@ -1243,38 +1275,29 @@ function BiomarkerDetailSheet({
             </p>
           </div>
 
-          {/* Range card — always rendered */}
+          {/* Range card — always rendered; optimal range removed in Sprint 1 */}
           <div style={cardStyle}>
             <p style={labelStyle}>Range</p>
-            {(hasRange || hasOptimal) ? (
+            {hasRange ? (
               <>
-                {hasRange && (
-                  <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 4px' }}>
-                    Clinical: <span style={{ fontWeight: 600, color: colors.text }}>{biomarker.reference_range_min} – {biomarker.reference_range_max}</span>
-                    {biomarker.unit ? ` ${biomarker.unit}` : ''}
-                  </p>
-                )}
-                {hasOptimal && (
-                  <p style={{ fontSize: '13px', color: colors.teal, margin: '0 0 8px' }}>
-                    Optimal: <span style={{ fontWeight: 600 }}>{biomarker.optimal_range_min} – {biomarker.optimal_range_max}</span>
-                    {biomarker.unit ? ` ${biomarker.unit}` : ''}
-                  </p>
-                )}
-                {hasRange && (
-                  <BiomarkerRangeBar
-                    value={biomarker.value}
-                    refMin={biomarker.reference_range_min!}
-                    refMax={biomarker.reference_range_max!}
-                    state={biomarker.state}
-                    slug={biomarker.marker_name}
-                  />
-                )}
+                <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 8px' }}>
+                  Clinical reference: <span style={{ fontWeight: 600, color: colors.text }}>{biomarker.reference_range_min} – {biomarker.reference_range_max}</span>
+                  {biomarker.unit ? ` ${biomarker.unit}` : ''}
+                </p>
+                <BiomarkerRangeBar
+                  value={biomarker.value}
+                  refMin={biomarker.reference_range_min!}
+                  refMax={biomarker.reference_range_max!}
+                  state={biomarker.state}
+                  slug={biomarker.marker_name}
+                />
               </>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0' }}>
-                <div style={{ flex: 1, height: '1px', background: `linear-gradient(to right, transparent, ${dotColor}28)` }} />
-                <span style={{ fontSize: '11px', color: colors.textMuted, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>No reference range on file</span>
-                <div style={{ flex: 1, height: '1px', background: `linear-gradient(to left, transparent, ${dotColor}28)` }} />
+              <div style={{ width: '100%', paddingTop: '6px' }}>
+                <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '5px' }}>
+                  <span style={{ fontSize: '11px', color: colors.textMuted, letterSpacing: '0.04em' }}>No reference range on file</span>
+                </div>
               </div>
             )}
           </div>
@@ -1376,7 +1399,6 @@ function HistoryDetailSheet({
   const s           = histGetStateStyle(isCritical ? 'Critical' : biomarker.state)
   const dotColor    = isCritical ? '#F87171' : getStateColor(biomarker.state)
   const hasRange    = isUsableRange(biomarker.reference_range_min, biomarker.reference_range_max)
-  const hasOptimal  = isUsableRange(biomarker.optimal_range_min, biomarker.optimal_range_max)
   const interp      = histGetInterpretation(biomarker.marker_name)
 
   const prev = allBiomarkers
@@ -1413,19 +1435,20 @@ function HistoryDetailSheet({
             </div>
             <p style={{ fontSize: '12px', color: colors.textMuted, marginTop: '6px', marginBottom: 0 }}>Collected {fmtDate(biomarker.collected_at)}</p>
           </div>
+          {/* Range card — optimal range removed in Sprint 1 */}
           <div style={cardStyle}>
             <p style={labelStyle}>Range</p>
-            {(hasRange || hasOptimal) ? (
+            {hasRange ? (
               <>
-                {hasRange && <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 4px' }}>Clinical: <span style={{ fontWeight: 600, color: colors.text }}>{biomarker.reference_range_min} – {biomarker.reference_range_max}</span>{biomarker.unit ? ` ${biomarker.unit}` : ''}</p>}
-                {hasOptimal && <p style={{ fontSize: '13px', color: colors.teal, margin: '0 0 8px' }}>Optimal: <span style={{ fontWeight: 600 }}>{biomarker.optimal_range_min} – {biomarker.optimal_range_max}</span>{biomarker.unit ? ` ${biomarker.unit}` : ''}</p>}
-                {hasRange && <BiomarkerRangeBar value={biomarker.value} refMin={biomarker.reference_range_min!} refMax={biomarker.reference_range_max!} state={biomarker.state} slug={biomarker.marker_name} />}
+                <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 8px' }}>Clinical reference: <span style={{ fontWeight: 600, color: colors.text }}>{biomarker.reference_range_min} – {biomarker.reference_range_max}</span>{biomarker.unit ? ` ${biomarker.unit}` : ''}</p>
+                <BiomarkerRangeBar value={biomarker.value} refMin={biomarker.reference_range_min!} refMax={biomarker.reference_range_max!} state={biomarker.state} slug={biomarker.marker_name} />
               </>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0' }}>
-                <div style={{ flex: 1, height: '1px', background: `linear-gradient(to right, transparent, ${dotColor}28)` }} />
-                <span style={{ fontSize: '11px', color: colors.textMuted, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>No reference range on file</span>
-                <div style={{ flex: 1, height: '1px', background: `linear-gradient(to left, transparent, ${dotColor}28)` }} />
+              <div style={{ width: '100%', paddingTop: '6px' }}>
+                <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '5px' }}>
+                  <span style={{ fontSize: '11px', color: colors.textMuted, letterSpacing: '0.04em' }}>No reference range on file</span>
+                </div>
               </div>
             )}
           </div>
@@ -1806,21 +1829,27 @@ export default function LabsUploadPage() {
   const currentYear = new Date().getFullYear()
   const panelSummaries = hasRecentLabs ? buildPanelSummaries(snapshotBiomarkers) : []
   const latestDate = hasRecentLabs ? snapshotBiomarkers[0].collected_at : null
-  // Phase 1 guardrail: systemic markers inside clinical reference range display as
-  // Optimal rather than Watch. Raw DB state is preserved in snapshotBiomarkers.
-  const snapshotBiomarkersDisplay = snapshotBiomarkers.map(b => ({ ...b, state: effectiveSnapshotState(b) }))
+  // Sprint 1: Clinical Stability Phase — raw DB states used directly.
+  // No Watch-guardrail transform needed; new engine only produces Normal/Low/High/Critical.
+  const snapshotBiomarkersDisplay = snapshotBiomarkers
   const totalStateCounts = {
-    Optimal:   snapshotBiomarkersDisplay.filter(b => b.state === 'Optimal').length,
-    Watch:     snapshotBiomarkersDisplay.filter(b => b.state === 'Watch').length,
-    Attention: snapshotBiomarkersDisplay.filter(b => b.state === 'Attention').length,
+    // New engine: Normal → Optimal bucket; Low/High → Attention bucket.
+    // Legacy engine: Optimal/Watch/Attention/Critical map to same buckets.
+    Optimal:   snapshotBiomarkersDisplay.filter(b => isInRangeState(b.state)).length,
+    Watch:     0,  // Watch no longer produced by new engine; absorbed into Optimal bucket above
+    Attention: snapshotBiomarkersDisplay.filter(b => b.state === 'Low' || b.state === 'High' || b.state === 'Attention').length,
     Critical:  snapshotBiomarkersDisplay.filter(b => b.state === 'Critical').length,
   }
-  const SEVERITY: Record<string, number> = { Critical: 0, Attention: 1, Watch: 2 }
+  const SEVERITY: Record<string, number> = { Critical: 0, Low: 1, High: 1, Attention: 2, Watch: 3 }
   const attentionMarkers = snapshotBiomarkersDisplay
-    .filter(b => b.state === 'Critical' || b.state === 'Attention' || b.state === 'Watch')
+    .filter(b => isOutOfRangeState(b.state) || b.state === 'Watch')
     .sort((a, b) => (SEVERITY[a.state ?? ''] ?? 9) - (SEVERITY[b.state ?? ''] ?? 9))
   const filteredBiomarkers = activeFilter
-    ? snapshotBiomarkersDisplay.filter(b => b.state === activeFilter)
+    ? snapshotBiomarkersDisplay.filter(b => {
+        if (activeFilter === 'Optimal')   return isInRangeState(b.state)
+        if (activeFilter === 'Attention') return b.state === 'Low' || b.state === 'High' || b.state === 'Attention'
+        return b.state === activeFilter
+      })
     : snapshotBiomarkersDisplay
 
   // Group filteredBiomarkers by source panel for the filtered view.
@@ -1856,10 +1885,11 @@ export default function LabsUploadPage() {
           label,
           count: sorted.length,
           stateCounts: {
+            // New engine states + legacy backward compat, folded into 4 display buckets
             Critical:  sorted.filter(b => b.state === 'Critical').length,
-            Attention: sorted.filter(b => b.state === 'Attention').length,
+            Attention: sorted.filter(b => b.state === 'Low' || b.state === 'High' || b.state === 'Attention').length,
             Watch:     sorted.filter(b => b.state === 'Watch').length,
-            Optimal:   sorted.filter(b => b.state === 'Optimal').length,
+            Optimal:   sorted.filter(b => isInRangeState(b.state)).length,
           },
           markers: sorted,
           education: eduMap[label] ?? 'This group adds context to your biological profile.',
@@ -2802,7 +2832,8 @@ export default function LabsUploadPage() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                               {markers.map(b => {
                                 const s = getStateStyles(b.state ?? '')
-                                const showBar = isUsableRange(b.reference_range_min, b.reference_range_max)
+                                // Sprint 1: always render bar in filtered view.
+                                const hasRange = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
                                 return (
                                   <div key={b.id} style={{
                                     padding: '14px 16px',
@@ -2823,14 +2854,16 @@ export default function LabsUploadPage() {
                                         <span style={{ fontSize: '14px', color: colors.textMuted, opacity: 0.45, lineHeight: 1 }}>›</span>
                                       </div>
                                     </div>
-                                    <div style={{ marginBottom: showBar ? '4px' : '0' }}>
+                                    <div style={{ marginBottom: '4px' }}>
                                       <span style={{ fontSize: '22px', fontWeight: 800, color: colors.text, lineHeight: '1' }}>{b.value}</span>
                                       {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                     </div>
-                                    {showBar ? (
+                                    {hasRange ? (
                                       <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} slug={b.marker_name} />
                                     ) : (
-                                      <div style={{ height: '3px', borderRadius: '2px', marginTop: '10px', background: `linear-gradient(90deg, transparent 0%, ${s.dot}38 35%, ${s.dot}55 65%, transparent 100%)` }} />
+                                      <div style={{ width: '100%', paddingTop: '6px' }}>
+                                        <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
+                                      </div>
                                     )}
                                   </div>
                                 )
@@ -2914,8 +2947,8 @@ export default function LabsUploadPage() {
                       </p>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {currentMarkerGroups.map(group => {
-                          const abnormal    = group.markers.filter(b => b.state !== 'Optimal')
-                          const optimal     = group.markers.filter(b => b.state === 'Optimal')
+                          const abnormal    = group.markers.filter(b => isOutOfRangeState(b.state) || b.state === 'Watch')
+                          const optimal     = group.markers.filter(b => isInRangeState(b.state))
                           const optKey      = `${snapshotViewMode}::${group.key}`
                           const isOptExp    = optimalExpanded.has(optKey)
                           const hiddenOpt   = Math.max(0, optimal.length - OPTIMAL_SHOW_LIMIT)
@@ -2956,7 +2989,9 @@ export default function LabsUploadPage() {
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', marginBottom: optimal.length > 0 ? '10px' : '0' }}>
                                     {abnormal.map(b => {
                                       const s = getStateStyles(b.state ?? '')
-                                      const showBar = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
+                                      // Sprint 1: always render a bar for flagged/out-of-range markers.
+                                      // If no clinical range is stored, render a neutral gradient track.
+                                      const hasRange = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
                                       return (
                                         <div
                                           key={b.id}
@@ -2968,7 +3003,7 @@ export default function LabsUploadPage() {
                                             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.18)',
                                           }}
                                         >
-                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: showBar ? '8px' : '4px' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
                                             <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0 }}>
                                               {markerDisplayName(b.marker_name)}
                                             </span>
@@ -2979,10 +3014,12 @@ export default function LabsUploadPage() {
                                               <span style={{ fontSize: '13px', color: colors.textMuted, opacity: 0.4, lineHeight: 1 }}>›</span>
                                             </div>
                                           </div>
-                                          {showBar ? (
+                                          {hasRange ? (
                                             <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} slug={b.marker_name} />
                                           ) : (
-                                            <span style={{ fontSize: '10px', color: colors.textMuted, opacity: 0.55 }}>Range data not available.</span>
+                                            <div style={{ width: '100%', paddingTop: '6px' }}>
+                                              <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
+                                            </div>
                                           )}
                                         </div>
                                       )
@@ -2999,48 +3036,35 @@ export default function LabsUploadPage() {
                                 {visibleOpt.length > 0 && (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                     {visibleOpt.map(b => {
-                                      // Optimal range pill: prefer optimal_range when valid
-                                      const hasOptRange = !b.flag_error && isUsableRange(b.optimal_range_min, b.optimal_range_max)
-                                      // Reference range pill: only shown when the value actually falls within the
-                                      // stored bounds — prevents showing misleading category/borderline bands
-                                      // (e.g. Triglycerides "Ref 150–199" while value is 66, state Optimal)
-                                      const hasRefRange = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
-                                      const refInRange  = hasRefRange &&
-                                        b.value >= b.reference_range_min! &&
-                                        b.value <= b.reference_range_max!
-                                      const pillStyle: React.CSSProperties = {
-                                        fontSize: '9px', color: 'rgba(154,203,193,0.65)',
-                                        backgroundColor: 'rgba(103,232,249,0.05)',
-                                        border: '1px solid rgba(103,232,249,0.10)',
-                                        borderRadius: '20px', padding: '1px 7px', whiteSpace: 'nowrap',
-                                      }
+                                      // Sprint 1: compact bar mode for Normal/in-range markers.
+                                      // Optimal-range pills removed; state badge driven by clinical state.
+                                      const s = getStateStyles(b.state ?? '')
+                                      const hasRange = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
                                       return (
                                         <div
                                           key={b.id}
                                           onClick={() => setSelectedBiomarker(b)}
                                           style={{
                                             padding: '9px 12px', borderRadius: '8px', cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap',
                                             backgroundColor: 'rgba(45,212,191,0.03)',
                                             border: '1px solid rgba(45,212,191,0.09)',
                                           }}
                                         >
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: '100px' }}>
-                                            <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#2DD4BF', flexShrink: 0 }} />
-                                            <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textSoft }}>{markerDisplayName(b.marker_name)}</span>
+                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', marginBottom: hasRange ? '2px' : '0' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: '100px' }}>
+                                              <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: s.dot, flexShrink: 0 }} />
+                                              <span style={{ fontSize: '13px', fontWeight: 600, color: colors.textSoft }}>{markerDisplayName(b.marker_name)}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                              <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{b.value}</span>
+                                              {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
+                                              <span style={{ padding: '2px 7px', backgroundColor: s.bg, border: `1px solid ${s.border}`, borderRadius: '5px', fontSize: '10px', fontWeight: 700, color: s.dot, letterSpacing: '0.04em' }}>{s.label}</span>
+                                              <span style={{ fontSize: '13px', color: colors.textMuted, opacity: 0.4, lineHeight: 1 }}>›</span>
+                                            </div>
                                           </div>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                                            <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{b.value}</span>
-                                            {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
-                                            {hasOptRange && (
-                                              <span style={pillStyle}>Opt {b.optimal_range_min}–{b.optimal_range_max}</span>
-                                            )}
-                                            {!hasOptRange && refInRange && (
-                                              <span style={pillStyle}>Ref {b.reference_range_min}–{b.reference_range_max}</span>
-                                            )}
-                                            <span style={{ padding: '2px 7px', backgroundColor: colors.optimal, border: `1px solid ${colors.optimalBorder}`, borderRadius: '5px', fontSize: '10px', fontWeight: 700, color: '#2DD4BF', letterSpacing: '0.04em' }}>Optimal</span>
-                                            <span style={{ fontSize: '13px', color: colors.textMuted, opacity: 0.4, lineHeight: 1 }}>›</span>
-                                          </div>
+                                          {hasRange && (
+                                            <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} slug={b.marker_name} compact />
+                                          )}
                                         </div>
                                       )
                                     })}
@@ -3271,39 +3295,31 @@ export default function LabsUploadPage() {
                                     {isOpen && (
                                       <div style={{ borderTop: `1px solid ${colors.cardBorder}`, padding: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                         {panelGroup.items.map(b => {
+                                          // Sprint 1: unified card layout — always render a bar for every marker.
+                                          // Neutral gradient track shown when no clinical range is on file.
                                           const s = histGetStateStyle(b.state)
-                                          const showBar = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
-                                          if (showBar) {
-                                            return (
-                                              <div key={b.id} style={{ backgroundColor: 'rgba(232,248,245,0.055)', border: `1px solid ${s.dot}30`, borderRadius: '10px', padding: '14px 16px', cursor: 'pointer', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.18)' }} onClick={() => setHistSelectedBiomarker(b)}>
-                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', gap: '8px' }}>
-                                                  <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0 }}>{histMarkerDisplayName(b.marker_name)}</span>
-                                                  {b.state && <span style={{ padding: '2px 8px', backgroundColor: s.bg, border: `1px solid ${s.border}`, borderRadius: '5px', fontSize: '10px', fontWeight: 700, color: s.dot, letterSpacing: '0.04em', flexShrink: 0 }}>{s.label}</span>}
-                                                </div>
-                                                <div style={{ marginBottom: '4px' }}>
-                                                  <span style={{ fontSize: '22px', fontWeight: 800, color: colors.text, lineHeight: '1' }}>{b.value}</span>
-                                                  {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
-                                                </div>
-                                                <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} slug={b.marker_name} />
-                                              </div>
-                                            )
-                                          }
+                                          const hasRange = !b.flag_error && isUsableRange(b.reference_range_min, b.reference_range_max)
                                           return (
-                                            <div key={b.id} style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', backgroundColor: b.flag_error ? 'rgba(248,113,113,0.06)' : 'rgba(232,248,245,0.03)', border: `1px solid ${colors.cardBorder}`, borderRadius: '8px', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.14)' }} onClick={() => setHistSelectedBiomarker(b)}>
-                                              <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: '130px' }}>
-                                                <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: b.flag_error ? '#F87171' : s.dot, flexShrink: 0 }} />
-                                                <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>{histMarkerDisplayName(b.marker_name)}</span>
+                                            <div key={b.id} style={{ backgroundColor: b.flag_error ? 'rgba(248,113,113,0.06)' : 'rgba(232,248,245,0.055)', border: `1px solid ${b.flag_error ? '#F87171' : s.dot}30`, borderRadius: '10px', padding: '14px 16px', cursor: 'pointer', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.18)' }} onClick={() => setHistSelectedBiomarker(b)}>
+                                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', gap: '8px' }}>
+                                                <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0 }}>{histMarkerDisplayName(b.marker_name)}</span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                                  {b.flag_error && <span style={{ padding: '2px 7px', backgroundColor: colors.critical, border: `1px solid ${colors.criticalBorder}`, borderRadius: '5px', fontSize: '10px', fontWeight: 700, color: '#F87171', letterSpacing: '0.04em' }}>FLAGGED</span>}
+                                                  {!b.flag_error && b.state && <span style={{ padding: '2px 8px', backgroundColor: s.bg, border: `1px solid ${s.border}`, borderRadius: '5px', fontSize: '10px', fontWeight: 700, color: s.dot, letterSpacing: '0.04em' }}>{s.label}</span>}
+                                                  <span style={{ fontSize: '14px', color: colors.textMuted, opacity: 0.45, lineHeight: 1 }}>›</span>
+                                                </div>
                                               </div>
-                                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                                                <span style={{ fontSize: '15px', fontWeight: 700, color: colors.text }}>{b.value}</span>
-                                                {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
-                                                {b.flag_error ? (
-                                                  <span style={{ padding: '2px 7px', backgroundColor: colors.critical, border: `1px solid ${colors.criticalBorder}`, borderRadius: '5px', fontSize: '10px', fontWeight: 700, color: '#F87171', letterSpacing: '0.04em' }}>FLAGGED</span>
-                                                ) : b.state && (
-                                                  <span style={{ padding: '2px 7px', backgroundColor: s.bg, border: `1px solid ${s.border}`, borderRadius: '5px', fontSize: '10px', fontWeight: 700, color: s.dot, letterSpacing: '0.04em' }}>{s.label}</span>
-                                                )}
-                                                <span style={{ fontSize: '14px', color: colors.textMuted, opacity: 0.45, lineHeight: 1 }}>›</span>
+                                              <div style={{ marginBottom: '4px' }}>
+                                                <span style={{ fontSize: '22px', fontWeight: 800, color: colors.text, lineHeight: '1' }}>{b.value}</span>
+                                                {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                               </div>
+                                              {hasRange ? (
+                                                <BiomarkerRangeBar value={b.value} refMin={b.reference_range_min!} refMax={b.reference_range_max!} state={b.state} slug={b.marker_name} />
+                                              ) : (
+                                                <div style={{ width: '100%', paddingTop: '6px' }}>
+                                                  <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
+                                                </div>
+                                              )}
                                             </div>
                                           )
                                         })}

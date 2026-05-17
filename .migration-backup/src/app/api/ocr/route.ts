@@ -155,7 +155,7 @@ interface StagedBiomarker {
   reference_range_max: number | null
   optimal_range_min: number | null
   optimal_range_max: number | null
-  state: 'Optimal' | 'Watch' | 'Attention' | 'Critical'
+  state: 'Normal' | 'Low' | 'High' | 'Optimal' | 'Watch' | 'Attention' | 'Critical'
   flag_error: boolean
   error_reason: string | null
   matched: boolean
