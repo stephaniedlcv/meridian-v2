@@ -27,6 +27,17 @@ interface ConfirmedBiomarker {
   qualitative_value: string | null
 }
 
+function normalizeState(state: string): 'Optimal' | 'Watch' | 'Attention' | 'Critical' {
+  const normalized = state.trim().toLowerCase()
+  if (normalized === 'normal') return 'Optimal'
+  if (normalized === 'low') return 'Watch'
+  if (normalized === 'high') return 'Attention'
+  if (normalized === 'critical') return 'Critical'
+  if (normalized === 'attention') return 'Attention'
+  if (normalized === 'watch') return 'Watch'
+  return 'Optimal'
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -61,6 +72,14 @@ export async function POST(request: NextRequest) {
       })
       .map(b => {
         const isQualitative = b.extraction_status === 'qualitative_only'
+        const normalizedState = normalizeState(b.state)
+        if (normalizedState !== b.state) {
+          console.warn('OCR state normalized before insert:', {
+            slug: b.slug,
+            sourceState: b.state,
+            normalizedState,
+          })
+        }
         return {
           user_id,
           marker_name:          b.slug,
@@ -71,7 +90,7 @@ export async function POST(request: NextRequest) {
           reference_range_max:  isQualitative ? null : b.reference_range_max,
           optimal_range_min:    isQualitative ? null : b.optimal_range_min,
           optimal_range_max:    isQualitative ? null : b.optimal_range_max,
-          state:                b.state,
+          state:                normalizedState,
           collected_at:         collectedDate,
           source_pdf_url:       source_pdf_url || null,
           flag_error:           false,
