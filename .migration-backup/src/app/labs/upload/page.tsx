@@ -560,7 +560,7 @@ function getRangeDirection(slug: string): RangeDirection {
 
 // Gradient definitions — clinical position only, independent from severity
 // 13-stop gradient: gradual spectral blending, muted warm tones, luminous teal center
-const TRACK_LOW_NORMAL_HIGH = 'linear-gradient(to right, rgba(248,113,113,0.26) 0%, rgba(248,113,113,0.34) 5%, rgba(251,146,60,0.37) 13%, rgba(251,146,60,0.20) 21%, rgba(45,212,191,0.07) 28%, rgba(45,212,191,0.17) 37%, rgba(103,232,249,0.25) 50%, rgba(45,212,191,0.17) 63%, rgba(45,212,191,0.07) 72%, rgba(251,146,60,0.20) 79%, rgba(251,146,60,0.37) 87%, rgba(248,113,113,0.34) 95%, rgba(248,113,113,0.26) 100%)'
+const TRACK_LOW_NORMAL_HIGH = 'linear-gradient(to right, rgba(248,113,113,0.22) 0%, rgba(248,113,113,0.28) 5%, rgba(251,146,60,0.31) 13%, rgba(251,146,60,0.17) 21%, rgba(45,212,191,0.07) 28%, rgba(45,212,191,0.17) 37%, rgba(103,232,249,0.25) 50%, rgba(45,212,191,0.17) 63%, rgba(45,212,191,0.07) 72%, rgba(251,146,60,0.17) 79%, rgba(251,146,60,0.31) 87%, rgba(248,113,113,0.28) 95%, rgba(248,113,113,0.22) 100%)'
 const TRACK_UNKNOWN = 'linear-gradient(to right, rgba(95,142,133,0.14) 0%, rgba(95,142,133,0.26) 50%, rgba(95,142,133,0.14) 100%)'
 
 interface RangeBarProps {
