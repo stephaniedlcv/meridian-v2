@@ -9,6 +9,7 @@ import { getSafetyStatusForBiomarker } from '@/lib/safety-engine'
 import { getNextOnboardingStep } from '@/lib/onboarding'
 import { resolveDisplayRange } from '@/lib/range-resolver'
 import { buildClinicalSnapshot, isUrinalysisCategorical } from '@/lib/panel-reconstruction'
+import { getClinicalContextualState, getTrendDisplayProps } from '@/lib/trend-engine'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const colors = {
@@ -1186,15 +1187,27 @@ function BiomarkerDetailSheet({
   const resolvedRange = resolveDisplayRange(biomarker.marker_name, biomarker.reference_range_min, biomarker.reference_range_max, biomarker.unit, bioProfile)
   const intel       = BIOMARKER_CONTEXT[biomarker.marker_name]
 
+  const _currentDateKey = biomarker.collected_at.split('T')[0]
   const prev = allBiomarkers
     .filter(b =>
       b.marker_name === biomarker.marker_name &&
       b.id !== biomarker.id &&
-      new Date(b.collected_at).getTime() <= new Date(biomarker.collected_at).getTime()
+      b.collected_at.split('T')[0] < _currentDateKey
     )
-    .sort((a, b) => new Date(b.collected_at).getTime() - new Date(a.collected_at).getTime())[0] ?? null
+    .sort((a, b) => b.collected_at.localeCompare(a.collected_at))[0] ?? null
 
   const delta = prev !== null ? Number((biomarker.value - prev.value).toFixed(2)) : null
+
+  const contextualState = getClinicalContextualState(
+    biomarker.marker_name,
+    biomarker.value,
+    biomarker.state,
+    prev,
+    resolvedRange?.min ?? null,
+    resolvedRange?.max ?? null,
+    isCritical,
+  )
+  const trendProps = getTrendDisplayProps(contextualState.contextual_severity, contextualState.trend)
 
   function fmtDate(iso: string) {
     return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -1314,7 +1327,7 @@ function BiomarkerDetailSheet({
             )}
           </div>
 
-          {/* Trend card */}
+          {/* Trend card — Sprint 4 T004: clinically-aware direction coloring */}
           <div style={cardStyle}>
             <p style={labelStyle}>Trend</p>
             {prev ? (
@@ -1324,8 +1337,13 @@ function BiomarkerDetailSheet({
                   <span style={{ color: colors.textMuted }}>{' '}on {fmtDate(prev.collected_at)}</span>
                 </p>
                 {delta !== null && (
-                  <p style={{ fontSize: '13px', margin: 0, fontWeight: 600, color: delta > 0 ? '#FB923C' : delta < 0 ? '#2DD4BF' : colors.textMuted }}>
-                    {delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : ''}{delta} from previous
+                  <p style={{ fontSize: '13px', margin: trendProps.contextLine ? '0 0 3px' : '0', fontWeight: 600, color: trendProps.color }}>
+                    {delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '— '}{delta} from previous
+                  </p>
+                )}
+                {trendProps.contextLine && (
+                  <p style={{ fontSize: '12px', margin: 0, color: trendProps.color, opacity: 0.82, lineHeight: 1.55 }}>
+                    {trendProps.contextLine}
                   </p>
                 )}
               </div>
@@ -1413,10 +1431,26 @@ function HistoryDetailSheet({
   const resolvedRange = resolveDisplayRange(biomarker.marker_name, biomarker.reference_range_min, biomarker.reference_range_max, biomarker.unit, bioProfile)
   const interp      = histGetInterpretation(biomarker.marker_name)
 
+  const _histCurrentDateKey = biomarker.collected_at.split('T')[0]
   const prev = allBiomarkers
-    .filter(b => b.marker_name === biomarker.marker_name && b.id !== biomarker.id && new Date(b.collected_at).getTime() <= new Date(biomarker.collected_at).getTime())
-    .sort((a, b) => new Date(b.collected_at).getTime() - new Date(a.collected_at).getTime())[0] ?? null
+    .filter(b =>
+      b.marker_name === biomarker.marker_name &&
+      b.id !== biomarker.id &&
+      b.collected_at.split('T')[0] < _histCurrentDateKey
+    )
+    .sort((a, b) => b.collected_at.localeCompare(a.collected_at))[0] ?? null
   const delta = prev !== null ? Number((biomarker.value - prev.value).toFixed(2)) : null
+
+  const histContextualState = getClinicalContextualState(
+    biomarker.marker_name,
+    biomarker.value,
+    biomarker.state,
+    prev,
+    resolvedRange?.min ?? null,
+    resolvedRange?.max ?? null,
+    isCritical,
+  )
+  const histTrendProps = getTrendDisplayProps(histContextualState.contextual_severity, histContextualState.trend)
 
   function fmtDate(iso: string) {
     return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -1469,7 +1503,10 @@ function HistoryDetailSheet({
             {prev ? (
               <div>
                 <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 4px' }}>Previous: <span style={{ fontWeight: 700, color: colors.text }}>{prev.value}{prev.unit ? ` ${prev.unit}` : ''}</span><span style={{ color: colors.textMuted }}>{' '}on {fmtDate(prev.collected_at)}</span></p>
-                {delta !== null && <p style={{ fontSize: '13px', margin: 0, fontWeight: 600, color: delta > 0 ? '#FB923C' : delta < 0 ? '#2DD4BF' : colors.textMuted }}>{delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : ''}{delta} from previous</p>}
+                {delta !== null && <p style={{ fontSize: '13px', margin: histTrendProps.contextLine ? '0 0 3px' : '0', fontWeight: 600, color: histTrendProps.color }}>{delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '— '}{delta} from previous</p>}
+                {histTrendProps.contextLine && (
+                  <p style={{ fontSize: '12px', margin: 0, color: histTrendProps.color, opacity: 0.82, lineHeight: 1.55 }}>{histTrendProps.contextLine}</p>
+                )}
               </div>
             ) : <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>No previous result yet.</p>}
           </div>

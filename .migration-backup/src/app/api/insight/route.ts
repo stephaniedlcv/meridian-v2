@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { runDecisionEngine, BiomarkerRecord } from '@/lib/decision-engine'
 import { CANONICAL_DICTIONARY } from '@/lib/canonical-dictionary'
+import { getTrendDirection, calculateDelta, calculatePercentChange } from '@/lib/trend-engine'
 
 export const dynamic = 'force-dynamic'
 
@@ -189,6 +190,11 @@ ${tone}
   Bad → "Eat X grams of protein."
   Bad → "Drink X liters of water."
   Bad → "Train exactly X minutes."
+18. TREND AWARENESS: When a ### TREND CONTEXT block is present in the user message, incorporate the trend direction into the cause or status field. Use calibrated language:
+  - Improving trend: prefer "remains elevated, but recent labs show improvement" or "this marker is trending in the right direction" over alarming phrasing
+  - Worsening trend: "has moved further outside range since the previous lab" or "this signal has increased since the last result"
+  - Stable trend: "has remained consistently elevated" or "the pattern has been stable across recent labs"
+  NEVER imply recovery, resolution, or cure based on a positive trend. NEVER suppress follow-up recommendations because a trend is improving. Safety alerts override all trend framing.
 
 ### OUTPUT FORMAT
 Return ONLY a valid JSON object with these exact fields:
@@ -399,12 +405,51 @@ export async function GET(request: NextRequest) {
       score: s.score,
     }))
 
+    // T003: Compute trend for dominant marker from historical records.
+    // Uses strict earlier-date previous (ignores same-day duplicates).
+    let trendContextBlock = ''
+    if (!engineResult.has_safety_alert) {
+      const domSlug = engineResult.dominant.slug
+      const domHistory = (historicalByMarker[domSlug] ?? [])
+        .slice()
+        .sort((a, b) => b.collected_at.localeCompare(a.collected_at))
+      const currentRec = domHistory[0]
+      if (currentRec) {
+        const currentDateKey = currentRec.collected_at.split('T')[0]
+        const prevRec = domHistory.find(r => r.collected_at.split('T')[0] < currentDateKey)
+        if (prevRec) {
+          const refMin = currentRec.reference_range_min ?? null
+          const refMax = currentRec.reference_range_max ?? null
+          const trendDir = getTrendDirection(domSlug, currentRec.value, prevRec.value, refMin, refMax)
+          const delta = calculateDelta(currentRec.value, prevRec.value)
+          const pctChange = calculatePercentChange(currentRec.value, prevRec.value)
+          const trendLabel =
+            trendDir === 'improving'         ? 'improving (moving in the right clinical direction)' :
+            trendDir === 'worsening'         ? 'worsening (moving in the wrong clinical direction)' :
+            trendDir === 'stable'            ? 'stable (no meaningful change since previous lab)' :
+                                               'insufficient history for direction assessment'
+          const deltaStr = delta >= 0 ? `+${delta}` : `${delta}`
+          const pctStr = pctChange !== null
+            ? ` (${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(1)}%)`
+            : ''
+          trendContextBlock = `\n\n### TREND CONTEXT
+Dominant marker history:
+- Previous result: ${prevRec.value} ${engineResult.dominant.unit} on ${prevRec.collected_at.split('T')[0]}
+- Current result:  ${currentRec.value} ${engineResult.dominant.unit} on ${currentDateKey}
+- Change: ${deltaStr}${pctStr}
+- Trend direction: ${trendLabel}
+
+Apply TREND AWARENESS rule 18 when framing the cause and status fields.`
+        }
+      }
+    }
+
     // Build prompts
     const systemPrompt = buildSystemPrompt(userProfile, medications, biologicalProfile, healthContext)
 
     let userPrompt = `Here are the user's current biomarker results, ranked by relevance score:
 
-${JSON.stringify(biomarkersForPrompt, null, 2)}
+${JSON.stringify(biomarkersForPrompt, null, 2)}${trendContextBlock}
 
 The dominant signal is: ${engineResult.dominant.name} at ${engineResult.dominant.value} ${engineResult.dominant.unit} (state: ${engineResult.dominant.state}, system: ${engineResult.dominant.system}, score: ${engineResult.dominant.score})
 
