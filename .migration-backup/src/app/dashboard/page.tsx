@@ -54,47 +54,23 @@ function getFirstName(fullName: string): string {
   return first.charAt(0).toUpperCase() + first.slice(1)
 }
 
-function getTimeGreeting(firstName: string): { greeting: string; subline: string } {
-  const hour      = new Date().getHours()
-  const dayIndex  = new Date().getDay()
+interface GreetingContext {
+  state?:       string
+  blockColor?:  string
+  safetyAlert?: boolean
+}
+
+function getTimeGreeting(
+  firstName: string,
+  ctx?: GreetingContext,
+): { greeting: string; subline: string } {
+  const hour     = new Date().getHours()
+  const dayIndex = new Date().getDay()
 
   const period =
     hour >= 5 && hour < 12 ? 'morning'   :
     hour >= 12 && hour < 18 ? 'afternoon' :
     'evening'
-
-  const sublines = {
-    morning: [
-      'Your overnight signals are ready to review.',
-      'A good time to check in before the day builds up.',
-      'Let\'s see what your biology is asking for today.',
-      'Your recovery window is closing. Here\'s where you stand.',
-      'Your body has been working since sleep. Let\'s look at the signal.',
-      'A quiet moment before the day takes over. Here\'s your read.',
-      'Your system was active overnight. Here\'s what it\'s telling you.',
-    ],
-    afternoon: [
-      'Your system is active. Here\'s what it\'s currently prioritizing.',
-      'A mid-day check-in. Your biology is at full cycle right now.',
-      'Here\'s where your body stands this afternoon.',
-      'Your biomarkers have something to say. Let\'s review.',
-      'Your system has been tracking all morning. Here\'s the signal.',
-      'The afternoon is a good time to read your body\'s current state.',
-      'Your biology is mid-cycle. Here\'s what it\'s communicating.',
-    ],
-    evening: [
-      'Your body has been working today. Here\'s what it\'s signaling.',
-      'A good time to review before your recovery window opens.',
-      'Let\'s see how your biology has settled as the day winds down.',
-      'Your system has data worth reviewing this evening.',
-      'The day\'s signals are in. Here\'s what they\'re saying.',
-      'Your body is winding down. Here\'s what it\'s asking for tonight.',
-      'Your recovery cycle is approaching. Here\'s today\'s read.',
-    ],
-  }
-
-  const lines   = sublines[period]
-  const subline = lines[dayIndex % lines.length]
 
   const prefix =
     period === 'morning'   ? 'Good morning'   :
@@ -102,6 +78,103 @@ function getTimeGreeting(firstName: string): { greeting: string; subline: string
     'Good evening'
 
   const greeting = firstName ? `${prefix}, ${firstName}` : `${prefix}.`
+
+  // ── Context-aware sublines — tied to the actual biological signal ─────
+  // Priority: safety > alert > optimal > recovery > calibrating > labs_saved > time-based
+  if (ctx) {
+    const { state, blockColor, safetyAlert } = ctx
+
+    if (safetyAlert || blockColor === 'alert') {
+      const lines = [
+        'Something in your recent markers warrants a closer look today.',
+        'Your body is flagging something worth attention right now.',
+        'One of your recent signals is asking for a careful review.',
+        'A result from your last labs merits attention before moving on.',
+        'Your biology is signaling something that needs follow-through.',
+      ]
+      return { greeting, subline: lines[dayIndex % lines.length] }
+    }
+
+    if (blockColor === 'optimal') {
+      const lines = [
+        'Recovery systems appear to be responding well.',
+        'Your biology is tracking in a favorable direction.',
+        'Biomarker patterns look stable and well-supported right now.',
+        'Your body is signaling a period of good systemic recovery.',
+        'Current markers suggest your biology is near its optimal range.',
+        'Your system is showing signs of balance. A good day to maintain.',
+      ]
+      return { greeting, subline: lines[dayIndex % lines.length] }
+    }
+
+    if (blockColor === 'recovery') {
+      const lines = [
+        'Recovery capacity appears lower than baseline today.',
+        'Your biology is favoring restoration over strain right now.',
+        'Your current recovery state suggests a lighter load today.',
+        `Recovery systems appear more sensitive this ${period}.`,
+        'Your body is signaling a need for restoration today.',
+        'Lower recovery markers suggest your system is asking for rest.',
+        'Your biology is in a recovery phase. Worth acknowledging.',
+      ]
+      return { greeting, subline: lines[dayIndex % lines.length] }
+    }
+
+    if (state === 'calibrating') {
+      const lines = [
+        'Your biological baseline is still building.',
+        'More data helps Meridian read your patterns with confidence.',
+        'Each upload sharpens how Meridian interprets your biology.',
+      ]
+      return { greeting, subline: lines[dayIndex % lines.length] }
+    }
+
+    if (state === 'labs_saved') {
+      const lines = [
+        'Your labs are in. Meridian is mapping your biological baseline.',
+        'Data received. Your biological picture is taking shape.',
+        'Your biomarkers are being integrated into your baseline.',
+      ]
+      return { greeting, subline: lines[dayIndex % lines.length] }
+    }
+
+    if (state === 'no_data') {
+      const lines = [
+        'Your health intelligence begins with your first lab upload.',
+        'Upload your labs to unlock your biological picture.',
+        'Meridian is ready. Your biology is the starting point.',
+      ]
+      return { greeting, subline: lines[dayIndex % lines.length] }
+    }
+  }
+
+  // ── Fallback: time-of-day ambient lines (no insight context yet) ──────
+  const ambient = {
+    morning: [
+      'Your overnight signals are ready to review.',
+      'A quiet moment before the day builds. Here\'s your read.',
+      'Your body has been working since sleep.',
+      'A good time to check in on your biology.',
+      'Your recovery window is closing. Here\'s where you stand.',
+    ],
+    afternoon: [
+      'Here\'s where your biology stands right now.',
+      'A mid-day check-in on your body\'s current state.',
+      'Your biomarkers have something to say.',
+      'Your system has been tracking all morning.',
+      'Your biology is at full cycle right now.',
+    ],
+    evening: [
+      'Your body has been working today.',
+      'A good time to review before your recovery window opens.',
+      'The day\'s signals are in.',
+      'Your system has data worth reviewing this evening.',
+      'Your recovery cycle is approaching. Here\'s today\'s read.',
+    ],
+  }
+
+  const lines   = ambient[period]
+  const subline = lines[dayIndex % lines.length]
 
   return { greeting, subline }
 }
@@ -275,10 +348,14 @@ export default function DashboardPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{ marginBottom: '32px' }}
+          style={{ marginBottom: '26px' }}
         >
           {(() => {
-            const { greeting, subline } = getTimeGreeting(getFirstName(userName))
+            const { greeting, subline } = getTimeGreeting(getFirstName(userName), {
+            state,
+            blockColor:  insight?.block_color,
+            safetyAlert,
+          })
             return (
               <div>
                 {/* Subtle date anchor */}
@@ -291,7 +368,7 @@ export default function DashboardPage() {
                   letterSpacing: '0.07em',
                   textTransform: 'uppercase',
                   color:         colors.textMuted,
-                  marginBottom:  '18px',
+                  marginBottom:  '12px',
                 }}>
                   <div style={{
                     width:     '5px',
@@ -312,7 +389,7 @@ export default function DashboardPage() {
                   color:         colors.text,
                   letterSpacing: '-0.04em',
                   lineHeight:    1.15,
-                  marginBottom:  '10px',
+                  marginBottom:  '8px',
                 }}>
                   {greeting}
                 </div>
@@ -735,22 +812,22 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
       boxShadow: `0 0 0 1px ${bc.border}, 0 0 48px ${bc.accent}12, inset 0 1px 0 rgba(255,255,255,0.06)`,
     }}>
       {/* Header */}
-      <div style={{ padding: '28px 24px 20px', borderBottom: `1px solid ${colors.cardBorder}` }}>
+      <div style={{ padding: '22px 24px 18px', borderBottom: `1px solid ${colors.cardBorder}` }}>
         {/* Contextual signal label */}
-        <div style={{ marginBottom: '14px' }}>
+        <div style={{ marginBottom: '10px' }}>
           <div style={{
             display:       'inline-flex',
             alignItems:    'center',
-            gap:           '6px',
-            fontSize:      '10px',
-            fontWeight:    700,
-            letterSpacing: '0.09em',
+            gap:           '5px',
+            fontSize:      '9px',
+            fontWeight:    600,
+            letterSpacing: '0.08em',
             textTransform: 'uppercase',
             color:         bc.accent,
-            padding:       '4px 10px',
-            border:        `1px solid ${bc.accent}40`,
+            padding:       '3px 9px',
+            border:        `1px solid ${bc.accent}33`,
             borderRadius:  '20px',
-            background:    `${bc.accent}0D`,
+            background:    `${bc.accent}0A`,
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: bc.accent, boxShadow: `0 0 6px ${bc.accent}` }} />
             {insight.block_color === 'alert'   ? 'Priority signal'   :

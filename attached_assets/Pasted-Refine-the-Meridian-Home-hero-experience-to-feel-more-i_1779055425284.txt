@@ -1,0 +1,133 @@
+Refine the Meridian Home hero experience to feel more intelligent, contextual, and ambient.
+
+IMPORTANT:
+- DO NOT redesign the Home screen
+- Preserve Meridian visual identity completely
+- Keep all existing gradients, typography, glassmorphism, spacing system, animations, and layout structure
+- This is a refinement pass ONLY
+- Maintain the premium biological operating system feel
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 1 — NOTIFICATION BELL TOGGLE BEHAVIOR
+━━━━━━━━━━━━━━━━━━━━
+
+The global notification bell currently only navigates/open notifications.
+
+Refine the UX so the bell behaves like a real system inbox toggle.
+
+Required behavior:
+- tap bell → open notifications
+- tap bell again → close notifications / dismiss drawer / return to previous state
+- tapping outside closes notifications if overlay/drawer exists
+- preserve smooth transitions
+
+The interaction should feel:
+- iOS-like
+- ambient
+- OS-level
+- elegant
+
+NOT:
+- webpage navigation-heavy
+- clunky
+- abrupt
+
+If notifications currently use a page route,
+begin architecting the interaction so it can evolve into:
+- drawer
+- sheet
+- overlay inbox
+
+while preserving current functionality.
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 2 — HOME HERO CONTEXT LINE
+━━━━━━━━━━━━━━━━━━━━
+
+The current supporting sentence:
+
+"Your system is active. Here's what it's currently prioritizing."
+
+still feels slightly too generic/system-generated.
+
+Refine the contextual line beneath:
+"Good afternoon, Stephanie"
+
+Make it:
+- more intelligent
+- more contextual
+- more biologically aware
+- calmer
+- more premium
+- less template-like
+
+The line should adapt to the dominant signal/recovery context if possible.
+
+Examples of desired tone:
+- Recovery capacity appears lower today.
+- Your current recovery state favors lower intensity.
+- Your biology is responding better to recovery than strain today.
+- Recovery systems appear more sensitive this morning.
+
+Tone requirements:
+- calm
+- intelligent
+- subtle
+- human
+- premium
+
+NOT:
+- robotic
+- marketing copy
+- startup-sounding
+- overly clinical
+- generic AI phrasing
+
+━━━━━━━━━━━━━━━━━━━━
+TASK 3 — HERO INSIGHT DENSITY
+━━━━━━━━━━━━━━━━━━━━
+
+Reduce visual/text density slightly above the fold.
+
+Goal:
+make the Home screen feel more:
+- focused
+- calm
+- breathable
+- premium
+
+WITHOUT:
+- removing insight depth
+- removing context
+- removing intelligence
+
+Refine:
+- spacing rhythm
+- line lengths
+- hierarchy pacing
+- chip prominence
+
+The Home should feel like:
+a single dominant biological state,
+not multiple competing dashboard elements.
+
+━━━━━━━━━━━━━━━━━━━━
+UX REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+- Preserve responsive behavior
+- Preserve mobile-first feel
+- Keep current animation quality
+- Maintain premium spacing
+- Avoid layout shift
+- No breaking changes to navigation
+
+━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT
+━━━━━━━━━━━━━━━━━━━━
+
+Return:
+- exact files modified
+- complete code
+- no pseudo-code
+- no explanations unless necessary

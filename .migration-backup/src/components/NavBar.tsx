@@ -13,6 +13,11 @@ const colors = {
   cardBorder: 'rgba(103,232,249,0.13)',
 }
 
+const fonts = {
+  heading: '"Fraunces", serif',
+  ui:      '"Plus Jakarta Sans", sans-serif',
+}
+
 // 4-item nav — Notifications moved to global bell
 const navConfig = [
   { path: '/dashboard',   label: 'Home',     id: 'home'     },
@@ -77,43 +82,108 @@ function NavIcon({ id, isActive }: { id: string; isActive: boolean }) {
   return null
 }
 
-// ── Global notification bell ──────────────────────────────────────
-function NotificationBell({ unreadCount, pathname }: { unreadCount: number; pathname: string }) {
-  const router    = useRouter()
-  const isActive  = pathname === '/notifications' || pathname?.startsWith('/notifications/')
+// ── Notification drawer preview data ─────────────────────────────────
+// Foundation layer for real-time inbox.
+// Replace fetch with GET /api/user/notifications once that route exists.
+type NotifCategory = 'insights' | 'safety' | 'reminders' | 'system' | 'updates'
+interface PreviewNotif {
+  id:         string
+  category:   NotifCategory
+  title:      string
+  body:       string
+  read:       boolean
+  created_at: string
+}
+
+const PREVIEW_NOTIFS: PreviewNotif[] = [
+  {
+    id: 'n1', category: 'insights',
+    title: 'Vitamin D below optimal range',
+    body:  'Your latest reading (28 ng/mL) falls below the optimal zone. Consider reviewing sun exposure and your supplement protocol.',
+    read: false,
+    created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: 'n2', category: 'safety',
+    title: 'Elevated CRP detected',
+    body:  'C-Reactive Protein is above standard reference range. This may indicate inflammation. Review with your physician if persistent.',
+    read: false,
+    created_at: new Date(Date.now() - 6 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: 'n3', category: 'reminders',
+    title: 'Lab panel is 90+ days old',
+    body:  'Regular monitoring helps Meridian deliver more accurate insights. Your last upload was over 90 days ago.',
+    read: true,
+    created_at: new Date(Date.now() - 2 * 86400 * 1000).toISOString(),
+  },
+]
+
+const NOTIF_COLOR: Record<NotifCategory, string> = {
+  insights:  colors.teal,
+  safety:    '#F87171',
+  reminders: '#FCD34D',
+  system:    colors.textSoft,
+  updates:   colors.cyan,
+}
+
+function relTime(iso: string): string {
+  const ms   = Date.now() - new Date(iso).getTime()
+  const mins  = Math.floor(ms / 60000)
+  const hours = Math.floor(ms / 3600000)
+  const days  = Math.floor(ms / 86400000)
+  if (days  >= 1) return `${days}d ago`
+  if (hours >= 1) return `${hours}h ago`
+  if (mins  >= 1) return `${mins}m ago`
+  return 'Just now'
+}
+
+// ── Global notification bell ──────────────────────────────────────────
+function NotificationBell({
+  unreadCount, pathname, isOpen, onToggle,
+}: {
+  unreadCount: number
+  pathname:    string
+  isOpen:      boolean
+  onToggle:    () => void
+}) {
+  const isActive  = pathname === '/notifications' || isOpen
   const hasUnread = unreadCount > 0 && !isActive
   const stroke    = isActive ? colors.teal : colors.textSoft
 
   return (
     <button
-      onClick={() => router.push('/notifications')}
-      aria-label="Notifications"
+      onClick={onToggle}
+      aria-label={isOpen ? 'Close notifications' : 'Notifications'}
+      aria-expanded={isOpen}
       style={{
-        position:            'fixed',
-        top:                 'calc(env(safe-area-inset-top, 0px) + 14px)',
-        right:               'calc(env(safe-area-inset-right, 0px) + 16px)',
-        zIndex:              90,
-        width:               '42px',
-        height:              '42px',
-        borderRadius:        '13px',
-        background:          isActive
+        position:             'fixed',
+        top:                  'calc(env(safe-area-inset-top, 0px) + 14px)',
+        right:                'calc(env(safe-area-inset-right, 0px) + 16px)',
+        zIndex:               90,
+        width:                '42px',
+        height:               '42px',
+        borderRadius:         '13px',
+        background:           isActive
           ? 'rgba(45,212,191,0.08)'
           : 'rgba(6,19,22,0.82)',
-        border:              isActive
+        border:               isActive
           ? '1px solid rgba(45,212,191,0.22)'
           : `1px solid ${colors.cardBorder}`,
-        backdropFilter:      'blur(20px)',
-        WebkitBackdropFilter:'blur(20px)',
-        boxShadow:           hasUnread
+        backdropFilter:       'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        boxShadow:            hasUnread
           ? '0 4px 20px rgba(0,0,0,0.35), 0 0 0 1px rgba(45,212,191,0.15), inset 0 1px 0 rgba(255,255,255,0.04)'
           : '0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)',
-        cursor:              'pointer',
-        display:             'flex',
-        alignItems:          'center',
-        justifyContent:      'center',
-        padding:             0,
-        transition:          'box-shadow 0.3s ease, border 0.3s ease, background 0.2s ease',
-        animation:           hasUnread ? 'meridian-bell-glow 3s ease-in-out infinite' : 'none',
+        cursor:               'pointer',
+        display:              'flex',
+        alignItems:           'center',
+        justifyContent:       'center',
+        padding:              0,
+        touchAction:          'manipulation',
+        transition:           'box-shadow 0.3s ease, border 0.3s ease, background 0.25s ease, transform 0.18s ease',
+        transform:            isOpen ? 'scale(0.93)' : 'scale(1)',
+        animation:            hasUnread ? 'meridian-bell-glow 3s ease-in-out infinite' : 'none',
       }}
     >
       {/* Bell icon */}
@@ -145,7 +215,7 @@ function NotificationBell({ unreadCount, pathname }: { unreadCount: number; path
               fontSize:      '7px',
               fontWeight:    700,
               color:         '#061316',
-              fontFamily:    '"Plus Jakarta Sans", sans-serif',
+              fontFamily:    fonts.ui,
               lineHeight:    1,
               letterSpacing: '-0.02em',
             }}>
@@ -159,16 +229,37 @@ function NotificationBell({ unreadCount, pathname }: { unreadCount: number; path
 }
 
 export default function NavBar() {
-  const router        = useRouter()
-  const pathname      = usePathname()
-  const [unreadCount, setUnreadCount] = useState(0)
+  const router   = useRouter()
+  const pathname = usePathname()
 
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [notifOpen,   setNotifOpen]   = useState(false)
+  const [notifs,      setNotifs]      = useState<PreviewNotif[]>(PREVIEW_NOTIFS)
+
+  // Close drawer on page navigation
+  useEffect(() => { setNotifOpen(false) }, [pathname])
+
+  // Scroll lock while drawer is open
+  useEffect(() => {
+    document.body.style.overflow = notifOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [notifOpen])
+
+  // Fetch unread count on every nav change
   useEffect(() => {
     fetch('/api/user/notifications/unread-count')
       .then(r => r.ok ? r.json() : { count: 0 })
       .then(data => setUnreadCount(data.count ?? 0))
       .catch(() => {})
   }, [pathname])
+
+  function markAllRead() {
+    setNotifs(prev => prev.map(n => ({ ...n, read: true })))
+    setUnreadCount(0)
+  }
+
+  const localUnread = notifs.filter(n => !n.read).length
+  const displayCount = Math.max(unreadCount, localUnread)
 
   return (
     <>
@@ -184,21 +275,242 @@ export default function NavBar() {
         }
       `}</style>
 
-      {/* Global notification bell — top-right across all NavBar pages */}
-      <NotificationBell unreadCount={unreadCount} pathname={pathname ?? ''} />
+      {/* Global notification bell */}
+      <NotificationBell
+        unreadCount={displayCount}
+        pathname={pathname ?? ''}
+        isOpen={notifOpen}
+        onToggle={() => setNotifOpen(o => !o)}
+      />
+
+      {/* Backdrop — tapping outside closes the drawer */}
+      <div
+        onClick={() => setNotifOpen(false)}
+        aria-hidden="true"
+        style={{
+          position:             'fixed',
+          inset:                0,
+          zIndex:               88,
+          backgroundColor:      'rgba(0,0,0,0.45)',
+          backdropFilter:       notifOpen ? 'blur(5px)' : 'none',
+          WebkitBackdropFilter: notifOpen ? 'blur(5px)' : 'none',
+          opacity:              notifOpen ? 1 : 0,
+          pointerEvents:        notifOpen ? 'auto' : 'none',
+          transition:           'opacity 0.25s ease',
+        }}
+      />
+
+      {/* Notification Drawer — iOS-style bottom sheet */}
+      <div
+        role="dialog"
+        aria-label="Notifications"
+        aria-modal="true"
+        style={{
+          position:             'fixed',
+          bottom:               0,
+          left:                 0,
+          right:                0,
+          zIndex:               89,
+          transform:            notifOpen ? 'translateY(0)' : 'translateY(106%)',
+          transition:           'transform 0.34s cubic-bezier(0.32, 0.72, 0, 1)',
+          backgroundColor:      'rgba(4,12,15,0.99)',
+          borderRadius:         '22px 22px 0 0',
+          border:               `1px solid ${colors.cardBorder}`,
+          borderBottom:         'none',
+          backdropFilter:       'blur(40px)',
+          WebkitBackdropFilter: 'blur(40px)',
+          boxShadow:            '0 -24px 60px rgba(0,0,0,0.55), 0 -1px 0 rgba(103,232,249,0.06)',
+          maxHeight:            '72vh',
+          display:              'flex',
+          flexDirection:        'column',
+          overflow:             'hidden',
+          paddingBottom:        'env(safe-area-inset-bottom, 0px)',
+        }}
+      >
+        {/* Drag handle */}
+        <div style={{ padding: '12px 0 2px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: '36px', height: '4px', borderRadius: '2px', backgroundColor: 'rgba(154,203,193,0.18)' }} />
+        </div>
+
+        {/* Header */}
+        <div style={{
+          padding:       '10px 22px 14px',
+          display:       'flex',
+          alignItems:    'center',
+          justifyContent:'space-between',
+          borderBottom:  `1px solid ${colors.cardBorder}`,
+          flexShrink:    0,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{
+              fontFamily:    fonts.heading,
+              fontSize:      '20px',
+              fontWeight:    700,
+              color:         colors.text,
+              letterSpacing: '-0.03em',
+            }}>
+              Notifications
+            </span>
+            {localUnread > 0 && (
+              <span style={{
+                padding:         '2px 8px',
+                borderRadius:    '20px',
+                fontSize:        '10px',
+                fontWeight:      700,
+                fontFamily:      fonts.ui,
+                color:           colors.teal,
+                backgroundColor: 'rgba(45,212,191,0.10)',
+                border:          '1px solid rgba(45,212,191,0.22)',
+              }}>
+                {localUnread} new
+              </span>
+            )}
+          </div>
+          {localUnread > 0 && (
+            <button
+              onClick={markAllRead}
+              style={{
+                background:   'none',
+                border:       'none',
+                cursor:       'pointer',
+                fontFamily:   fonts.ui,
+                fontSize:     '12px',
+                fontWeight:   600,
+                color:        colors.teal,
+                padding:      '4px 8px',
+                borderRadius: '6px',
+                touchAction:  'manipulation',
+              }}
+            >
+              Mark all read
+            </button>
+          )}
+        </div>
+
+        {/* Notification list */}
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+          {notifs.map((n, i) => {
+            const c = NOTIF_COLOR[n.category]
+            return (
+              <div
+                key={n.id}
+                style={{
+                  padding:         '14px 22px',
+                  borderBottom:    i < notifs.length - 1 ? `1px solid ${colors.cardBorder}` : 'none',
+                  backgroundColor: n.read ? 'transparent' : 'rgba(45,212,191,0.015)',
+                  display:         'flex',
+                  gap:             '12px',
+                  alignItems:      'flex-start',
+                }}
+              >
+                {/* Indicator */}
+                <div style={{
+                  width:           '28px',
+                  height:          '28px',
+                  borderRadius:    '8px',
+                  flexShrink:      0,
+                  backgroundColor: `${c}14`,
+                  border:          `1px solid ${c}2A`,
+                  display:         'flex',
+                  alignItems:      'center',
+                  justifyContent:  'center',
+                  marginTop:       '1px',
+                }}>
+                  {n.read ? (
+                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke={c} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 6.5l2.5 2.5 5.5-5.5" />
+                    </svg>
+                  ) : (
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: c, boxShadow: `0 0 5px ${c}` }} />
+                  )}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    display:       'flex',
+                    justifyContent:'space-between',
+                    alignItems:    'flex-start',
+                    gap:           '8px',
+                    marginBottom:  '3px',
+                  }}>
+                    <div style={{
+                      fontFamily:  fonts.ui,
+                      fontSize:    '13px',
+                      fontWeight:  n.read ? 500 : 700,
+                      color:       n.read ? colors.textSoft : colors.text,
+                      lineHeight:  1.3,
+                    }}>
+                      {n.title}
+                    </div>
+                    <div style={{
+                      fontFamily:  fonts.ui,
+                      fontSize:    '10px',
+                      color:       colors.textMuted,
+                      whiteSpace:  'nowrap',
+                      flexShrink:  0,
+                      paddingTop:  '1px',
+                    }}>
+                      {relTime(n.created_at)}
+                    </div>
+                  </div>
+                  <div style={{
+                    fontFamily:          fonts.ui,
+                    fontSize:            '12px',
+                    color:               colors.textMuted,
+                    lineHeight:          1.55,
+                    overflow:            'hidden',
+                    display:             '-webkit-box',
+                    WebkitLineClamp:     2,
+                    WebkitBoxOrient:     'vertical',
+                  } as React.CSSProperties}>
+                    {n.body}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Footer — view all */}
+        <div style={{
+          padding:     '12px 22px',
+          borderTop:   `1px solid ${colors.cardBorder}`,
+          flexShrink:  0,
+        }}>
+          <button
+            onClick={() => { router.push('/notifications'); setNotifOpen(false) }}
+            style={{
+              width:        '100%',
+              padding:      '13px',
+              background:   `linear-gradient(135deg, rgba(45,212,191,0.10), rgba(103,232,249,0.04))`,
+              border:       `1px solid ${colors.cardBorder}`,
+              borderRadius: '13px',
+              cursor:       'pointer',
+              fontFamily:   fonts.ui,
+              fontSize:     '13px',
+              fontWeight:   700,
+              color:        colors.teal,
+              letterSpacing:'-0.01em',
+              touchAction:  'manipulation',
+            }}
+          >
+            View all notifications →
+          </button>
+        </div>
+      </div>
 
       {/* Bottom navigation — 4 items */}
       <nav style={{
-        position:              'fixed',
-        bottom:                0,
-        left:                  0,
-        right:                 0,
-        backgroundColor:       'rgba(6,19,22,0.95)',
-        borderTop:             `1px solid ${colors.cardBorder}`,
-        backdropFilter:        'blur(20px)',
-        WebkitBackdropFilter:  'blur(20px)',
-        zIndex:                100,
-        padding:               '8px 0 env(safe-area-inset-bottom, 8px)',
+        position:             'fixed',
+        bottom:               0,
+        left:                 0,
+        right:                0,
+        backgroundColor:      'rgba(6,19,22,0.95)',
+        borderTop:            `1px solid ${colors.cardBorder}`,
+        backdropFilter:       'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        zIndex:               100,
+        padding:              '8px 0 env(safe-area-inset-bottom, 8px)',
       }}>
         <div style={{
           maxWidth:       '560px',
@@ -224,7 +536,7 @@ export default function NavBar() {
                   alignItems:    'center',
                   gap:           '4px',
                   padding:       '8px 14px',
-                  fontFamily:    '"Plus Jakarta Sans", sans-serif',
+                  fontFamily:    fonts.ui,
                   transition:    'all 0.2s ease',
                   minWidth:      '60px',
                   touchAction:   'manipulation',
