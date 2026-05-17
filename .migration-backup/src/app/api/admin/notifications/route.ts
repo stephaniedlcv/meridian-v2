@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminUser, logAdminAction, hasPermission } from '@/lib/auth/is-admin'
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { TargetSegment } from '@/types/admin'
+import { countSegment }      from '@/lib/admin/count-segment'
+import type { TargetSegment, SegmentFilters } from '@/types/admin'
 
 export async function GET(req: NextRequest) {
   const admin = await getAdminUser()
@@ -28,16 +29,28 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { title, body: msgBody, type, target_segment, segment_filters, scheduled_for } = body
+  const {
+    title,
+    body: msgBody,
+    type,
+    target_segment,
+    segment_filters,
+    scheduled_for,
+  } = body as {
+    title:           string
+    body:            string
+    type:            string
+    target_segment:  TargetSegment
+    segment_filters: SegmentFilters | null
+    scheduled_for:   string | null
+  }
 
   if (!title?.trim() || !msgBody?.trim() || !type || !target_segment) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
   const db = createAdminClient()
-
-  // Count recipients for segment
-  const recipientCount = await countSegment(db, target_segment as TargetSegment, segment_filters)
+  const recipientCount = await countSegment(db, target_segment, segment_filters)
 
   const { data, error } = await db.from('notifications').insert({
     title:           title.trim(),
@@ -45,7 +58,7 @@ export async function POST(req: NextRequest) {
     type,
     status:          scheduled_for ? 'scheduled' : 'draft',
     target_segment,
-    segment_filters: segment_filters ?? null,
+    segment_filters: (segment_filters as Record<string, unknown>) ?? null,
     recipient_count: recipientCount,
     created_by:      admin.userId,
     scheduled_for:   scheduled_for ?? null,
@@ -90,38 +103,4 @@ export async function PATCH(req: NextRequest) {
 
   await logAdminAction({ adminUserId: admin.userId, action: `notification.${status}`, resourceType: 'notification', resourceId: id })
   return NextResponse.json({ notification: data })
-}
-
-// ── Segment counting helper ───────────────────────────────────────
-async function countSegment(
-  db: ReturnType<typeof createAdminClient>,
-  segment: TargetSegment,
-  _filters?: Record<string, unknown>,
-): Promise<number> {
-  try {
-    if (segment === 'all') {
-      const { count } = await db.from('profiles').select('id', { count: 'exact', head: true })
-      return count ?? 0
-    }
-    if (segment === 'onboarding_incomplete') {
-      const { count } = await db.from('profiles').select('id', { count: 'exact', head: true }).eq('onboarding_completed', false)
-      return count ?? 0
-    }
-    if (segment === 'safety_alert') {
-      const { count } = await db.from('profiles').select('id', { count: 'exact', head: true }).eq('safety_status', 'medical_alert')
-      return count ?? 0
-    }
-    if (segment === 'no_labs') {
-      const { data: allIds } = await db.from('profiles').select('id')
-      const { data: labIds } = await db.from('biomarkers_static').select('user_id')
-      const withLabs = new Set((labIds ?? []).map(b => b.user_id))
-      return (allIds ?? []).filter(p => !withLabs.has(p.id)).length
-    }
-    if (segment === 'active_7d') {
-      const cutoff = new Date(Date.now() - 7 * 86400 * 1000).toISOString()
-      const { data } = await db.from('biomarkers_static').select('user_id').gte('created_at', cutoff)
-      return new Set((data ?? []).map(b => b.user_id)).size
-    }
-    return 0
-  } catch { return 0 }
 }

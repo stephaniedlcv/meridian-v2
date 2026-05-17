@@ -1,0 +1,142 @@
+Extend the Meridian Admin Notifications system with advanced recipient targeting and audience segmentation.
+
+IMPORTANT:
+- DO NOT redesign the Notifications UI
+- Preserve Meridian visual identity exactly
+- Maintain all current typography, spacing, glassmorphism, gradients, motion, and responsive behavior
+- This is a feature expansion ONLY
+- Keep the premium operator-console feel
+
+OBJECTIVE
+
+Expand the notification targeting system so admins can:
+
+- send notifications to specific users
+- target only female users
+- target only male users
+- combine targeting filters intelligently
+
+━━━━━━━━━━━━━━━━━━━━
+NEW TARGETING OPTIONS
+━━━━━━━━━━━━━━━━━━━━
+
+Inside:
+`/admin/notifications`
+
+Extend the notification composer with advanced audience targeting.
+
+Add support for:
+
+1. ALL USERS
+2. SPECIFIC USERS
+3. FEMALE USERS ONLY
+4. MALE USERS ONLY
+5. ADMIN USERS ONLY
+6. NON-ADMIN USERS
+7. CUSTOM COMBINATIONS
+
+━━━━━━━━━━━━━━━━━━━━
+SPECIFIC USER SELECTION
+━━━━━━━━━━━━━━━━━━━━
+
+Add a searchable user picker.
+
+Requirements:
+- search by:
+  - name
+  - email
+- multi-select support
+- removable user chips
+- async search
+- debounced input
+- mobile friendly
+
+UI should feel:
+- premium
+- clean
+- operator-console-like
+
+NOT:
+- default HTML multiselect
+- ugly CMS controls
+
+Use:
+- glass dropdown
+- animated results
+- smooth chip interactions
+
+━━━━━━━━━━━━━━━━━━━━
+BIOLOGICAL PROFILE TARGETING
+━━━━━━━━━━━━━━━━━━━━
+
+Add audience filters using:
+`profiles.biological_profile`
+
+Support:
+- female
+- male
+
+This should work both:
+- independently
+- combined with other filters
+
+Examples:
+- all female users
+- all male users with labs
+- only female premium users (future-ready architecture)
+- only male users without wearables
+
+━━━━━━━━━━━━━━━━━━━━
+TARGETING UX
+━━━━━━━━━━━━━━━━━━━━
+
+Inside the notification composer:
+
+Add:
+AUDIENCE TARGETING
+
+Use:
+- segmented controls
+- filter chips
+- dynamic audience count preview
+
+Show:
+Estimated recipients:
+XX users
+
+Update count live as filters change.
+
+━━━━━━━━━━━━━━━━━━━━
+TECHNICAL REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+- Use server-side filtering
+- No client-side trust for recipient generation
+- Build scalable query logic
+- Preserve existing notifications architecture
+- Avoid duplicate recipients
+- Preserve future support for:
+  - subscription tiers
+  - wearable filters
+  - health state targeting
+  - feature flags
+
+━━━━━━━━━━━━━━━━━━━━
+RESPONSIVE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━
+
+- Fully mobile friendly
+- User picker works on phones
+- Chips wrap correctly
+- No overflow
+- Touch-friendly interactions
+
+━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT
+━━━━━━━━━━━━━━━━━━━━
+
+Return:
+- exact files modified
+- complete code
+- no pseudo-code
+- no explanations unless necessary

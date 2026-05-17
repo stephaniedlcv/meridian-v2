@@ -14,14 +14,33 @@ export type AccountStatus =
 
 export type NotificationStatus = 'draft' | 'scheduled' | 'sending' | 'sent' | 'archived'
 export type NotificationType   = 'in_app' | 'email' | 'push' | 'system_alert' | 'safety_alert'
-export type TargetSegment      =
+export type TargetSegment =
   | 'all'
   | 'active_7d'
   | 'onboarding_incomplete'
   | 'no_labs'
   | 'safety_alert'
   | 'wearable_connected'
+  | 'specific_users'
+  | 'female_only'
+  | 'male_only'
+  | 'admins_only'
+  | 'non_admins'
   | 'custom'
+
+export interface SegmentFilters {
+  biological_profile?: 'female' | 'male'
+  is_admin?:           boolean
+  has_labs?:           boolean
+  active_7d?:          boolean
+  onboarding_incomplete?: boolean
+  specific_user_ids?:  string[]
+  // Future-ready slots
+  subscription_tier?:  string
+  has_wearable?:       boolean
+  health_state?:       string
+  feature_flag?:       string
+}
 
 export interface AdminUser {
   id:          string
