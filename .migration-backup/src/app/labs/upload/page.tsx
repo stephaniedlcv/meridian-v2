@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
@@ -1701,6 +1701,174 @@ function HistoryDetailSheet({
 }
 
 // ── Page component ─────────────────────────────────────────────────────────────
+// ── Connected Insights — cross-system pattern detection ────────────────────────
+interface ConnectedInsight {
+  id: string
+  title: string
+  tagline: string
+  synthesis: string
+  markers: string[]
+  severity: 'attention' | 'watch'
+  dotColor: string
+  borderColor: string
+}
+
+function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsight[] {
+  const bySlug = new Map(biomarkers.map(b => [b.marker_name, b]))
+  const isAbnormal = (slug: string) => {
+    const b = bySlug.get(slug)
+    return !!b && isOutOfRangeState(b.state)
+  }
+  const isPresent = (slug: string) => bySlug.has(slug)
+
+  const insights: ConnectedInsight[] = []
+
+  // Metabolic cluster: triglycerides + HDL + glycemic markers
+  {
+    const slugs = ['triglycerides', 'hdl', 'glucose_fasting', 'hba1c', 'insulin_fasting']
+    const present = slugs.filter(isPresent)
+    const abnormal = slugs.filter(isAbnormal)
+    if (present.length >= 2 && abnormal.length >= 1 && (isPresent('triglycerides') || isPresent('hdl'))) {
+      const sev = abnormal.length >= 2 ? 'attention' : 'watch'
+      insights.push({
+        id: 'metabolic_cluster',
+        title: 'Metabolic Cluster',
+        tagline: 'Lipid · glycemic signals',
+        synthesis: 'Triglycerides, HDL, and glycemic markers are part of the same metabolic picture. When they shift together, the combined signal tends to carry more interpretive weight than any marker alone — Meridian watches this cluster for directional consistency across readings.',
+        markers: present.map(markerDisplayName),
+        severity: sev,
+        dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
+        borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
+      })
+    }
+  }
+
+  // Oxygen transport: iron stores + red cell markers
+  {
+    const slugs = ['ferritin', 'hemoglobin', 'mcv', 'rbc', 'rdw']
+    const present = slugs.filter(isPresent)
+    const abnormal = slugs.filter(isAbnormal)
+    if (present.length >= 2 && abnormal.length >= 1) {
+      const sev = abnormal.length >= 2 ? 'attention' : 'watch'
+      insights.push({
+        id: 'oxygen_transport',
+        title: 'Oxygen Transport',
+        tagline: 'Iron · red cell signals',
+        synthesis: 'Iron stores and red cell markers are connected through the same oxygen-delivery system. When ferritin, hemoglobin, or cell size markers shift together, the pattern may connect to energy, recovery capacity, and how efficiently the body is maintaining its oxygen supply.',
+        markers: present.map(markerDisplayName),
+        severity: sev,
+        dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
+        borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
+      })
+    }
+  }
+
+  // Thyroid axis: TSH + T4/T3
+  {
+    const slugs = ['tsh', 'free_t4', 'free_t3', 'total_t3', 'tpo_antibodies']
+    const present = slugs.filter(isPresent)
+    const abnormal = slugs.filter(isAbnormal)
+    if (present.length >= 2 && abnormal.length >= 1) {
+      const sev = abnormal.length >= 2 ? 'attention' : 'watch'
+      insights.push({
+        id: 'thyroid_axis',
+        title: 'Thyroid Axis',
+        tagline: 'TSH · thyroid hormone signals',
+        synthesis: 'TSH and thyroid hormone levels form an interconnected feedback loop. When multiple markers in this cluster shift in alignment, Meridian places more weight on the pattern — isolated changes in one marker can mean something different than shifts that move across the full thyroid picture.',
+        markers: present.map(markerDisplayName),
+        severity: sev,
+        dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
+        borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
+      })
+    }
+  }
+
+  // Inflammatory signal: CRP + immune markers + homocysteine
+  {
+    const slugs = ['crp_hs', 'homocysteine', 'wbc', 'neutrophils_pct', 'neutrophils_abs']
+    const present = slugs.filter(isPresent)
+    const abnormal = slugs.filter(isAbnormal)
+    if (present.length >= 2 && abnormal.length >= 1) {
+      const sev = abnormal.length >= 2 ? 'attention' : 'watch'
+      insights.push({
+        id: 'inflammatory_signal',
+        title: 'Inflammatory Signal',
+        tagline: 'CRP · immune markers',
+        synthesis: 'Inflammatory and immune markers are shifting alongside each other — a combination Meridian watches as part of the broader stress, recovery, and cardiovascular risk picture rather than as isolated values.',
+        markers: present.map(markerDisplayName),
+        severity: sev,
+        dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
+        borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
+      })
+    }
+  }
+
+  // Stress-hormone axis: cortisol + testosterone + DHEA-S
+  {
+    const slugs = ['cortisol_am', 'testosterone_total', 'dhea_s', 'acth']
+    const present = slugs.filter(isPresent)
+    const abnormal = slugs.filter(isAbnormal)
+    if (present.length >= 2 && abnormal.length >= 1) {
+      const sev = abnormal.length >= 2 ? 'attention' : 'watch'
+      insights.push({
+        id: 'stress_hormone',
+        title: 'Hormonal Balance',
+        tagline: 'Cortisol · sex hormone signals',
+        synthesis: 'Cortisol, DHEA-S, and testosterone are connected through the adrenal and hormonal reserve system. When they shift together, the combined pattern can sometimes reflect stress load, recovery capacity, or hormonal balance — signals that any single hormone reading would not clearly reveal on its own.',
+        markers: present.map(markerDisplayName),
+        severity: sev,
+        dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
+        borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
+      })
+    }
+  }
+
+  // B-vitamin methylation pathway: B12 + folate + homocysteine
+  {
+    const slugs = ['vitamin_b12', 'folate', 'homocysteine']
+    const present = slugs.filter(isPresent)
+    const abnormal = slugs.filter(isAbnormal)
+    if (present.length >= 2 && abnormal.length >= 1) {
+      const sev = abnormal.length >= 2 ? 'attention' : 'watch'
+      insights.push({
+        id: 'methylation',
+        title: 'Methylation Pathway',
+        tagline: 'B-vitamin · homocysteine signals',
+        synthesis: 'B12, folate, and homocysteine operate through the same metabolic pathway. When they shift in a consistent direction, the pattern may reflect a nutrient availability signal — one that individual marker readings can easily miss when viewed in isolation.',
+        markers: present.map(markerDisplayName),
+        severity: sev,
+        dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
+        borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
+      })
+    }
+  }
+
+  // Kidney cluster: creatinine + eGFR + BUN
+  {
+    const slugs = ['creatinine', 'egfr', 'egfr_non_african_american', 'egfr_african_american', 'bun', 'bun_creatinine_ratio']
+    const present = slugs.filter(isPresent)
+    const abnormal = slugs.filter(isAbnormal)
+    if (present.length >= 2 && abnormal.length >= 1) {
+      const sev = abnormal.length >= 2 ? 'attention' : 'watch'
+      insights.push({
+        id: 'renal_cluster',
+        title: 'Renal Function',
+        tagline: 'Kidney filtration signals',
+        synthesis: 'Creatinine, eGFR, and BUN are all windows into the same kidney filtration system. When they shift in alignment, the pattern carries more interpretive weight than any individual reading — Meridian watches directional trends across this cluster over time.',
+        markers: present.map(markerDisplayName),
+        severity: sev,
+        dotColor: sev === 'attention' ? '#FB923C' : '#FCD34D',
+        borderColor: sev === 'attention' ? 'rgba(251,146,60,0.22)' : 'rgba(250,204,21,0.18)',
+      })
+    }
+  }
+
+  // Sort attention-first, then limit to 3
+  return insights
+    .sort((a, b) => (a.severity === 'attention' ? -1 : 1) - (b.severity === 'attention' ? -1 : 1))
+    .slice(0, 3)
+}
+
 export default function LabsUploadPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -2125,6 +2293,12 @@ export default function LabsUploadPage() {
       return next
     })
   }
+
+  // Cross-system insights derived from snapshot biomarkers
+  const connectedInsights = useMemo(
+    () => computeConnectedInsights(snapshotBiomarkersDisplay),
+    [snapshotBiomarkersDisplay]
+  )
 
   // Whether the active upload flow is in progress
   const inUploadFlow = uploading || !!staged || confirmed
@@ -3082,6 +3256,16 @@ export default function LabsUploadPage() {
                                         <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
                                       </div>
                                     )}
+                                    {(() => {
+                                      const why = BIOMARKER_CONTEXT[b.marker_name]?.why
+                                      if (!why) return null
+                                      const sentence = why.split('.')[0] + '.'
+                                      return (
+                                        <p style={{ fontSize: '11px', color: colors.textMuted, margin: '6px 0 0', lineHeight: 1.5 }}>
+                                          {sentence}
+                                        </p>
+                                      )
+                                    })()}
                                   </div>
                                 )
                               })}
@@ -3226,9 +3410,8 @@ export default function LabsUploadPage() {
                                               {markerDisplayName(b.marker_name)}
                                             </span>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                                              <span style={{ fontSize: '15px', fontWeight: 700, color: colors.text }}>{b.value}</span>
+                                              <span style={{ fontSize: '15px', fontWeight: 700, color: s.dot }}>{b.value}</span>
                                               {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
-                                              <span style={{ padding: '2px 7px', borderRadius: '5px', fontSize: '10px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot, letterSpacing: '0.04em' }}>{s.label}</span>
                                               <span style={{ fontSize: '13px', color: colors.textMuted, opacity: 0.4, lineHeight: 1 }}>›</span>
                                             </div>
                                           </div>
@@ -3239,6 +3422,16 @@ export default function LabsUploadPage() {
                                               <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
                                             </div>
                                           )}
+                                          {(() => {
+                                            const why = BIOMARKER_CONTEXT[b.marker_name]?.why
+                                            if (!why) return null
+                                            const sentence = why.split('.')[0] + '.'
+                                            return (
+                                              <p style={{ fontSize: '11px', color: colors.textMuted, margin: '6px 0 0', lineHeight: 1.5 }}>
+                                                {sentence}
+                                              </p>
+                                            )
+                                          })()}
                                         </div>
                                       )
                                     })}
@@ -3275,7 +3468,6 @@ export default function LabsUploadPage() {
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                               <span style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{b.value}</span>
                                               {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted }}>{b.unit}</span>}
-                                              <span style={{ padding: '2px 7px', backgroundColor: s.bg, border: `1px solid ${s.border}`, borderRadius: '5px', fontSize: '10px', fontWeight: 700, color: s.dot, letterSpacing: '0.04em' }}>{s.label}</span>
                                               <span style={{ fontSize: '13px', color: colors.textMuted, opacity: 0.4, lineHeight: 1 }}>›</span>
                                             </div>
                                           </div>
@@ -3319,6 +3511,76 @@ export default function LabsUploadPage() {
                         })}
                       </div>
                     </div>
+
+                    {/* ── Connected Insights ── */}
+                    {connectedInsights.length > 0 && (
+                      <div style={{ marginTop: '32px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                          <p style={{
+                            fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
+                            letterSpacing: '0.07em', color: colors.textMuted, margin: 0,
+                            whiteSpace: 'nowrap',
+                          }}>
+                            Connected Insights
+                          </p>
+                          <div style={{ flex: 1, height: '1px', backgroundColor: colors.cardBorder }} />
+                        </div>
+                        <p style={{ fontSize: '12px', color: colors.textMuted, margin: '0 0 14px', lineHeight: 1.55 }}>
+                          Cross-system patterns detected across your current markers.
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {connectedInsights.map(insight => (
+                            <div key={insight.id} style={{
+                              padding: '16px 18px',
+                              backgroundColor: colors.cardBg,
+                              border: `1px solid ${insight.borderColor}`,
+                              borderRadius: '14px',
+                              backdropFilter: 'blur(24px)',
+                              WebkitBackdropFilter: 'blur(24px)',
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <p style={{ fontSize: '14px', fontWeight: 700, color: colors.text, margin: '0 0 2px' }}>
+                                    {insight.title}
+                                  </p>
+                                  <p style={{ fontSize: '11px', color: colors.textMuted, margin: 0, letterSpacing: '0.02em' }}>
+                                    {insight.tagline}
+                                  </p>
+                                </div>
+                                <div style={{
+                                  display: 'flex', alignItems: 'center', gap: '5px',
+                                  padding: '3px 9px', borderRadius: '5px', flexShrink: 0,
+                                  backgroundColor: insight.severity === 'attention' ? 'rgba(251,146,60,0.09)' : 'rgba(250,204,21,0.09)',
+                                  border: `1px solid ${insight.borderColor}`,
+                                  marginTop: '1px',
+                                }}>
+                                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: insight.dotColor, flexShrink: 0 }} />
+                                  <span style={{ fontSize: '10px', fontWeight: 700, color: insight.dotColor, letterSpacing: '0.04em' }}>
+                                    {insight.severity === 'attention' ? 'Pattern' : 'Tracking'}
+                                  </span>
+                                </div>
+                              </div>
+                              <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: '0 0 12px' }}>
+                                {insight.synthesis}
+                              </p>
+                              <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                                {insight.markers.map(m => (
+                                  <span key={m} style={{
+                                    padding: '2px 8px', borderRadius: '4px',
+                                    fontSize: '10px', fontWeight: 600,
+                                    backgroundColor: 'rgba(103,232,249,0.06)',
+                                    border: '1px solid rgba(103,232,249,0.12)',
+                                    color: colors.textMuted,
+                                  }}>
+                                    {m}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
               </motion.div>
