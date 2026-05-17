@@ -48,6 +48,64 @@ function getBlockColors(blockColor: string) {
   }
 }
 
+function getFirstName(fullName: string): string {
+  if (!fullName || fullName === 'there') return ''
+  const first = fullName.trim().split(' ')[0]
+  return first.charAt(0).toUpperCase() + first.slice(1)
+}
+
+function getTimeGreeting(firstName: string): { greeting: string; subline: string } {
+  const hour      = new Date().getHours()
+  const dayIndex  = new Date().getDay()
+
+  const period =
+    hour >= 5 && hour < 12 ? 'morning'   :
+    hour >= 12 && hour < 18 ? 'afternoon' :
+    'evening'
+
+  const sublines = {
+    morning: [
+      'Your overnight signals are ready to review.',
+      'A good time to check in before the day builds up.',
+      'Let\'s see what your biology is asking for today.',
+      'Your recovery window is closing. Here\'s where you stand.',
+      'Your body has been working since sleep. Let\'s look at the signal.',
+      'A quiet moment before the day takes over. Here\'s your read.',
+      'Your system was active overnight. Here\'s what it\'s telling you.',
+    ],
+    afternoon: [
+      'Your system is active. Here\'s what it\'s currently prioritizing.',
+      'A mid-day check-in. Your biology is at full cycle right now.',
+      'Here\'s where your body stands this afternoon.',
+      'Your biomarkers have something to say. Let\'s review.',
+      'Your system has been tracking all morning. Here\'s the signal.',
+      'The afternoon is a good time to read your body\'s current state.',
+      'Your biology is mid-cycle. Here\'s what it\'s communicating.',
+    ],
+    evening: [
+      'Your body has been working today. Here\'s what it\'s signaling.',
+      'A good time to review before your recovery window opens.',
+      'Let\'s see how your biology has settled as the day winds down.',
+      'Your system has data worth reviewing this evening.',
+      'The day\'s signals are in. Here\'s what they\'re saying.',
+      'Your body is winding down. Here\'s what it\'s asking for tonight.',
+      'Your recovery cycle is approaching. Here\'s today\'s read.',
+    ],
+  }
+
+  const lines   = sublines[period]
+  const subline = lines[dayIndex % lines.length]
+
+  const prefix =
+    period === 'morning'   ? 'Good morning'   :
+    period === 'afternoon' ? 'Good afternoon' :
+    'Good evening'
+
+  const greeting = firstName ? `${prefix}, ${firstName}` : `${prefix}.`
+
+  return { greeting, subline }
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const supabase = createBrowserClient(
@@ -217,48 +275,60 @@ export default function DashboardPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '32px',
-          }}
+          style={{ marginBottom: '32px' }}
         >
-          <div>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              padding: '8px 18px', borderRadius: '999px',
-              border: '1px solid rgba(45,212,191,0.38)',
-              background: 'rgba(20,184,166,0.08)',
-              color: '#2DD4BF',
-              fontSize: '12px', fontWeight: 800, letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              marginBottom: '28px',
-            }}>
-              <div style={{
-                width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
-                background: colors.teal,
-                boxShadow: '0 0 8px rgba(45,212,191,0.7)',
-              }} />
-              Active Signal
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-fraunces), serif',
-              fontSize: '32px',
-              fontWeight: 700,
-              color: '#EAFBF7',
-              letterSpacing: '-0.05em',
-              marginBottom: '14px',
-            }}>
-              Meridian
-            </div>
-            <div style={{ fontSize: '14px', fontWeight: 600, color: colors.text, marginBottom: '2px' }}>
-              Your body is speaking.
-            </div>
-            <div style={{ fontSize: '14px', color: colors.textSoft }}>
-              Let&apos;s see what changed today.
-            </div>
-          </div>
+          {(() => {
+            const { greeting, subline } = getTimeGreeting(getFirstName(userName))
+            return (
+              <div>
+                {/* Subtle date anchor */}
+                <div style={{
+                  display:       'inline-flex',
+                  alignItems:    'center',
+                  gap:           '7px',
+                  fontSize:      '11px',
+                  fontWeight:    600,
+                  letterSpacing: '0.07em',
+                  textTransform: 'uppercase',
+                  color:         colors.textMuted,
+                  marginBottom:  '18px',
+                }}>
+                  <div style={{
+                    width:     '5px',
+                    height:    '5px',
+                    borderRadius: '50%',
+                    background: colors.teal,
+                    boxShadow: '0 0 6px rgba(45,212,191,0.65)',
+                    flexShrink: 0,
+                  }} />
+                  {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </div>
+
+                {/* Personalized greeting */}
+                <div style={{
+                  fontFamily:    'var(--font-fraunces), serif',
+                  fontSize:      'clamp(26px, 6vw, 34px)',
+                  fontWeight:    700,
+                  color:         colors.text,
+                  letterSpacing: '-0.04em',
+                  lineHeight:    1.15,
+                  marginBottom:  '10px',
+                }}>
+                  {greeting}
+                </div>
+
+                {/* Contextual subline */}
+                <div style={{
+                  fontSize:   '14px',
+                  color:      colors.textSoft,
+                  lineHeight: 1.65,
+                  maxWidth:   '360px',
+                }}>
+                  {subline}
+                </div>
+              </div>
+            )
+          })()}
         </motion.div>
 
         {/* Intelligence Block */}
@@ -666,36 +736,26 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
     }}>
       {/* Header */}
       <div style={{ padding: '28px 24px 20px', borderBottom: `1px solid ${colors.cardBorder}` }}>
-        {/* Top row: signal chip + status badge */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '14px',
-        }}>
+        {/* Contextual signal label */}
+        <div style={{ marginBottom: '14px' }}>
           <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
-            textTransform: 'uppercase', color: bc.accent,
-            padding: '4px 10px',
-            border: `1px solid ${bc.accent}40`,
-            borderRadius: '20px',
-            background: `${bc.accent}0D`,
+            display:       'inline-flex',
+            alignItems:    'center',
+            gap:           '6px',
+            fontSize:      '10px',
+            fontWeight:    700,
+            letterSpacing: '0.09em',
+            textTransform: 'uppercase',
+            color:         bc.accent,
+            padding:       '4px 10px',
+            border:        `1px solid ${bc.accent}40`,
+            borderRadius:  '20px',
+            background:    `${bc.accent}0D`,
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: bc.accent, boxShadow: `0 0 6px ${bc.accent}` }} />
-            Biological Signal
-          </div>
-          <div style={{
-            fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em',
-            textTransform: 'uppercase', color: colors.textMuted,
-            padding: '3px 10px',
-            border: `1px solid ${colors.cardBorder}`,
-            borderRadius: '20px',
-            background: colors.cardBg,
-          }}>
-            Active
+            {insight.block_color === 'alert'   ? 'Priority signal'   :
+             insight.block_color === 'optimal' ? 'Performing well'   :
+             'Recovery signal'}
           </div>
         </div>
 
