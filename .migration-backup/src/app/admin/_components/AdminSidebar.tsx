@@ -198,6 +198,40 @@ export default function AdminSidebar({ role, displayName, email, onClose }: Prop
         })}
       </nav>
 
+      {/* Return to Meridian */}
+      <div style={{ padding: '8px 12px', borderTop: `1px solid ${colors.cardBorder}` }}>
+        <button
+          onClick={() => { router.push('/dashboard'); onClose?.() }}
+          style={{
+            display:         'flex',
+            alignItems:      'center',
+            gap:             '8px',
+            padding:         '10px 12px',
+            borderRadius:    '8px',
+            border:          'none',
+            cursor:          'pointer',
+            width:           '100%',
+            textAlign:       'left',
+            fontFamily:      fonts.ui,
+            fontSize:        '12px',
+            fontWeight:      500,
+            color:           colors.textMuted,
+            backgroundColor: 'transparent',
+            transition:      'all 0.15s ease',
+            minHeight:       '40px',
+            letterSpacing:   '0.01em',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = colors.textSoft; (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(154,203,193,0.04)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = colors.textMuted; (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent' }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8.5 2.5L4 7l4.5 4.5" />
+            <line x1="4" y1="7" x2="12" y2="7" />
+          </svg>
+          Return to Meridian
+        </button>
+      </div>
+
       {/* User info */}
       <div style={{ padding: '16px 14px', borderTop: `1px solid ${colors.cardBorder}` }}>
         <div style={{ fontFamily: fonts.ui, fontSize: '12px', fontWeight: 600, color: colors.textSoft, marginBottom: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

@@ -190,6 +190,7 @@ export default function ProfilePage() {
   const [editDietPattern, setEditDietPattern]     = useState<DietPattern | null>(null)
   const [saving, setSaving]                       = useState(false)
   const [saveStatus, setSaveStatus]               = useState<'idle' | 'success' | 'error'>('idle')
+  const [isAdmin, setIsAdmin]                     = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -236,6 +237,18 @@ export default function ProfilePage() {
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
       setHasLabs(typeof count === 'number' && count > 0)
+
+      // Admin check — server-side via service role (no hardcoded IDs)
+      try {
+        const adminRes = await fetch('/api/admin/check')
+        if (adminRes.ok) {
+          const adminData = await adminRes.json()
+          setIsAdmin(adminData.isAdmin === true)
+        }
+      } catch {
+        // Non-fatal — admin section simply stays hidden
+      }
+
       setPageLoading(false)
     }
     load()
@@ -1104,6 +1117,86 @@ export default function ProfilePage() {
             ))}
           </div>
         </div>
+
+        {/* ════════════════════════════ SYSTEM ACCESS (admins only) ═══ */}
+        {isAdmin && (
+          <div style={{
+            background:          'rgba(103,232,249,0.03)',
+            border:              '1px solid rgba(103,232,249,0.12)',
+            borderRadius:        '20px',
+            backdropFilter:      'blur(24px)',
+            WebkitBackdropFilter:'blur(24px)',
+            padding:             '22px',
+            marginBottom:        '10px',
+            boxShadow:           'inset 0 1px 0 rgba(103,232,249,0.06)',
+          }}>
+            {/* Section label */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <span style={{
+                fontSize:      '10px',
+                fontWeight:    700,
+                letterSpacing: '0.10em',
+                textTransform: 'uppercase',
+                color:         colors.textMuted,
+              }}>
+                System Access
+              </span>
+              <div style={{
+                display:      'inline-flex',
+                alignItems:   'center',
+                gap:          '5px',
+                padding:      '2px 8px',
+                borderRadius: '20px',
+                background:   'rgba(103,232,249,0.06)',
+                border:       '1px solid rgba(103,232,249,0.16)',
+              }}>
+                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.cyan, boxShadow: '0 0 5px rgba(103,232,249,0.8)' }} />
+                <span style={{ fontSize: '9px', fontWeight: 700, color: colors.cyan, letterSpacing: '0.07em', textTransform: 'uppercase' }}>
+                  Operator Console Enabled
+                </span>
+              </div>
+            </div>
+
+            <p style={{ margin: '0 0 18px', fontSize: '12px', color: colors.textMuted, lineHeight: 1.55 }}>
+              Administrative access is active for this account.
+            </p>
+
+            <button
+              onClick={() => window.location.href = '/admin'}
+              style={{
+                display:        'flex',
+                alignItems:     'center',
+                justifyContent: 'space-between',
+                width:          '100%',
+                padding:        '12px 16px',
+                borderRadius:   '12px',
+                border:         '1px solid rgba(103,232,249,0.15)',
+                background:     'rgba(103,232,249,0.05)',
+                cursor:         'pointer',
+                fontFamily:     fonts.ui,
+                transition:     'all 0.18s ease',
+                boxSizing:      'border-box',
+              }}
+              onMouseEnter={e => {
+                const el = e.currentTarget as HTMLButtonElement
+                el.style.background     = 'rgba(103,232,249,0.10)'
+                el.style.borderColor    = 'rgba(103,232,249,0.28)'
+                el.style.boxShadow      = '0 0 14px rgba(103,232,249,0.08)'
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget as HTMLButtonElement
+                el.style.background     = 'rgba(103,232,249,0.05)'
+                el.style.borderColor    = 'rgba(103,232,249,0.15)'
+                el.style.boxShadow      = 'none'
+              }}
+            >
+              <span style={{ fontSize: '14px', fontWeight: 600, color: colors.textSoft, letterSpacing: '-0.01em' }}>
+                Open Admin Console
+              </span>
+              <span style={{ fontSize: '16px', color: colors.textMuted, lineHeight: 1 }}>›</span>
+            </button>
+          </div>
+        )}
 
         {/* ════════════════════════════ CONTROL LAYER ═══ */}
         <div style={cardStyle}>
