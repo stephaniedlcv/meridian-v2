@@ -120,7 +120,20 @@ export default function AdminSidebar({ role, displayName, email, onClose }: Prop
     }}>
       {/* Logo + close button row */}
       <div style={{ padding: '24px 20px 18px', borderBottom: `1px solid ${colors.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <button
+          onClick={() => { router.push('/dashboard'); onClose?.() }}
+          aria-label="Return to Meridian"
+          style={{
+            display:         'flex',
+            alignItems:      'center',
+            gap:             '10px',
+            background:      'none',
+            border:          'none',
+            cursor:          'pointer',
+            padding:         0,
+            touchAction:     'manipulation',
+          }}
+        >
           <span style={{
             fontFamily:           fonts.heading,
             fontSize:             '22px',
@@ -134,7 +147,7 @@ export default function AdminSidebar({ role, displayName, email, onClose }: Prop
             <div style={{ fontFamily: fonts.ui, fontSize: '11px', fontWeight: 700, color: colors.textSoft, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Meridian</div>
             <div style={{ fontFamily: fonts.ui, fontSize: '10px', color: colors.textMuted, letterSpacing: '0.05em' }}>Admin</div>
           </div>
-        </div>
+        </button>
         {/* Close button — visible on mobile via topbar, but also available in drawer */}
         {onClose && (
           <button

@@ -41,36 +41,74 @@ export async function GET(req: NextRequest) {
     adminFilterIds = [] // sentinel — will use NOT IN logic below
   }
 
-  // ── Build profile query ───────────────────────────────────────
-  let q = db.from('profiles').select(
-    'id, display_name, full_name, biological_profile, user_profile, safety_status, onboarding_completed, account_status, created_at, updated_at',
-    { count: 'exact' }
-  )
-
-  if (filterOnboarding !== null) q = q.eq('onboarding_completed', filterOnboarding === 'true')
-  if (filterBioProfile)          q = q.eq('biological_profile',   filterBioProfile as 'male' | 'female')
-  if (filterSafety)              q = q.eq('safety_status',        filterSafety as 'active' | 'medical_alert')
-  if (filterUserProfile)         q = q.eq('user_profile',         filterUserProfile as 'bienestar' | 'optimizacion' | 'rendimiento' | 'condicion' | 'primer_paso')
-  if (filterStatus)              q = q.eq('account_status',       filterStatus as string)
-
-  // Apply admin membership filter
-  if (filterIsAdmin === 'true' || filterRole) {
-    if (adminFilterIds!.length === 0) {
-      return NextResponse.json({ users: [], total: 0, page, pageSize })
-    }
-    q = q.in('id', adminFilterIds!)
+  // Early-exit: admin/role filter that resolves to no candidates
+  if ((filterIsAdmin === 'true' || filterRole) && adminFilterIds!.length === 0) {
+    return NextResponse.json({ users: [], total: 0, page, pageSize })
   }
-  // Note: NOT IN for filterIsAdmin === 'false' is handled post-fetch (see below)
 
   const validSortCols = new Set(['created_at', 'updated_at', 'full_name'])
   const col = validSortCols.has(sortBy) ? sortBy : 'created_at'
-  q = q.order(col, { ascending: sortDir === 'asc' })
-  q = q.range((page - 1) * pageSize, page * pageSize - 1)
 
-  const { data: profiles, count, error } = await q
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  // ── Build profile query ───────────────────────────────────────
+  // account_status was added in migration 003_admin_moderation.sql.
+  // If that migration has not yet been applied to this Supabase instance,
+  // PostgREST returns error code 42703 (column does not exist).
+  // We detect that and automatically retry without the moderation column so
+  // that the users list continues to function while the migration is pending.
+  function buildProfilesQuery(withAccountStatus: boolean) {
+    const selectCols = withAccountStatus
+      ? 'id, display_name, full_name, biological_profile, user_profile, safety_status, onboarding_completed, account_status, created_at, updated_at'
+      : 'id, display_name, full_name, biological_profile, user_profile, safety_status, onboarding_completed, created_at, updated_at'
 
-  const userIds = (profiles ?? []).map(p => p.id)
+    let q = db.from('profiles').select(selectCols, { count: 'exact' })
+
+    if (filterOnboarding !== null) q = q.eq('onboarding_completed', filterOnboarding === 'true')
+    if (filterBioProfile)          q = q.eq('biological_profile',   filterBioProfile as 'male' | 'female')
+    if (filterSafety)              q = q.eq('safety_status',        filterSafety as 'active' | 'medical_alert')
+    if (filterUserProfile)         q = q.eq('user_profile',         filterUserProfile as 'bienestar' | 'optimizacion' | 'rendimiento' | 'condicion' | 'primer_paso')
+    if (withAccountStatus && filterStatus) q = q.eq('account_status', filterStatus as string)
+
+    if (filterIsAdmin === 'true' || filterRole) q = q.in('id', adminFilterIds!)
+
+    q = q.order(col, { ascending: sortDir === 'asc' })
+    q = q.range((page - 1) * pageSize, page * pageSize - 1)
+    return q
+  }
+
+  let result = await buildProfilesQuery(true)
+
+  // Fallback: moderation column not yet in DB — retry without account_status
+  if (result.error && (result.error.code === '42703' || result.error.message?.includes('account_status'))) {
+    console.warn('[admin/users] account_status column not found — migration 003 pending. Retrying without moderation columns.')
+    result = await buildProfilesQuery(false)
+  }
+
+  if (result.error) {
+    console.error('[admin/users] profiles query error:', result.error)
+    return NextResponse.json({ error: result.error.message }, { status: 500 })
+  }
+
+  // Supabase infers column types from static select strings only.
+  // buildProfilesQuery uses a runtime-conditional string, so TypeScript
+  // produces a ParserError union. We escape via unknown then assert to the
+  // known shared shape (account_status is optional — absent when the
+  // moderation migration hasn't been applied yet).
+  type ProfileRow = {
+    id: string
+    display_name:         string | null
+    full_name:            string | null
+    biological_profile:   string | null
+    user_profile:         string | null
+    safety_status:        string | null
+    onboarding_completed: boolean | null
+    account_status?:      string | null
+    created_at:           string
+    updated_at:           string | null
+  }
+  const profiles = (result.data as unknown as ProfileRow[]) ?? []
+  const count = result.count
+
+  const userIds = profiles.map(p => p.id)
 
   // ── Auth emails ───────────────────────────────────────────────
   const emailMap: Record<string, string> = {}

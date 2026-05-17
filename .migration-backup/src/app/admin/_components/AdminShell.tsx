@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import AdminSidebar from './AdminSidebar'
 
 const colors = {
@@ -34,6 +34,7 @@ interface Props {
 
 export default function AdminShell({ role, displayName, email, children }: Props) {
   const pathname  = usePathname()
+  const router    = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => { setMenuOpen(false) }, [pathname])
@@ -87,21 +88,34 @@ export default function AdminShell({ role, displayName, email, children }: Props
           <span style={hamLine(menuOpen ? 'translateY(-6.5px) rotate(-45deg)' : 'none')} />
         </button>
 
-        {/* Logo + section */}
+        {/* Logo + section — tapping Meridian returns to /dashboard */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-          <span style={{
-            fontFamily:           fonts.heading,
-            fontSize:             '20px',
-            fontWeight:           700,
-            background:           'linear-gradient(135deg, #FFFFFF 0%, #67E8F9 45%, #2DD4BF 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor:  'transparent',
-            filter:               'drop-shadow(0 0 6px rgba(45,212,191,0.35))',
-          }}>M</span>
-          <div style={{ fontFamily: fonts.ui, fontSize: '12px', letterSpacing: '0.05em' }}>
-            <span style={{ fontWeight: 700, color: colors.textSoft, textTransform: 'uppercase' }}>Meridian</span>
-            <span style={{ color: colors.textMuted }}> / {section}</span>
-          </div>
+          <button
+            onClick={() => { router.push('/dashboard'); setMenuOpen(false) }}
+            aria-label="Return to Meridian"
+            style={{
+              display:         'flex',
+              alignItems:      'center',
+              gap:             '8px',
+              background:      'none',
+              border:          'none',
+              cursor:          'pointer',
+              padding:         0,
+              touchAction:     'manipulation',
+            }}
+          >
+            <span style={{
+              fontFamily:           fonts.heading,
+              fontSize:             '20px',
+              fontWeight:           700,
+              background:           'linear-gradient(135deg, #FFFFFF 0%, #67E8F9 45%, #2DD4BF 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor:  'transparent',
+              filter:               'drop-shadow(0 0 6px rgba(45,212,191,0.35))',
+            }}>M</span>
+            <span style={{ fontFamily: fonts.ui, fontSize: '12px', letterSpacing: '0.05em', fontWeight: 700, color: colors.textSoft, textTransform: 'uppercase' }}>Meridian</span>
+          </button>
+          <span style={{ fontFamily: fonts.ui, fontSize: '12px', letterSpacing: '0.05em', color: colors.textMuted }}>/ {section}</span>
         </div>
 
         {/* Right spacer (balances hamburger) */}

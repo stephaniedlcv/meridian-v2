@@ -731,6 +731,7 @@ export default function AdminUsersPage() {
   const [total,        setTotal]        = useState(0)
   const [page,         setPage]         = useState(1)
   const [loading,      setLoading]      = useState(true)
+  const [fetchError,   setFetchError]   = useState<string | null>(null)
   const [actingRole,   setActingRole]   = useState<AdminRole | null>(null)
 
   // Filters
@@ -759,6 +760,7 @@ export default function AdminUsersPage() {
 
   const fetchUsers = useCallback(async (s: string, pg: number) => {
     setLoading(true)
+    setFetchError(null)
     try {
       const params = new URLSearchParams({
         page: String(pg), sort: sortBy, dir: sortDir,
@@ -774,8 +776,22 @@ export default function AdminUsersPage() {
       })
       const res  = await fetch(`/api/admin/users?${params}`)
       const data = await res.json()
+      if (!res.ok) {
+        const msg = data?.error ?? `Server error ${res.status}`
+        console.error('[admin/users] fetch failed:', msg)
+        setFetchError(msg)
+        setUsers([])
+        setTotal(0)
+        return
+      }
       setUsers(data.users ?? [])
       setTotal(data.total ?? 0)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unexpected error fetching users'
+      console.error('[admin/users] fetch exception:', err)
+      setFetchError(msg)
+      setUsers([])
+      setTotal(0)
     } finally {
       setLoading(false)
     }
@@ -801,8 +817,38 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '6px' }}>Users</h1>
-        <p style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, margin: 0 }}>{total} total users</p>
+        <p style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, margin: 0 }}>
+          {fetchError ? 'Failed to load' : `${total} total users`}
+        </p>
       </div>
+
+      {/* Error banner */}
+      {fetchError && (
+        <div style={{
+          marginBottom: '16px',
+          padding: '14px 18px',
+          borderRadius: '12px',
+          backgroundColor: 'rgba(248,113,113,0.07)',
+          border: '1px solid rgba(248,113,113,0.25)',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '12px',
+        }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: '1px' }}>
+            <path d="M8 1L1 14h14L8 1Z" stroke="#F87171" strokeWidth="1.4" strokeLinejoin="round" />
+            <line x1="8" y1="6.5" x2="8" y2="10" stroke="#F87171" strokeWidth="1.4" strokeLinecap="round" />
+            <circle cx="8" cy="12" r="0.6" fill="#F87171" />
+          </svg>
+          <div>
+            <div style={{ fontFamily: fonts.ui, fontSize: '13px', fontWeight: 700, color: colors.red, marginBottom: '2px' }}>
+              Failed to load users
+            </div>
+            <div style={{ fontFamily: fonts.ui, fontSize: '12px', color: colors.textMuted, lineHeight: 1.5 }}>
+              {fetchError}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search + Filters */}
       <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', padding: '18px 20px', marginBottom: '18px' }}>
