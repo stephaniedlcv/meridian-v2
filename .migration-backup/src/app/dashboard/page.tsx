@@ -408,10 +408,11 @@ export default function DashboardPage() {
                         <span style={{
                           display: 'block',
                           fontSize: 'clamp(26px, 6vw, 34px)',
-                          background: 'linear-gradient(90deg, #EAFBF7 0%, #67E8F9 55%, #2DD4BF 100%)',
+                          background: 'linear-gradient(90deg, #F8FFFC 0%, #67E8F9 45%, #2DD4BF 100%)',
                           WebkitBackgroundClip: 'text',
                           WebkitTextFillColor: 'transparent',
                           backgroundClip: 'text',
+                          textShadow: '0 0 18px rgba(45,212,191,0.18)',
                         }}>
                           {name}
                         </span>
