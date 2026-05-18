@@ -93,9 +93,8 @@ function MediaUploadField({
         return
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('meridian-assets')
-        .getPublicUrl(path)
+      const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\/$/, '')
+      const publicUrl   = `${supabaseUrl}/storage/v1/object/public/meridian-assets/${path}`
 
       onChange(publicUrl)
     } catch {
