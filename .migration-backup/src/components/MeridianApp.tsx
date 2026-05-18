@@ -14,8 +14,6 @@ const F_UI    = 'var(--font-plus-jakarta), "Plus Jakarta Sans", sans-serif'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Video background — cinematic depth system
-// Three independent overlay layers: atmospheric ceiling, cinematic ground,
-// radial edge diffusion. Config opacity only controls the mid-zone.
 // ─────────────────────────────────────────────────────────────────────────────
 function VideoBackground({
   desktopUrl, mobileUrl, posterUrl, overlayOpacity,
@@ -39,78 +37,57 @@ function VideoBackground({
 
   return (
     <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-      {/* Poster — visible while video buffers */}
       {posterUrl && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={posterUrl}
-          alt="" aria-hidden
+          src={posterUrl} alt="" aria-hidden
           style={{
             position: 'absolute', inset: 0, width: '100%', height: '100%',
-            objectFit: 'cover',
-            opacity: ready ? 0 : 1,
-            transition: 'opacity 1.4s ease',
+            objectFit: 'cover', opacity: ready ? 0 : 1, transition: 'opacity 1.4s ease',
           }}
         />
       )}
 
       <video
-        ref={videoRef}
-        src={src}
+        ref={videoRef} src={src}
         autoPlay muted loop playsInline preload="metadata"
         onCanPlay={() => setReady(true)}
         style={{
           position: 'absolute', inset: 0, width: '100%', height: '100%',
-          objectFit: 'cover',
-          opacity: ready ? 1 : 0,
-          transition: 'opacity 1.8s ease',
+          objectFit: 'cover', opacity: ready ? 1 : 0, transition: 'opacity 1.8s ease',
         }}
       />
 
-      {/* Layer 1 — Atmospheric ceiling + cinematic ground.
-          Always on. Creates the sense that the environment exists
-          beyond the video frame — not a flat rectangle. */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: `linear-gradient(
-            to bottom,
-            rgba(6,19,22,0.70)  0%,
-            rgba(6,19,22,0.18) 20%,
-            rgba(6,19,22,${Math.max(0.12, overlayOpacity - 0.12).toFixed(2)}) 48%,
-            rgba(6,19,22,0.52) 74%,
-            rgba(6,19,22,0.92) 100%
-          )`,
-        }}
-      />
+      {/* Layer 1 — Atmospheric ceiling + cinematic ground */}
+      <div aria-hidden style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: `linear-gradient(
+          to bottom,
+          rgba(6,19,22,0.70)  0%,
+          rgba(6,19,22,0.18) 20%,
+          rgba(6,19,22,${Math.max(0.12, overlayOpacity - 0.12).toFixed(2)}) 48%,
+          rgba(6,19,22,0.52) 74%,
+          rgba(6,19,22,0.92) 100%
+        )`,
+      }} />
 
-      {/* Layer 2 — Radial edge diffusion.
-          Darkens the peripheral frame, pulls focus to center.
-          Cinematic depth without visible vignette shape. */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse 68% 58% at 50% 44%, transparent 20%, rgba(6,19,22,0.54) 100%)',
-        }}
-      />
+      {/* Layer 2 — Radial edge diffusion */}
+      <div aria-hidden style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'radial-gradient(ellipse 68% 58% at 50% 44%, transparent 20%, rgba(6,19,22,0.54) 100%)',
+      }} />
 
-      {/* Layer 3 — Soft horizontal edge shadow.
-          Adds dimensionality — left/right edges recede slightly. */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'linear-gradient(to right, rgba(6,19,22,0.28) 0%, transparent 18%, transparent 82%, rgba(6,19,22,0.28) 100%)',
-        }}
-      />
+      {/* Layer 3 — Horizontal edge shadow */}
+      <div aria-hidden style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'linear-gradient(to right, rgba(6,19,22,0.28) 0%, transparent 18%, transparent 82%, rgba(6,19,22,0.28) 100%)',
+      }} />
     </div>
   )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Ambient orb background — added spatial depth layers
+// Ambient orb background
 // ─────────────────────────────────────────────────────────────────────────────
 function AmbientBackground({
   theme, mode,
@@ -127,36 +104,11 @@ function AmbientBackground({
 
   return (
     <>
-      {/* Background orbs — far layer */}
       <div aria-hidden style={{ position: 'absolute', top: '-18%', left: '-12%', width: '58%', height: '58%', background: `radial-gradient(circle, ${scale(orbs.primary)} 0%, transparent 70%)`, filter: 'blur(100px)', pointerEvents: 'none' }} />
       <div aria-hidden style={{ position: 'absolute', bottom: '-18%', right: '-12%', width: '58%', height: '58%', background: `radial-gradient(circle, ${scale(orbs.secondary)} 0%, transparent 70%)`, filter: 'blur(100px)', pointerEvents: 'none' }} />
-
-      {/* Midground diffusion — biological ambient glow, tighter focus */}
       <div aria-hidden style={{ position: 'absolute', top: '30%', left: '20%', width: '32%', height: '28%', background: `radial-gradient(circle, rgba(45,212,191,0.055) 0%, transparent 70%)`, filter: 'blur(60px)', pointerEvents: 'none' }} />
-
-      {/* Foreground depth — cinematic atmospheric floor.
-          Darkens the bottom to ground the composition
-          and prevent the content from floating formlessly. */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0,
-          height: '48%',
-          background: 'linear-gradient(to top, rgba(6,19,22,0.70) 0%, rgba(6,19,22,0.20) 60%, transparent 100%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Atmospheric ceiling — subtle top fade, creates sense of enclosure */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute', top: 0, left: 0, right: 0,
-          height: '32%',
-          background: 'linear-gradient(to bottom, rgba(6,19,22,0.32) 0%, transparent 100%)',
-          pointerEvents: 'none',
-        }}
-      />
+      <div aria-hidden style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '48%', background: 'linear-gradient(to top, rgba(6,19,22,0.70) 0%, rgba(6,19,22,0.20) 60%, transparent 100%)', pointerEvents: 'none' }} />
+      <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '32%', background: 'linear-gradient(to bottom, rgba(6,19,22,0.32) 0%, transparent 100%)', pointerEvents: 'none' }} />
     </>
   )
 }
@@ -173,30 +125,39 @@ function LoadingSkeleton() {
     }}>
       <div aria-hidden style={{ position: 'absolute', top: '-20%', left: '-15%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 70%)', filter: 'blur(90px)' }} />
       <div aria-hidden style={{ position: 'absolute', bottom: '-20%', right: '-15%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(103,232,249,0.08) 0%, transparent 70%)', filter: 'blur(90px)' }} />
-      {/* Cinematic ground on skeleton too */}
       <div aria-hidden style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%', background: 'linear-gradient(to top, rgba(6,19,22,0.65) 0%, transparent 100%)', pointerEvents: 'none' }} />
-      <Halo url={null} size={76} />
+      <Halo url={null} size={72} />
     </div>
   )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Logo halo — lighter visual weight (76px default, was 92)
+// Logo halo
+// size 72px (−5% from 76). Rings: thicker stroke + higher opacity + soft glow.
 // ─────────────────────────────────────────────────────────────────────────────
-function Halo({ url, size = 76 }: { url: string | null; size?: number }) {
+function Halo({ url, size = 72 }: { url: string | null; size?: number }) {
   return (
     <div style={{
       position: 'relative', width: `${size}px`, height: `${size}px`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       flexShrink: 0,
     }}>
-      <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '1px solid rgba(103,232,249,0.09)', boxShadow: '0 0 48px rgba(45,212,191,0.06), 0 0 110px rgba(45,212,191,0.025)' }} />
-      <div style={{ position: 'absolute', inset: `${Math.round(size * 0.15)}px`, borderRadius: '50%', border: '0.5px solid rgba(103,232,249,0.11)' }} />
+      {/* Outer ring — increased stroke weight + opacity for video visibility */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: '50%',
+        border: '1.5px solid rgba(103,232,249,0.26)',
+        boxShadow: '0 0 32px rgba(45,212,191,0.13), 0 0 72px rgba(45,212,191,0.06), inset 0 0 18px rgba(45,212,191,0.04)',
+      }} />
+      {/* Inner ring */}
+      <div style={{
+        position: 'absolute', inset: `${Math.round(size * 0.15)}px`,
+        borderRadius: '50%',
+        border: '1px solid rgba(103,232,249,0.18)',
+      }} />
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={url}
-          alt="Meridian"
+          src={url} alt="Meridian"
           style={{ width: `${Math.round(size * 0.55)}px`, height: `${Math.round(size * 0.55)}px`, objectFit: 'contain', position: 'relative', zIndex: 1 }}
         />
       ) : (
@@ -219,15 +180,51 @@ function Halo({ url, size = 76 }: { url: string | null; size?: number }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function ExitOverlay({ active }: { active: boolean }) {
   return (
-    <div
-      aria-hidden
+    <div aria-hidden style={{
+      position: 'fixed', inset: 0, zIndex: 300, backgroundColor: '#061316',
+      opacity: active ? 1 : 0,
+      transition: active ? 'opacity 0.55s cubic-bezier(0.45, 0, 0.9, 1)' : 'none',
+      pointerEvents: active ? 'auto' : 'none',
+    }} />
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Log In corner utility — top-right, small, restrained
+// ─────────────────────────────────────────────────────────────────────────────
+function LoginCornerButton({
+  label, onClick, visible,
+}: { label: string; onClick: () => void; visible: boolean }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
-        position: 'fixed', inset: 0, zIndex: 300, backgroundColor: '#061316',
-        opacity: active ? 1 : 0,
-        transition: active ? 'opacity 0.55s cubic-bezier(0.45, 0, 0.9, 1)' : 'none',
-        pointerEvents: active ? 'auto' : 'none',
+        position:    'fixed',
+        top:         '22px',
+        right:       '24px',
+        zIndex:      10,
+        fontFamily:  F_UI,
+        fontSize:    '12.5px',
+        fontWeight:  500,
+        letterSpacing: '0.01em',
+        color:       hovered ? '#EAFBF7' : '#7BB5AC',
+        background:  hovered ? 'rgba(232,248,245,0.06)' : 'transparent',
+        border:      `1px solid ${hovered ? 'rgba(103,232,249,0.22)' : 'rgba(103,232,249,0.12)'}`,
+        borderRadius: '8px',
+        padding:     '7px 14px',
+        cursor:      'pointer',
+        transition:  'all 0.18s ease',
+        backdropFilter: 'blur(12px)',
+        // Entrance fade — matches content animation
+        opacity:     visible ? 1 : 0,
+        transform:   visible ? 'translateY(0)' : 'translateY(-6px)',
       }}
-    />
+    >
+      {label}
+    </button>
   )
 }
 
@@ -243,7 +240,6 @@ export default function MeridianApp() {
   const [transitioning, setTransitioning] = useState(false)
   const [isMobile,      setIsMobile]      = useState(false)
 
-  // Responsive composition detection
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640)
     check()
@@ -251,7 +247,6 @@ export default function MeridianApp() {
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  // Fetch live config — non-blocking
   useEffect(() => {
     fetch('/api/landing-config')
       .then(r => r.ok ? r.json() : null)
@@ -259,7 +254,6 @@ export default function MeridianApp() {
       .catch(() => {})
   }, [])
 
-  // Auth check — redirect if already logged in
   useEffect(() => {
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -279,14 +273,12 @@ export default function MeridianApp() {
     checkAuth()
   }, [router])
 
-  // Entrance animation — triggers after auth resolves
   useEffect(() => {
     if (authChecking) return
     const t = setTimeout(() => setMounted(true), 120)
     return () => clearTimeout(t)
   }, [authChecking])
 
-  // Premium cinematic navigation
   function navigateTo(path: string) {
     setTransitioning(true)
     setTimeout(() => router.push(path), 560)
@@ -297,7 +289,6 @@ export default function MeridianApp() {
   const bg       = THEME_BG[config.background_theme] ?? '#061316'
   const hasVideo = !!config.hero_video_url
 
-  // Staggered entrance — fade + lift per element
   function enter(delayMs: number): React.CSSProperties {
     return {
       opacity:    mounted ? 1 : 0,
@@ -310,22 +301,24 @@ export default function MeridianApp() {
     <>
       <ExitOverlay active={transitioning} />
 
+      {/* Log In — fixed top-right utility position */}
+      <LoginCornerButton
+        label={config.secondary_cta_label}
+        onClick={() => navigateTo('/onboarding/welcome?mode=login')}
+        visible={mounted}
+      />
+
       <div style={{
         minHeight:       '100svh',
         backgroundColor: bg,
         display:         'flex',
         flexDirection:   'column',
         alignItems:      'center',
-
-        // Desktop: center — content is shifted up via transform below.
-        // Mobile: flex-end — cinematic bottom-weighted composition.
-        justifyContent: isMobile ? 'flex-end' : 'center',
-
-        position: 'relative',
-        overflow: 'hidden',
+        justifyContent:  isMobile ? 'flex-end' : 'center',
+        position:        'relative',
+        overflow:        'hidden',
       }}>
 
-        {/* ── Background ── */}
         {hasVideo ? (
           <VideoBackground
             desktopUrl={config.hero_video_url!}
@@ -340,10 +333,9 @@ export default function MeridianApp() {
           />
         )}
 
-        {/* ── Content column ──
-            Desktop: translateY(-6vh) breaks the dead-center position,
-            creating the soft editorial asymmetry the brief describes.
-            Mobile: padding-bottom anchors the block above the viewport floor. */}
+        {/* Content column
+            Desktop: translateY(-6vh) for soft asymmetric cinematic offset.
+            Mobile: padding-bottom for bottom-weighted composition. */}
         <div style={{
           position:      'relative',
           zIndex:        1,
@@ -356,11 +348,11 @@ export default function MeridianApp() {
           padding:       isMobile
             ? '0 24px clamp(56px, 10svh, 80px)'
             : '0 28px',
-          transform: isMobile ? 'none' : 'translateY(-6vh)',
+          transform:     isMobile ? 'none' : 'translateY(-6vh)',
         }}>
 
-          {/* Logo halo — 76px, lighter presence */}
-          <div style={{ ...enter(0), marginBottom: '10px' }}>
+          {/* Logo halo — 72px, visible rings */}
+          <div style={{ ...enter(0), marginBottom: '18px' }}>
             <Halo url={config.logo_variant_url} />
           </div>
 
@@ -373,19 +365,19 @@ export default function MeridianApp() {
             color:         '#EAFBF7',
             letterSpacing: '-0.045em',
             lineHeight:    1,
-            marginBottom:  '7px',
+            marginBottom:  '10px',
             textAlign:     'center',
           }}>
             Meridian
           </div>
 
-          {/* System tag — tighter margin, closer to headline */}
+          {/* System tag — increased opacity + weight for video readability */}
           <div style={{
             ...enter(160),
-            display:       'flex',
-            alignItems:    'center',
-            gap:           '8px',
-            marginBottom:  '38px',
+            display:      'flex',
+            alignItems:   'center',
+            gap:          '8px',
+            marginBottom: '48px',
           }}>
             <span style={{
               display: 'block', width: '4px', height: '4px', borderRadius: '50%',
@@ -394,9 +386,13 @@ export default function MeridianApp() {
               flexShrink: 0,
             }} />
             <span style={{
-              fontFamily: F_UI, fontSize: '9.5px', fontWeight: 700,
-              letterSpacing: '0.20em', textTransform: 'uppercase' as const,
-              color: '#4D7A73',
+              fontFamily:    F_UI,
+              fontSize:      '9.5px',
+              fontWeight:    700,
+              letterSpacing: '0.20em',
+              textTransform: 'uppercase' as const,
+              // Lifted from #4D7A73 — more visible over video
+              color:         '#6FA89F',
             }}>
               Biological Intelligence System
             </span>
@@ -408,24 +404,26 @@ export default function MeridianApp() {
             }} />
           </div>
 
-          {/* Editorial headline — tighter to subcopy */}
+          {/* Editorial headline
+              −13% scale: clamp(28px,5.6vw,48px) → clamp(24px,4.9vw,42px)
+              line-height lifted 1.18 → 1.28 for more editorial luxury feel */}
           <div style={{
             ...enter(260),
             fontFamily:    F_SERIF,
-            fontSize:      'clamp(28px, 5.6vw, 48px)',
+            fontSize:      'clamp(24px, 4.9vw, 42px)',
             fontWeight:    300,
             color:         '#EAFBF7',
             letterSpacing: '-0.04em',
-            lineHeight:    1.18,
+            lineHeight:    1.28,
             textAlign:     'center',
-            maxWidth:      '510px',
-            marginBottom:  '13px',
+            maxWidth:      '500px',
+            marginBottom:  '20px',
             whiteSpace:    'pre-line',
           }}>
             {config.headline}
           </div>
 
-          {/* Subcopy — closer to CTAs, tighter grouping */}
+          {/* Subcopy */}
           <div style={{
             ...enter(360),
             fontFamily:    F_UI,
@@ -435,24 +433,16 @@ export default function MeridianApp() {
             lineHeight:    1.70,
             textAlign:     'center',
             maxWidth:      '360px',
-            marginBottom:  '36px',
+            marginBottom:  '44px',
           }}>
             {config.subcopy}
           </div>
 
-          {/* CTAs — anchored, not floating */}
-          <div style={{
-            ...enter(460),
-            display: 'flex', gap: '12px',
-            flexWrap: 'wrap' as const, justifyContent: 'center',
-          }}>
+          {/* Primary CTA only — Log In has moved to top-right corner */}
+          <div style={{ ...enter(460) }}>
             <PrimaryButton
               label={config.primary_cta_label}
               onClick={() => navigateTo('/onboarding/welcome?mode=signup')}
-            />
-            <SecondaryButton
-              label={config.secondary_cta_label}
-              onClick={() => navigateTo('/onboarding/welcome?mode=login')}
             />
           </div>
         </div>
@@ -482,31 +472,6 @@ function PrimaryButton({ label, onClick }: { label: string; onClick: () => void 
           : '0 0 24px rgba(45,212,191,0.32), 0 0 60px rgba(45,212,191,0.10), inset 0 1px 0 rgba(255,255,255,0.22)',
         transform: hovered ? 'scale(1.03)' : 'scale(1)',
         transition: 'transform 0.20s ease, box-shadow 0.20s ease',
-      }}
-    >
-      {label}
-    </button>
-  )
-}
-
-function SecondaryButton({ label, onClick }: { label: string; onClick: () => void }) {
-  const [hovered, setHovered] = useState(false)
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        padding: '15px 36px', minWidth: '120px', minHeight: '52px',
-        background: hovered ? 'rgba(232,248,245,0.08)' : 'rgba(232,248,245,0.045)',
-        border: `1px solid ${hovered ? 'rgba(103,232,249,0.38)' : 'rgba(103,232,249,0.18)'}`,
-        borderRadius: '14px',
-        color: hovered ? '#EAFBF7' : '#7BB5AC',
-        fontFamily: F_UI, fontSize: '15px', fontWeight: 600,
-        letterSpacing: '-0.01em', cursor: 'pointer',
-        backdropFilter: 'blur(18px)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
-        transition: 'all 0.20s ease',
       }}
     >
       {label}
