@@ -84,9 +84,28 @@ export default function GoalsPage() {
     }
     setLoading(true)
     setError('')
+
+    // Map UI goal values → canonical DB values accepted by the
+    // profiles_user_profile_check constraint.
+    // longevidad / claridad have no canonical equivalent yet — they are skipped.
+    // The FIRST canonical value found in the selection is persisted.
+    // This preserves backward-compat with the single-value constraint while
+    // the UI supports multiselect. DB architecture update is a separate task.
+    const CANONICAL: Partial<Record<GoalValue, string>> = {
+      primer_paso:  'primer_paso',
+      bienestar:    'bienestar',
+      optimizacion: 'optimizacion',
+      rendimiento:  'rendimiento',
+      condicion:    'condicion',
+      // longevidad and claridad have no canonical DB value yet — omitted
+    }
+
+    const primaryGoal =
+      selectedGoals.map(g => CANONICAL[g]).find(v => v !== undefined) ?? 'bienestar'
+
     const { error: updateError } = await supabase
       .from('profiles')
-      .upsert({ id: userId, user_profile: JSON.stringify(selectedGoals) }, { onConflict: 'id' })
+      .upsert({ id: userId, user_profile: primaryGoal }, { onConflict: 'id' })
     if (updateError) { setError(updateError.message); setLoading(false); return }
     router.push('/onboarding/connect')
   }
