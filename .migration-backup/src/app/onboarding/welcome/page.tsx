@@ -22,6 +22,20 @@ const fonts = {
   ui: '"Plus Jakarta Sans", sans-serif',
 }
 
+const inputBase: React.CSSProperties = {
+  width: '100%',
+  padding: '12px 16px',
+  backgroundColor: 'rgba(6,19,22,0.6)',
+  border: `1px solid ${colors.cardBorder}`,
+  borderRadius: '12px',
+  color: colors.text,
+  fontFamily: fonts.ui,
+  fontSize: '15px',
+  outline: 'none',
+  boxSizing: 'border-box',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+}
+
 const EyeIcon = ({ open }: { open: boolean }) =>
   open ? (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -34,20 +48,6 @@ const EyeIcon = ({ open }: { open: boolean }) =>
       <line x1="1" y1="1" x2="23" y2="23" />
     </svg>
   )
-
-const inputBase: React.CSSProperties = {
-  width: '100%',
-  padding: '15px 18px',
-  backgroundColor: 'rgba(6,19,22,0.6)',
-  border: `1px solid ${colors.cardBorder}`,
-  borderRadius: '12px',
-  color: colors.text,
-  fontFamily: fonts.ui,
-  fontSize: '15px',
-  outline: 'none',
-  boxSizing: 'border-box',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
-}
 
 function WelcomePageInner() {
   const router = useRouter()
@@ -67,10 +67,8 @@ function WelcomePageInner() {
   const [error, setError]                       = useState<string | null>(null)
   const [emailConfirmPending, setEmailConfirmPending] = useState(false)
 
-  // Password match state — only shown once user starts typing in confirm field
   const passwordsMatch = password === confirmPassword
   const showMatchState = !isLogin && confirmPassword.length > 0
-
   const canSubmit = !loading && !!email && !!password &&
     (isLogin || (!!confirmPassword && passwordsMatch))
 
@@ -86,48 +84,28 @@ function WelcomePageInner() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isLogin && !passwordsMatch) {
-      setError('Passwords don\'t match.')
-      return
-    }
+    if (!isLogin && !passwordsMatch) { setError("Passwords don't match."); return }
     setLoading(true)
     setError(null)
-
     try {
       if (isLogin) {
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-        if (authError) {
-          setError(authError.message)
-          return
-        }
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+        if (authError) { setError(authError.message); return }
         const { data: profile } = await supabase
           .from('profiles')
           .select('full_name, birth_date, biological_profile, current_state, user_profile, onboarding_completed')
           .eq('id', authData.user!.id)
           .single()
-        const nextStep = getNextOnboardingStep(profile)
-        router.push(nextStep ?? '/')
+        router.push(getNextOnboardingStep(profile) ?? '/')
         return
       }
-
       const { data: signUpData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: '' },
-        },
+        email, password,
+        options: { data: { full_name: '' } },
       })
-      if (authError) {
-        setError(authError.message)
-        return
-      }
+      if (authError) { setError(authError.message); return }
       if (signUpData.session) {
-        await supabase
-          .from('profiles')
-          .upsert({ id: signUpData.user!.id }, { onConflict: 'id' })
+        await supabase.from('profiles').upsert({ id: signUpData.user!.id }, { onConflict: 'id' })
         router.push('/onboarding/identity')
       } else {
         setEmailConfirmPending(true)
@@ -141,33 +119,23 @@ function WelcomePageInner() {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: colors.background,
         fontFamily: fonts.ui,
-        position: 'relative',
-        overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '24px',
       }}
     >
-      {/* Ambient orbs */}
-      <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '55%', height: '55%', background: `radial-gradient(circle, rgba(45,212,191,0.13) 0%, transparent 70%)`, filter: 'blur(90px)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', bottom: '-15%', right: '-10%', width: '55%', height: '55%', background: `radial-gradient(circle, rgba(103,232,249,0.11) 0%, transparent 70%)`, filter: 'blur(90px)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '40%', height: '30%', background: `radial-gradient(circle, rgba(45,212,191,0.05) 0%, transparent 70%)`, filter: 'blur(60px)', pointerEvents: 'none' }} />
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         style={{
           width: '100%',
-          maxWidth: '420px',
+          maxWidth: '400px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          position: 'relative',
-          zIndex: 1,
         }}
       >
         {/* Logo halo */}
@@ -177,12 +145,12 @@ function WelcomePageInner() {
           transition={{ duration: 0.5, delay: 0.15 }}
           style={{
             position: 'relative',
-            width: '128px',
-            height: '128px',
+            width: '112px',
+            height: '112px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: '20px',
+            marginBottom: '18px',
           }}
         >
           <div style={{
@@ -191,12 +159,12 @@ function WelcomePageInner() {
             boxShadow: '0 0 56px rgba(45,212,191,0.07), 0 0 140px rgba(45,212,191,0.03)',
           }} />
           <div style={{
-            position: 'absolute', inset: '18px', borderRadius: '50%',
+            position: 'absolute', inset: '16px', borderRadius: '50%',
             border: '0.5px solid rgba(103,232,249,0.14)',
           }} />
           <div style={{
-            fontFamily: "var(--font-fraunces), serif",
-            fontSize: '64px',
+            fontFamily: 'var(--font-fraunces), serif',
+            fontSize: '56px',
             fontWeight: 700,
             background: 'linear-gradient(135deg, #FFFFFF 0%, #67E8F9 40%, #2DD4BF 100%)',
             WebkitBackgroundClip: 'text',
@@ -210,12 +178,12 @@ function WelcomePageInner() {
 
         {/* Wordmark */}
         <div style={{
-          fontFamily: "var(--font-fraunces), serif",
-          fontSize: '32px',
+          fontFamily: 'var(--font-fraunces), serif',
+          fontSize: '28px',
           fontWeight: 700,
           color: '#EAFBF7',
           letterSpacing: '-0.05em',
-          marginBottom: '10px',
+          marginBottom: '9px',
         }}>
           Meridian
         </div>
@@ -225,10 +193,10 @@ function WelcomePageInner() {
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          marginBottom: '48px',
+          marginBottom: '36px',
         }}>
           <div style={{
-            width: '5px', height: '5px', borderRadius: '50%',
+            width: '4px', height: '4px', borderRadius: '50%',
             background: '#2DD4BF',
             boxShadow: '0 0 8px rgba(45,212,191,0.9), 0 0 16px rgba(45,212,191,0.4)',
           }} />
@@ -242,64 +210,63 @@ function WelcomePageInner() {
             Biological Intelligence System
           </div>
           <div style={{
-            width: '5px', height: '5px', borderRadius: '50%',
+            width: '4px', height: '4px', borderRadius: '50%',
             background: '#2DD4BF',
             boxShadow: '0 0 8px rgba(45,212,191,0.9), 0 0 16px rgba(45,212,191,0.4)',
           }} />
         </div>
 
-        {/* Headline */}
+        {/* Headline — refined, calmer tone */}
         <h1
           style={{
             fontFamily: fonts.heading,
-            fontSize: '26px',
+            fontSize: '24px',
             fontWeight: 400,
             color: colors.text,
             textAlign: 'center',
             marginBottom: '8px',
-            lineHeight: 1.2,
+            lineHeight: 1.25,
             letterSpacing: '-0.03em',
-            whiteSpace: 'nowrap',
           }}
         >
-          Your biological intelligence system
+          Understand your biology in context.
         </h1>
 
         {/* Subtitle */}
         <p
           style={{
             fontFamily: fonts.ui,
-            fontSize: '15px',
+            fontSize: '14px',
             color: colors.textSoft,
             textAlign: 'center',
-            marginBottom: '24px',
-            lineHeight: 1.75,
+            marginBottom: '20px',
+            lineHeight: 1.7,
           }}
         >
           Connect your labs and wearables.<br />
           Get one clear priority every day.
         </p>
 
-        {/* Glass form card */}
+        {/* Glass form card — lighter, more breathable */}
         <div style={{
           width: '100%',
           backgroundColor: colors.cardBg,
           border: `1px solid ${colors.cardBorder}`,
-          borderRadius: '24px',
+          borderRadius: '22px',
           backdropFilter: 'blur(28px)',
           WebkitBackdropFilter: 'blur(28px)',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 32px rgba(45,212,191,0.04)',
-          padding: '28px 24px 24px',
+          padding: '22px 20px 18px',
         }}>
           {emailConfirmPending ? (
-            <div style={{ textAlign: 'center', padding: '8px 0' }}>
+            <div style={{ textAlign: 'center', padding: '4px 0' }}>
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: '7px',
                 fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
                 textTransform: 'uppercase', color: colors.teal,
                 padding: '5px 14px', border: '1px solid rgba(45,212,191,0.28)',
                 borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
-                marginBottom: '20px',
+                marginBottom: '16px',
               }}>
                 <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
                 Check your inbox
@@ -307,15 +274,15 @@ function WelcomePageInner() {
               <p style={{ color: colors.text, fontSize: '15px', lineHeight: 1.65, marginBottom: '10px' }}>
                 We sent a confirmation link to <strong>{email}</strong>.
               </p>
-              <p style={{ color: colors.textSoft, fontSize: '13px', lineHeight: 1.6, marginBottom: '20px' }}>
-                Click the link in that email to activate your account, then come back here to log in.
+              <p style={{ color: colors.textSoft, fontSize: '13px', lineHeight: 1.6, marginBottom: '18px' }}>
+                Click the link to activate your account, then log in here.
               </p>
               <button
                 type="button"
                 onClick={() => switchMode(true)}
                 style={{
-                  width: '100%', border: 'none', borderRadius: '14px',
-                  padding: '14px 20px',
+                  width: '100%', border: 'none', borderRadius: '12px',
+                  padding: '13px 18px',
                   background: 'linear-gradient(135deg, #2DD4BF 0%, #67E8F9 100%)',
                   color: '#061316', fontFamily: fonts.ui,
                   fontSize: '15px', fontWeight: 700, cursor: 'pointer',
@@ -329,7 +296,7 @@ function WelcomePageInner() {
           ) : (
             <form onSubmit={handleSubmit}>
               {/* Email */}
-              <div style={{ marginBottom: '14px' }}>
+              <div style={{ marginBottom: '12px' }}>
                 <input
                   type="email"
                   placeholder="Email address"
@@ -341,27 +308,27 @@ function WelcomePageInner() {
               </div>
 
               {/* Password */}
-              <div style={{ marginBottom: isLogin ? '20px' : '14px', position: 'relative' }}>
+              <div style={{ marginBottom: isLogin ? '18px' : '12px', position: 'relative' }}>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  style={{ ...inputBase, paddingRight: '48px' }}
+                  style={{ ...inputBase, paddingRight: '46px' }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   style={{
-                    position: 'absolute', right: '14px', top: '50%',
+                    position: 'absolute', right: '13px', top: '50%',
                     transform: 'translateY(-50%)',
                     background: 'none', border: 'none', cursor: 'pointer',
                     color: colors.textMuted, padding: '4px',
                     display: 'flex', alignItems: 'center',
                   }}
-                  tabIndex={-1}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   <EyeIcon open={showPassword} />
                 </button>
@@ -377,28 +344,27 @@ function WelcomePageInner() {
                       value={confirmPassword}
                       onChange={(e) => { setConfirmPassword(e.target.value); if (error) setError(null) }}
                       required
-                      style={{ ...inputBase, paddingRight: '48px' }}
+                      style={{ ...inputBase, paddingRight: '46px' }}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirm((v) => !v)}
+                      tabIndex={-1}
+                      aria-label={showConfirm ? 'Hide confirm password' : 'Show confirm password'}
                       style={{
-                        position: 'absolute', right: '14px', top: '50%',
+                        position: 'absolute', right: '13px', top: '50%',
                         transform: 'translateY(-50%)',
                         background: 'none', border: 'none', cursor: 'pointer',
                         color: colors.textMuted, padding: '4px',
                         display: 'flex', alignItems: 'center',
                       }}
-                      tabIndex={-1}
-                      aria-label={showConfirm ? 'Hide confirm password' : 'Show confirm password'}
                     >
                       <EyeIcon open={showConfirm} />
                     </button>
                   </div>
-                  {/* Match indicator */}
                   {showMatchState && (
                     <p style={{
-                      margin: '0 0 14px',
+                      margin: '0 0 12px',
                       fontSize: '12px',
                       color: passwordsMatch ? colors.teal : '#E8A87C',
                       display: 'flex', alignItems: 'center', gap: '5px',
@@ -412,11 +378,10 @@ function WelcomePageInner() {
                           : '0 0 6px rgba(232,168,124,0.6)',
                         flexShrink: 0,
                       }} />
-                      {passwordsMatch ? 'Passwords match' : 'Passwords don\'t match'}
+                      {passwordsMatch ? 'Passwords match' : "Passwords don't match"}
                     </p>
                   )}
-                  {/* spacer when no match indicator */}
-                  {!showMatchState && <div style={{ marginBottom: '14px' }} />}
+                  {!showMatchState && <div style={{ marginBottom: '12px' }} />}
                 </div>
               )}
 
@@ -424,9 +389,9 @@ function WelcomePageInner() {
               {error && (
                 <p style={{
                   color: '#EF4444',
-                  fontSize: '14px',
+                  fontSize: '13px',
                   textAlign: 'center',
-                  marginBottom: '16px',
+                  marginBottom: '14px',
                 }}>
                   {error}
                 </p>
@@ -440,20 +405,20 @@ function WelcomePageInner() {
                 whileTap={canSubmit ? { scale: 0.98 } : {}}
                 style={{
                   width: '100%',
-                  padding: '16px 24px',
+                  padding: '14px 22px',
                   background: canSubmit
                     ? `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`
                     : `${colors.teal}60`,
                   border: 'none',
-                  borderRadius: '14px',
+                  borderRadius: '12px',
                   color: colors.background,
                   fontFamily: fonts.ui,
-                  fontSize: '16px',
+                  fontSize: '15px',
                   fontWeight: 700,
                   cursor: canSubmit ? 'pointer' : 'not-allowed',
                   letterSpacing: '-0.01em',
                   boxShadow: canSubmit
-                    ? '0 0 24px rgba(45,212,191,0.3), 0 0 60px rgba(45,212,191,0.10), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    ? '0 0 24px rgba(45,212,191,0.28), 0 0 56px rgba(45,212,191,0.09), inset 0 1px 0 rgba(255,255,255,0.2)'
                     : 'none',
                 }}
               >
@@ -467,11 +432,10 @@ function WelcomePageInner() {
         <p
           style={{
             fontFamily: fonts.ui,
-            fontSize: '14px',
+            fontSize: '13px',
             color: colors.textMuted,
             textAlign: 'center',
-            marginTop: '20px',
-            marginBottom: '8px',
+            marginTop: '18px',
           }}
         >
           {isLogin ? "Don't have an account? " : 'Already have an account? '}
@@ -481,18 +445,6 @@ function WelcomePageInner() {
           >
             {isLogin ? 'Sign up' : 'Log in'}
           </span>
-        </p>
-
-        {/* Time estimate */}
-        <p
-          style={{
-            fontFamily: fonts.ui,
-            fontSize: '13px',
-            color: colors.textMuted,
-            textAlign: 'center',
-          }}
-        >
-          Takes 2 minutes
         </p>
       </motion.div>
     </div>

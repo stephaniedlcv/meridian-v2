@@ -198,20 +198,13 @@ export default function ConnectPage() {
   return (
     <main style={{
       minHeight: '100vh',
-      background: colors.background,
       color: colors.text,
       fontFamily: 'Plus Jakarta Sans, sans-serif',
-      position: 'relative',
-      overflow: 'hidden',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '48px 20px',
     }}>
-      {/* Ambient orbs — 3 layers matching goals/welcome/landing */}
-      <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(45,212,191,0.13) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', bottom: '-15%', right: '-10%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(103,232,249,0.11) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '40%', height: '30%', background: 'radial-gradient(circle, rgba(45,212,191,0.05) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
 
       <motion.section
         initial={{ opacity: 0, y: 18 }}
@@ -229,7 +222,7 @@ export default function ConnectPage() {
             borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
-            Connect Data · Step 3
+            Connect Data · Step 4 of 4
           </div>
         </div>
 
@@ -328,7 +321,7 @@ export default function ConnectPage() {
             onClick={handleContinue}
             style={{
               width: '100%', border: 'none', borderRadius: '14px',
-              padding: '16px 20px',
+              padding: '14px 18px',
               background: loading ? 'rgba(45,212,191,0.25)' : 'linear-gradient(135deg, #2DD4BF 0%, #67E8F9 100%)',
               color: '#061316',
               fontFamily: 'Plus Jakarta Sans, sans-serif',
@@ -337,7 +330,7 @@ export default function ConnectPage() {
               letterSpacing: '-0.01em',
               boxShadow: loading
                 ? 'none'
-                : '0 0 24px rgba(45,212,191,0.35), 0 0 60px rgba(45,212,191,0.12), inset 0 1px 0 rgba(255,255,255,0.25)',
+                : '0 0 24px rgba(45,212,191,0.32), 0 0 56px rgba(45,212,191,0.10), inset 0 1px 0 rgba(255,255,255,0.22)',
               transition: 'box-shadow 200ms ease, background 200ms ease',
             }}
           >

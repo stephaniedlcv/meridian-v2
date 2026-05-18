@@ -49,10 +49,10 @@ const stateOptions: Array<{ value: StateValue; label: string; sub: string }> = [
 
 export default function CurrentStatePage() {
   const router = useRouter()
-  const [userId, setUserId]             = useState<string | null>(null)
-  const [selected, setSelected]         = useState<StateValue[]>([])
-  const [loading, setLoading]           = useState(false)
-  const [error, setError]               = useState('')
+  const [userId, setUserId]     = useState<string | null>(null)
+  const [selected, setSelected] = useState<StateValue[]>([])
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
 
   useEffect(() => {
     let isMounted = true
@@ -89,7 +89,6 @@ export default function CurrentStatePage() {
       .upsert({ id: userId, current_state: stateJson }, { onConflict: 'id' })
     setLoading(false)
     if (upsertError) {
-      // If column doesn't exist yet (migration pending), log and proceed gracefully
       console.warn('current-state save error (may need migration):', upsertError.message)
     }
     router.push('/onboarding/goals')
@@ -102,30 +101,20 @@ export default function CurrentStatePage() {
       .from('profiles')
       .upsert({ id: userId, current_state: '[]' }, { onConflict: 'id' })
     setLoading(false)
-    if (upsertError) {
-      console.warn('current-state skip save error:', upsertError.message)
-    }
+    if (upsertError) console.warn('current-state skip save error:', upsertError.message)
     router.push('/onboarding/goals')
   }
 
   return (
     <main style={{
       minHeight: '100vh',
-      background: colors.background,
       color: colors.text,
       fontFamily: 'Plus Jakarta Sans, sans-serif',
-      position: 'relative',
-      overflow: 'hidden',
       display: 'flex',
       alignItems: 'flex-start',
       justifyContent: 'center',
       padding: '72px 20px 100px',
     }}>
-      {/* Ambient orbs */}
-      <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(45,212,191,0.13) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', bottom: '-15%', right: '-10%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(103,232,249,0.11) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '40%', height: '30%', background: 'radial-gradient(circle, rgba(45,212,191,0.05) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
-
       <motion.section
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
@@ -153,11 +142,11 @@ export default function CurrentStatePage() {
           backdropFilter: 'blur(28px)',
           WebkitBackdropFilter: 'blur(28px)',
           borderRadius: '24px',
-          padding: '32px 28px 28px',
+          padding: '28px 24px 24px',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 48px rgba(45,212,191,0.06)',
         }}>
           {/* Heading */}
-          <div style={{ marginBottom: '28px' }}>
+          <div style={{ marginBottom: '24px' }}>
             <h1 style={{
               margin: '0 0 8px',
               fontFamily: 'var(--font-fraunces), serif',
@@ -167,16 +156,16 @@ export default function CurrentStatePage() {
             }}>
               Where are you right now?
             </h1>
-            <p style={{ margin: '0 0 5px', color: colors.textSoft, fontSize: '15px', lineHeight: 1.6 }}>
+            <p style={{ margin: '0 0 4px', color: colors.textSoft, fontSize: '14px', lineHeight: 1.6 }}>
               Select everything that feels true — you can pursue multiple realities at once.
             </p>
-            <p style={{ margin: 0, color: colors.textMuted, fontSize: '13px', lineHeight: 1.5 }}>
+            <p style={{ margin: 0, color: colors.textMuted, fontSize: '12px', lineHeight: 1.5 }}>
               Meridian calibrates its signals to your current state.
             </p>
           </div>
 
           {/* Section label */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
             <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
               Select all that apply
             </span>
@@ -192,7 +181,7 @@ export default function CurrentStatePage() {
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '10px',
+            gap: '9px',
             marginBottom: '8px',
           }}>
             {stateOptions.map((opt, i) => {
@@ -203,7 +192,7 @@ export default function CurrentStatePage() {
                   type="button"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.05 * i }}
+                  transition={{ duration: 0.4, delay: 0.04 * i }}
                   onClick={() => toggleState(opt.value)}
                   style={{
                     textAlign: 'left',
@@ -213,7 +202,7 @@ export default function CurrentStatePage() {
                     WebkitBackdropFilter: 'blur(20px)',
                     color: colors.text,
                     borderRadius: '14px',
-                    padding: '14px 16px',
+                    padding: '13px 14px',
                     cursor: 'pointer',
                     transition: 'border-color 180ms ease, background 180ms ease, box-shadow 180ms ease',
                     boxShadow: isOn ? '0 0 0 1px rgba(45,212,191,0.15), 0 0 14px rgba(45,212,191,0.07)' : 'none',
@@ -261,9 +250,8 @@ export default function CurrentStatePage() {
             })}
           </div>
 
-          {/* Validation error */}
           {error && (
-            <p style={{ margin: '12px 0 0', color: '#EF4444', fontSize: '13px', lineHeight: 1.5 }}>
+            <p style={{ margin: '10px 0 0', color: '#EF4444', fontSize: '13px', lineHeight: 1.5 }}>
               {error}
             </p>
           )}
@@ -274,8 +262,8 @@ export default function CurrentStatePage() {
             disabled={loading || !userId}
             onClick={handleContinue}
             style={{
-              width: '100%', border: 'none', borderRadius: '14px',
-              padding: '16px 20px', marginTop: '24px',
+              width: '100%', border: 'none', borderRadius: '12px',
+              padding: '14px 18px', marginTop: '20px',
               background: !loading && userId
                 ? 'linear-gradient(135deg, #2DD4BF 0%, #67E8F9 100%)'
                 : 'rgba(45,212,191,0.25)',
@@ -285,7 +273,7 @@ export default function CurrentStatePage() {
               cursor: loading || !userId ? 'not-allowed' : 'pointer',
               letterSpacing: '-0.01em',
               boxShadow: !loading && userId
-                ? '0 0 24px rgba(45,212,191,0.35), 0 0 60px rgba(45,212,191,0.12), inset 0 1px 0 rgba(255,255,255,0.25)'
+                ? '0 0 24px rgba(45,212,191,0.32), 0 0 56px rgba(45,212,191,0.10), inset 0 1px 0 rgba(255,255,255,0.22)'
                 : 'none',
               transition: 'box-shadow 200ms ease, background 200ms ease',
             }}
@@ -295,7 +283,7 @@ export default function CurrentStatePage() {
         </div>
 
         {/* Skip link */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '14px' }}>
           <button
             type="button"
             onClick={handleSkip}

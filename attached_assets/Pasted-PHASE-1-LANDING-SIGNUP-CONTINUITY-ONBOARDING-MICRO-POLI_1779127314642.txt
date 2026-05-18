@@ -1,0 +1,187 @@
+PHASE 1 — LANDING → SIGNUP CONTINUITY + ONBOARDING MICRO-POLISH
+
+CRITICAL ISSUE:
+The signup/welcome screen currently feels disconnected from the cinematic landing experience. On some mobile flows, users land directly into the auth card without preserving the emotional transition from the hero landing.
+
+Meridian should feel like ONE continuous cinematic system.
+
+GOAL:
+Maintain the immersive landing atmosphere while refining onboarding into a calmer, lighter, more premium experience.
+
+────────────────────
+PART 1 — LANDING CONTINUITY FIX
+────────────────────
+
+Investigate why:
+/onboarding/welcome?mode=signup
+
+sometimes renders as a standalone auth page instead of preserving the cinematic landing environment.
+
+The onboarding welcome screen should visually inherit:
+- the ambient cinematic background
+- the teal atmospheric glow
+- the emotional continuity of the landing
+- the immersive fullscreen feeling
+
+The transition should feel:
+Landing → subtle fade → signup layer appears
+
+NOT:
+Landing → hard route change → generic auth form
+
+REQUIREMENTS:
+- Preserve the existing cinematic video/background system
+- Keep the onboarding auth card floating above the same ambient environment
+- Maintain mobile performance
+- Avoid duplicate rendering of heavy video layers
+- Ensure the landing background remains visible behind signup/login
+- Preserve dark cinematic gradients and depth overlays
+
+If needed:
+Create a shared cinematic background wrapper/layout between:
+- landing
+- signup
+- login
+- onboarding intro steps
+
+WITHOUT duplicating code unnecessarily.
+
+IMPORTANT:
+Do NOT redesign the landing.
+Do NOT brighten the experience.
+Do NOT add SaaS-style auth layouts.
+
+────────────────────
+PART 2 — SIGNUP MICRO-POLISH
+────────────────────
+
+1. REMOVE:
+“Takes 2 minutes”
+
+Completely remove it from signup.
+
+It weakens the luxury/cinematic tone.
+
+────────────────────
+
+2. REDUCE AUTH CARD VISUAL WEIGHT
+
+Current auth card feels:
+- slightly too tall
+- slightly too bulky
+- slightly too SaaS
+
+Reduce:
+- vertical padding ~12%
+- input height slightly
+- overall card heaviness
+
+Keep:
+- glassmorphism
+- glow
+- atmospheric depth
+
+Goal:
+More elegant.
+More breathable.
+More cinematic.
+
+────────────────────
+
+3. REFINE PRIMARY HEADLINE
+
+Current:
+“Your biological intelligence system”
+
+This feels too corporate/product-marketing.
+
+Replace with a calmer, more human line.
+
+Preferred direction:
+“Understand your biology in context.”
+
+OR another emotionally intelligent alternative that matches Meridian’s cinematic tone.
+
+Do NOT use:
+- hype copy
+- startup buzzwords
+- aggressive optimization language
+
+Tone:
+calm intelligence
+editorial biotech
+premium ambient health system
+
+────────────────────
+
+4. DATE OF BIRTH UX UPGRADE
+
+Current DOB field feels like plain manual text input.
+
+Upgrade it to feel premium and native.
+
+Preferred:
+- elegant native date selector
+- iOS-feeling interaction
+- smooth dark styling
+- safer biological-input feeling
+
+The DOB field is foundational biological context.
+It should feel intentional and trustworthy.
+
+────────────────────
+
+5. FIX IDENTITY EXPLANATION COPY
+
+Current:
+“This is how Meridian will address you inside the app.”
+
+This no longer makes sense after removing preferred name.
+
+Replace with copy focused on:
+- personalization
+- biological context
+- profile continuity
+
+NOT naming/addressing.
+
+────────────────────
+
+6. REDUCE BUTTON BULKINESS
+
+Primary Continue / Get Started buttons:
+- slightly too tall
+- slightly too heavy visually
+
+Reduce height ~6–8%.
+Keep:
+- cinematic glow
+- premium teal depth
+- soft shadowing
+
+Goal:
+less SaaS
+more refined luxury UI
+
+────────────────────
+
+7. OVERALL GOAL
+
+The onboarding should no longer feel like:
+“a form sequence”
+
+It should feel like:
+“a calm biological calibration experience”
+
+Keep all current architecture and routing logic.
+This is ONLY a cinematic UX refinement pass.
+
+DO NOT:
+- change onboarding flow logic
+- remove steps
+- alter DB architecture
+- redesign Meridian styling system
+- brighten the interface
+- add generic modern SaaS patterns
+
+This is a premium cinematic polish pass only.

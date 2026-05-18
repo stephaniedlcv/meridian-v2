@@ -27,34 +27,34 @@ const inputBase: React.CSSProperties = {
   border: `1px solid ${colors.cardBorder}`,
   background: 'rgba(6,19,22,0.6)',
   color: colors.text, borderRadius: '12px',
-  padding: '14px 16px', fontSize: '15px', outline: 'none',
+  padding: '12px 16px', fontSize: '15px', outline: 'none',
   fontFamily: 'Plus Jakarta Sans, sans-serif',
   lineHeight: '1.5',
   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
   colorScheme: 'dark',
 }
 
-const dateInputStyle: React.CSSProperties = {
-  ...inputBase,
-  WebkitAppearance: 'none',
-  appearance: 'none',
-  minHeight: '52px',
-  textAlign: 'left',
-  display: 'block',
-}
-
 type BioProfile = 'female' | 'male' | null
+
+const CalendarIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+)
 
 export default function IdentityPage() {
   const router = useRouter()
 
-  const [userId, setUserId]               = useState<string | null>(null)
-  const [firstName, setFirstName]         = useState('')
-  const [lastName, setLastName]           = useState('')
-  const [birthDate, setBirthDate]         = useState('')
-  const [bioProfile, setBioProfile]       = useState<BioProfile>(null)
-  const [loading, setLoading]             = useState(false)
-  const [error, setError]                 = useState('')
+  const [userId, setUserId]         = useState<string | null>(null)
+  const [firstName, setFirstName]   = useState('')
+  const [lastName, setLastName]     = useState('')
+  const [birthDate, setBirthDate]   = useState('')
+  const [bioProfile, setBioProfile] = useState<BioProfile>(null)
+  const [loading, setLoading]       = useState(false)
+  const [error, setError]           = useState('')
 
   useEffect(() => {
     let isMounted = true
@@ -111,21 +111,13 @@ export default function IdentityPage() {
   return (
     <main style={{
       minHeight: '100vh',
-      background: colors.background,
       color: colors.text,
       fontFamily: 'Plus Jakarta Sans, sans-serif',
-      position: 'relative',
-      overflow: 'hidden',
       display: 'flex',
       alignItems: 'flex-start',
       justifyContent: 'center',
       padding: '72px 20px 100px',
     }}>
-      {/* Ambient orbs */}
-      <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(45,212,191,0.13) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', bottom: '-15%', right: '-10%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(103,232,249,0.11) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '40%', height: '30%', background: 'radial-gradient(circle, rgba(45,212,191,0.05) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
-
       <motion.section
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
@@ -153,44 +145,44 @@ export default function IdentityPage() {
           backdropFilter: 'blur(28px)',
           WebkitBackdropFilter: 'blur(28px)',
           borderRadius: '24px',
-          padding: '32px 28px 28px',
+          padding: '28px 24px 24px',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 0 48px rgba(45,212,191,0.06)',
         }}>
 
           {/* Heading */}
-          <div style={{ marginBottom: '28px' }}>
+          <div style={{ marginBottom: '24px' }}>
             <h1 style={{
               margin: '0 0 8px',
               fontFamily: 'var(--font-fraunces), serif',
-              fontSize: 'clamp(24px, 4vw, 30px)',
-              lineHeight: 1.08, letterSpacing: '-0.04em',
+              fontSize: 'clamp(22px, 4vw, 28px)',
+              lineHeight: 1.1, letterSpacing: '-0.04em',
               color: colors.text, fontWeight: 700,
             }}>
               Personalize Meridian
             </h1>
-            <p style={{ margin: '0 0 5px', color: colors.textSoft, fontSize: '15px', lineHeight: 1.6 }}>
+            <p style={{ margin: '0 0 4px', color: colors.textSoft, fontSize: '14px', lineHeight: 1.6 }}>
               Help Meridian understand your context before it interprets your signals.
             </p>
-            <p style={{ margin: 0, color: colors.textMuted, fontSize: '13px', lineHeight: 1.5 }}>
+            <p style={{ margin: 0, color: colors.textMuted, fontSize: '12px', lineHeight: 1.5 }}>
               You can update this later from Profile.
             </p>
           </div>
 
           {/* ── Identity section ── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
             <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
               Your identity
             </span>
             <div style={{ flex: 1, height: '1px', background: colors.cardBorder }} />
           </div>
 
-          <div style={{ display: 'grid', gap: '20px', marginBottom: '28px' }}>
+          <div style={{ display: 'grid', gap: '18px', marginBottom: '24px' }}>
 
-            {/* First name + Last name — side by side */}
+            {/* First + Last name */}
             <section>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label htmlFor="first-name" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                  <label htmlFor="first-name" style={{ display: 'block', color: colors.text, fontSize: '13px', fontWeight: 700, marginBottom: '7px', letterSpacing: '-0.01em' }}>
                     First name
                   </label>
                   <input
@@ -204,7 +196,7 @@ export default function IdentityPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="last-name" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                  <label htmlFor="last-name" style={{ display: 'block', color: colors.text, fontSize: '13px', fontWeight: 700, marginBottom: '7px', letterSpacing: '-0.01em' }}>
                     Last name
                   </label>
                   <input
@@ -218,38 +210,57 @@ export default function IdentityPage() {
                   />
                 </div>
               </div>
-              <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
-                This is how Meridian will address you inside the app.
+              <p style={{ margin: '6px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
+                Personalizes your biomarker insights, reports, and profile continuity.
               </p>
             </section>
 
-            {/* Date of birth */}
+            {/* Date of birth — premium presentation */}
             <section>
-              <label htmlFor="birth-date" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+              <label htmlFor="birth-date" style={{ display: 'block', color: colors.text, fontSize: '13px', fontWeight: 700, marginBottom: '7px', letterSpacing: '-0.01em' }}>
                 Date of birth
               </label>
-              <input
-                id="birth-date"
-                type="date"
-                value={birthDate}
-                onChange={(e) => { setBirthDate(e.target.value); if (error) setError('') }}
-                style={dateInputStyle}
-              />
-              <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
+              <div style={{ position: 'relative' }}>
+                <div style={{
+                  position: 'absolute', left: '14px', top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: colors.textMuted,
+                  pointerEvents: 'none',
+                  display: 'flex', alignItems: 'center',
+                }}>
+                  <CalendarIcon />
+                </div>
+                <input
+                  id="birth-date"
+                  type="date"
+                  value={birthDate}
+                  onChange={(e) => { setBirthDate(e.target.value); if (error) setError('') }}
+                  style={{
+                    ...inputBase,
+                    paddingLeft: '40px',
+                    WebkitAppearance: 'none',
+                    appearance: 'none',
+                    minHeight: '48px',
+                    display: 'block',
+                    cursor: 'pointer',
+                  }}
+                />
+              </div>
+              <p style={{ margin: '6px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
                 Used to calculate age-adjusted reference ranges for your biomarkers.
               </p>
             </section>
           </div>
 
           {/* ── Biological profile section ── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
             <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
               Biological profile
             </span>
             <div style={{ flex: 1, height: '1px', background: colors.cardBorder }} />
           </div>
 
-          <p style={{ margin: '0 0 14px', color: colors.textMuted, fontSize: '12px', lineHeight: 1.5 }}>
+          <p style={{ margin: '0 0 12px', color: colors.textMuted, fontSize: '12px', lineHeight: 1.5 }}>
             This is about your biology — not your identity. Meridian uses this for accurate clinical reference ranges.
           </p>
 
@@ -272,7 +283,7 @@ export default function IdentityPage() {
                     WebkitBackdropFilter: 'blur(20px)',
                     color: colors.text,
                     borderRadius: '14px',
-                    padding: '14px 16px',
+                    padding: '13px 14px',
                     cursor: 'pointer',
                     transition: 'border-color 180ms ease, background 180ms ease, box-shadow 180ms ease',
                     boxShadow: isOn ? '0 0 0 1px rgba(45,212,191,0.15), 0 0 14px rgba(45,212,191,0.07)' : 'none',
@@ -280,7 +291,7 @@ export default function IdentityPage() {
                   onMouseEnter={(e) => { if (!isOn) e.currentTarget.style.borderColor = 'rgba(45,212,191,0.35)' }}
                   onMouseLeave={(e) => { if (!isOn) e.currentTarget.style.borderColor = colors.cardBorder }}
                 >
-                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px', color: isOn ? colors.teal : colors.text, letterSpacing: '-0.01em' }}>
+                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '3px', color: isOn ? colors.teal : colors.text, letterSpacing: '-0.01em' }}>
                     {opt.label}
                   </span>
                   <span style={{ display: 'block', color: isOn ? '#9EEFE4' : colors.textMuted, fontSize: '11px', lineHeight: 1.4 }}>
@@ -293,7 +304,7 @@ export default function IdentityPage() {
 
           {/* Validation error */}
           {error && (
-            <p style={{ margin: '12px 0 0', color: '#EF4444', fontSize: '13px', lineHeight: 1.5 }}>
+            <p style={{ margin: '10px 0 0', color: '#EF4444', fontSize: '13px', lineHeight: 1.5 }}>
               {error}
             </p>
           )}
@@ -304,8 +315,8 @@ export default function IdentityPage() {
             disabled={!canContinue}
             onClick={handleContinue}
             style={{
-              width: '100%', border: 'none', borderRadius: '14px',
-              padding: '16px 20px', marginTop: '24px',
+              width: '100%', border: 'none', borderRadius: '12px',
+              padding: '14px 18px', marginTop: '20px',
               background: canContinue
                 ? 'linear-gradient(135deg, #2DD4BF 0%, #67E8F9 100%)'
                 : 'rgba(45,212,191,0.25)',
@@ -315,7 +326,7 @@ export default function IdentityPage() {
               cursor: canContinue ? 'pointer' : 'not-allowed',
               letterSpacing: '-0.01em',
               boxShadow: canContinue
-                ? '0 0 24px rgba(45,212,191,0.35), 0 0 60px rgba(45,212,191,0.12), inset 0 1px 0 rgba(255,255,255,0.25)'
+                ? '0 0 24px rgba(45,212,191,0.32), 0 0 56px rgba(45,212,191,0.10), inset 0 1px 0 rgba(255,255,255,0.22)'
                 : 'none',
               transition: 'box-shadow 200ms ease, background 200ms ease',
             }}
