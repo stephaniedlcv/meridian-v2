@@ -3082,49 +3082,47 @@ export default function LabsUploadPage() {
                   </p>
                 </div>
 
-                {/* Snapshot / Timeline toggle */}
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{
-                    display: 'inline-flex',
-                    gap: '3px',
-                    padding: '4px',
-                    backgroundColor: 'rgba(232,248,245,0.04)',
-                    border: `1px solid ${colors.cardBorder}`,
-                    borderRadius: '24px',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                  }}>
-                    {(['snapshot', 'history'] as const).map(view => {
-                      const isActive = labsView === view
-                      return (
+                {/* View selector */}
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                  {(['snapshot', 'history'] as const).map((view, i) => {
+                    const isActive = labsView === view
+                    return (
+                      <div key={view} style={{ display: 'flex', alignItems: 'center' }}>
+                        {i > 0 && (
+                          <span style={{
+                            fontSize: '11px', color: colors.textMuted, opacity: 0.35,
+                            userSelect: 'none', margin: '0 10px', lineHeight: 1,
+                          }}>·</span>
+                        )}
                         <button
-                          key={view}
                           onClick={() => {
                             setLabsView(view)
                             if (view === 'history' && !histFetched) loadHistoryData()
                           }}
                           style={{
-                            padding: '6px 20px',
-                            borderRadius: '20px',
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            fontFamily: fonts.ui,
-                            cursor: 'pointer',
+                            background: 'none',
                             border: 'none',
-                            backgroundColor: isActive ? 'rgba(45,212,191,0.14)' : 'transparent',
-                            color: isActive ? colors.teal : colors.textMuted,
-                            transition: 'background 0.15s ease, color 0.15s ease',
-                            letterSpacing: '0.01em',
+                            borderBottom: isActive
+                              ? `1.5px solid ${colors.teal}`
+                              : '1.5px solid transparent',
+                            padding: '0 0 3px',
+                            cursor: 'pointer',
+                            fontFamily: fonts.ui,
+                            fontSize: '13px',
+                            fontWeight: isActive ? 700 : 400,
+                            color: isActive ? colors.text : colors.textMuted,
+                            letterSpacing: '-0.01em',
+                            transition: 'color 0.2s ease, border-color 0.2s ease',
                             outline: 'none',
-                            boxShadow: isActive ? 'inset 0 1px 0 rgba(45,212,191,0.18)' : 'none',
+                            lineHeight: 1.4,
                             whiteSpace: 'nowrap',
                           }}
                         >
                           {view === 'snapshot' ? 'Snapshot' : 'Timeline'}
                         </button>
-                      )
-                    })}
-                  </div>
+                      </div>
+                    )
+                  })}
                 </div>
 
                 {/* ── Connected Insights — primary intelligence layer ── */}
