@@ -46,7 +46,7 @@ const selectStyle: React.CSSProperties = {
 }
 
 // ── Single-select chip helper ──────────────────────────────────────────────
-function ChipGrid<T extends string>({
+function ChipGrid<T extends string | number>({
   options, value, onChange, columns = 2,
 }: {
   options: Array<{ value: T; label: string }>
@@ -113,7 +113,7 @@ function SectionDivider({ label }: { label: string }) {
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type ActivityValue  = 'desk' | 'light' | 'active' | 'athletic'
-type TrainingValue  = 'none' | '1_2' | '3_4' | '5_plus'
+type TrainingValue  = 0 | 1 | 3 | 5
 type GoalPhaseValue = 'recomposition' | 'fat_loss' | 'muscle_gain' | 'maintenance' | 'performance' | 'recovery'
 type DietValue      = 'omnivore' | 'high_protein' | 'mediterranean' | 'vegetarian' | 'vegan' | 'low_carb' | 'flexible'
 
@@ -125,10 +125,10 @@ const ACTIVITY_OPTIONS: Array<{ value: ActivityValue; label: string }> = [
 ]
 
 const TRAINING_OPTIONS: Array<{ value: TrainingValue; label: string }> = [
-  { value: 'none',    label: 'Not currently training' },
-  { value: '1_2',     label: '1–2 days / week'        },
-  { value: '3_4',     label: '3–4 days / week'        },
-  { value: '5_plus',  label: '5+ days / week'         },
+  { value: 0, label: 'Not currently training' },
+  { value: 1, label: '1–2 days / week'        },
+  { value: 3, label: '3–4 days / week'        },
+  { value: 5, label: '5+ days / week'         },
 ]
 
 const GOAL_PHASE_OPTIONS: Array<{ value: GoalPhaseValue; label: string }> = [
@@ -211,7 +211,7 @@ export default function BaselinePage() {
     if (heightCm   !== null) payload.height_cm        = heightCm
     if (weightKg   !== null) payload.weight_kg        = weightKg
     if (activityLevel)       payload.activity_level   = activityLevel
-    if (trainingFreq)        payload.training_days    = trainingFreq
+    if (trainingFreq !== null) payload.training_days   = trainingFreq
     if (goalPhase)           payload.body_goal_phase  = goalPhase
     if (dietPattern)         payload.diet_pattern     = dietPattern
 
