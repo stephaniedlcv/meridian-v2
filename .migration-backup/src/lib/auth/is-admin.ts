@@ -5,7 +5,7 @@ import type { AdminRole }    from '@/types/admin'
 // ── Role permission matrix ────────────────────────────────────────
 const PERMISSIONS: Record<AdminRole, string[]> = {
   super_admin:        ['*'],
-  admin:              ['users.read','users.write','analytics.read','notifications.read','notifications.write','activity.read'],
+  admin:              ['users.read','users.write','analytics.read','notifications.read','notifications.write','activity.read','experience.read','experience.write'],
   analyst:            ['users.read','analytics.read','activity.read'],
   support:            ['users.read','notifications.read'],
   clinician_readonly: ['users.read'],

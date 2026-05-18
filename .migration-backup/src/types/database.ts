@@ -206,6 +206,59 @@ export type Database = {
         };
         Relationships: [];
       };
+      landing_experience: {
+        Row: {
+          id:                   string;
+          is_active:            boolean;
+          hero_video_url:       string | null;
+          mobile_video_url:     string | null;
+          poster_image_url:     string | null;
+          headline:             string;
+          subcopy:              string;
+          primary_cta_label:    string;
+          secondary_cta_label:  string;
+          logo_variant_url:     string | null;
+          background_theme:     string;
+          overlay_opacity:      number;
+          ambient_mode:         string;
+          created_at:           string;
+          updated_at:           string;
+        };
+        Insert: {
+          id?:                   string;
+          is_active?:            boolean;
+          hero_video_url?:       string | null;
+          mobile_video_url?:     string | null;
+          poster_image_url?:     string | null;
+          headline?:             string;
+          subcopy?:              string;
+          primary_cta_label?:    string;
+          secondary_cta_label?:  string;
+          logo_variant_url?:     string | null;
+          background_theme?:     string;
+          overlay_opacity?:      number;
+          ambient_mode?:         string;
+          created_at?:           string;
+          updated_at?:           string;
+        };
+        Update: {
+          id?:                   string;
+          is_active?:            boolean;
+          hero_video_url?:       string | null;
+          mobile_video_url?:     string | null;
+          poster_image_url?:     string | null;
+          headline?:             string;
+          subcopy?:              string;
+          primary_cta_label?:    string;
+          secondary_cta_label?:  string;
+          logo_variant_url?:     string | null;
+          background_theme?:     string;
+          overlay_opacity?:      number;
+          ambient_mode?:         string;
+          updated_at?:           string;
+        };
+        Relationships: [];
+      };
       biomarkers_static: {
         Row: BiomarkerStatic;
         Insert: {

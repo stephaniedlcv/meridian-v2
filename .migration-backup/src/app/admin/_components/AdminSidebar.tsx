@@ -81,6 +81,20 @@ const NAV = [
       </svg>
     ),
   },
+  {
+    href:  '/admin/experience',
+    label: 'Experience',
+    exact:  false,
+    icon: (active: boolean) => (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <rect x="1.5" y="2" width="13" height="9" rx="1.5" stroke={active ? colors.teal : colors.textMuted} strokeWidth="1.3" />
+        <path d="M5.5 14.5h5" stroke={active ? colors.teal : colors.textMuted} strokeWidth="1.3" strokeLinecap="round" />
+        <path d="M8 11v3.5" stroke={active ? colors.teal : colors.textMuted} strokeWidth="1.3" strokeLinecap="round" />
+        <circle cx="5" cy="6.5" r="1.2" fill={active ? colors.teal : colors.textMuted} />
+        <path d="M7.5 5l2 1.5-2 1.5" stroke={active ? colors.teal : colors.textMuted} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
 ]
 
 interface Props {
