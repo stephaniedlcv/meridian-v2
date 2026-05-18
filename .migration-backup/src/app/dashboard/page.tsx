@@ -384,14 +384,40 @@ export default function DashboardPage() {
                 {/* Personalized greeting */}
                 <div style={{
                   fontFamily:    'var(--font-fraunces), serif',
-                  fontSize:      'clamp(26px, 6vw, 34px)',
                   fontWeight:    700,
-                  color:         colors.text,
                   letterSpacing: '-0.04em',
                   lineHeight:    1.15,
                   marginBottom:  '8px',
                 }}>
-                  {greeting}
+                  {(() => {
+                    const commaIdx = greeting.indexOf(', ')
+                    if (commaIdx === -1) {
+                      return (
+                        <span style={{ fontSize: 'clamp(26px, 6vw, 34px)', color: colors.text }}>
+                          {greeting}
+                        </span>
+                      )
+                    }
+                    const prefix = greeting.slice(0, commaIdx) + ','
+                    const name   = greeting.slice(commaIdx + 2)
+                    return (
+                      <>
+                        <span style={{ display: 'block', fontSize: 'clamp(22px, 5vw, 28px)', color: colors.text }}>
+                          {prefix}
+                        </span>
+                        <span style={{
+                          display: 'block',
+                          fontSize: 'clamp(26px, 6vw, 34px)',
+                          background: 'linear-gradient(90deg, #EAFBF7 0%, #67E8F9 55%, #2DD4BF 100%)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          backgroundClip: 'text',
+                        }}>
+                          {name}
+                        </span>
+                      </>
+                    )
+                  })()}
                 </div>
 
                 {/* Contextual subline */}
