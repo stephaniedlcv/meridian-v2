@@ -207,7 +207,7 @@ export default function DashboardPage() {
       // Get profile (biological_profile needed for hemoglobin Safety Engine threshold)
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, birth_date, onboarding_completed, biological_profile, user_profile')
+        .select('full_name, birth_date, onboarding_completed, biological_profile, current_state, user_profile')
         .eq('id', user.id)
         .single()
 

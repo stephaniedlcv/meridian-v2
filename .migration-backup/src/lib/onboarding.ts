@@ -4,22 +4,36 @@
  * Single source of truth for determining where a user should be in the
  * onboarding flow, used by every page that needs to guard or redirect.
  *
- * Priority order:
- *   1. no profile                          → /onboarding/identity
- *   2. missing full_name OR birth_date     → /onboarding/identity
- *   3. missing biological_profile          → /onboarding/profile
- *   4. missing user_profile                → /onboarding/goals
- *   5. onboarding_completed !== true       → /onboarding/connect
- *   6. complete                            → null
+ * Fast-pass: if onboarding_completed is truthy the user is done — return null
+ * immediately regardless of any other field state.
+ *
+ * Step order:
+ *   1. missing full_name, birth_date, OR biological_profile  → /onboarding/identity
+ *   2. current_state not set                                 → /onboarding/current-state
+ *   3. user_profile not set                                  → /onboarding/goals
+ *   4. onboarding_completed !== truthy                       → /onboarding/connect
+ *   5. complete                                              → null
+ *
+ * Note: /onboarding/profile is deprecated. biological_profile is now
+ * collected in step 1 (identity). The profile route exists only as a
+ * backward-compat redirect for users who bookmarked it.
  */
 export function getNextOnboardingStep(profile: unknown): string | null {
   if (!profile || typeof profile !== 'object') return '/onboarding/identity'
   const p = profile as Record<string, unknown>
-  if (!p.full_name || !p.birth_date) return '/onboarding/identity'
-  if (!p.biological_profile) return '/onboarding/profile'
+
+  // Fast-pass: already completed — skip all field checks
+  if (p.onboarding_completed) return null
+
+  // Step 1: Identity (now includes biological_profile)
+  if (!p.full_name || !p.birth_date || !p.biological_profile) return '/onboarding/identity'
+
+  // Step 2: Current state
+  if (!p.current_state) return '/onboarding/current-state'
+
+  // Step 3: Goals (Meridian mode)
   if (!p.user_profile) return '/onboarding/goals'
-  // Use loose truthiness (not strict === true) so boolean true, string "true",
-  // and any other truthy DB serialisation all pass the guard correctly.
-  if (!p.onboarding_completed) return '/onboarding/connect'
-  return null
+
+  // Step 4: Connect data
+  return '/onboarding/connect'
 }

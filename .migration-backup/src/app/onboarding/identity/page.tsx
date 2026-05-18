@@ -34,7 +34,6 @@ const inputBase: React.CSSProperties = {
   colorScheme: 'dark',
 }
 
-// Date inputs need explicit appearance reset for Safari mobile
 const dateInputStyle: React.CSSProperties = {
   ...inputBase,
   WebkitAppearance: 'none',
@@ -44,15 +43,18 @@ const dateInputStyle: React.CSSProperties = {
   display: 'block',
 }
 
+type BioProfile = 'female' | 'male' | null
+
 export default function IdentityPage() {
   const router = useRouter()
 
-  const [userId, setUserId]           = useState<string | null>(null)
-  const [fullName, setFullName]       = useState('')
-  const [birthDate, setBirthDate]     = useState('')
-  const [medications, setMedications] = useState('')
-  const [loading, setLoading]         = useState(false)
-  const [error, setError]             = useState('')
+  const [userId, setUserId]               = useState<string | null>(null)
+  const [firstName, setFirstName]         = useState('')
+  const [lastName, setLastName]           = useState('')
+  const [birthDate, setBirthDate]         = useState('')
+  const [bioProfile, setBioProfile]       = useState<BioProfile>(null)
+  const [loading, setLoading]             = useState(false)
+  const [error, setError]                 = useState('')
 
   useEffect(() => {
     let isMounted = true
@@ -61,7 +63,7 @@ export default function IdentityPage() {
       if (!user) { router.push('/onboarding/welcome'); return }
       const { data: prof } = await supabase
         .from('profiles')
-        .select('full_name, birth_date, biological_profile, user_profile, onboarding_completed')
+        .select('full_name, birth_date, biological_profile, current_state, user_profile, onboarding_completed')
         .eq('id', user.id)
         .single()
       const nextStep = getNextOnboardingStep(prof)
@@ -73,22 +75,37 @@ export default function IdentityPage() {
     return () => { isMounted = false }
   }, [router])
 
-  // Display name and date of birth are required
-  const canContinue = !!userId && !loading && fullName.trim().length > 0 && !!birthDate
+  const fullName = `${firstName.trim()} ${lastName.trim()}`.trim()
+  const canContinue = !!userId && !loading &&
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    !!birthDate &&
+    !!bioProfile
 
   async function handleContinue() {
     if (!userId) return
-    if (!fullName.trim()) { setError('Display name is required.'); return }
-    if (!birthDate) { setError('Date of birth is required.'); return }
+    if (!firstName.trim()) { setError('First name is required.'); return }
+    if (!lastName.trim())  { setError('Last name is required.'); return }
+    if (!birthDate)         { setError('Date of birth is required.'); return }
+    if (!bioProfile)        { setError('Biological profile is required for accurate reference ranges.'); return }
     setLoading(true)
     setError('')
-    const medicationArray = medications.split(',').map((s) => s.trim()).filter(Boolean)
     const { error: updateError } = await supabase
       .from('profiles')
-      .upsert({ id: userId, full_name: fullName.trim(), birth_date: birthDate, medications: medicationArray }, { onConflict: 'id' })
+      .upsert(
+        {
+          id: userId,
+          full_name: fullName,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          birth_date: birthDate,
+          biological_profile: bioProfile,
+        },
+        { onConflict: 'id' }
+      )
     setLoading(false)
     if (updateError) { setError(updateError.message); return }
-    router.push('/onboarding/profile')
+    router.push('/onboarding/current-state')
   }
 
   return (
@@ -102,7 +119,7 @@ export default function IdentityPage() {
       display: 'flex',
       alignItems: 'flex-start',
       justifyContent: 'center',
-      padding: '80px 20px 100px',
+      padding: '72px 20px 100px',
     }}>
       {/* Ambient orbs */}
       <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(45,212,191,0.13) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
@@ -125,7 +142,7 @@ export default function IdentityPage() {
             borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
-            Personal Context · Step 1
+            Personal Context · Step 1 of 4
           </div>
         </div>
 
@@ -159,7 +176,7 @@ export default function IdentityPage() {
             </p>
           </div>
 
-          {/* Section label */}
+          {/* ── Identity section ── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
             <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
               Your identity
@@ -167,28 +184,46 @@ export default function IdentityPage() {
             <div style={{ flex: 1, height: '1px', background: colors.cardBorder }} />
           </div>
 
-          {/* Fields */}
-          <div style={{ display: 'grid', gap: '20px', marginBottom: '8px' }}>
+          <div style={{ display: 'grid', gap: '20px', marginBottom: '28px' }}>
 
-            {/* Display name — required */}
+            {/* First name + Last name — side by side */}
             <section>
-              <label htmlFor="display-name" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
-                Display name
-              </label>
-              <input
-                id="display-name"
-                type="text"
-                value={fullName}
-                onChange={(e) => { setFullName(e.target.value); if (error) setError('') }}
-                placeholder="Your preferred name"
-                style={inputBase}
-              />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label htmlFor="first-name" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                    First name
+                  </label>
+                  <input
+                    id="first-name"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => { setFirstName(e.target.value); if (error) setError('') }}
+                    placeholder="First"
+                    autoComplete="given-name"
+                    style={inputBase}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="last-name" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                    Last name
+                  </label>
+                  <input
+                    id="last-name"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => { setLastName(e.target.value); if (error) setError('') }}
+                    placeholder="Last"
+                    autoComplete="family-name"
+                    style={inputBase}
+                  />
+                </div>
+              </div>
               <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
                 This is how Meridian will address you inside the app.
               </p>
             </section>
 
-            {/* Date of birth — required */}
+            {/* Date of birth */}
             <section>
               <label htmlFor="birth-date" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
                 Date of birth
@@ -201,28 +236,59 @@ export default function IdentityPage() {
                 style={dateInputStyle}
               />
               <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
-                Used for age-adjusted biological context.
+                Used to calculate age-adjusted reference ranges for your biomarkers.
               </p>
             </section>
+          </div>
 
-            {/* Medications — optional */}
-            <section>
-              <label htmlFor="medications" style={{ display: 'block', color: colors.text, fontSize: '14px', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.01em' }}>
-                Current medications{' '}
-                <span style={{ color: colors.textMuted, fontWeight: 500 }}>(optional)</span>
-              </label>
-              <input
-                id="medications"
-                type="text"
-                value={medications}
-                onChange={(e) => setMedications(e.target.value)}
-                placeholder="e.g. Levothyroxine, Metformin"
-                style={inputBase}
-              />
-              <p style={{ margin: '7px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
-                Separate with commas. Leave blank if none.
-              </p>
-            </section>
+          {/* ── Biological profile section ── */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
+              Biological profile
+            </span>
+            <div style={{ flex: 1, height: '1px', background: colors.cardBorder }} />
+          </div>
+
+          <p style={{ margin: '0 0 14px', color: colors.textMuted, fontSize: '12px', lineHeight: 1.5 }}>
+            This is about your biology — not your identity. Meridian uses this for accurate clinical reference ranges.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '8px' }}>
+            {([
+              { value: 'female' as const, label: 'Female biology',   sub: 'Female hormonal ranges and cycle context' },
+              { value: 'male'   as const, label: 'Male biology',     sub: 'Male hormonal ranges and PSA tracking' },
+            ]).map((opt) => {
+              const isOn = bioProfile === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => { setBioProfile(opt.value); if (error) setError('') }}
+                  style={{
+                    textAlign: 'left',
+                    border: isOn ? '1px solid rgba(45,212,191,0.85)' : `1px solid ${colors.cardBorder}`,
+                    background: isOn ? 'rgba(45,212,191,0.10)' : colors.cardBg,
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    color: colors.text,
+                    borderRadius: '14px',
+                    padding: '14px 16px',
+                    cursor: 'pointer',
+                    transition: 'border-color 180ms ease, background 180ms ease, box-shadow 180ms ease',
+                    boxShadow: isOn ? '0 0 0 1px rgba(45,212,191,0.15), 0 0 14px rgba(45,212,191,0.07)' : 'none',
+                  }}
+                  onMouseEnter={(e) => { if (!isOn) e.currentTarget.style.borderColor = 'rgba(45,212,191,0.35)' }}
+                  onMouseLeave={(e) => { if (!isOn) e.currentTarget.style.borderColor = colors.cardBorder }}
+                >
+                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '4px', color: isOn ? colors.teal : colors.text, letterSpacing: '-0.01em' }}>
+                    {opt.label}
+                  </span>
+                  <span style={{ display: 'block', color: isOn ? '#9EEFE4' : colors.textMuted, fontSize: '11px', lineHeight: 1.4 }}>
+                    {opt.sub}
+                  </span>
+                </button>
+              )
+            })}
           </div>
 
           {/* Validation error */}

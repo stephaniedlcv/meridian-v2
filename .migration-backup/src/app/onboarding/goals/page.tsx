@@ -23,26 +23,30 @@ const colors = {
 }
 
 type GoalValue =
+  | 'primer_paso'
   | 'bienestar'
   | 'optimizacion'
   | 'rendimiento'
+  | 'longevidad'
+  | 'claridad'
   | 'condicion'
-  | 'primer_paso'
 
 const goals: Array<{ label: string; value: GoalValue; subtext: string }> = [
-  { label: 'General wellness',   value: 'bienestar',    subtext: 'Feel better day to day' },
-  { label: 'Optimization',       value: 'optimizacion', subtext: "Fine-tune what's already good" },
-  { label: 'Peak performance',   value: 'rendimiento',  subtext: 'Push physical and mental limits' },
-  { label: 'Specific condition', value: 'condicion',    subtext: 'Monitor a specific health concern' },
-  { label: 'Getting started',    value: 'primer_paso',  subtext: 'Just beginning my health journey' },
+  { label: 'Just getting started', value: 'primer_paso',   subtext: 'Beginning my health journey' },
+  { label: 'Energy & vitality',    value: 'bienestar',     subtext: 'Feel better, day to day' },
+  { label: 'Optimization',         value: 'optimizacion',  subtext: "Fine-tune what's already good" },
+  { label: 'Peak performance',     value: 'rendimiento',   subtext: 'Push physical and mental limits' },
+  { label: 'Longevity',            value: 'longevidad',    subtext: 'Investing in long-term health' },
+  { label: 'Clarity & focus',      value: 'claridad',      subtext: 'Cognitive performance and mood' },
+  { label: 'Specific condition',   value: 'condicion',     subtext: 'Monitoring something specific' },
 ]
 
 export default function GoalsPage() {
   const router = useRouter()
-  const [userId, setUserId]           = useState<string | null>(null)
-  const [selectedGoal, setSelectedGoal] = useState<GoalValue | null>(null)
-  const [loading, setLoading]         = useState(false)
-  const [error, setError]             = useState('')
+  const [userId, setUserId]               = useState<string | null>(null)
+  const [selectedGoals, setSelectedGoals] = useState<GoalValue[]>([])
+  const [loading, setLoading]             = useState(false)
+  const [error, setError]                 = useState('')
 
   useEffect(() => {
     let isMounted = true
@@ -51,7 +55,7 @@ export default function GoalsPage() {
       if (!user) { router.push('/onboarding/welcome'); return }
       const { data: prof } = await supabase
         .from('profiles')
-        .select('full_name, birth_date, biological_profile, user_profile, onboarding_completed')
+        .select('full_name, birth_date, biological_profile, current_state, user_profile, onboarding_completed')
         .eq('id', user.id)
         .single()
       const nextStep = getNextOnboardingStep(prof)
@@ -63,20 +67,27 @@ export default function GoalsPage() {
     return () => { isMounted = false }
   }, [router])
 
+  function toggleGoal(val: GoalValue) {
+    setSelectedGoals((prev) =>
+      prev.includes(val) ? prev.filter((g) => g !== val) : [...prev, val]
+    )
+  }
+
   const canContinue = useMemo(() => {
-    return Boolean(userId && selectedGoal && !loading)
-  }, [loading, selectedGoal, userId])
+    return Boolean(userId && selectedGoals.length > 0 && !loading)
+  }, [loading, selectedGoals, userId])
 
   async function handleContinue() {
-    if (!userId || !selectedGoal) {
-      setError('Please choose your Meridian mode to continue.')
+    if (!userId || selectedGoals.length === 0) {
+      setError('Choose at least one goal to continue.')
       return
     }
     setLoading(true)
     setError('')
+    // Store as JSON array string. Primary goal (first selected) is the first element.
     const { error: updateError } = await supabase
       .from('profiles')
-      .upsert({ id: userId, user_profile: selectedGoal }, { onConflict: 'id' })
+      .upsert({ id: userId, user_profile: JSON.stringify(selectedGoals) }, { onConflict: 'id' })
     if (updateError) { setError(updateError.message); setLoading(false); return }
     router.push('/onboarding/connect')
   }
@@ -90,9 +101,9 @@ export default function GoalsPage() {
       position: 'relative',
       overflow: 'hidden',
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'center',
-      padding: '48px 20px',
+      padding: '72px 20px 100px',
     }}>
       {/* Ambient orbs */}
       <div style={{ position: 'absolute', top: '-15%', left: '-10%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(45,212,191,0.13) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
@@ -103,7 +114,7 @@ export default function GoalsPage() {
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.65, ease: 'easeOut' }}
-        style={{ width: '100%', maxWidth: '480px', position: 'relative', zIndex: 1 }}
+        style={{ width: '100%', maxWidth: '520px', position: 'relative', zIndex: 1 }}
       >
         {/* Step chip */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
@@ -115,7 +126,7 @@ export default function GoalsPage() {
             borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
-            Meridian Mode · Step 3
+            Meridian Mode · Step 3 of 4
           </div>
         </div>
 
@@ -139,10 +150,10 @@ export default function GoalsPage() {
               lineHeight: 1.08, letterSpacing: '-0.04em',
               color: colors.text, fontWeight: 700,
             }}>
-              Choose your Meridian mode
+              What are you working toward?
             </h1>
             <p style={{ margin: '0 0 5px', color: colors.textSoft, fontSize: '15px', lineHeight: 1.6 }}>
-              Tell Meridian what kind of guidance should matter most right now.
+              Select everything that applies — Meridian will balance guidance across all your goals.
             </p>
             <p style={{ margin: 0, color: colors.textMuted, fontSize: '13px', lineHeight: 1.5 }}>
               You can change this later from Profile.
@@ -150,31 +161,35 @@ export default function GoalsPage() {
           </div>
 
           {/* Section label */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
             <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
-              Your Meridian mode
+              Your goals
             </span>
             <div style={{ flex: 1, height: '1px', background: colors.cardBorder }} />
+            {selectedGoals.length > 0 && (
+              <span style={{ fontSize: '11px', fontWeight: 600, color: colors.teal, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
+                {selectedGoals.length} selected
+              </span>
+            )}
           </div>
-
-          <p style={{ margin: '0 0 16px', color: colors.textSoft, fontSize: '14px', fontWeight: 600, letterSpacing: '-0.01em' }}>
-            What brings you to Meridian?
-          </p>
 
           {/* Goal cards */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
             gap: '10px',
             marginBottom: '4px',
           }}>
-            {goals.map((goal) => {
-              const isSelected = selectedGoal === goal.value
+            {goals.map((goal, i) => {
+              const isSelected = selectedGoals.includes(goal.value)
               return (
-                <button
+                <motion.button
                   key={goal.value}
                   type="button"
-                  onClick={() => setSelectedGoal(goal.value)}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.04 * i }}
+                  onClick={() => { toggleGoal(goal.value); if (error) setError('') }}
                   style={{
                     textAlign: 'left',
                     border: isSelected ? '1px solid rgba(45,212,191,0.85)' : `1px solid ${colors.cardBorder}`,
@@ -185,11 +200,11 @@ export default function GoalsPage() {
                     borderRadius: '16px',
                     padding: '16px',
                     cursor: 'pointer',
-                    transition: 'border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease',
+                    transition: 'border-color 180ms ease, background 180ms ease, box-shadow 180ms ease',
                     boxShadow: isSelected ? '0 0 0 1px rgba(45,212,191,0.15), 0 0 16px rgba(45,212,191,0.08)' : 'none',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}
+                  onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.borderColor = 'rgba(45,212,191,0.35)' }}
+                  onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.borderColor = colors.cardBorder }}
                 >
                   <span style={{ display: 'block', fontSize: '14px', fontWeight: 700, marginBottom: '5px', color: isSelected ? colors.teal : colors.text, letterSpacing: '-0.01em' }}>
                     {goal.label}
@@ -197,7 +212,7 @@ export default function GoalsPage() {
                   <span style={{ display: 'block', color: isSelected ? '#9EEFE4' : colors.textSoft, fontSize: '12px', lineHeight: 1.45 }}>
                     {goal.subtext}
                   </span>
-                </button>
+                </motion.button>
               )
             })}
           </div>
@@ -231,7 +246,7 @@ export default function GoalsPage() {
               transition: 'box-shadow 200ms ease, background 200ms ease',
             }}
           >
-            {loading ? 'Saving...' : 'Continue →'}
+            {loading ? 'Saving...' : selectedGoals.length > 0 ? `Continue with ${selectedGoals.length} goal${selectedGoals.length > 1 ? 's' : ''} →` : 'Continue →'}
           </button>
         </div>
       </motion.section>

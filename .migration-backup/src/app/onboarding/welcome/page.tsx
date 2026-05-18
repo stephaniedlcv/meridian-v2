@@ -22,6 +22,33 @@ const fonts = {
   ui: '"Plus Jakarta Sans", sans-serif',
 }
 
+const EyeIcon = ({ open }: { open: boolean }) =>
+  open ? (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  ) : (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
+  )
+
+const inputBase: React.CSSProperties = {
+  width: '100%',
+  padding: '15px 18px',
+  backgroundColor: 'rgba(6,19,22,0.6)',
+  border: `1px solid ${colors.cardBorder}`,
+  borderRadius: '12px',
+  color: colors.text,
+  fontFamily: fonts.ui,
+  fontSize: '15px',
+  outline: 'none',
+  boxSizing: 'border-box',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+}
+
 function WelcomePageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -30,22 +57,39 @@ function WelcomePageInner() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isLogin, setIsLogin] = useState(() => searchParams.get('mode') === 'login')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [email, setEmail]                       = useState('')
+  const [password, setPassword]                 = useState('')
+  const [confirmPassword, setConfirmPassword]   = useState('')
+  const [showPassword, setShowPassword]         = useState(false)
+  const [showConfirm, setShowConfirm]           = useState(false)
+  const [isLogin, setIsLogin]                   = useState(() => searchParams.get('mode') === 'login')
+  const [loading, setLoading]                   = useState(false)
+  const [error, setError]                       = useState<string | null>(null)
   const [emailConfirmPending, setEmailConfirmPending] = useState(false)
+
+  // Password match state — only shown once user starts typing in confirm field
+  const passwordsMatch = password === confirmPassword
+  const showMatchState = !isLogin && confirmPassword.length > 0
+
+  const canSubmit = !loading && !!email && !!password &&
+    (isLogin || (!!confirmPassword && passwordsMatch))
 
   function switchMode(toLogin: boolean) {
     setIsLogin(toLogin)
     setError(null)
     setEmailConfirmPending(false)
+    setConfirmPassword('')
+    setShowPassword(false)
+    setShowConfirm(false)
     router.replace(`/onboarding/welcome?mode=${toLogin ? 'login' : 'signup'}`)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!isLogin && !passwordsMatch) {
+      setError('Passwords don\'t match.')
+      return
+    }
     setLoading(true)
     setError(null)
 
@@ -59,18 +103,13 @@ function WelcomePageInner() {
           setError(authError.message)
           return
         }
-        // Check whether this user has completed onboarding
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, birth_date, biological_profile, user_profile, onboarding_completed')
+          .select('full_name, birth_date, biological_profile, current_state, user_profile, onboarding_completed')
           .eq('id', authData.user!.id)
           .single()
         const nextStep = getNextOnboardingStep(profile)
-        if (nextStep) {
-          router.push(nextStep)
-        } else {
-          router.push('/')
-        }
+        router.push(nextStep ?? '/')
         return
       }
 
@@ -86,14 +125,11 @@ function WelcomePageInner() {
         return
       }
       if (signUpData.session) {
-        // Session available immediately — seed the profiles row so all downstream
-        // onboarding steps have a row to update even if one step is skipped/fails.
         await supabase
           .from('profiles')
           .upsert({ id: signUpData.user!.id }, { onConflict: 'id' })
         router.push('/onboarding/identity')
       } else {
-        // Email confirmation required — tell the user to check their inbox
         setEmailConfirmPending(true)
       }
     } finally {
@@ -134,7 +170,7 @@ function WelcomePageInner() {
           zIndex: 1,
         }}
       >
-        {/* Logo halo — exact match to root landing */}
+        {/* Logo halo */}
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -149,13 +185,11 @@ function WelcomePageInner() {
             marginBottom: '20px',
           }}
         >
-          {/* Outer orbit ring */}
           <div style={{
             position: 'absolute', inset: 0, borderRadius: '50%',
             border: '1px solid rgba(103,232,249,0.09)',
             boxShadow: '0 0 56px rgba(45,212,191,0.07), 0 0 140px rgba(45,212,191,0.03)',
           }} />
-          {/* Inner reticle ring */}
           <div style={{
             position: 'absolute', inset: '18px', borderRadius: '50%',
             border: '0.5px solid rgba(103,232,249,0.14)',
@@ -174,7 +208,7 @@ function WelcomePageInner() {
           </div>
         </motion.div>
 
-        {/* Wordmark — exact match to root landing */}
+        {/* Wordmark */}
         <div style={{
           fontFamily: "var(--font-fraunces), serif",
           fontSize: '32px',
@@ -186,7 +220,7 @@ function WelcomePageInner() {
           Meridian
         </div>
 
-        {/* Brand label — exact match to root landing */}
+        {/* Brand label */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -293,95 +327,139 @@ function WelcomePageInner() {
               </button>
             </div>
           ) : (
-          <form onSubmit={handleSubmit}>
-            {/* Email Input */}
-            <div style={{ marginBottom: '14px' }}>
-              <input
-                type="email"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+            <form onSubmit={handleSubmit}>
+              {/* Email */}
+              <div style={{ marginBottom: '14px' }}>
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  style={inputBase}
+                />
+              </div>
+
+              {/* Password */}
+              <div style={{ marginBottom: isLogin ? '20px' : '14px', position: 'relative' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  style={{ ...inputBase, paddingRight: '48px' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  style={{
+                    position: 'absolute', right: '14px', top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: colors.textMuted, padding: '4px',
+                    display: 'flex', alignItems: 'center',
+                  }}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  <EyeIcon open={showPassword} />
+                </button>
+              </div>
+
+              {/* Confirm password — signup only */}
+              {!isLogin && (
+                <div style={{ marginBottom: '6px' }}>
+                  <div style={{ position: 'relative', marginBottom: '8px' }}>
+                    <input
+                      type={showConfirm ? 'text' : 'password'}
+                      placeholder="Confirm password"
+                      value={confirmPassword}
+                      onChange={(e) => { setConfirmPassword(e.target.value); if (error) setError(null) }}
+                      required
+                      style={{ ...inputBase, paddingRight: '48px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm((v) => !v)}
+                      style={{
+                        position: 'absolute', right: '14px', top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: colors.textMuted, padding: '4px',
+                        display: 'flex', alignItems: 'center',
+                      }}
+                      tabIndex={-1}
+                      aria-label={showConfirm ? 'Hide confirm password' : 'Show confirm password'}
+                    >
+                      <EyeIcon open={showConfirm} />
+                    </button>
+                  </div>
+                  {/* Match indicator */}
+                  {showMatchState && (
+                    <p style={{
+                      margin: '0 0 14px',
+                      fontSize: '12px',
+                      color: passwordsMatch ? colors.teal : '#E8A87C',
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                    }}>
+                      <span style={{
+                        display: 'inline-block', width: '5px', height: '5px',
+                        borderRadius: '50%',
+                        background: passwordsMatch ? colors.teal : '#E8A87C',
+                        boxShadow: passwordsMatch
+                          ? '0 0 6px rgba(45,212,191,0.8)'
+                          : '0 0 6px rgba(232,168,124,0.6)',
+                        flexShrink: 0,
+                      }} />
+                      {passwordsMatch ? 'Passwords match' : 'Passwords don\'t match'}
+                    </p>
+                  )}
+                  {/* spacer when no match indicator */}
+                  {!showMatchState && <div style={{ marginBottom: '14px' }} />}
+                </div>
+              )}
+
+              {/* Error */}
+              {error && (
+                <p style={{
+                  color: '#EF4444',
+                  fontSize: '14px',
+                  textAlign: 'center',
+                  marginBottom: '16px',
+                }}>
+                  {error}
+                </p>
+              )}
+
+              {/* Submit */}
+              <motion.button
+                type="submit"
+                disabled={!canSubmit}
+                whileHover={canSubmit ? { scale: 1.02 } : {}}
+                whileTap={canSubmit ? { scale: 0.98 } : {}}
                 style={{
                   width: '100%',
-                  padding: '15px 18px',
-                  backgroundColor: 'rgba(6,19,22,0.6)',
-                  border: `1px solid ${colors.cardBorder}`,
-                  borderRadius: '12px',
-                  color: colors.text,
+                  padding: '16px 24px',
+                  background: canSubmit
+                    ? `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`
+                    : `${colors.teal}60`,
+                  border: 'none',
+                  borderRadius: '14px',
+                  color: colors.background,
                   fontFamily: fonts.ui,
-                  fontSize: '15px',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  cursor: canSubmit ? 'pointer' : 'not-allowed',
+                  letterSpacing: '-0.01em',
+                  boxShadow: canSubmit
+                    ? '0 0 24px rgba(45,212,191,0.3), 0 0 60px rgba(45,212,191,0.10), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    : 'none',
                 }}
-              />
-            </div>
-
-            {/* Password Input */}
-            <div style={{ marginBottom: '20px' }}>
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                style={{
-                  width: '100%',
-                  padding: '15px 18px',
-                  backgroundColor: 'rgba(6,19,22,0.6)',
-                  border: `1px solid ${colors.cardBorder}`,
-                  borderRadius: '12px',
-                  color: colors.text,
-                  fontFamily: fonts.ui,
-                  fontSize: '15px',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
-                }}
-              />
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <p style={{
-                color: '#EF4444',
-                fontSize: '14px',
-                textAlign: 'center',
-                marginBottom: '16px',
-              }}>
-                {error}
-              </p>
-            )}
-
-            {/* Submit Button */}
-            <motion.button
-              type="submit"
-              disabled={loading}
-              whileHover={loading ? {} : { scale: 1.02 }}
-              whileTap={loading ? {} : { scale: 0.98 }}
-              style={{
-                width: '100%',
-                padding: '16px 24px',
-                background: loading
-                  ? `${colors.teal}60`
-                  : `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
-                border: 'none',
-                borderRadius: '14px',
-                color: colors.background,
-                fontFamily: fonts.ui,
-                fontSize: '16px',
-                fontWeight: 700,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                letterSpacing: '-0.01em',
-                boxShadow: loading
-                  ? 'none'
-                  : '0 0 24px rgba(45,212,191,0.3), 0 0 60px rgba(45,212,191,0.10), inset 0 1px 0 rgba(255,255,255,0.2)',
-              }}
-            >
-              {loading ? 'Loading...' : isLogin ? 'Log in →' : 'Get started →'}
-            </motion.button>
-          </form>
+              >
+                {loading ? 'Loading...' : isLogin ? 'Log in →' : 'Get started →'}
+              </motion.button>
+            </form>
           )}
         </div>
 

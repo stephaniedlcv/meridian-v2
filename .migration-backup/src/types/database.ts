@@ -77,6 +77,9 @@ export type Profile = {
   medications: Json | null;
   safety_status: SafetyStatus;
   user_profile: UserProfile | null;
+  // current_state stores a JSON array string of StateValue slugs collected at
+  // onboarding step 2. Added by migration 004_onboarding_current_state.sql.
+  current_state: string | null;
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string | null;

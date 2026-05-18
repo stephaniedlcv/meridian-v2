@@ -298,7 +298,7 @@ export default function MeridianApp() {
       if (!user) { setAuthChecking(false); return }
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, birth_date, biological_profile, user_profile, onboarding_completed')
+        .select('full_name, birth_date, biological_profile, current_state, user_profile, onboarding_completed')
         .eq('id', user.id)
         .single()
       const nextStep = getNextOnboardingStep(profile)
