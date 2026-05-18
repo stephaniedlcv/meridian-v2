@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { useState, useEffect }    from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const colors = {
   background: '#061316',
@@ -82,10 +82,9 @@ function NavIcon({ id, isActive }: { id: string; isActive: boolean }) {
   return null
 }
 
-// ── Notification drawer preview data ─────────────────────────────────
-// Foundation layer for real-time inbox.
-// Replace fetch with GET /api/user/notifications once that route exists.
+// ── Notification types ─────────────────────────────────────────────
 type NotifCategory = 'insights' | 'safety' | 'reminders' | 'system' | 'updates'
+
 interface PreviewNotif {
   id:         string
   category:   NotifCategory
@@ -95,29 +94,13 @@ interface PreviewNotif {
   created_at: string
 }
 
-const PREVIEW_NOTIFS: PreviewNotif[] = [
-  {
-    id: 'n1', category: 'insights',
-    title: 'Vitamin D below optimal range',
-    body:  'Your latest reading (28 ng/mL) falls below the optimal zone. Consider reviewing sun exposure and your supplement protocol.',
-    read: false,
-    created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: 'n2', category: 'safety',
-    title: 'Elevated CRP detected',
-    body:  'C-Reactive Protein is above standard reference range. This may indicate inflammation. Review with your physician if persistent.',
-    read: false,
-    created_at: new Date(Date.now() - 6 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: 'n3', category: 'reminders',
-    title: 'Lab panel is 90+ days old',
-    body:  'Regular monitoring helps Meridian deliver more accurate insights. Your last upload was over 90 days ago.',
-    read: true,
-    created_at: new Date(Date.now() - 2 * 86400 * 1000).toISOString(),
-  },
-]
+function typeToCategory(type: string): NotifCategory {
+  if (type === 'safety_alert') return 'safety'
+  if (type === 'system_alert') return 'system'
+  if (type === 'push')         return 'reminders'
+  if (type === 'email')        return 'updates'
+  return 'insights'
+}
 
 const NOTIF_COLOR: Record<NotifCategory, string> = {
   insights:  colors.teal,
@@ -232,9 +215,11 @@ export default function NavBar() {
   const router   = useRouter()
   const pathname = usePathname()
 
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [notifOpen,   setNotifOpen]   = useState(false)
-  const [notifs,      setNotifs]      = useState<PreviewNotif[]>(PREVIEW_NOTIFS)
+  const [unreadCount,  setUnreadCount]  = useState(0)
+  const [notifOpen,    setNotifOpen]    = useState(false)
+  const [notifs,       setNotifs]       = useState<PreviewNotif[]>([])
+  const [drawerLoaded, setDrawerLoaded] = useState(false)
+  const drawerLoadingRef = useRef(false)
 
   // Close drawer on page navigation
   useEffect(() => { setNotifOpen(false) }, [pathname])
@@ -245,7 +230,7 @@ export default function NavBar() {
     return () => { document.body.style.overflow = '' }
   }, [notifOpen])
 
-  // Fetch unread count on every nav change
+  // Fetch unread count from Supabase on every nav change
   useEffect(() => {
     fetch('/api/user/notifications/unread-count')
       .then(r => r.ok ? r.json() : { count: 0 })
@@ -253,13 +238,61 @@ export default function NavBar() {
       .catch(() => {})
   }, [pathname])
 
-  function markAllRead() {
+  // Fetch real notification list when drawer first opens
+  useEffect(() => {
+    if (!notifOpen || drawerLoaded || drawerLoadingRef.current) return
+    drawerLoadingRef.current = true
+    fetch('/api/user/notifications')
+      .then(r => r.ok ? r.json() : { notifications: [] })
+      .then(data => {
+        const mapped: PreviewNotif[] = ((data.notifications ?? []) as {
+          id: string; title: string; body: string; type: string; read: boolean; created_at: string
+        }[]).map(n => ({
+          id:         n.id,
+          category:   typeToCategory(n.type),
+          title:      n.title,
+          body:       n.body,
+          read:       n.read,
+          created_at: n.created_at,
+        }))
+        setNotifs(mapped)
+        setDrawerLoaded(true)
+      })
+      .catch(() => { setDrawerLoaded(true) })
+      .finally(() => { drawerLoadingRef.current = false })
+  }, [notifOpen, drawerLoaded])
+
+  // Re-fetch when navigating back to page with drawer closed
+  useEffect(() => {
+    setDrawerLoaded(false)
+  }, [pathname])
+
+  async function markAllRead() {
     setNotifs(prev => prev.map(n => ({ ...n, read: true })))
     setUnreadCount(0)
+    try {
+      await fetch('/api/user/notifications/mark-read', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ all: true }),
+      })
+    } catch { /* optimistic */ }
   }
 
-  const localUnread = notifs.filter(n => !n.read).length
-  const displayCount = Math.max(unreadCount, localUnread)
+  async function markOneRead(id: string) {
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+    setUnreadCount(prev => Math.max(0, prev - 1))
+    try {
+      await fetch('/api/user/notifications/mark-read', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ id }),
+      })
+    } catch { /* optimistic */ }
+  }
+
+  const localUnread    = notifs.filter(n => !n.read).length
+  const displayCount   = drawerLoaded ? localUnread : unreadCount
 
   return (
     <>
@@ -389,86 +422,111 @@ export default function NavBar() {
 
         {/* Notification list */}
         <div style={{ overflowY: 'auto', flex: 1 }}>
-          {notifs.map((n, i) => {
-            const c = NOTIF_COLOR[n.category]
-            return (
-              <div
-                key={n.id}
-                style={{
-                  padding:         '14px 22px',
-                  borderBottom:    i < notifs.length - 1 ? `1px solid ${colors.cardBorder}` : 'none',
-                  backgroundColor: n.read ? 'transparent' : 'rgba(45,212,191,0.015)',
-                  display:         'flex',
-                  gap:             '12px',
-                  alignItems:      'flex-start',
-                }}
-              >
-                {/* Indicator */}
-                <div style={{
-                  width:           '28px',
-                  height:          '28px',
-                  borderRadius:    '8px',
-                  flexShrink:      0,
-                  backgroundColor: `${c}14`,
-                  border:          `1px solid ${c}2A`,
-                  display:         'flex',
-                  alignItems:      'center',
-                  justifyContent:  'center',
-                  marginTop:       '1px',
-                }}>
-                  {n.read ? (
-                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke={c} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2 6.5l2.5 2.5 5.5-5.5" />
-                    </svg>
-                  ) : (
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: c, boxShadow: `0 0 5px ${c}` }} />
-                  )}
-                </div>
-
-                <div style={{ flex: 1, minWidth: 0 }}>
+          {!drawerLoaded ? (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '40px 22px',
+              fontFamily: fonts.ui, fontSize: '12px', color: colors.textMuted,
+            }}>
+              Loading…
+            </div>
+          ) : notifs.length === 0 ? (
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              padding: '40px 22px', gap: '8px', textAlign: 'center',
+            }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(45,212,191,0.35)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3A6.5 6.5 0 0 0 5.5 9.5v4.7L4 17h16l-1.5-2.8V9.5A6.5 6.5 0 0 0 12 3Z" />
+                <path d="M10 20a2 2 0 0 0 4 0" />
+              </svg>
+              <p style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, margin: 0, lineHeight: 1.6 }}>
+                No notifications right now
+              </p>
+            </div>
+          ) : (
+            notifs.map((n, i) => {
+              const c = NOTIF_COLOR[n.category]
+              return (
+                <div
+                  key={n.id}
+                  onClick={!n.read ? () => markOneRead(n.id) : undefined}
+                  style={{
+                    padding:         '14px 22px',
+                    borderBottom:    i < notifs.length - 1 ? `1px solid ${colors.cardBorder}` : 'none',
+                    backgroundColor: n.read ? 'transparent' : 'rgba(45,212,191,0.015)',
+                    display:         'flex',
+                    gap:             '12px',
+                    alignItems:      'flex-start',
+                    cursor:          n.read ? 'default' : 'pointer',
+                  }}
+                >
+                  {/* Indicator */}
                   <div style={{
-                    display:       'flex',
-                    justifyContent:'space-between',
-                    alignItems:    'flex-start',
-                    gap:           '8px',
-                    marginBottom:  '3px',
+                    width:           '28px',
+                    height:          '28px',
+                    borderRadius:    '8px',
+                    flexShrink:      0,
+                    backgroundColor: `${c}14`,
+                    border:          `1px solid ${c}2A`,
+                    display:         'flex',
+                    alignItems:      'center',
+                    justifyContent:  'center',
+                    marginTop:       '1px',
                   }}>
-                    <div style={{
-                      fontFamily:  fonts.ui,
-                      fontSize:    '13px',
-                      fontWeight:  n.read ? 500 : 700,
-                      color:       n.read ? colors.textSoft : colors.text,
-                      lineHeight:  1.3,
-                    }}>
-                      {n.title}
-                    </div>
-                    <div style={{
-                      fontFamily:  fonts.ui,
-                      fontSize:    '10px',
-                      color:       colors.textMuted,
-                      whiteSpace:  'nowrap',
-                      flexShrink:  0,
-                      paddingTop:  '1px',
-                    }}>
-                      {relTime(n.created_at)}
-                    </div>
+                    {n.read ? (
+                      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke={c} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2 6.5l2.5 2.5 5.5-5.5" />
+                      </svg>
+                    ) : (
+                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: c, boxShadow: `0 0 5px ${c}` }} />
+                    )}
                   </div>
-                  <div style={{
-                    fontFamily:          fonts.ui,
-                    fontSize:            '12px',
-                    color:               colors.textMuted,
-                    lineHeight:          1.55,
-                    overflow:            'hidden',
-                    display:             '-webkit-box',
-                    WebkitLineClamp:     2,
-                    WebkitBoxOrient:     'vertical',
-                  } as React.CSSProperties}>
-                    {n.body}
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      display:       'flex',
+                      justifyContent:'space-between',
+                      alignItems:    'flex-start',
+                      gap:           '8px',
+                      marginBottom:  '3px',
+                    }}>
+                      <div style={{
+                        fontFamily:  fonts.ui,
+                        fontSize:    '13px',
+                        fontWeight:  n.read ? 500 : 700,
+                        color:       n.read ? colors.textSoft : colors.text,
+                        lineHeight:  1.3,
+                      }}>
+                        {n.title}
+                      </div>
+                      <div style={{
+                        fontFamily:  fonts.ui,
+                        fontSize:    '10px',
+                        color:       colors.textMuted,
+                        whiteSpace:  'nowrap',
+                        flexShrink:  0,
+                        paddingTop:  '1px',
+                      }}>
+                        {relTime(n.created_at)}
+                      </div>
+                    </div>
+                    <div style={{
+                      fontFamily:          fonts.ui,
+                      fontSize:            '12px',
+                      color:               colors.textMuted,
+                      lineHeight:          1.55,
+                      overflow:            'hidden',
+                      display:             '-webkit-box',
+                      WebkitLineClamp:     2,
+                      WebkitBoxOrient:     'vertical',
+                    } as React.CSSProperties}>
+                      {n.body}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })
+          )}
         </div>
 
         {/* Footer — view all */}

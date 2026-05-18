@@ -23,13 +23,6 @@ const fonts = {
 }
 
 // ── Notification types ─────────────────────────────────────────────
-// Mirrors the future real integration with:
-//   notification_recipients.id  → id
-//   notifications.type          → category (mapped)
-//   notifications.title         → title
-//   notifications.body          → body
-//   notification_recipients.opened → read
-//   notifications.created_at    → created_at
 type NotifCategory = 'insights' | 'system' | 'reminders' | 'safety' | 'updates'
 
 interface UserNotification {
@@ -39,6 +32,15 @@ interface UserNotification {
   body:       string
   read:       boolean
   created_at: string
+}
+
+// ── Map notification type → display category ───────────────────────
+function typeToCategory(type: string): NotifCategory {
+  if (type === 'safety_alert') return 'safety'
+  if (type === 'system_alert') return 'system'
+  if (type === 'push')         return 'reminders'
+  if (type === 'email')        return 'updates'
+  return 'insights'
 }
 
 // ── Category config ────────────────────────────────────────────────
@@ -100,53 +102,6 @@ function CategoryIcon({ category, color }: { category: NotifCategory; color: str
   return null
 }
 
-// ── Mock data — replace with API fetch from notification_recipients ─
-// Future integration:
-//   GET /api/user/notifications → joins notification_recipients + notifications
-//   PATCH /api/user/notifications/:id/read → sets notification_recipients.opened = true
-const MOCK_NOTIFICATIONS: UserNotification[] = [
-  {
-    id:         'n1',
-    category:   'insights',
-    title:      'Vitamin D below optimal range',
-    body:       'Your latest Vitamin D reading (28 ng/mL) falls below the optimal zone. Consider reviewing your sun exposure and supplement protocol.',
-    read:       false,
-    created_at: new Date(Date.now() - 2  * 60 * 60  * 1000).toISOString(),
-  },
-  {
-    id:         'n2',
-    category:   'safety',
-    title:      'Elevated CRP detected',
-    body:       'Your C-Reactive Protein is above the standard reference range. This may indicate inflammation. If persistent, review with your physician.',
-    read:       false,
-    created_at: new Date(Date.now() - 6  * 60 * 60  * 1000).toISOString(),
-  },
-  {
-    id:         'n3',
-    category:   'reminders',
-    title:      'Lab panel is 90+ days old',
-    body:       'Regular monitoring helps Meridian deliver more accurate insights. Your last upload was over 90 days ago.',
-    read:       true,
-    created_at: new Date(Date.now() - 2  * 24 * 3600 * 1000).toISOString(),
-  },
-  {
-    id:         'n4',
-    category:   'system',
-    title:      'Personalization model updated',
-    body:       'Meridian has updated its interpretation model for your biological profile. Your insights now reflect the latest reference data.',
-    read:       true,
-    created_at: new Date(Date.now() - 5  * 24 * 3600 * 1000).toISOString(),
-  },
-  {
-    id:         'n5',
-    category:   'updates',
-    title:      'New markers: Homocysteine + hs-CRP',
-    body:       'Meridian now supports two new cardiovascular risk markers. Upload a panel containing these markers to see context and interpretation.',
-    read:       true,
-    created_at: new Date(Date.now() - 10 * 24 * 3600 * 1000).toISOString(),
-  },
-]
-
 // ── Helpers ────────────────────────────────────────────────────────
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
@@ -169,27 +124,59 @@ export default function NotificationsPage() {
   )
 
   const [pageLoading,   setPageLoading]   = useState(true)
-  const [notifications, setNotifications] = useState<UserNotification[]>(MOCK_NOTIFICATIONS)
+  const [notifications, setNotifications] = useState<UserNotification[]>([])
   const [activeFilter,  setActiveFilter]  = useState<NotifCategory | 'all'>('all')
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.push('/onboarding/welcome'); return }
-      // Future: fetch real notifications from /api/user/notifications
-      // and merge with or replace MOCK_NOTIFICATIONS
-      setPageLoading(false)
+      fetchNotifications()
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function markRead(id: string) {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
-    // Future: PATCH /api/user/notifications/:id/read
+  async function fetchNotifications() {
+    try {
+      const res  = await fetch('/api/user/notifications')
+      const data = await res.json() as {
+        notifications: { id: string; title: string; body: string; type: string; read: boolean; created_at: string }[]
+      }
+      const mapped: UserNotification[] = (data.notifications ?? []).map(n => ({
+        id:         n.id,
+        category:   typeToCategory(n.type),
+        title:      n.title,
+        body:       n.body,
+        read:       n.read,
+        created_at: n.created_at,
+      }))
+      setNotifications(mapped)
+    } catch {
+      setNotifications([])
+    } finally {
+      setPageLoading(false)
+    }
   }
 
-  function markAllRead() {
+  async function markRead(id: string) {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+    try {
+      await fetch('/api/user/notifications/mark-read', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ id }),
+      })
+    } catch { /* optimistic — ignore network errors */ }
+  }
+
+  async function markAllRead() {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-    // Future: PATCH /api/user/notifications/read-all
+    try {
+      await fetch('/api/user/notifications/mark-read', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ all: true }),
+      })
+    } catch { /* optimistic — ignore network errors */ }
   }
 
   const filtered = activeFilter === 'all'
@@ -219,14 +206,11 @@ export default function NotificationsPage() {
         <div style={{ paddingTop: '48px', marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
           <div>
             <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              padding: '6px 14px', borderRadius: '999px',
-              border: '1px solid rgba(45,212,191,0.30)',
-              background: 'rgba(20,184,166,0.07)',
+              display: 'flex', alignItems: 'center', gap: '7px',
               marginBottom: '14px',
             }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 8px rgba(45,212,191,0.7)', flexShrink: 0 }} />
-              <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: colors.teal }}>
+              <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.6)', flexShrink: 0 }} />
+              <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted }}>
                 Notifications
               </span>
             </div>
@@ -279,7 +263,6 @@ export default function NotificationsPage() {
           paddingBottom: '4px',
           scrollbarWidth: 'none',
         }}>
-          {/* All filter */}
           <FilterPill
             active={activeFilter === 'all'}
             onClick={() => setActiveFilter('all')}
@@ -374,7 +357,7 @@ function NotifCard({ notif, onMarkRead }: {
 
   return (
     <div
-      onClick={onMarkRead}
+      onClick={!notif.read ? onMarkRead : undefined}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -498,7 +481,6 @@ function EmptyState({ category }: { category: NotifCategory | 'all' }) {
       textAlign:      'center',
       gap:            '14px',
     }}>
-      {/* Icon */}
       <div style={{
         width:      '56px',
         height:     '56px',
