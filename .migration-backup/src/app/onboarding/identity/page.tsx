@@ -63,7 +63,7 @@ export default function IdentityPage() {
       if (!user) { router.push('/onboarding/welcome'); return }
       const { data: prof } = await supabase
         .from('profiles')
-        .select('full_name, birth_date, biological_profile, current_state, user_profile, onboarding_completed')
+        .select('*')
         .eq('id', user.id)
         .single()
       const nextStep = getNextOnboardingStep(prof)
@@ -105,7 +105,11 @@ export default function IdentityPage() {
       )
     setLoading(false)
     if (updateError) { setError(updateError.message); return }
-    router.push('/onboarding/current-state')
+    // Re-derive next step from the actual saved profile rather than hardcoding.
+    // This means the identity page routes correctly whether or not migration 004
+    // (current_state column) has been applied — it follows truth, not assumptions.
+    const { data: saved } = await supabase.from('profiles').select('*').eq('id', userId).single()
+    router.push(getNextOnboardingStep(saved) ?? '/dashboard')
   }
 
   return (

@@ -93,7 +93,7 @@ function WelcomePageInner() {
         if (authError) { setError(authError.message); return }
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, birth_date, biological_profile, current_state, user_profile, onboarding_completed')
+          .select('*')
           .eq('id', authData.user!.id)
           .single()
         router.push(getNextOnboardingStep(profile) ?? '/')

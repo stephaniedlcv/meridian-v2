@@ -64,7 +64,7 @@ export default function ConnectPage() {
       if (!user) { router.push('/onboarding/welcome'); return }
       const { data: prof } = await supabase
         .from('profiles')
-        .select('full_name, birth_date, biological_profile, current_state, user_profile, onboarding_completed')
+        .select('*')
         .eq('id', user.id)
         .single()
       const nextStep = getNextOnboardingStep(prof)

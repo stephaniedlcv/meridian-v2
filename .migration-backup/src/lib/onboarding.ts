@@ -29,7 +29,11 @@ export function getNextOnboardingStep(profile: unknown): string | null {
   if (!p.full_name || !p.birth_date || !p.biological_profile) return '/onboarding/identity'
 
   // Step 2: Current state
-  if (!p.current_state) return '/onboarding/current-state'
+  // Guarded by column existence: if the DB column hasn't been provisioned yet
+  // (migration 004 not applied), 'current_state' won't be in the response
+  // object at all — skip the step silently rather than looping back to identity.
+  // Once migration 004 is applied the key appears and the step activates.
+  if ('current_state' in p && !p.current_state) return '/onboarding/current-state'
 
   // Step 3: Goals (Meridian mode)
   if (!p.user_profile) return '/onboarding/goals'
