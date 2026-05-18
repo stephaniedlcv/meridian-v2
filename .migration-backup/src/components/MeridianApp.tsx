@@ -132,41 +132,75 @@ function LoadingSkeleton() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Logo halo
-// size 82px (+14% from 72). Rings: luxury biometric weight — defined, not glowing.
+// Logo halo — 92px cinematic depth system
+//
+// Layer order (back → front):
+//   1. Dark smoked-glass backing  — radial gradient + backdrop blur
+//      separates the glyph from the video entirely
+//   2. Outer halo ring            — cyan border, visible but restrained
+//   3. Inner halo ring            — closer to glyph, subtle
+//   4. M glyph                    — gradient + soft drop-shadow bloom
 // ─────────────────────────────────────────────────────────────────────────────
-function Halo({ url, size = 82 }: { url: string | null; size?: number }) {
+function Halo({ url, size = 92 }: { url: string | null; size?: number }) {
+  const insetPx  = Math.round(size * 0.06)   // backing inset from outer ring
+  const ringInset = Math.round(size * 0.15)  // inner ring inset
+
   return (
     <div style={{
       position: 'relative', width: `${size}px`, height: `${size}px`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       flexShrink: 0,
     }}>
-      {/* Outer ring — tighter glow radius keeps it crisp on moving video */}
+
+      {/* 1 — Smoked-glass atmospheric backing.
+          Blurs the video behind the orb, creates depth separation.
+          Radial: deepest at center (where the M sits), fades at the rim
+          so the outer ring still reads as floating above the environment. */}
+      <div style={{
+        position:           'absolute',
+        inset:              `${insetPx}px`,
+        borderRadius:       '50%',
+        background:         'radial-gradient(circle at 50% 48%, rgba(3,10,14,0.56) 0%, rgba(6,19,22,0.40) 50%, transparent 82%)',
+        backdropFilter:     'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+      }} />
+
+      {/* 2 — Outer halo ring — slightly stronger than before */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: '50%',
-        border: '1.5px solid rgba(103,232,249,0.34)',
-        boxShadow: '0 0 20px rgba(45,212,191,0.16), 0 0 44px rgba(45,212,191,0.07), inset 0 0 12px rgba(45,212,191,0.05)',
+        border: '1.5px solid rgba(103,232,249,0.40)',
+        boxShadow: '0 0 18px rgba(45,212,191,0.18), 0 0 40px rgba(45,212,191,0.08), inset 0 0 10px rgba(45,212,191,0.06)',
       }} />
-      {/* Inner ring */}
+
+      {/* 3 — Inner halo ring */}
       <div style={{
-        position: 'absolute', inset: `${Math.round(size * 0.15)}px`,
-        borderRadius: '50%',
-        border: '1px solid rgba(103,232,249,0.22)',
+        position: 'absolute', inset: `${ringInset}px`, borderRadius: '50%',
+        border: '1px solid rgba(103,232,249,0.26)',
       }} />
+
+      {/* 4 — Glyph / logo image */}
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={url} alt="Meridian"
-          style={{ width: `${Math.round(size * 0.55)}px`, height: `${Math.round(size * 0.55)}px`, objectFit: 'contain', position: 'relative', zIndex: 1 }}
+          style={{
+            width: `${Math.round(size * 0.55)}px`, height: `${Math.round(size * 0.55)}px`,
+            objectFit: 'contain', position: 'relative', zIndex: 1,
+          }}
         />
       ) : (
         <div style={{
-          fontFamily: F_SERIF, fontSize: `${Math.round(size * 0.56)}px`,
-          fontWeight: 700, lineHeight: 1,
-          background: 'linear-gradient(135deg, #FFFFFF 0%, #67E8F9 42%, #2DD4BF 100%)',
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          position: 'relative', zIndex: 1,
+          fontFamily:           F_SERIF,
+          fontSize:             `${Math.round(size * 0.56)}px`,
+          fontWeight:           700,
+          lineHeight:           1,
+          background:           'linear-gradient(135deg, #FFFFFF 0%, #67E8F9 42%, #2DD4BF 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor:  'transparent',
+          position:             'relative',
+          zIndex:               1,
+          // Soft inner bloom — illuminated-from-within feel, not neon
+          filter:               'drop-shadow(0 0 5px rgba(103,232,249,0.30))',
         }}>
           M
         </div>
