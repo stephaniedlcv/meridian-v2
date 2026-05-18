@@ -107,7 +107,7 @@ export default function GoalsPage() {
       .from('profiles')
       .upsert({ id: userId, user_profile: primaryGoal }, { onConflict: 'id' })
     if (updateError) { setError(updateError.message); setLoading(false); return }
-    router.push('/onboarding/connect')
+    router.push('/onboarding/baseline')
   }
 
   return (

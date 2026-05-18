@@ -11,8 +11,9 @@
  *   1. missing full_name, birth_date, OR biological_profile  → /onboarding/identity
  *   2. current_state not set                                 → /onboarding/current-state
  *   3. user_profile not set                                  → /onboarding/goals
- *   4. onboarding_completed !== truthy                       → /onboarding/connect
- *   5. complete                                              → null
+ *   4. baseline not completed                                → /onboarding/baseline
+ *   5. onboarding_completed !== truthy                       → /onboarding/connect
+ *   6. complete                                              → null
  *
  * Note: /onboarding/profile is deprecated. biological_profile is now
  * collected in step 1 (identity). The profile route exists only as a
@@ -38,6 +39,14 @@ export function getNextOnboardingStep(profile: unknown): string | null {
   // Step 3: Goals (Meridian mode)
   if (!p.user_profile) return '/onboarding/goals'
 
-  // Step 4: Connect data
+  // Step 4: Baseline calibration
+  // Guarded by column existence — same pattern as current_state.
+  // If migration 005 hasn't been applied, 'baseline_completed' won't appear in
+  // the select('*') response, so the key is absent and the step is silently
+  // skipped. Once migration 005 runs, baseline_completed defaults to false for
+  // all new users and the step activates automatically.
+  if ('baseline_completed' in p && !p.baseline_completed) return '/onboarding/baseline'
+
+  // Step 5: Connect data
   return '/onboarding/connect'
 }

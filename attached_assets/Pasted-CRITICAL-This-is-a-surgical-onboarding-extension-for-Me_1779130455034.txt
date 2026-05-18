@@ -1,0 +1,228 @@
+CRITICAL: This is a surgical onboarding extension for Meridian’s existing onboarding architecture. DO NOT redesign, restyle, refactor, or alter the cinematic system already in place. Preserve the exact visual language, spacing system, glassmorphism, typography hierarchy, ambient background continuity, button styling, chip interactions, and mobile responsiveness already implemented across onboarding.
+
+GOAL:
+Insert a new onboarding step between Goals and Connect called:
+
+/onboarding/baseline
+
+The onboarding flow must now become:
+
+1. Identity
+2. Current State
+3. Goals
+4. Baseline
+5. Connect
+
+Connect page must update from:
+“STEP 4 OF 4”
+to:
+“STEP 5 OF 5”
+
+────────────────────
+STEP REQUIREMENTS
+────────────────────
+
+Create a new onboarding step:
+src/app/onboarding/baseline/page.tsx
+
+This page should feel like:
+“light biological calibration”
+NOT:
+“medical intake”
+
+The UX must remain calm, premium, cinematic, intelligent, and low-friction.
+
+Use the SAME:
+- onboarding card shell
+- spacing rhythm
+- ambient layout system
+- typography hierarchy
+- CTA styling
+- chip interaction behavior
+- glow system
+already established in Current State and Goals.
+
+DO NOT introduce:
+- large clinical forms
+- stacked dropdown menus
+- generic HTML form aesthetic
+- harsh labels
+- dashboard density
+
+────────────────────
+HEADER CONTENT
+────────────────────
+
+Step chip:
+“BASELINE · STEP 4 OF 5”
+
+Headline:
+“Build your baseline”
+
+Subcopy:
+“Help Meridian calibrate your recovery, metabolism, and daily guidance.”
+
+Secondary muted line:
+“You can update this anytime from Profile.”
+
+────────────────────
+FIELDS TO COLLECT
+────────────────────
+
+This step should populate the currently empty Profile Health Context section.
+
+Store the following values into profiles:
+
+- height
+- weight
+- activity_level
+- training_frequency
+- goal_phase
+- diet_pattern
+
+────────────────────
+UX IMPLEMENTATION
+────────────────────
+
+HEIGHT
+Do NOT use a freeform text field.
+
+Use segmented height input:
+- Feet dropdown/chips
+- Inches dropdown/chips
+
+Mobile-friendly.
+
+Store normalized value cleanly.
+
+WEIGHT
+Single clean numeric input:
+- lbs default
+- subtle lbs label
+- glass input style matching onboarding.
+
+ACTIVITY LEVEL
+Selectable glass cards/chips:
+- Mostly desk-based
+- Light daily movement
+- Consistent training
+- Athletic lifestyle
+
+TRAINING FREQUENCY
+Selectable chips/cards:
+- Not currently training
+- 1–2 days/week
+- 3–4 days/week
+- 5+ days/week
+
+GOAL PHASE
+Selectable chips/cards:
+- Recomposition
+- Fat loss
+- Muscle gain
+- Maintenance
+- Performance
+- Recovery
+
+DIET PATTERN
+Selectable chips/cards:
+- Omnivore
+- High protein
+- Mediterranean
+- Vegetarian
+- Vegan
+- Low carb
+- Flexible / intuitive
+
+────────────────────
+IMPORTANT UX RULES
+────────────────────
+
+- This page MUST feel lightweight.
+- Avoid long scrolling.
+- Use compact premium spacing.
+- Preserve breathing room.
+- Preserve cinematic tone.
+- Preserve ambient background continuity.
+- Use the exact existing onboarding component language.
+
+Selections should visually behave like:
+Current State + Goals.
+
+Selected state:
+- teal glow
+- brighter border
+- elevated appearance
+
+Unselected:
+- muted glass
+
+────────────────────
+DATA + ROUTING
+────────────────────
+
+Update onboarding routing flow:
+
+Goals
+→ Baseline
+→ Connect
+
+Update:
+- getNextOnboardingStep
+- onboarding completion logic
+- redirects
+- progress chips
+- step counts
+
+Connect page:
+STEP 5 OF 5
+
+Baseline page:
+Continue button:
+“Continue →”
+
+Routes to:
+ /onboarding/connect
+
+────────────────────
+DATABASE
+────────────────────
+
+If these fields do not already exist on profiles, generate ONE SQL migration file adding:
+
+- height
+- weight
+- activity_level
+- training_frequency
+- goal_phase
+- diet_pattern
+
+Use nullable safe defaults.
+DO NOT break existing users.
+DO NOT alter existing profile logic unnecessarily.
+
+────────────────────
+CRITICAL CONSTRAINTS
+────────────────────
+
+DO NOT:
+- redesign onboarding
+- touch landing page
+- change typography system
+- alter button design language
+- refactor unrelated code
+- create new design systems
+- introduce bright colors
+- introduce generic SaaS styling
+
+This is a surgical onboarding completion pass ONLY.
+
+Return:
+- all modified files
+- any new files
+- SQL migration if needed
+
+Ensure:
+- zero TypeScript errors
+- mobile-first responsiveness preserved
+- existing onboarding continuity preserved
