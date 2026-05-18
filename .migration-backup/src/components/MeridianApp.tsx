@@ -126,33 +126,33 @@ function LoadingSkeleton() {
       <div aria-hidden style={{ position: 'absolute', top: '-20%', left: '-15%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 70%)', filter: 'blur(90px)' }} />
       <div aria-hidden style={{ position: 'absolute', bottom: '-20%', right: '-15%', width: '55%', height: '55%', background: 'radial-gradient(circle, rgba(103,232,249,0.08) 0%, transparent 70%)', filter: 'blur(90px)' }} />
       <div aria-hidden style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%', background: 'linear-gradient(to top, rgba(6,19,22,0.65) 0%, transparent 100%)', pointerEvents: 'none' }} />
-      <Halo url={null} size={72} />
+      <Halo url={null} size={82} />
     </div>
   )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Logo halo
-// size 72px (−5% from 76). Rings: thicker stroke + higher opacity + soft glow.
+// size 82px (+14% from 72). Rings: luxury biometric weight — defined, not glowing.
 // ─────────────────────────────────────────────────────────────────────────────
-function Halo({ url, size = 72 }: { url: string | null; size?: number }) {
+function Halo({ url, size = 82 }: { url: string | null; size?: number }) {
   return (
     <div style={{
       position: 'relative', width: `${size}px`, height: `${size}px`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       flexShrink: 0,
     }}>
-      {/* Outer ring — increased stroke weight + opacity for video visibility */}
+      {/* Outer ring — tighter glow radius keeps it crisp on moving video */}
       <div style={{
         position: 'absolute', inset: 0, borderRadius: '50%',
-        border: '1.5px solid rgba(103,232,249,0.26)',
-        boxShadow: '0 0 32px rgba(45,212,191,0.13), 0 0 72px rgba(45,212,191,0.06), inset 0 0 18px rgba(45,212,191,0.04)',
+        border: '1.5px solid rgba(103,232,249,0.34)',
+        boxShadow: '0 0 20px rgba(45,212,191,0.16), 0 0 44px rgba(45,212,191,0.07), inset 0 0 12px rgba(45,212,191,0.05)',
       }} />
       {/* Inner ring */}
       <div style={{
         position: 'absolute', inset: `${Math.round(size * 0.15)}px`,
         borderRadius: '50%',
-        border: '1px solid rgba(103,232,249,0.18)',
+        border: '1px solid rgba(103,232,249,0.22)',
       }} />
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -207,12 +207,12 @@ function LoginCornerButton({
         right:       '24px',
         zIndex:      10,
         fontFamily:  F_UI,
-        fontSize:    '12.5px',
-        fontWeight:  500,
+        fontSize:    '12px',
+        fontWeight:  400,
         letterSpacing: '0.01em',
-        color:       hovered ? '#EAFBF7' : '#7BB5AC',
-        background:  hovered ? 'rgba(232,248,245,0.06)' : 'transparent',
-        border:      `1px solid ${hovered ? 'rgba(103,232,249,0.22)' : 'rgba(103,232,249,0.12)'}`,
+        color:       hovered ? '#AFDAD4' : '#537D77',
+        background:  hovered ? 'rgba(232,248,245,0.04)' : 'transparent',
+        border:      `1px solid ${hovered ? 'rgba(103,232,249,0.16)' : 'rgba(103,232,249,0.07)'}`,
         borderRadius: '8px',
         padding:     '7px 14px',
         cursor:      'pointer',
@@ -391,8 +391,8 @@ export default function MeridianApp() {
               fontWeight:    700,
               letterSpacing: '0.20em',
               textTransform: 'uppercase' as const,
-              // Lifted from #4D7A73 — more visible over video
-              color:         '#6FA89F',
+              // Lifted for readability over moving video — teal, not white
+              color:         '#9EC8C1',
             }}>
               Biological Intelligence System
             </span>
@@ -462,19 +462,37 @@ function PrimaryButton({ label, onClick }: { label: string; onClick: () => void 
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        padding: '15px 36px', minWidth: '148px', minHeight: '52px',
-        background: 'linear-gradient(135deg, #2DD4BF 0%, #67E8F9 100%)',
-        border: 'none', borderRadius: '14px',
-        color: '#061316', fontFamily: F_UI, fontSize: '15px', fontWeight: 700,
-        letterSpacing: '-0.01em', cursor: 'pointer',
-        boxShadow: hovered
-          ? '0 0 40px rgba(45,212,191,0.50), 0 0 88px rgba(45,212,191,0.18), inset 0 1px 0 rgba(255,255,255,0.28)'
-          : '0 0 24px rgba(45,212,191,0.32), 0 0 60px rgba(45,212,191,0.10), inset 0 1px 0 rgba(255,255,255,0.22)',
-        transform: hovered ? 'scale(1.03)' : 'scale(1)',
-        transition: 'transform 0.20s ease, box-shadow 0.20s ease',
+        display:        'inline-flex',
+        alignItems:     'center',
+        gap:            '9px',
+        padding:        '14px 48px',
+        minWidth:       '160px',
+        minHeight:      '52px',
+        // Glass / editorial — not a solid fill
+        background:     hovered ? 'rgba(45,212,191,0.10)' : 'rgba(45,212,191,0.055)',
+        border:         `1px solid ${hovered ? 'rgba(45,212,191,0.52)' : 'rgba(45,212,191,0.28)'}`,
+        borderRadius:   '14px',
+        color:          hovered ? '#E8FAF7' : '#9ECFC6',
+        fontFamily:     F_UI,
+        fontSize:       '15px',
+        fontWeight:     500,
+        letterSpacing:  '0.01em',
+        cursor:         'pointer',
+        backdropFilter: 'blur(20px)',
+        boxShadow:      hovered
+          ? '0 0 28px rgba(45,212,191,0.18), 0 0 56px rgba(45,212,191,0.07)'
+          : '0 0 14px rgba(45,212,191,0.09)',
+        transform:      hovered ? 'scale(1.02)' : 'scale(1)',
+        transition:     'all 0.22s ease',
       }}
     >
       {label}
+      <span aria-hidden style={{
+        fontSize: '14px', lineHeight: 1,
+        opacity: hovered ? 0.85 : 0.40,
+        transition: 'opacity 0.22s ease',
+        marginTop: '1px',
+      }}>→</span>
     </button>
   )
 }
