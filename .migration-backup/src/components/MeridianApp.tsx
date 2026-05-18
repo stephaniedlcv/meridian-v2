@@ -160,9 +160,9 @@ function Halo({ url, size = 92 }: { url: string | null; size?: number }) {
         position:           'absolute',
         inset:              `${insetPx}px`,
         borderRadius:       '50%',
-        background:         'radial-gradient(circle at 50% 48%, rgba(3,10,14,0.56) 0%, rgba(6,19,22,0.40) 50%, transparent 82%)',
-        backdropFilter:     'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
+        background:         'radial-gradient(circle at 50% 48%, rgba(3,10,14,0.32) 0%, rgba(6,19,22,0.20) 50%, transparent 76%)',
+        backdropFilter:     'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
       }} />
 
       {/* 2 — Outer halo ring — slightly stronger than before */}
@@ -200,7 +200,7 @@ function Halo({ url, size = 92 }: { url: string | null; size?: number }) {
           position:             'relative',
           zIndex:               1,
           // Soft inner bloom — illuminated-from-within feel, not neon
-          filter:               'drop-shadow(0 0 5px rgba(103,232,249,0.30))',
+          filter:               'drop-shadow(0 0 7px rgba(103,232,249,0.40))',
         }}>
           M
         </div>

@@ -1,0 +1,148 @@
+FINAL MICRO-POLISH — ORB REBALANCE ONLY
+
+The current landing page is VERY close.
+
+Do NOT redesign anything.
+
+We are ONLY correcting the Meridian orb/logo treatment because the latest pass introduced too much dark density in the center.
+
+The current orb now feels:
+- too heavy
+- too dark
+- too solid
+- too detached from the cinematic atmosphere
+
+We need to restore the earlier “luminous atmospheric biotech” feeling while KEEPING the improved readability and hierarchy from the latest version.
+
+────────────────────
+CRITICAL RULE
+────────────────────
+
+DO NOT TOUCH:
+- layout
+- spacing
+- typography sizes
+- responsive behavior
+- CTA structure
+- login placement
+- headline positioning
+- animations
+- overall composition
+- video treatment
+
+ONLY adjust the orb/logo visual treatment.
+
+────────────────────
+THE ACTUAL PROBLEM
+────────────────────
+
+The center of the orb became too black/smoked.
+
+Instead of feeling:
+- ambient
+- suspended
+- cinematic
+- luminous
+
+…it now feels like:
+- a dark badge
+- heavy glass
+- pasted emblem
+
+We need to rebalance the orb back toward LIGHT and ATMOSPHERE instead of DARKNESS.
+
+────────────────────
+1. REDUCE DARK CORE DENSITY
+────────────────────
+
+Reduce the dark center opacity by approximately 25–35%.
+
+The orb should NOT look black.
+
+It should feel:
+- translucent
+- atmospheric
+- softly smoked
+- luminous
+
+NOT dense.
+
+Keep the dimensional depth.
+Do NOT flatten it.
+
+────────────────────
+2. RESTORE LUMINOUS CYAN SEPARATION
+────────────────────
+
+The “M” glyph needs to become the focal point again.
+
+Increase:
+- cyan clarity
+- glyph crispness
+- subtle ambient glow separation
+
+VERY IMPORTANT:
+This is NOT a neon glow.
+
+It should feel:
+- elegant
+- premium
+- cinematic
+- soft volumetric light
+
+NOT gaming RGB.
+
+────────────────────
+3. KEEP HALOS — SOFTEN THE INNER GLASS
+────────────────────
+
+The outer rings are now good.
+
+KEEP:
+- current halo scale
+- current halo visibility
+- current halo positioning
+
+But:
+soften the inner glass density behind the M.
+
+The rings should feel like:
+ambient atmospheric energy,
+not target reticles.
+
+────────────────────
+4. FINAL TARGET FEEL
+────────────────────
+
+The Meridian orb should feel like:
+
+- a calm intelligent signal
+- floating in cinematic space
+- softly illuminated from within
+- premium biotech
+- atmospheric depth
+- elegant translucency
+
+NOT:
+- dark emblem
+- hard badge
+- opaque medallion
+- sci-fi HUD
+
+────────────────────
+REFERENCE EMOTION
+────────────────────
+
+Think:
+Apple cinematic translucency
++
+high-end biotech atmosphere
++
+editorial luxury depth
+
+NOT cyberpunk.
+NOT neon.
+NOT gaming UI.
+
+This is the FINAL polish pass.
+Be subtle and intentional.
