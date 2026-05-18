@@ -59,7 +59,12 @@ export const AMBIENT_INTENSITY: Record<AmbientMode, number> = {
 
 /**
  * Production-safe fallback — rendered when DB is unavailable.
- * Must always match the visual state of the current hardcoded landing.
+ *
+ * Semantic contract (as of landing redesign):
+ *   headline  = large editorial positioning statement shown below the wordmark
+ *   subcopy   = calm supporting sentence shown below the headline
+ * The "Biological Intelligence System" system tag is rendered as fixed
+ * brand identity in code — not driven from config.
  */
 export const FALLBACK_CONFIG: LandingExperience = {
   id:                   'fallback',
@@ -67,8 +72,8 @@ export const FALLBACK_CONFIG: LandingExperience = {
   hero_video_url:       null,
   mobile_video_url:     null,
   poster_image_url:     null,
-  headline:             'Meridian',
-  subcopy:              'Biological Intelligence System',
+  headline:             'Understand your biology,\nin full context.',
+  subcopy:              'A calmer, more intelligent way to understand what your body is adapting to.',
   primary_cta_label:    'Get Started',
   secondary_cta_label:  'Log In',
   logo_variant_url:     null,
