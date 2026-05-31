@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
+import { t, useMeridianLanguage, type MeridianLanguage, type TranslationKey } from '../lib/i18n'
 
 const colors = {
   background: '#061316',
@@ -19,11 +20,11 @@ const fonts = {
 }
 
 // 4-item nav — Notifications moved to global bell
-const navConfig = [
-  { path: '/dashboard',   label: 'Home',     id: 'home'     },
-  { path: '/labs/upload', label: 'Labs',     id: 'labs'     },
-  { path: '/protocol',    label: 'Protocol', id: 'protocol' },
-  { path: '/profile',     label: 'Profile',  id: 'profile'  },
+const navConfig: { path: string; labelKey: TranslationKey; id: string }[] = [
+  { path: '/dashboard',   labelKey: 'nav.home',     id: 'home'     },
+  { path: '/labs/upload', labelKey: 'nav.labs',     id: 'labs'     },
+  { path: '/protocol',    labelKey: 'nav.protocol', id: 'protocol' },
+  { path: '/profile',     labelKey: 'nav.profile',  id: 'profile'  },
 ]
 
 function NavIcon({ id, isActive }: { id: string; isActive: boolean }) {
@@ -110,25 +111,26 @@ const NOTIF_COLOR: Record<NotifCategory, string> = {
   updates:   colors.cyan,
 }
 
-function relTime(iso: string): string {
+function relTime(iso: string, lang: MeridianLanguage): string {
   const ms   = Date.now() - new Date(iso).getTime()
   const mins  = Math.floor(ms / 60000)
   const hours = Math.floor(ms / 3600000)
   const days  = Math.floor(ms / 86400000)
-  if (days  >= 1) return `${days}d ago`
-  if (hours >= 1) return `${hours}h ago`
-  if (mins  >= 1) return `${mins}m ago`
-  return 'Just now'
+  if (days  >= 1) return lang === 'es' ? `${days}d` : `${days}d ago`
+  if (hours >= 1) return lang === 'es' ? `${hours}h` : `${hours}h ago`
+  if (mins  >= 1) return lang === 'es' ? `${mins}min` : `${mins}m ago`
+  return t(lang, 'notifications.justNow')
 }
 
 // ── Global notification bell ──────────────────────────────────────────
 function NotificationBell({
-  unreadCount, pathname, isOpen, onToggle,
+  unreadCount, pathname, isOpen, onToggle, lang,
 }: {
   unreadCount: number
   pathname:    string
   isOpen:      boolean
   onToggle:    () => void
+  lang:        MeridianLanguage
 }) {
   const isActive  = pathname === '/notifications' || isOpen
   const hasUnread = unreadCount > 0 && !isActive
@@ -137,7 +139,7 @@ function NotificationBell({
   return (
     <button
       onClick={onToggle}
-      aria-label={isOpen ? 'Close notifications' : 'Notifications'}
+      aria-label={isOpen ? t(lang, 'notifications.close') : t(lang, 'notifications.title')}
       aria-expanded={isOpen}
       style={{
         position:             'fixed',
@@ -214,6 +216,7 @@ function NotificationBell({
 export default function NavBar() {
   const router   = useRouter()
   const pathname = usePathname()
+  const [lang]   = useMeridianLanguage()
 
   const [unreadCount,  setUnreadCount]  = useState(0)
   const [notifOpen,    setNotifOpen]    = useState(false)
@@ -314,6 +317,7 @@ export default function NavBar() {
         pathname={pathname ?? ''}
         isOpen={notifOpen}
         onToggle={() => setNotifOpen(o => !o)}
+        lang={lang}
       />
 
       {/* Backdrop — tapping outside closes the drawer */}
@@ -336,7 +340,7 @@ export default function NavBar() {
       {/* Notification Drawer — iOS-style bottom sheet */}
       <div
         role="dialog"
-        aria-label="Notifications"
+        aria-label={t(lang, 'notifications.title')}
         aria-modal="true"
         style={{
           position:             'fixed',
@@ -382,7 +386,7 @@ export default function NavBar() {
               color:         colors.text,
               letterSpacing: '-0.03em',
             }}>
-              Notifications
+              {t(lang, 'notifications.title')}
             </span>
             {localUnread > 0 && (
               <span style={{
@@ -395,7 +399,7 @@ export default function NavBar() {
                 backgroundColor: 'rgba(45,212,191,0.10)',
                 border:          '1px solid rgba(45,212,191,0.22)',
               }}>
-                {localUnread} new
+                {localUnread} {t(lang, 'notifications.new')}
               </span>
             )}
           </div>
@@ -415,7 +419,7 @@ export default function NavBar() {
                 touchAction:  'manipulation',
               }}
             >
-              Mark all read
+              {t(lang, 'notifications.markAllRead')}
             </button>
           )}
         </div>
@@ -428,7 +432,7 @@ export default function NavBar() {
               padding: '40px 22px',
               fontFamily: fonts.ui, fontSize: '12px', color: colors.textMuted,
             }}>
-              Loading…
+              {t(lang, 'notifications.loading')}
             </div>
           ) : notifs.length === 0 ? (
             <div style={{
@@ -440,7 +444,7 @@ export default function NavBar() {
                 <path d="M10 20a2 2 0 0 0 4 0" />
               </svg>
               <p style={{ fontFamily: fonts.ui, fontSize: '13px', color: colors.textMuted, margin: 0, lineHeight: 1.6 }}>
-                No notifications right now
+                {t(lang, 'notifications.empty')}
               </p>
             </div>
           ) : (
@@ -507,7 +511,7 @@ export default function NavBar() {
                         flexShrink:  0,
                         paddingTop:  '1px',
                       }}>
-                        {relTime(n.created_at)}
+                        {relTime(n.created_at, lang)}
                       </div>
                     </div>
                     <div style={{
@@ -552,7 +556,7 @@ export default function NavBar() {
               touchAction:  'manipulation',
             }}
           >
-            View all notifications →
+            {t(lang, 'notifications.viewAll')} →
           </button>
         </div>
       </div>
@@ -608,7 +612,7 @@ export default function NavBar() {
                   color:         isActive ? colors.teal : colors.textMuted,
                   whiteSpace:    'nowrap',
                 }}>
-                  {item.label}
+                  {t(lang, item.labelKey)}
                 </span>
               </button>
             )
