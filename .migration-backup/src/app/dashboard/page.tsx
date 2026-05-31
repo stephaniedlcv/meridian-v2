@@ -631,19 +631,19 @@ function LabsSavedBlock({
             background: 'rgba(248,113,113,0.07)',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#F87171', boxShadow: '0 0 5px #F87171' }} />
-            Safety Review
+            {lang === 'es' ? 'Revisión de seguridad' : 'Safety Review'}
           </div>
           <h2 style={{
             fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700,
             color: colors.text, letterSpacing: '-0.04em', lineHeight: 1.15, marginBottom: '12px',
           }}>
-            Safety review recommended
+            {lang === 'es' ? 'Se recomienda revisión de seguridad' : 'Safety review recommended'}
           </h2>
           <p style={{ fontSize: '15px', color: colors.textSoft, lineHeight: 1.65, marginBottom: '10px' }}>
-            One or more recent biomarkers may require prompt medical review.
+            {lang === 'es' ? 'Uno o más biomarcadores recientes podrían requerir revisión médica pronta.' : 'One or more recent biomarkers may require prompt medical review.'}
           </p>
           <p style={{ fontSize: '14px', color: colors.textMuted, lineHeight: 1.7 }}>
-            Meridian is limiting optimization guidance until these results are reviewed with a qualified healthcare professional.
+            {lang === 'es' ? 'Meridian limitará la guía de optimización hasta que estos resultados sean revisados con un profesional de salud cualificado.' : 'Meridian is limiting optimization guidance until these results are reviewed with a qualified healthcare professional.'}
           </p>
         </div>
         <div style={{ padding: '0 24px 24px' }}>
@@ -657,7 +657,7 @@ function LabsSavedBlock({
               letterSpacing: '-0.01em',
             }}
           >
-            Review lab results →
+            {lang === 'es' ? 'Revisar resultados de laboratorio →' : 'Review lab results →'}
           </button>
         </div>
         <div style={{
@@ -665,7 +665,7 @@ function LabsSavedBlock({
           borderTop: 'rgba(248,113,113,0.1) solid 1px',
           fontSize: '11px', color: colors.textMuted, textAlign: 'center',
         }}>
-          Meridian interprets, you decide · Always consult a qualified professional.
+          {lang === 'es' ? 'Meridian interpreta, tú decides · Consulta siempre a un profesional cualificado.' : 'Meridian interprets, you decide · Always consult a qualified professional.'}
         </div>
       </div>
     )
