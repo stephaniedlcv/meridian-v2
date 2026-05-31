@@ -77,6 +77,13 @@ export const CANONICAL_PANELS: Record<string, CanonicalPanelDef> = {
     ],
   },
 
+  'Pancreatic Enzymes': {
+    name: 'Pancreatic Enzymes',
+    canonicalOrder: ['amylase', 'lipase'],
+    required: [],
+    optional: ['amylase', 'lipase'],
+  },
+
   CMP: {
     name: 'CMP',
     canonicalOrder: [
@@ -201,6 +208,8 @@ const PANEL_SLUG_MAP: Record<string, string> = {
   albumin: 'CMP', globulin: 'CMP', ag_ratio: 'CMP', total_protein: 'CMP',
   sodium: 'CMP', potassium: 'CMP', chloride: 'CMP', co2: 'CMP',
   calcium: 'CMP', anion_gap: 'CMP',
+  // Pancreatic Enzymes
+  amylase: 'Pancreatic Enzymes', lipase: 'Pancreatic Enzymes',
   // Lipid Panel
   total_cholesterol: 'Lipid Panel', hdl: 'Lipid Panel', ldl: 'Lipid Panel',
   vldl: 'Lipid Panel', non_hdl: 'Lipid Panel', triglycerides: 'Lipid Panel',
@@ -241,7 +250,7 @@ export function resolvePanel(slug: string): string {
 // Source of truth for panel sort order in the history view.
 // Matches HIST_PANEL_DISPLAY_ORDER in upload/page.tsx for UI consistency.
 export const PANEL_DISPLAY_ORDER: readonly string[] = [
-  'CBC', 'Lipid Panel', 'CMP', 'Glycemic Panel', 'Thyroid Panel',
+  'CBC', 'Lipid Panel', 'CMP', 'Pancreatic Enzymes', 'Glycemic Panel', 'Thyroid Panel',
   'Hormone Panel', 'Vitamin & Nutrient Panel', 'Inflammation / Cardiac Risk',
   'Urinalysis', 'Other',
 ]

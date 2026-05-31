@@ -112,6 +112,7 @@ const SLUG_TO_PANEL: Record<string, string> = {
   ast: 'Liver', alt: 'Liver', alkaline_phosphatase: 'Liver',
   bilirubin_total: 'Liver', albumin: 'Liver', globulin: 'Liver',
   ag_ratio: 'Liver', total_protein: 'Liver',
+  amylase: 'Pancreatic Enzymes', lipase: 'Pancreatic Enzymes',
   glucose_fasting: 'Glycemic', sodium: 'Electrolytes', potassium: 'Electrolytes',
   chloride: 'Electrolytes', co2: 'Electrolytes', calcium: 'Electrolytes', anion_gap: 'Electrolytes',
   // Urinalysis — dipstick, physical, and microscopy
@@ -131,7 +132,7 @@ function inferPanel(slug: string): string {
 }
 
 const PANEL_ORDER = [
-  'CBC', 'Lipid Panel', 'Glycemic', 'Kidney / Renal', 'Liver', 'Electrolytes',
+  'CBC', 'Lipid Panel', 'Glycemic', 'Kidney / Renal', 'Liver', 'Pancreatic Enzymes', 'Electrolytes',
   'Thyroid Panel', 'Vitamins & Nutrients',
   'Hormones', 'Inflammation / Cardiac Risk', 'Urinalysis', 'Other',
 ]
@@ -178,6 +179,7 @@ const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
   // Liver
   ast: 'Liver', alt: 'Liver', alkaline_phosphatase: 'Liver', bilirubin_total: 'Liver',
   albumin: 'Liver', globulin: 'Liver', ag_ratio: 'Liver', total_protein: 'Liver',
+  amylase: 'Pancreatic Enzymes', lipase: 'Pancreatic Enzymes',
   // Electrolytes
   sodium: 'Electrolytes', potassium: 'Electrolytes', chloride: 'Electrolytes',
   co2: 'Electrolytes', calcium: 'Electrolytes', anion_gap: 'Electrolytes',
@@ -205,7 +207,7 @@ const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
 }
 
 const CLINICAL_PANEL_ORDER = [
-  'CBC', 'Lipid Panel', 'Glycemic', 'Kidney / Renal', 'Liver', 'Electrolytes',
+  'CBC', 'Lipid Panel', 'Glycemic', 'Kidney / Renal', 'Liver', 'Pancreatic Enzymes', 'Electrolytes',
   'Thyroid Panel', 'Vitamins & Nutrients', 'Hormones', 'Inflammation / Cardiac Risk',
   'Urinalysis', 'Other',
 ]
@@ -1164,6 +1166,7 @@ const HIST_SLUG_TO_PANEL: Record<string, string> = {
   // Liver
   ast: 'Liver', alt: 'Liver', alkaline_phosphatase: 'Liver', bilirubin_total: 'Liver',
   albumin: 'Liver', globulin: 'Liver', ag_ratio: 'Liver', total_protein: 'Liver',
+  amylase: 'Pancreatic Enzymes', lipase: 'Pancreatic Enzymes',
   // Electrolytes
   sodium: 'Electrolytes', potassium: 'Electrolytes', chloride: 'Electrolytes',
   co2: 'Electrolytes', calcium: 'Electrolytes', anion_gap: 'Electrolytes',
@@ -1191,7 +1194,7 @@ const HIST_SLUG_TO_PANEL: Record<string, string> = {
 function histInferPanel(slug: string): string { return HIST_SLUG_TO_PANEL[slug] ?? 'Other' }
 
 const HIST_PANEL_DISPLAY_ORDER = [
-  'CBC', 'Lipid Panel', 'Glycemic', 'Kidney / Renal', 'Liver', 'Electrolytes',
+  'CBC', 'Lipid Panel', 'Glycemic', 'Kidney / Renal', 'Liver', 'Pancreatic Enzymes', 'Electrolytes',
   'Thyroid Panel', 'Vitamins & Nutrients', 'Hormones', 'Inflammation / Cardiac Risk',
   'Urinalysis', 'Other',
 ]
