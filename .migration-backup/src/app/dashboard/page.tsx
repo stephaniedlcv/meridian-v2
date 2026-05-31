@@ -929,7 +929,7 @@ function SolvedBlock({ insight, safetyAlert, lang }: { insight: GoldenInsight; s
           fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
           textTransform: 'uppercase', color: bc.accent, marginBottom: '14px',
         }}>
-          {lang === 'es' ? 'Prioridad de hoy' : 'Today&apos;s Priority'}
+          {lang === 'es' ? 'Prioridad de hoy' : 'Today’s Priority'}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {insight.action_steps.map((step, i) => (
