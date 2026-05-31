@@ -4,10 +4,26 @@ import { createClient } from '@supabase/supabase-js'
 // Qualitative result values that Meridian recognises and persists.
 // Any value outside this set is rejected to prevent garbage data.
 const VALID_QUALITATIVE_VALUES = new Set([
+  // Serology
   'positive', 'negative',
   'reactive', 'non_reactive',
   'detected', 'not_detected',
   'equivocal', 'indeterminate',
+
+  // Urinalysis dipstick
+  'trace', 'small', 'moderate', 'large',
+  'plus_1', 'plus_2', 'plus_3', 'plus_4',
+  'normal', 'abnormal',
+  'present', 'absent',
+
+  // Microscopy
+  'none', 'none_seen', 'rare', 'few', 'many',
+
+  // Urine color
+  'yellow', 'straw', 'amber', 'orange', 'red', 'brown',
+
+  // Urine clarity
+  'clear', 'hazy', 'cloudy', 'turbid',
 ])
 
 interface ConfirmedBiomarker {
