@@ -266,7 +266,7 @@ export default function DashboardPage() {
 
       // Fetch insight
       try {
-        const response = await fetch(`/api/insight?user_id=${user.id}`)
+        const response = await fetch(`/api/insight?user_id=${user.id}&lang=${lang}`)
         const data = await response.json()
         console.log('[Meridian] insight state:', data?.state, '| success:', data?.success)
 
@@ -988,7 +988,7 @@ function SolvedBlock({ insight, safetyAlert, lang }: { insight: GoldenInsight; s
           </p>
         </div>
 
-        {/* {lang === 'es' ? 'Rastro de confianza' : 'Confidence Trace'} */}
+        {/* Confidence Trace */}
         <div style={{
           marginTop: '20px',
           paddingTop: '16px',

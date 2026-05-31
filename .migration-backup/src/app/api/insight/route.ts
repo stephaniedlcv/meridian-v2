@@ -8,6 +8,8 @@ export const dynamic = 'force-dynamic'
 
 // ===== TYPES =====
 
+type InsightLanguage = 'en' | 'es'
+
 interface GoldenInsight {
   headline: string
   status: string
@@ -123,10 +125,21 @@ function buildSystemPrompt(
   userProfile: string,
   medications: string[],
   biologicalProfile: string,
-  healthContext: HealthContext
+  healthContext: HealthContext,
+  language: InsightLanguage = 'en'
 ): string {
   const tone = TONE_MAP[userProfile] || TONE_MAP.bienestar
   const healthContextBlock = buildHealthContextBlock(healthContext)
+  const languageBlock = language === 'es'
+    ? `### OUTPUT LANGUAGE
+Return all user-facing fields in natural Puerto Rico-friendly Spanish.
+Fields that must be Spanish: headline, status, cause, action_steps, trust_line.
+Keep biomarker names, units, and numeric values exactly as provided.
+Use a warm, clear, premium tone. Avoid Spanglish unless the biomarker name itself is in English.
+Use "Meridian interpreta, tú decides." in trust_line.`
+    : `### OUTPUT LANGUAGE
+Return all user-facing fields in English.
+Use "Meridian interprets, you decide." in trust_line.`
 
   return `### ROLE
 You are the "Meridian Health Intelligence Engine", powered by Claude.
@@ -196,6 +209,8 @@ ${tone}
   - Stable trend: "has remained consistently elevated" or "the pattern has been stable across recent labs"
   NEVER imply recovery, resolution, or cure based on a positive trend. NEVER suppress follow-up recommendations because a trend is improving. Safety alerts override all trend framing.
 
+${languageBlock}
+
 ### OUTPUT FORMAT
 Return ONLY a valid JSON object with these exact fields:
 {
@@ -222,12 +237,18 @@ Return ONLY the JSON. No markdown fences. No explanation. No preamble.`
 
 // ===== SAFETY PROMPT =====
 
-function buildSafetyPrompt(markerName: string, value: number, unit: string): string {
+function buildSafetyPrompt(markerName: string, value: number, unit: string, language: InsightLanguage = 'en'): string {
+  const languageLine = language === 'es'
+    ? 'Return all user-facing JSON fields in natural Spanish. Keep marker names, units, and values unchanged.'
+    : 'Return all user-facing JSON fields in English.'
+
   return `### SAFETY ALERT MODE
 
 A biomarker has crossed a safety threshold. This requires special handling.
 
 The marker is: ${markerName} at ${value} ${unit}
+
+${languageLine}
 
 Rules for safety alerts:
 1. Do NOT provide action steps for optimization
@@ -295,6 +316,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('user_id')
+    const langParam = searchParams.get('lang')
+    const language: InsightLanguage = langParam === 'es' ? 'es' : 'en'
 
     if (!userId) {
       return NextResponse.json(
@@ -445,7 +468,7 @@ Apply TREND AWARENESS rule 18 when framing the cause and status fields.`
     }
 
     // Build prompts
-    const systemPrompt = buildSystemPrompt(userProfile, medications, biologicalProfile, healthContext)
+    const systemPrompt = buildSystemPrompt(userProfile, medications, biologicalProfile, healthContext, language)
 
     let userPrompt = `Here are the user's current biomarker results, ranked by relevance score:
 
@@ -453,14 +476,16 @@ ${JSON.stringify(biomarkersForPrompt, null, 2)}${trendContextBlock}
 
 The dominant signal is: ${engineResult.dominant.name} at ${engineResult.dominant.value} ${engineResult.dominant.unit} (state: ${engineResult.dominant.state}, system: ${engineResult.dominant.system}, score: ${engineResult.dominant.score})
 
-Generate the Golden Insight for this user's daily priority.`
+Generate the Golden Insight for this user's daily priority.
+Return the user-facing fields in ${language === 'es' ? 'Spanish' : 'English'}.`
 
     // Add safety prompt if needed
     if (engineResult.has_safety_alert) {
       userPrompt += '\n\n' + buildSafetyPrompt(
         engineResult.dominant.name,
         engineResult.dominant.value,
-        engineResult.dominant.unit
+        engineResult.dominant.unit,
+        language
       )
     }
 
