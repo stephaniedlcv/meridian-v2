@@ -146,7 +146,7 @@ function getTimeGreeting(
     if (state === 'no_data') {
       const lines = [
         'Your health intelligence begins with your first lab upload.',
-        'Upload your labs to unlock your biological picture.',
+        lang === 'es' ? 'Sube tus laboratorios para desbloquear tu panorama biológico.' : 'Upload your labs to unlock your biological picture.',
         'Meridian is ready. Your biology is the starting point.',
       ]
       return { greeting, subline: lines[dayIndex % lines.length] }
@@ -602,9 +602,9 @@ function LabsSavedBlock({
   lang: MeridianLanguage
 }) {
   const steps = [
-    'Review your Lab Snapshot to see current markers',
-    'Upload newer labs when available',
-    'Insights gain precision as more history accumulates',
+    lang === 'es' ? 'Revisa tu resumen de laboratorios para ver tus marcadores actuales' : 'Review your Lab Snapshot to see current markers',
+    lang === 'es' ? 'Sube laboratorios nuevos cuando los tengas disponibles' : 'Upload newer labs when available',
+    lang === 'es' ? 'Las lecturas ganan precisión mientras se acumula más historial' : 'Insights gain precision as more history accumulates',
   ]
 
   // ── Safety Engine V1: safety-first copy when critical markers are present ──
@@ -693,19 +693,19 @@ function LabsSavedBlock({
           background: 'rgba(45,212,191,0.06)',
         }}>
           <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: `0 0 5px ${colors.teal}` }} />
-          Baseline Building
+          {lang === 'es' ? 'Construyendo línea base' : 'Baseline Building'}
         </div>
         <h2 style={{
           fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700,
           color: colors.text, letterSpacing: '-0.04em', lineHeight: 1.15, marginBottom: '12px',
         }}>
-          Labs received
+          {lang === 'es' ? 'Laboratorios recibidos' : 'Labs received'}
         </h2>
         <p style={{ fontSize: '15px', color: colors.textSoft, lineHeight: 1.65, marginBottom: '12px' }}>
-          Meridian is building your biological baseline.
+          {lang === 'es' ? 'Meridian está construyendo tu línea base biológica.' : 'Meridian is building your biological baseline.'}
         </p>
         <p style={{ fontSize: '14px', color: colors.textMuted, lineHeight: 1.7 }}>
-          Your saved lab history is now part of your Meridian profile. Insights become more precise as more lab history and context accumulate.
+          {lang === 'es' ? 'Tu historial de laboratorios guardado ya forma parte de tu perfil de Meridian. Las lecturas se vuelven más precisas mientras se acumulan más datos y contexto.' : 'Your saved lab history is now part of your Meridian profile. Insights become more precise as more lab history and context accumulate.'}
         </p>
       </div>
 
@@ -744,7 +744,7 @@ function LabsSavedBlock({
             letterSpacing: '-0.01em',
           }}
         >
-          View Lab History →
+          {lang === 'es' ? 'Ver historial de laboratorios →' : 'View Lab History →'}
         </button>
         <button
           onClick={onUpload}
@@ -766,7 +766,7 @@ function LabsSavedBlock({
         borderTop: `1px solid rgba(103,232,249,0.07)`,
         fontSize: '11px', color: colors.textMuted, textAlign: 'center',
       }}>
-        Based on your saved biomarkers · Meridian interprets, you decide.
+        {lang === 'es' ? 'Basado en tus biomarcadores guardados · Meridian interpreta, tú decides.' : 'Based on your saved biomarkers · Meridian interprets, you decide.'}
       </div>
     </div>
   )
