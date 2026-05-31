@@ -2422,7 +2422,7 @@ export default function LabsUploadPage() {
         {inUploadFlow && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <h1 style={{ fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700, color: colors.text, marginBottom: '8px' }}>
-              Upload your labs
+              {lang === 'es' ? 'Subir laboratorios' : 'Upload your labs'}
             </h1>
             <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: '20px', lineHeight: 1.6 }}>
               {lang === 'es' ? 'Sube un PDF de tu laboratorio. Meridian extraerá tus biomarcadores automáticamente.' : 'Upload a PDF from your lab provider. Meridian will extract your biomarkers automatically.'}
