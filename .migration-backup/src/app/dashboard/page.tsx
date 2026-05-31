@@ -551,16 +551,16 @@ function NoDataBlock({ onUpload, lang }: { onUpload: () => void; lang: MeridianL
           background: 'rgba(45,212,191,0.06)',
         }}>
           <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: `0 0 5px ${colors.teal}` }} />
-          Awaiting Biomarker Data
+          {lang === 'es' ? 'Esperando datos de laboratorio' : 'Awaiting Biomarker Data'}
         </div>
         <h2 style={{
           fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700,
           color: colors.text, letterSpacing: '-0.04em', lineHeight: 1.15, marginBottom: '12px',
         }}>
-          Your health intelligence starts with your labs
+          {lang === 'es' ? 'Tu inteligencia de salud comienza con tus laboratorios' : 'Your health intelligence starts with your labs'}
         </h2>
         <p style={{ fontSize: '15px', color: colors.textSoft, lineHeight: 1.65 }}>
-          Upload a PDF from your lab provider. Meridian will extract your biomarkers, analyze them, and give you one clear priority for today.
+          {lang === 'es' ? 'Sube un PDF de tu laboratorio. Meridian extraerá tus biomarcadores, los analizará y te dará una prioridad clara para hoy.' : 'Upload a PDF from your lab provider. Meridian will extract your biomarkers, analyze them, and give you one clear priority for today.'}
         </p>
       </div>
       <div style={{ padding: '0 24px 24px' }}>
@@ -580,10 +580,10 @@ function NoDataBlock({ onUpload, lang }: { onUpload: () => void; lang: MeridianL
             letterSpacing: '-0.01em',
           }}
         >
-          Upload your first lab PDF →
+          {lang === 'es' ? 'Subir mi primer PDF de laboratorio →' : 'Upload your first lab PDF →'}
         </button>
         <div style={{ marginTop: '10px', fontSize: '11px', color: colors.textMuted, textAlign: 'center' }}>
-          Takes less than 60 seconds · Meridian interprets, you decide.
+          {lang === 'es' ? 'Toma menos de 60 segundos · Meridian interpreta, tú decides.' : 'Takes less than 60 seconds · Meridian interprets, you decide.'}
         </div>
       </div>
     </div>
@@ -798,16 +798,16 @@ function CalibratingBlock({ onUpload, lang }: { onUpload: () => void; lang: Meri
           background: 'rgba(103,232,249,0.06)',
         }}>
           <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.cyan, boxShadow: `0 0 5px ${colors.cyan}` }} />
-          Calibration State
+          {lang === 'es' ? 'Estado de calibración' : 'Calibration State'}
         </div>
         <h2 style={{
           fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700,
           color: colors.text, letterSpacing: '-0.04em', lineHeight: 1.15, marginBottom: '12px',
         }}>
-          We have your data — building your baseline
+          {lang === 'es' ? 'Ya tenemos tus datos — construyendo tu línea base' : 'We have your data — building your baseline'}
         </h2>
         <p style={{ fontSize: '15px', color: colors.textSoft, lineHeight: 1.65 }}>
-          Meridian is analyzing your biomarkers but does not yet have enough context for a confident insight. Upload additional labs to help Meridian build a stronger signal.
+          {lang === 'es' ? 'Meridian está analizando tus biomarcadores, pero todavía necesita más contexto para generar una lectura con mayor confianza. Sube laboratorios adicionales para fortalecer la señal.' : 'Meridian is analyzing your biomarkers but does not yet have enough context for a confident insight. Upload additional labs to help Meridian build a stronger signal.'}
         </p>
       </div>
       <div style={{ padding: '0 24px 24px' }}>
@@ -827,7 +827,7 @@ function CalibratingBlock({ onUpload, lang }: { onUpload: () => void; lang: Meri
             letterSpacing: '-0.01em',
           }}
         >
-          Upload more labs →
+          {lang === 'es' ? 'Subir más laboratorios →' : 'Upload more labs →'}
         </button>
       </div>
     </div>
