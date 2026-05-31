@@ -160,6 +160,26 @@ function shouldIgnoreUrinalysisMetadata(raw: RawExtraction): boolean {
   return name === 'type' || name === 'specimen type'
 }
 
+
+function forcedCbcDifferentialSlug(raw: RawExtraction): string | null {
+  const name = String(raw.name || '').toLowerCase().trim()
+  const unit = String(raw.unit || '').toLowerCase().trim()
+
+  if (!name.includes('immature granulocytes') && !name.includes('immature granulocyte')) {
+    return null
+  }
+
+  if (name.includes('#') || unit.includes('10') || unit.includes('k/') || unit.includes('/ul') || unit.includes('/µl')) {
+    return 'immature_granulocytes_abs'
+  }
+
+  if (name.includes('%') || unit.includes('%') || unit === '') {
+    return 'immature_granulocytes_pct'
+  }
+
+  return null
+}
+
 // qualitativeStateFromValue resolves the clinical state for a qualitative result.
 // Checks the marker's per-entry qualitative_state_map first (if present), then
 // falls back to the generic serology defaults (reactive → Attention, etc.).
@@ -391,7 +411,8 @@ export async function POST(request: NextRequest) {
       }
 
       const urineOverrideSlug = urinalysisContext ? forcedUrinalysisSlug(raw) : null
-      const slug = urineOverrideSlug ?? matchMarkerToSlug(raw.name)
+      const cbcOverrideSlug = forcedCbcDifferentialSlug(raw)
+      const slug = urineOverrideSlug ?? cbcOverrideSlug ?? matchMarkerToSlug(raw.name)
 
       if (!slug) {
         unmatched.push({
