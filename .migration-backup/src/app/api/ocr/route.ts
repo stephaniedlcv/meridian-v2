@@ -165,7 +165,13 @@ function forcedCbcDifferentialSlug(raw: RawExtraction): string | null {
   const name = String(raw.name || '').toLowerCase().trim()
   const unit = String(raw.unit || '').toLowerCase().trim()
 
-  if (!name.includes('immature granulocytes') && !name.includes('immature granulocyte')) {
+  const isImmatureGranulocyte =
+    name.includes('immature granulocytes') ||
+    name.includes('immature granulocyte') ||
+    name.includes('immature granulocites') ||
+    name.includes('immature granulocite')
+
+  if (!isImmatureGranulocyte) {
     return null
   }
 
