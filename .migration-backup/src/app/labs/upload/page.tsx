@@ -2941,7 +2941,9 @@ export default function LabsUploadPage() {
                     const qCount = staged.filter(b => b.extraction_status === 'parsed').length
                     const sCount = staged.filter(b => b.extraction_status === 'qualitative_only').length
                     const total = qCount + sCount
-                    return `Confirm ${total} ${total === 1 ? 'result' : 'results'}`
+                    return lang === 'es'
+                      ? `Confirmar ${total} ${total === 1 ? 'resultado' : 'resultados'}`
+                      : `Confirm ${total} ${total === 1 ? 'result' : 'results'}`
                   })()}
                 </motion.button>
                 <button
@@ -3020,7 +3022,7 @@ export default function LabsUploadPage() {
             <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 20px', lineHeight: 1.6 }}>
               Your confirmed biomarkers were added to your Lab Snapshot.{' '}
               <span style={{ color: colors.textMuted }}>
-                Upload another PDF if this lab visit included more than one file.
+                {lang === 'es' ? 'Sube otro PDF si esta visita de laboratorio incluyó más de un archivo.' : 'Upload another PDF if this lab visit included more than one file.'}
               </span>
             </p>
 
@@ -3053,7 +3055,7 @@ export default function LabsUploadPage() {
                   cursor: 'pointer', whiteSpace: 'nowrap',
                 }}
               >
-                View Labs
+                {lang === 'es' ? 'Ver laboratorios' : 'View Labs'}
               </button>
             </div>
           </motion.div>
@@ -3378,7 +3380,7 @@ export default function LabsUploadPage() {
                     }}
                   >
                     <span style={{ fontSize: '13px', fontWeight: 600, color: fullClinicalExpanded ? colors.teal : colors.textSoft }}>
-                      {fullClinicalExpanded ? 'Hide full clinical data' : 'View full clinical data'}
+                      {fullClinicalExpanded ? (lang === 'es' ? 'Ocultar datos clínicos completos' : 'Hide full clinical data') : (lang === 'es' ? 'Ver datos clínicos completos' : 'View full clinical data')}
                     </span>
                     <span style={{
                       fontSize: '16px', color: colors.textMuted, display: 'inline-block',
@@ -3952,7 +3954,7 @@ export default function LabsUploadPage() {
                     fontSize: '11px', fontWeight: 700, letterSpacing: '0.04em',
                     color: colors.textMuted, textTransform: 'uppercase', marginBottom: '12px',
                   }}>
-                    Upload New Lab
+                    {lang === 'es' ? 'Subir nuevo laboratorio' : 'Upload New Lab'}
                   </p>
                 )}
 
@@ -3998,7 +4000,7 @@ export default function LabsUploadPage() {
                     </svg>
                     <div style={{ textAlign: hasRecentLabs ? 'left' : 'center' }}>
                       <span style={{ fontSize: hasRecentLabs ? '14px' : '16px', fontWeight: 600, color: colors.text, display: 'block' }}>
-                        {hasRecentLabs ? 'Upload another lab PDF' : 'Choose PDF file'}
+                        {hasRecentLabs ? (lang === 'es' ? 'Subir otro PDF de laboratorio' : 'Upload another lab PDF') : (lang === 'es' ? 'Elegir archivo PDF' : 'Choose PDF file')}
                       </span>
                       <span style={{ fontSize: '13px', color: colors.textMuted, display: 'block', marginTop: '2px' }}>
                         Max 10MB · PDF only
