@@ -7,6 +7,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
 import { getSafetyStatusForBiomarker } from '@/lib/safety-engine'
 import { getNextOnboardingStep } from '@/lib/onboarding'
+import { useMeridianLanguage, type MeridianLanguage } from '@/lib/i18n'
 
 const colors = {
   background: '#061316',
@@ -62,6 +63,7 @@ interface GreetingContext {
 
 function getTimeGreeting(
   firstName: string,
+  lang: MeridianLanguage = 'en',
   ctx?: GreetingContext,
 ): { greeting: string; subline: string } {
   const hour     = new Date().getHours()
@@ -72,10 +74,13 @@ function getTimeGreeting(
     hour >= 12 && hour < 18 ? 'afternoon' :
     'evening'
 
-  const prefix =
-    period === 'morning'   ? 'Good morning'   :
-    period === 'afternoon' ? 'Good afternoon' :
-    'Good evening'
+  const prefix = lang === 'es'
+    ? period === 'morning'   ? 'Buenos días' :
+      period === 'afternoon' ? 'Buenas tardes' :
+      'Buenas noches'
+    : period === 'morning'   ? 'Good morning' :
+      period === 'afternoon' ? 'Good afternoon' :
+      'Good evening'
 
   const greeting = firstName ? `${prefix}, ${firstName}` : `${prefix}.`
 
@@ -181,6 +186,7 @@ function getTimeGreeting(
 
 export default function DashboardPage() {
   const router = useRouter()
+  const [lang] = useMeridianLanguage()
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -351,7 +357,7 @@ export default function DashboardPage() {
           style={{ marginBottom: '26px' }}
         >
           {(() => {
-            const { greeting, subline } = getTimeGreeting(getFirstName(userName), {
+            const { greeting, subline } = getTimeGreeting(getFirstName(userName), lang, {
             state,
             blockColor:  insight?.block_color,
             safetyAlert,
@@ -378,7 +384,7 @@ export default function DashboardPage() {
                     boxShadow: '0 0 6px rgba(45,212,191,0.65)',
                     flexShrink: 0,
                   }} />
-                  {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                  {new Date().toLocaleDateString(lang === 'es' ? 'es-PR' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 </div>
 
                 {/* Personalized greeting */}
