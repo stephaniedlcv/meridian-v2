@@ -77,6 +77,13 @@ export const CANONICAL_PANELS: Record<string, CanonicalPanelDef> = {
     ],
   },
 
+  'Serology / Infectious Disease': {
+    name: 'Serology / Infectious Disease',
+    canonicalOrder: ['hepatitis_a_igm_ab', 'hepatitis_b_core_igm', 'hepatitis_b_surface_antigen', 'hepatitis_c_ab', 'hiv_1_2_ab', 'rpr_syphilis'],
+    required: [],
+    optional: ['hepatitis_a_igm_ab', 'hepatitis_b_core_igm', 'hepatitis_b_surface_antigen', 'hepatitis_c_ab', 'hiv_1_2_ab', 'rpr_syphilis'],
+  },
+
   'Pancreatic Enzymes': {
     name: 'Pancreatic Enzymes',
     canonicalOrder: ['amylase', 'lipase'],
@@ -228,6 +235,8 @@ const PANEL_SLUG_MAP: Record<string, string> = {
   dhea_s: 'Hormone Panel', acth: 'Hormone Panel',
   // Inflammation / Cardiac Risk
   crp_hs: 'Inflammation / Cardiac Risk', homocysteine: 'Inflammation / Cardiac Risk',
+  // Serology / Infectious Disease
+  hepatitis_a_igm_ab: 'Serology / Infectious Disease', hepatitis_b_core_igm: 'Serology / Infectious Disease', hepatitis_b_surface_antigen: 'Serology / Infectious Disease', hepatitis_c_ab: 'Serology / Infectious Disease', hiv_1_2_ab: 'Serology / Infectious Disease', rpr_syphilis: 'Serology / Infectious Disease',
   // Urinalysis — dipstick, physical, and microscopy
   urine_color: 'Urinalysis', urine_clarity: 'Urinalysis',
   urine_specific_gravity: 'Urinalysis', urine_ph: 'Urinalysis',
@@ -252,7 +261,7 @@ export function resolvePanel(slug: string): string {
 export const PANEL_DISPLAY_ORDER: readonly string[] = [
   'CBC', 'Lipid Panel', 'CMP', 'Pancreatic Enzymes', 'Glycemic Panel', 'Thyroid Panel',
   'Hormone Panel', 'Vitamin & Nutrient Panel', 'Inflammation / Cardiac Risk',
-  'Urinalysis', 'Other',
+  'Serology / Infectious Disease', 'Urinalysis', 'Other',
 ]
 
 export function panelSortIndex(name: string): number {

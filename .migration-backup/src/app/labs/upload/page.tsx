@@ -113,6 +113,7 @@ const SLUG_TO_PANEL: Record<string, string> = {
   bilirubin_total: 'Liver', albumin: 'Liver', globulin: 'Liver',
   ag_ratio: 'Liver', total_protein: 'Liver',
   amylase: 'Pancreatic Enzymes', lipase: 'Pancreatic Enzymes',
+  hepatitis_a_igm_ab: 'Serology / Infectious Disease', hepatitis_b_core_igm: 'Serology / Infectious Disease', hepatitis_b_surface_antigen: 'Serology / Infectious Disease', hepatitis_c_ab: 'Serology / Infectious Disease', hiv_1_2_ab: 'Serology / Infectious Disease', rpr_syphilis: 'Serology / Infectious Disease',
   glucose_fasting: 'Glycemic', sodium: 'Electrolytes', potassium: 'Electrolytes',
   chloride: 'Electrolytes', co2: 'Electrolytes', calcium: 'Electrolytes', anion_gap: 'Electrolytes',
   // Urinalysis — dipstick, physical, and microscopy
@@ -134,7 +135,7 @@ function inferPanel(slug: string): string {
 const PANEL_ORDER = [
   'CBC', 'Lipid Panel', 'Glycemic', 'Kidney / Renal', 'Liver', 'Pancreatic Enzymes', 'Electrolytes',
   'Thyroid Panel', 'Vitamins & Nutrients',
-  'Hormones', 'Inflammation / Cardiac Risk', 'Urinalysis', 'Other',
+  'Hormones', 'Inflammation / Cardiac Risk', 'Serology / Infectious Disease', 'Urinalysis', 'Other',
 ]
 
 // ── Snapshot view mode ────────────────────────────────────────────────────────
@@ -180,6 +181,7 @@ const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
   ast: 'Liver', alt: 'Liver', alkaline_phosphatase: 'Liver', bilirubin_total: 'Liver',
   albumin: 'Liver', globulin: 'Liver', ag_ratio: 'Liver', total_protein: 'Liver',
   amylase: 'Pancreatic Enzymes', lipase: 'Pancreatic Enzymes',
+  hepatitis_a_igm_ab: 'Serology / Infectious Disease', hepatitis_b_core_igm: 'Serology / Infectious Disease', hepatitis_b_surface_antigen: 'Serology / Infectious Disease', hepatitis_c_ab: 'Serology / Infectious Disease', hiv_1_2_ab: 'Serology / Infectious Disease', rpr_syphilis: 'Serology / Infectious Disease',
   // Electrolytes
   sodium: 'Electrolytes', potassium: 'Electrolytes', chloride: 'Electrolytes',
   co2: 'Electrolytes', calcium: 'Electrolytes', anion_gap: 'Electrolytes',
@@ -209,7 +211,7 @@ const CLINICAL_SLUG_TO_PANEL: Record<string, string> = {
 const CLINICAL_PANEL_ORDER = [
   'CBC', 'Lipid Panel', 'Glycemic', 'Kidney / Renal', 'Liver', 'Pancreatic Enzymes', 'Electrolytes',
   'Thyroid Panel', 'Vitamins & Nutrients', 'Hormones', 'Inflammation / Cardiac Risk',
-  'Urinalysis', 'Other',
+  'Serology / Infectious Disease', 'Urinalysis', 'Other',
 ]
 
 const CLINICAL_PANEL_EDUCATION: Record<string, string> = {
@@ -266,6 +268,7 @@ const SIGNAL_SLUG_TO_LAYER: Record<string, string> = {
   testosterone_total: 'Hormones', dhea_s: 'Hormones', cortisol_am: 'Hormones', acth: 'Hormones',
   // Inflammation
   crp_hs: 'Inflammation', homocysteine: 'Inflammation',
+  hepatitis_a_igm_ab: 'Immune', hepatitis_b_core_igm: 'Immune', hepatitis_b_surface_antigen: 'Immune', hepatitis_c_ab: 'Immune', hiv_1_2_ab: 'Immune', rpr_syphilis: 'Immune',
   // RDW-SD maps to Blood / Oxygen layer (same as RDW-CV)
   rdw_sd: 'Blood / Oxygen',
   // Urinary — all urinalysis slugs map to the existing 'Urinary' signal layer
@@ -311,6 +314,7 @@ const PANEL_EDUCATION: Record<string, string> = {
   'Vitamins & Nutrients':        'Your nutrient markers — including iron stores — help Meridian understand micronutrient status that can quietly affect energy, immunity, mood, and recovery over time.',
   'Hormones':                    'Your hormone markers give Meridian context on the signals that shape energy, recovery, stress response, and metabolic balance as an integrated system.',
   'Inflammation / Cardiac Risk': 'Your inflammation and cardiac risk markers help Meridian understand low-grade systemic inflammation and cardiovascular signal patterns over time.',
+  'Serology / Infectious Disease': 'Serology markers add qualitative context for infectious disease screening patterns. Meridian tracks these as diagnostic-style results rather than numeric biomarkers.',
   'Urinalysis':                  'Your urinalysis adds context on kidney and urinary tract health, hydration, and chemical patterns that complement your bloodwork.',
   'Other':                       'These markers add additional context to your broader biological profile alongside related signals.',
 }
@@ -1167,6 +1171,7 @@ const HIST_SLUG_TO_PANEL: Record<string, string> = {
   ast: 'Liver', alt: 'Liver', alkaline_phosphatase: 'Liver', bilirubin_total: 'Liver',
   albumin: 'Liver', globulin: 'Liver', ag_ratio: 'Liver', total_protein: 'Liver',
   amylase: 'Pancreatic Enzymes', lipase: 'Pancreatic Enzymes',
+  hepatitis_a_igm_ab: 'Serology / Infectious Disease', hepatitis_b_core_igm: 'Serology / Infectious Disease', hepatitis_b_surface_antigen: 'Serology / Infectious Disease', hepatitis_c_ab: 'Serology / Infectious Disease', hiv_1_2_ab: 'Serology / Infectious Disease', rpr_syphilis: 'Serology / Infectious Disease',
   // Electrolytes
   sodium: 'Electrolytes', potassium: 'Electrolytes', chloride: 'Electrolytes',
   co2: 'Electrolytes', calcium: 'Electrolytes', anion_gap: 'Electrolytes',
@@ -1196,7 +1201,7 @@ function histInferPanel(slug: string): string { return HIST_SLUG_TO_PANEL[slug] 
 const HIST_PANEL_DISPLAY_ORDER = [
   'CBC', 'Lipid Panel', 'Glycemic', 'Kidney / Renal', 'Liver', 'Pancreatic Enzymes', 'Electrolytes',
   'Thyroid Panel', 'Vitamins & Nutrients', 'Hormones', 'Inflammation / Cardiac Risk',
-  'Urinalysis', 'Other',
+  'Serology / Infectious Disease', 'Urinalysis', 'Other',
 ]
 function histPanelSortIndex(name: string): number {
   const i = HIST_PANEL_DISPLAY_ORDER.indexOf(name)
