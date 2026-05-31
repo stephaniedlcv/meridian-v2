@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useMeridianLanguage, type MeridianLanguage } from '../../lib/i18n'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
@@ -167,6 +168,7 @@ export default function ProfilePage() {
   const [photoPreview, setPhotoPreview]           = useState<string | null>(null)
 
   const [editingSection, setEditingSection]       = useState<'identity' | 'focus' | 'medications' | 'health_context' | null>(null)
+  const [lang, setLanguage]                     = useMeridianLanguage()
   const [editPreferredName, setEditPreferredName] = useState('')
   const [editFirstName, setEditFirstName]         = useState('')
   const [editLastName, setEditLastName]           = useState('')
@@ -631,6 +633,61 @@ export default function ProfilePage() {
                 : 'Focus not set'}
             </HeroChip>
           </div>
+        </div>
+
+        {/* ════════════════════════ LANGUAGE SETTINGS ═══ */}
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', marginBottom: '14px' }}>
+            <div>
+              <span style={{ ...cardLabel, display: 'block', marginBottom: '4px' }}>Language</span>
+              <p style={{ margin: 0, fontSize: '11px', color: colors.textMuted, lineHeight: 1.45 }}>
+                Choose how Meridian displays navigation and interface labels.
+              </p>
+            </div>
+            <span style={{
+              fontSize: '9px',
+              fontWeight: 800,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: colors.teal,
+              opacity: 0.85,
+            }}>
+              {lang === 'es' ? 'Español' : 'English'}
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            {(['en', 'es'] as MeridianLanguage[]).map(option => {
+              const active = lang === option
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setLanguage(option)}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    border: active ? '1px solid rgba(45,212,191,0.78)' : `1px solid ${colors.cardBorder}`,
+                    background: active ? 'rgba(45,212,191,0.10)' : colors.inputBg,
+                    color: active ? colors.teal : colors.textSoft,
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    fontFamily: fonts.ui,
+                    letterSpacing: '-0.01em',
+                    transition: 'all 160ms ease',
+                    touchAction: 'manipulation',
+                  }}
+                >
+                  {option === 'es' ? 'Español' : 'English'}
+                </button>
+              )
+            })}
+          </div>
+
+          <p style={{ ...fieldHint, marginTop: '10px' }}>
+            This setting is saved on this device. More Spanish translations will be added screen by screen.
+          </p>
         </div>
 
         {/* ════════════════════════ BIOLOGICAL PASSPORT ═══ */}
