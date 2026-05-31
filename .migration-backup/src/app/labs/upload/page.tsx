@@ -2912,8 +2912,8 @@ export default function LabsUploadPage() {
                     fontSize: '12px', color: '#5F8E85', lineHeight: 1.5,
                   }}>
                     {quantCount > 0
-                      ? `${qualCount} serology ${qualCount === 1 ? 'result' : 'results'} included — these will be saved as qualitative diagnostics alongside your ${quantCount} numeric ${quantCount === 1 ? 'biomarker' : 'biomarkers'}.`
-                      : `${qualCount} serology ${qualCount === 1 ? 'result' : 'results'} detected — these qualitative diagnostics will be saved to your record.`
+                      ? `${qualCount} qualitative ${qualCount === 1 ? 'result' : 'results'} included — these will be saved alongside your ${quantCount} numeric ${quantCount === 1 ? 'biomarker' : 'biomarkers'}.`
+                      : `${qualCount} qualitative ${qualCount === 1 ? 'result' : 'results'} detected — these will be saved to your record.`
                     }
                   </div>
                 )
