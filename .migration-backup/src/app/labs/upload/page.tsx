@@ -10,6 +10,7 @@ import { getNextOnboardingStep } from '@/lib/onboarding'
 import { resolveDisplayRange } from '@/lib/range-resolver'
 import { buildClinicalSnapshot, isUrinalysisCategorical } from '@/lib/panel-reconstruction'
 import { getClinicalContextualState, getTrendDisplayProps } from '@/lib/trend-engine'
+import { useMeridianLanguage } from '@/lib/i18n'
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
 const colors = {
@@ -1905,6 +1906,7 @@ function computeKeyBiomarkers(
 
 export default function LabsUploadPage() {
   const router = useRouter()
+  const [lang] = useMeridianLanguage()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -2400,7 +2402,7 @@ export default function LabsUploadPage() {
               marginBottom: '16px',
               lineHeight: 1.2,
             }}>
-              {hasRecentLabs ? 'Labs' : 'Upload your labs'}
+              {hasRecentLabs ? (lang === 'es' ? 'Laboratorios' : 'Labs') : (lang === 'es' ? 'Subir laboratorios' : 'Upload your labs')}
             </h1>
             <p style={{ fontSize: '14px', fontWeight: 600, color: colors.text, marginBottom: '2px' }}>
               Your clinical markers.
@@ -2423,7 +2425,7 @@ export default function LabsUploadPage() {
               Upload your labs
             </h1>
             <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: '20px', lineHeight: 1.6 }}>
-              Upload a PDF from your lab provider. Meridian will extract your biomarkers automatically.
+              {lang === 'es' ? 'Sube un PDF de tu laboratorio. Meridian extraerá tus biomarcadores automáticamente.' : 'Upload a PDF from your lab provider. Meridian will extract your biomarkers automatically.'}
             </p>
             <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(103,232,249,0.12) 40%, rgba(103,232,249,0.08) 60%, transparent)', marginBottom: '28px' }} />
           </motion.div>
@@ -2491,7 +2493,7 @@ export default function LabsUploadPage() {
               </div>
 
               <p style={{ fontSize: '14px', color: colors.textSoft, marginBottom: '20px' }}>
-                Review your extracted biomarkers below. Click confirm to save them.
+                {lang === 'es' ? 'Revisa los biomarcadores extraídos abajo. Haz clic en confirmar para guardarlos.' : 'Review your extracted biomarkers below. Click confirm to save them.'}
               </p>
 
               {/* Lab Date */}
