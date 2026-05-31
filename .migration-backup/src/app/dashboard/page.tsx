@@ -448,17 +448,18 @@ export default function DashboardPage() {
           transition={{ duration: 0.6, delay: 0.1 }}
         >
           {state === 'no_data' && (
-            <NoDataBlock onUpload={() => router.push('/labs/upload')} />
+            <NoDataBlock onUpload={() => router.push('/labs/upload')} lang={lang} />
           )}
           {state === 'labs_saved' && (
             <LabsSavedBlock
               onHistory={() => router.push('/labs/upload?view=history')}
               onUpload={() => router.push('/labs/upload')}
               hasCritical={hasCriticalMarker}
+              lang={lang}
             />
           )}
           {state === 'calibrating' && (
-            <CalibratingBlock onUpload={() => router.push('/labs/upload')} />
+            <CalibratingBlock onUpload={() => router.push('/labs/upload')} lang={lang} />
           )}
           {(state === 'solved' || state === 'safety_alert') && insight && (
             <SolvedBlock
@@ -495,7 +496,7 @@ export default function DashboardPage() {
               }}
             >
               <div style={{ fontSize: '20px', marginBottom: '6px' }}>🧪</div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text, letterSpacing: '-0.01em' }}>Upload Labs</div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text, letterSpacing: '-0.01em' }}>{lang === 'es' ? 'Subir laboratorios' : 'Upload Labs'}</div>
             </button>
           </motion.div>
         )}
@@ -514,7 +515,7 @@ export default function DashboardPage() {
             lineHeight: 1.6,
           }}
         >
-          Meridian provides health insights for informational purposes only. It is not medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider for medical decisions. Meridian interprets, you decide.
+          {lang === 'es' ? 'Meridian ofrece información de salud solo con fines educativos. No es consejo médico, diagnóstico ni tratamiento. Consulta siempre a un profesional de salud cualificado para decisiones médicas. Meridian interpreta, tú decides.' : 'Meridian provides health insights for informational purposes only. It is not medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider for medical decisions. Meridian interprets, you decide.'}
         </motion.div>
       </div>
       <NavBar />
@@ -524,7 +525,7 @@ export default function DashboardPage() {
 
 // ===== STATE BLOCKS =====
 
-function NoDataBlock({ onUpload }: { onUpload: () => void }) {
+function NoDataBlock({ onUpload, lang }: { onUpload: () => void; lang: MeridianLanguage }) {
   return (
     <div style={{
       backgroundColor: colors.cardBg,
@@ -593,10 +594,12 @@ function LabsSavedBlock({
   onHistory,
   onUpload,
   hasCritical = false,
+  lang,
 }: {
   onHistory: () => void
   onUpload: () => void
   hasCritical?: boolean
+  lang: MeridianLanguage
 }) {
   const steps = [
     'Review your Lab Snapshot to see current markers',
@@ -769,7 +772,7 @@ function LabsSavedBlock({
   )
 }
 
-function CalibratingBlock({ onUpload }: { onUpload: () => void }) {
+function CalibratingBlock({ onUpload, lang }: { onUpload: () => void; lang: MeridianLanguage }) {
   return (
     <div style={{
       backgroundColor: colors.cardBg,
