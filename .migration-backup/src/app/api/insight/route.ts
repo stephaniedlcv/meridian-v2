@@ -238,9 +238,41 @@ Return ONLY the JSON. No markdown fences. No explanation. No preamble.`
 // ===== SAFETY PROMPT =====
 
 function buildSafetyPrompt(markerName: string, value: number, unit: string, language: InsightLanguage = 'en'): string {
-  const languageLine = language === 'es'
-    ? 'Return all user-facing JSON fields in natural Spanish. Keep marker names, units, and values unchanged.'
-    : 'Return all user-facing JSON fields in English.'
+  const markerLabelEs = markerName === 'Fasting Glucose' ? 'glucosa en ayunas' : markerName
+
+  if (language === 'es') {
+    return `### IDIOMA DE SALIDA
+Devuelve ÚNICAMENTE JSON válido.
+Todos los campos visibles para el usuario deben estar en español natural y claro para Puerto Rico.
+
+### REVISIÓN DE SEGURIDAD MERIDIAN
+Un resultado de laboratorio necesita revisión profesional antes de que Meridian ofrezca guía de estilo de vida.
+
+Marcador: ${markerLabelEs}
+Valor: ${value} ${unit}
+
+Devuelve JSON exactamente con esta estructura:
+{
+  "status": "safety_review",
+  "signal_label": "SEÑAL PRIORITARIA",
+  "severity_label": "REQUIERE ATENCIÓN",
+  "headline": "Este resultado necesita revisión profesional",
+  "subheadline": "El dato de ${markerLabelEs} requiere confirmación clínica antes de interpretar patrones.",
+  "interpretation": "Este resultado merece revisarse con un clínico cualificado antes de sacar conclusiones. Meridian interpreta datos; no diagnostica.",
+  "priority_title": "PRIORIDAD DE HOY",
+  "actions": [
+    "Contacta al laboratorio o a tu proveedor de salud para confirmar si este resultado fue tomado y procesado correctamente.",
+    "Pregunta si hace falta repetir o completar la prueba para tener un panel metabólico más completo.",
+    "Lleva tu reporte completo de laboratorio a tu próxima visita médica para revisar este dato en contexto."
+  ],
+  "caution_title": "TEN EN CUENTA",
+  "caution": "Este resultado merece revisarse con un clínico cualificado antes de sacar conclusiones. Meridian interpreta datos; no diagnostica.",
+  "confidence_title": "RASTRO DE CONFIANZA",
+  "confidence": "Derivado de ${markerLabelEs}. Meridian interpreta; tú decides."
+}`;
+  }
+
+  const languageLine = 'Return all user-facing JSON fields in English.'
 
   return `### SAFETY ALERT MODE
 
