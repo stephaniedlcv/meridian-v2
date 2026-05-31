@@ -465,6 +465,7 @@ export default function DashboardPage() {
             <SolvedBlock
               insight={insight}
               safetyAlert={safetyAlert}
+              lang={lang}
             />
           )}
         </motion.div>
@@ -834,7 +835,7 @@ function CalibratingBlock({ onUpload, lang }: { onUpload: () => void; lang: Meri
   )
 }
 
-function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyAlert: boolean }) {
+function SolvedBlock({ insight, safetyAlert, lang }: { insight: GoldenInsight; safetyAlert: boolean; lang: MeridianLanguage }) {
   const bc = getBlockColors(insight.block_color)
 
   return (
@@ -866,9 +867,11 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
             background:    `${bc.accent}0A`,
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: bc.accent, boxShadow: `0 0 6px ${bc.accent}` }} />
-            {insight.block_color === 'alert'   ? 'Priority signal'   :
-             insight.block_color === 'optimal' ? 'Performing well'   :
-             'Recovery signal'}
+            {insight.block_color === 'alert'
+              ? (lang === 'es' ? 'Señal prioritaria' : 'Priority signal')
+              : insight.block_color === 'optimal'
+                ? (lang === 'es' ? 'Funcionando bien' : 'Performing well')
+                : (lang === 'es' ? 'Señal de recuperación' : 'Recovery signal')}
           </div>
         </div>
 
@@ -886,7 +889,7 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
             background: 'rgba(248,113,113,0.07)',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#F87171', boxShadow: '0 0 5px #F87171' }} />
-            ⚠ Requires Attention
+            {lang === 'es' ? '⚠ Requiere atención' : '⚠ Requires Attention'}
           </div>
         )}
 
@@ -926,7 +929,7 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
           fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em',
           textTransform: 'uppercase', color: bc.accent, marginBottom: '14px',
         }}>
-          Today&apos;s Priority
+          {lang === 'es' ? 'Prioridad de hoy' : 'Today&apos;s Priority'}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {insight.action_steps.map((step, i) => (
@@ -967,14 +970,20 @@ function SolvedBlock({ insight, safetyAlert }: { insight: GoldenInsight; safetyA
             fontSize: '10px', fontWeight: 700, letterSpacing: '0.09em',
             textTransform: 'uppercase', color: colors.textMuted, marginBottom: '4px',
           }}>
-            Keep in mind
+            {lang === 'es' ? 'Ten en cuenta' : 'Keep in mind'}
           </div>
           <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.55, fontStyle: 'italic' }}>
             {(safetyAlert || insight.block_color === 'alert')
-              ? 'This result is worth reviewing with a qualified clinician before drawing conclusions. Meridian interprets data; it does not diagnose.'
+              ? (lang === 'es'
+                  ? 'Este resultado merece revisarse con un clínico cualificado antes de sacar conclusiones. Meridian interpreta datos; no diagnostica.'
+                  : 'This result is worth reviewing with a qualified clinician before drawing conclusions. Meridian interprets data; it does not diagnose.')
               : insight.block_color === 'optimal'
-                ? 'This is a directional signal, not a conclusion. Patterns over time are more meaningful than any single reading.'
-                : 'This is a signal to watch, not a diagnosis. One reading reflects a moment — context, hydration, and recent activity all matter.'
+                ? (lang === 'es'
+                    ? 'Esta es una señal direccional, no una conclusión. Los patrones en el tiempo son más importantes que una sola lectura.'
+                    : 'This is a directional signal, not a conclusion. Patterns over time are more meaningful than any single reading.')
+                : (lang === 'es'
+                    ? 'Esta es una señal para observar, no un diagnóstico. Una lectura refleja un momento: el contexto, la hidratación y la actividad reciente también importan.'
+                    : 'This is a signal to watch, not a diagnosis. One reading reflects a moment — context, hydration, and recent activity all matter.')
             }
           </p>
         </div>
