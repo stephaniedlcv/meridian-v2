@@ -104,7 +104,7 @@ function getTimeGreeting(
       const lines = [
         'Recovery systems appear to be responding well.',
         'Your biology is tracking in a favorable direction.',
-        'Biomarker patterns look stable and well-supported right now.',
+        lang === 'es' ? 'Tus patrones de biomarcadores se ven estables y bien respaldados por ahora.' : 'Biomarker patterns look stable and well-supported right now.',
         'Your body is signaling a period of good systemic recovery.',
         'Current markers suggest your biology is near its optimal range.',
         'Your system is showing signs of balance. A good day to maintain.',
@@ -988,7 +988,7 @@ function SolvedBlock({ insight, safetyAlert, lang }: { insight: GoldenInsight; s
           </p>
         </div>
 
-        {/* Confidence Trace */}
+        {/* {lang === 'es' ? 'Rastro de confianza' : 'Confidence Trace'} */}
         <div style={{
           marginTop: '20px',
           paddingTop: '16px',
