@@ -2601,7 +2601,7 @@ export default function LabsUploadPage() {
 
                               // Category label shown below the right-column value
                               const markerCategoryLabel = isQualitative
-                                ? (isLikelyQualitativeUrinalysis(b.name) ? 'URINALYSIS' : 'SEROLOGY')
+                                ? (String(b.slug || '').startsWith('urine_') ? 'URINALYSIS' : 'SEROLOGY')
                                 : isDiffRelative ? 'RELATIVE DIFFERENTIAL'
                                 : isDiffAbsolute ? 'ABSOLUTE DIFFERENTIAL'
                                 : null

@@ -107,6 +107,59 @@ const URINE_TO_SERUM_RECLASSIFY: Record<string, string> = {
   // urine_protein_ua intentionally omitted — no unambiguous 1:1 serum counterpart
 }
 
+
+function hasUrinalysisContext(raws: RawExtraction[]): boolean {
+  const text = raws.map(r => String(r.name || '').toLowerCase()).join(' | ')
+  const clues = [
+    'color', 'appearance', 'clarity', 'specific gravity', 'nitrite',
+    'leukocyte', 'urobilinogen', 'ketone', 'bilirubin', 'blood',
+    'bacteria', 'epithelial', 'mucus', 'casts', 'crystals'
+  ]
+  return clues.filter(c => text.includes(c)).length >= 2
+}
+
+function forcedUrinalysisSlug(raw: RawExtraction): string | null {
+  const name = String(raw.name || '').toLowerCase().trim()
+  const unit = String(raw.unit || '').toLowerCase().trim()
+  const valueIsText = typeof raw.value === 'string'
+  const hpfContext = unit.includes('hpf') || unit.includes('/hpf')
+
+  const exact: Record<string, string> = {
+    color: 'urine_color',
+    appearance: 'urine_clarity',
+    clarity: 'urine_clarity',
+    'specific gravity': 'urine_specific_gravity',
+    ph: 'urine_ph',
+    glucose: 'urine_glucose_ua',
+    protein: 'urine_protein_ua',
+    blood: 'urine_blood_ua',
+    ketone: 'urine_ketones_ua',
+    ketones: 'urine_ketones_ua',
+    bilirubin: 'urine_bilirubin_ua',
+    urobilinogen: 'urine_urobilinogen_ua',
+    nitrite: 'urine_nitrite_ua',
+    nitrites: 'urine_nitrite_ua',
+    leukocytes: 'urine_leukocyte_esterase_ua',
+    'leukocyte esterase': 'urine_leukocyte_esterase_ua',
+    bacteria: 'urine_bacteria_hpf',
+    'epithelial cells': 'urine_epithelial_cells_hpf',
+    mucus: 'urine_mucus_hpf',
+    casts: 'urine_casts_hpf',
+  }
+
+  if (exact[name]) return exact[name]
+
+  if ((name == 'wbc' || name == 'white blood cells') && (valueIsText || hpfContext)) return 'urine_wbc_hpf'
+  if ((name == 'rbc' || name == 'red blood cells') && (valueIsText || hpfContext)) return 'urine_rbc_hpf'
+
+  return null
+}
+
+function shouldIgnoreUrinalysisMetadata(raw: RawExtraction): boolean {
+  const name = String(raw.name || '').toLowerCase().trim()
+  return name === 'type' || name === 'specimen type'
+}
+
 // qualitativeStateFromValue resolves the clinical state for a qualitative result.
 // Checks the marker's per-entry qualitative_state_map first (if present), then
 // falls back to the generic serology defaults (reactive → Attention, etc.).
@@ -327,11 +380,18 @@ export async function POST(request: NextRequest) {
     // unmatched uses numeric value; non-numeric values are coerced to 0 to keep
     // the pending_biomarkers DB column (numeric) type-safe.
     const unmatched: Array<{ name: string; value: number; unit: string; reference_range?: string }> = []
+    const urinalysisContext = hasUrinalysisContext(rawExtractions)
 
     for (const raw of rawExtractions) {
       const rawValueIsNull   = raw.value === null || raw.value === undefined
       const rawValueIsString = !rawValueIsNull && typeof raw.value === 'string'
-      const slug = matchMarkerToSlug(raw.name)
+
+      if (urinalysisContext && shouldIgnoreUrinalysisMetadata(raw)) {
+        continue
+      }
+
+      const urineOverrideSlug = urinalysisContext ? forcedUrinalysisSlug(raw) : null
+      const slug = urineOverrideSlug ?? matchMarkerToSlug(raw.name)
 
       if (!slug) {
         unmatched.push({
