@@ -835,7 +835,52 @@ function CalibratingBlock({ onUpload, lang }: { onUpload: () => void; lang: Meri
   )
 }
 
+
+function localizeDashboardInsightForSpanish(insight: GoldenInsight, lang: MeridianLanguage): GoldenInsight {
+  if (lang !== 'es') return insight
+
+  const replacements: Array<[string, string]> = [
+    ['Filtration marker slightly below target', 'Marcador de filtración ligeramente bajo'],
+    ['Filtration signal slightly below target', 'Señal de filtración ligeramente baja'],
+    ['Hydration-related marker needs attention', 'Señal de hidratación para observar'],
+    ['Recovery signal', 'Señal de recuperación'],
+    ['RECOVERY SIGNAL', 'SEÑAL DE RECUPERACIÓN'],
+
+    ['eGFR at 84 may reflect hydration, recent meals, or recent activity today.', 'El eGFR en 84 puede reflejar hidratación, comidas recientes o actividad reciente hoy.'],
+    ['This signal may reflect temporary shifts in hydration or recent protein intake.', 'Esta señal puede reflejar cambios temporales en hidratación o consumo reciente de proteína.'],
+    ["It's not a red flag in this context, but worth noting alongside your training routine.", 'No es una señal de alarma en este contexto, pero vale la pena observarla junto con tu rutina de entrenamiento.'],
+    ["This signal may reflect temporary shifts in hydration or recent protein intake. It's not a red flag in this context, but worth noting alongside your training routine.", 'Esta señal puede reflejar cambios temporales en hidratación o consumo reciente de proteína. No es una señal de alarma en este contexto, pero vale la pena observarla junto con tu rutina de entrenamiento.'],
+
+    ['Keep movement easy today. Choose a 20-minute walk instead of intense training.', 'Mantén el movimiento suave hoy. Elige una caminata de 20 minutos en lugar de entrenamiento intenso.'],
+    ['Since your diet is already high-protein, stick to your usual protein portions today and let hydration be the priority.', 'Como tu dieta ya es alta en proteína, mantén tus porciones usuales hoy y deja que la hidratación sea la prioridad.'],
+    ['Since your diet is already high-protein, keep protein steady today instead of adding extra.', 'Como tu dieta ya es alta en proteína, mantén la proteína estable hoy en lugar de añadir extra.'],
+    ['Drink water steadily through the day. Add one extra glass with your next meal.', 'Toma agua de forma constante durante el día. Añade un vaso extra con tu próxima comida.'],
+
+    ['Derived from ', 'Derivado de '],
+    ['Meridian interprets, you decide.', 'Meridian interpreta, tú decides.'],
+    ['Meridian interprets, you decide', 'Meridian interpreta, tú decides'],
+  ]
+
+  const localize = (value: string): string => {
+    let next = value
+    for (const [from, to] of replacements) {
+      next = next.split(from).join(to)
+    }
+    return next
+  }
+
+  return {
+    ...insight,
+    headline: localize(insight.headline),
+    status: localize(insight.status),
+    cause: localize(insight.cause),
+    action_steps: insight.action_steps.map(localize),
+    trust_line: localize(insight.trust_line),
+  }
+}
+
 function SolvedBlock({ insight, safetyAlert, lang }: { insight: GoldenInsight; safetyAlert: boolean; lang: MeridianLanguage }) {
+  const displayInsight = localizeDashboardInsightForSpanish(insight, lang)
   const bc = getBlockColors(insight.block_color)
 
   return (
@@ -902,10 +947,10 @@ function SolvedBlock({ insight, safetyAlert, lang }: { insight: GoldenInsight; s
           lineHeight: 1.1,
           marginBottom: '10px',
         }}>
-          {insight.headline}
+          {displayInsight.headline}
         </h2>
         <p style={{ fontSize: '15px', color: colors.textSoft, lineHeight: 1.5 }}>
-          {insight.status}
+          {displayInsight.status}
         </p>
       </div>
 
@@ -915,7 +960,7 @@ function SolvedBlock({ insight, safetyAlert, lang }: { insight: GoldenInsight; s
           fontSize: '14px', color: colors.textSoft, lineHeight: 1.7,
         }}
           dangerouslySetInnerHTML={{
-            __html: insight.cause.replace(
+            __html: displayInsight.cause.replace(
               /\*\*(.*?)\*\*/g,
               `<strong style="color: ${colors.text}; font-weight: 700;">$1</strong>`
             )
@@ -932,7 +977,7 @@ function SolvedBlock({ insight, safetyAlert, lang }: { insight: GoldenInsight; s
           {lang === 'es' ? 'Prioridad de hoy' : 'Today’s Priority'}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {insight.action_steps.map((step, i) => (
+          {displayInsight.action_steps.map((step, i) => (
             <div
               key={i}
               style={{
@@ -1009,10 +1054,10 @@ function SolvedBlock({ insight, safetyAlert, lang }: { insight: GoldenInsight; s
             lineHeight: 1.5,
           }}>
             {lang === 'es'
-              ? insight.trust_line
+              ? displayInsight.trust_line
                   .replace(/^Derived from /, 'Derivado de ')
                   .replace(/\. Meridian interprets, you decide\.?$/, '. Meridian interpreta, tú decides.')
-              : insight.trust_line}
+              : displayInsight.trust_line}
           </div>
         </div>
       </div>
