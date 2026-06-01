@@ -744,7 +744,7 @@ const INTERPRETATIONS: Record<string, string> = {
   // ── Thyroid ───────────────────────────────────────────────────────────────────
   tsh:                    'TSH is the signal your brain sends to regulate your thyroid. Meridian watches it because changes over time can connect to metabolism, sustained energy, temperature regulation, sleep quality, and recovery.',
   free_t4:                'Free T4 is the main storage form of thyroid hormone in your blood. Meridian tracks it because it reflects the raw material your body converts into the active hormone that drives cellular metabolism — a key part of the thyroid system picture.',
-  free_t3:                'Free T3 is the active thyroid hormone that directly drives cellular energy use. Meridian watches it because T3 levels can shift even when TSH appears stable, and it may better reflect how your body is actually using thyroid hormones day to day.',
+  free_t3:                'Free T3 es la hormona tiroidea activa que impulsa directamente el uso de energía celular. Meridian lo observa porque los niveles de T3 pueden cambiar incluso cuando TSH parece estable, y puede reflejar mejor cómo tu cuerpo está usando realmente las hormonas tiroideas día a día.',
   total_t3:               'Total T3 reflects the overall circulating level of your primary active thyroid hormone. Meridian watches it as part of the thyroid picture — particularly when Free T3 is not available — to understand metabolic and energy signaling patterns over time.',
   tpo_antibodies:         'TPO antibodies are immune proteins that can attack thyroid tissue. Meridian watches them because elevated levels are associated with autoimmune thyroid patterns — including Hashimoto\'s thyroiditis — that often develop gradually and are best understood through long-term trend monitoring.',
   // ── Vitamins & Nutrients ──────────────────────────────────────────────────────
@@ -772,20 +772,20 @@ interface BiomarkerIntel { why: string; context: string }
 const BIOMARKER_CONTEXT: Record<string, BiomarkerIntel> = {
   // ── Thyroid ─────────────────────────────────────────────────────────────────
   tsh: {
-    why: 'TSH is the signal your brain sends to regulate how much thyroid hormone your body produces. Meridian watches it because changes over time can connect to metabolism, sustained energy, temperature regulation, sleep quality, and recovery — often before symptoms become obvious.',
-    context: 'In context with Free T3, Free T4, and cortisol, Meridian is watching whether a TSH shift reflects a thyroid system pattern or a transient fluctuation. When multiple thyroid signals move together, the pattern carries more interpretive weight than any individual reading.',
+    why: 'TSH es la señal que tu cerebro envía para regular cuánta hormona tiroidea produce tu cuerpo. Meridian lo observa porque sus cambios con el tiempo pueden conectar con metabolismo, energía sostenida, regulación de temperatura, calidad de sueño y recuperación — muchas veces antes de que los síntomas sean obvios.',
+    context: 'En contexto con Free T3, Free T4 y cortisol, Meridian observa si un cambio en TSH refleja un patrón del sistema tiroideo o una fluctuación temporal. Cuando varias señales tiroideas se mueven juntas, el patrón tiene más peso interpretativo que una lectura individual.',
   },
   free_t4: {
-    why: 'Free T4 is the main storage form of thyroid hormone circulating in your blood. Meridian tracks it because it reflects the raw material your body converts into the active hormone that drives cellular metabolism and energy.',
-    context: 'A Free T4 shift in isolation can mean something different than a shift that moves alongside TSH or Free T3. Meridian is watching whether the thyroid cluster tells a consistent story — or whether this appears to be a fluctuation within one part of the system.',
+    why: 'Free T4 es la principal forma de almacenamiento de hormona tiroidea que circula en la sangre. Meridian lo sigue porque refleja la materia prima que tu cuerpo convierte en la hormona activa que impulsa el metabolismo celular y la energía.',
+    context: 'Un cambio aislado en Free T4 puede significar algo distinto a un cambio que ocurre junto con TSH o Free T3. Meridian observa si el cluster tiroideo cuenta una historia consistente — o si parece ser una fluctuación dentro de una sola parte del sistema.',
   },
   free_t3: {
-    why: 'Free T3 is the active thyroid hormone that directly drives cellular energy use. Meridian watches it because T3 levels can shift even when TSH appears stable, and it may better reflect how your body is actually using thyroid hormones day to day.',
-    context: 'In context with TSH and Free T4, a Free T3 pattern can sometimes reveal more about how the body is using thyroid hormones than TSH alone would suggest. Meridian is watching whether T3 shifts persist across readings or appear as isolated fluctuations — the distinction tends to matter more than any single value.',
+    why: 'Free T3 es la hormona tiroidea activa que impulsa directamente el uso de energía celular. Meridian lo observa porque los niveles de T3 pueden cambiar incluso cuando TSH parece estable, y puede reflejar mejor cómo tu cuerpo está usando realmente las hormonas tiroideas día a día.',
+    context: 'En contexto con TSH y Free T4, un patrón de Free T3 puede revelar más sobre cómo el cuerpo está usando las hormonas tiroideas que TSH por sí solo. Meridian observa si los cambios en T3 persisten entre lecturas o si aparecen como fluctuaciones aisladas — esa diferencia suele importar más que un solo valor.',
   },
   total_t3: {
-    why: 'Total T3 reflects the overall circulating level of your body\'s primary active thyroid hormone. Meridian watches it as part of the thyroid picture — particularly when Free T3 is not available — to understand metabolic and energy signaling patterns over time.',
-    context: 'As part of the thyroid cluster, Total T3 adds interpretive weight when it moves in alignment with TSH and T4 shifts. Meridian is watching whether the thyroid picture appears consistent across related markers — or whether this represents an isolated fluctuation in one part of the system.',
+    why: 'Total T3 refleja el nivel circulante general de la principal hormona tiroidea activa del cuerpo. Meridian lo observa como parte del panorama tiroideo — especialmente cuando Free T3 no está disponible — para entender patrones de señalización metabólica y energética con el tiempo.',
+    context: 'Como parte del cluster tiroideo, Total T3 añade peso interpretativo cuando se mueve en alineación con cambios en TSH y T4. Meridian observa si el panorama tiroideo se ve consistente entre marcadores relacionados — o si representa una fluctuación aislada en una sola parte del sistema.',
   },
   // ── CBC ─────────────────────────────────────────────────────────────────────
   wbc: {
