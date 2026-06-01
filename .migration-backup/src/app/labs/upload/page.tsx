@@ -216,13 +216,13 @@ const CLINICAL_PANEL_ORDER = [
 ]
 
 const CLINICAL_PANEL_EDUCATION: Record<string, string> = {
-  'CBC':                         'Your CBC gives Meridian a window into immune activity, oxygen-carrying capacity, and red and white cell patterns — signals that can shift in response to stress, recovery, nutrition, and more.',
+  'CBC':                         'Tu CBC le da a Meridian una ventana hacia tu actividad inmune, capacidad de transportar oxígeno y patrones de células rojas y blancas — señales que pueden cambiar con estrés, recuperación, nutrición y otros factores.',
   'Lipid Panel':                 'Cholesterol markers tell a story about how your body transports fats. Meridian watches trends here over time because single readings rarely capture the full cardiovascular picture.',
   'Glycemic':                    'Blood sugar regulation shapes energy, metabolism, and long-term tissue health. Meridian watches glycemic markers together because the pattern across multiple results matters more than any one number.',
   'Kidney / Renal':              'Kidney filtration and waste-clearance markers that Meridian watches over time — because kidney capacity tends to shift gradually, and trends carry more signal than any single reading.',
   'Liver':                       'Liver enzyme and protein markers that can reflect how the liver is responding to stress, recovery, nutrition, and metabolic demands over time.',
   'Electrolytes':                'Electrolyte balance governs fluid regulation, acid-base chemistry, and cellular signaling. Meridian watches these together because shifts in one often reflect shifts in the broader system.',
-  'Thyroid Panel':               'Your thyroid influences metabolism, energy, temperature regulation, and recovery. Meridian tracks these signals over time because thyroid function tends to shift gradually.',
+  'Thyroid Panel':               'Tu tiroides influye en metabolismo, energía, regulación de temperatura y recuperación. Meridian sigue estas señales con el tiempo porque la función tiroidea suele cambiar de forma gradual.',
   'Vitamins & Nutrients':        'Micronutrient levels — including iron stores — can quietly influence energy, immunity, mood, and recovery. Meridian watches trends here because deficiencies often develop slowly over time.',
   'Hormones':                    'Hormonal signals shape energy, recovery, stress response, libido, and mood. Meridian watches these as an interconnected system because no single hormone operates alone.',
   'Inflammation / Cardiac Risk': 'Low-grade inflammation is a background signal linked to cardiovascular risk, metabolic health, and recovery. Meridian watches it over time because sustained elevation can matter more than a one-off reading.',
@@ -305,18 +305,18 @@ const SIGNAL_LAYER_EDUCATION: Record<string, string> = {
 }
 
 const PANEL_EDUCATION: Record<string, string> = {
-  'CBC':                         'Your CBC helps Meridian understand blood cell patterns, oxygen transport, and immune cell distribution — signals that can shift in response to stress, nutrition, recovery, and more.',
-  'Lipid Panel':                 'Your lipid panel helps Meridian understand how your body transports cholesterol and fats. Trends here matter more than individual readings.',
-  'Glycemic':                    'Your glycemic markers help Meridian understand blood sugar regulation and longer-term glucose patterns that can connect to metabolic health and energy.',
-  'Kidney / Renal':              'These markers give Meridian context on kidney filtration capacity, hydration balance, and waste clearance — signals that tend to shift gradually over time.',
-  'Liver':                       'Your liver markers help Meridian understand enzyme patterns and protein metabolism that can reflect how your liver is responding to stress, recovery, medications, and lifestyle patterns.',
-  'Electrolytes':                'Your electrolyte markers give Meridian context on fluid balance, acid-base regulation, and cellular signaling — the chemical environment that underpins most physiological processes.',
-  'Thyroid Panel':               'Your thyroid panel gives Meridian context on hormone signaling that influences metabolism, energy, temperature regulation, and recovery patterns over time.',
-  'Vitamins & Nutrients':        'Your nutrient markers — including iron stores — help Meridian understand micronutrient status that can quietly affect energy, immunity, mood, and recovery over time.',
-  'Hormones':                    'Your hormone markers give Meridian context on the signals that shape energy, recovery, stress response, and metabolic balance as an integrated system.',
-  'Inflammation / Cardiac Risk': 'Your inflammation and cardiac risk markers help Meridian understand low-grade systemic inflammation and cardiovascular signal patterns over time.',
-  'Serology / Infectious Disease': 'Serology markers add qualitative context for infectious disease screening patterns. Meridian tracks these as diagnostic-style results rather than numeric biomarkers.',
-  'Urinalysis':                  'Your urinalysis adds context on kidney and urinary tract health, hydration, and chemical patterns that complement your bloodwork.',
+  'CBC':                         'Tu CBC ayuda a Meridian a entender patrones de células sanguíneas, transporte de oxígeno y distribución de células inmunes — señales que pueden cambiar con estrés, nutrición, recuperación y otros factores.',
+  'Lipid Panel':                 'Tu panel de lípidos ayuda a Meridian a entender cómo tu cuerpo transporta colesterol y grasas. Aquí, las tendencias importan más que una lectura aislada.',
+  'Glycemic':                    'Tus marcadores glucémicos ayudan a Meridian a entender la regulación de azúcar en sangre y los patrones de glucosa a largo plazo que pueden conectar con salud metabólica y energía.',
+  'Kidney / Renal':              'Estos marcadores le dan a Meridian contexto sobre filtración renal, balance de hidratación y eliminación de desechos — señales que tienden a cambiar gradualmente con el tiempo.',
+  'Liver':                       'Tus marcadores hepáticos ayudan a Meridian a entender patrones de enzimas y metabolismo de proteínas que pueden reflejar cómo tu hígado responde al estrés, recuperación, medicamentos y hábitos de estilo de vida.',
+  'Electrolytes':                'Tus electrolitos le dan a Meridian contexto sobre balance de líquidos, regulación ácido-base y señalización celular — el ambiente químico que sostiene gran parte de los procesos fisiológicos.',
+  'Thyroid Panel':               'Tu panel tiroideo le da a Meridian contexto sobre señales hormonales que influyen en metabolismo, energía, regulación de temperatura y patrones de recuperación con el tiempo.',
+  'Vitamins & Nutrients':        'Tus marcadores nutricionales — incluyendo reservas de hierro — ayudan a Meridian a entender tu estado de micronutrientes, que puede afectar silenciosamente energía, inmunidad, estado de ánimo y recuperación con el tiempo.',
+  'Hormones':                    'Tus marcadores hormonales le dan a Meridian contexto sobre señales que moldean energía, recuperación, respuesta al estrés y balance metabólico como un sistema integrado.',
+  'Inflammation / Cardiac Risk': 'Tus marcadores de inflamación y riesgo cardíaco ayudan a Meridian a entender inflamación sistémica de bajo grado y patrones cardiovasculares con el tiempo.',
+  'Serology / Infectious Disease': 'Los marcadores de serología añaden contexto cualitativo para patrones de cernimiento infeccioso. Meridian los sigue como resultados de estilo diagnóstico, no como biomarcadores numéricos.',
+  'Urinalysis':                  'Tu urinalysis añade contexto sobre salud renal y urinaria, hidratación y patrones químicos que complementan tus laboratorios de sangre.',
   'Other':                       'These markers add additional context to your broader biological profile alongside related signals.',
 }
 
@@ -652,8 +652,8 @@ function getStateStyles(state: string) {
 // Explains Meridian's interpretation intent vs the clinical range bar — two distinct signals.
 function getStateBadgeMeta(state: string): string | null {
   switch (state) {
-    case 'Watch':     return 'Meridian observing a contextual pattern'
-    case 'Attention': return 'Shifted from clinical reference range'
+    case 'Watch':     return 'Meridian está observando un patrón contextual'
+    case 'Attention': return 'Fuera del rango clínico de referencia'
     case 'Low':       return 'Below clinical reference range'
     case 'High':      return 'Above clinical reference range'
     default:          return null
@@ -1540,10 +1540,10 @@ function BiomarkerDetailSheet({
                 Nota de seguridad
               </p>
               <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: '0 0 10px' }}>
-                Meridian has flagged this result for clinical review. For markers at this level, Meridian steps back from generating interpretive context and encourages you to share this result with your doctor or care team.
+                Meridian marcó este resultado para revisión clínica. Cuando un marcador llega a este nivel, Meridian reduce la interpretación y te recomienda compartir este resultado con tu médico o equipo de cuidado.
               </p>
               <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>
-                This is educational context only — not a diagnosis. If this result is new or unexpected, or if you are experiencing symptoms, please discuss it with a healthcare professional.
+                Este contexto es educativo únicamente — no es un diagnóstico. Si este resultado es nuevo o inesperado, o si tienes síntomas, consúltalo con un profesional de la salud.
               </p>
             </div>
           ) : (
@@ -1688,8 +1688,8 @@ function HistoryDetailSheet({
           {isCritical ? (
             <div style={{ backgroundColor: 'rgba(248,113,113,0.07)', border: '1px solid rgba(248,113,113,0.22)', borderRadius: '14px', padding: '14px 16px', marginBottom: 0 }}>
               <p style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#F87171', marginBottom: '8px', marginTop: 0 }}>Nota de seguridad</p>
-              <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: '0 0 8px' }}>Meridian has flagged this result for clinical review. For markers at this level, Meridian steps back from generating interpretive context and encourages you to share this result with your doctor or care team.</p>
-              <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>This is educational context only — not a diagnosis. If this result is new or unexpected, or if you are experiencing symptoms, please discuss it with a healthcare professional.</p>
+              <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: '0 0 8px' }}>Meridian marcó este resultado para revisión clínica. Cuando un marcador llega a este nivel, Meridian reduce la interpretación y te recomienda compartir este resultado con tu médico o equipo de cuidado.</p>
+              <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>Este contexto es educativo únicamente — no es un diagnóstico. Si este resultado es nuevo o inesperado, o si tienes síntomas, consúltalo con un profesional de la salud.</p>
             </div>
           ) : (
             <>
@@ -1744,7 +1744,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         id: 'metabolic_cluster',
         title: 'Cluster metabólico',
         tagline: 'Lipid · glycemic signals',
-        synthesis: 'Triglycerides, HDL, and glycemic markers are part of the same metabolic picture. When they shift together, the combined signal tends to carry more interpretive weight than any marker alone — Meridian watches this cluster for directional consistency across readings.',
+        synthesis: 'Triglicéridos, HDL y marcadores glucémicos forman parte del mismo panorama metabólico. Cuando se mueven juntos, la señal combinada suele tener más peso interpretativo que cualquier marcador aislado — Meridian observa este cluster para identificar consistencia direccional entre lecturas.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -1765,7 +1765,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         id: 'oxygen_transport',
         title: 'Transporte de oxígeno',
         tagline: 'Iron · red cell signals',
-        synthesis: 'Iron stores and red cell markers are connected through the same oxygen-delivery system. When ferritin, hemoglobin, or cell size markers shift together, the pattern may connect to energy, recovery capacity, and how efficiently the body is maintaining its oxygen supply.',
+        synthesis: 'Las reservas de hierro y los marcadores de células rojas están conectados por el mismo sistema de transporte de oxígeno. Cuando ferritina, hemoglobina o marcadores de tamaño celular cambian juntos, el patrón puede conectar con energía, capacidad de recuperación y eficiencia del cuerpo para mantener su suministro de oxígeno.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -1786,7 +1786,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         id: 'thyroid_axis',
         title: 'Eje tiroideo',
         tagline: 'TSH · thyroid hormone signals',
-        synthesis: 'TSH and thyroid hormone levels form an interconnected feedback loop. When multiple markers in this cluster shift in alignment, Meridian places more weight on the pattern — isolated changes in one marker can mean something different than shifts that move across the full thyroid picture.',
+        synthesis: 'TSH y las hormonas tiroideas forman un circuito de retroalimentación conectado. Cuando varios marcadores de este cluster se mueven en la misma dirección, Meridian le da más peso al patrón — un cambio aislado puede significar algo distinto a un movimiento dentro de todo el panorama tiroideo.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -1807,7 +1807,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         id: 'inflammatory_signal',
         title: 'Señal inflamatoria',
         tagline: 'CRP · immune markers',
-        synthesis: 'Inflammatory and immune markers are shifting alongside each other — a combination Meridian watches as part of the broader stress, recovery, and cardiovascular risk picture rather than as isolated values.',
+        synthesis: 'Los marcadores inflamatorios e inmunes se están moviendo en conjunto — una combinación que Meridian observa dentro del panorama más amplio de estrés, recuperación y riesgo cardiovascular, no como valores aislados.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -1828,7 +1828,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         id: 'stress_hormone',
         title: 'Hormonal Balance',
         tagline: 'Cortisol · sex hormone signals',
-        synthesis: 'Cortisol, DHEA-S, and testosterone are connected through the adrenal and hormonal reserve system. When they shift together, the combined pattern can sometimes reflect stress load, recovery capacity, or hormonal balance — signals that any single hormone reading would not clearly reveal on its own.',
+        synthesis: 'Cortisol, DHEA-S y testosterona están conectados a través del sistema adrenal y de reserva hormonal. Cuando cambian juntos, el patrón combinado puede reflejar carga de estrés, capacidad de recuperación o balance hormonal — señales que una sola hormona no mostraría con claridad por sí sola.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -1849,7 +1849,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         id: 'methylation',
         title: 'Methylation Pathway',
         tagline: 'B-vitamin · homocysteine signals',
-        synthesis: 'B12, folate, and homocysteine operate through the same metabolic pathway. When they shift in a consistent direction, the pattern may reflect a nutrient availability signal — one that individual marker readings can easily miss when viewed in isolation.',
+        synthesis: 'B12, folato y homocisteína operan dentro de la misma vía metabólica. Cuando se mueven en una dirección consistente, el patrón puede reflejar una señal de disponibilidad nutricional — algo que una lectura individual puede pasar por alto si se mira de forma aislada.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -1870,7 +1870,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
         id: 'renal_cluster',
         title: 'Renal Function',
         tagline: 'Kidney filtration signals',
-        synthesis: 'Creatinine, eGFR, and BUN are all windows into the same kidney filtration system. When they shift in alignment, the pattern carries more interpretive weight than any individual reading — Meridian watches directional trends across this cluster over time.',
+        synthesis: 'Creatinina, eGFR y BUN son ventanas al mismo sistema de filtración renal. Cuando se mueven en conjunto, el patrón tiene más peso interpretativo que cualquier lectura individual — Meridian observa las tendencias direccionales de este cluster con el tiempo.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
