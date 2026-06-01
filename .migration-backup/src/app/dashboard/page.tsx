@@ -1000,7 +1000,7 @@ function SolvedBlock({ insight, safetyAlert, lang }: { insight: GoldenInsight; s
             marginBottom: '6px',
             textAlign: 'center',
           }}>
-            Confidence Trace
+            {lang === 'es' ? 'Rastro de confianza' : 'Confidence Trace'}
           </div>
           <div style={{
             fontSize: '11px',
@@ -1008,7 +1008,11 @@ function SolvedBlock({ insight, safetyAlert, lang }: { insight: GoldenInsight; s
             textAlign: 'center',
             lineHeight: 1.5,
           }}>
-            {insight.trust_line}
+            {lang === 'es'
+              ? insight.trust_line
+                  .replace(/^Derived from /, 'Derivado de ')
+                  .replace(/\. Meridian interprets, you decide\.?$/, '. Meridian interpreta, tú decides.')
+              : insight.trust_line}
           </div>
         </div>
       </div>

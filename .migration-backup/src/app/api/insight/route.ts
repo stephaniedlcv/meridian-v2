@@ -136,6 +136,8 @@ Return all user-facing fields in natural Puerto Rico-friendly Spanish.
 Fields that must be Spanish: headline, status, cause, action_steps, trust_line.
 Keep biomarker names, units, and numeric values exactly as provided.
 Use a warm, clear, premium tone. Avoid Spanglish unless the biomarker name itself is in English.
+Do not copy English example sentences into the final JSON.
+No user-facing sentence should remain in English unless it is a biomarker name, unit, or exact lab value.
 Use "Meridian interpreta, tú decides." in trust_line.`
     : `### OUTPUT LANGUAGE
 Return all user-facing fields in English.
@@ -343,6 +345,45 @@ function containsForbiddenWords(insight: GoldenInsight): string | null {
 }
 
 // ===== MAIN ENDPOINT =====
+
+
+function localizeInsightForSpanish(insight: GoldenInsight): GoldenInsight {
+  const replacements: Array<[string, string]> = [
+    ['Filtration marker slightly below target', 'Marcador de filtración ligeramente bajo'],
+    ['Filtration signal slightly below target', 'Señal de filtración ligeramente baja'],
+    ['Hydration-related marker needs attention', 'Señal de hidratación para observar'],
+    ['Recovery signal', 'Señal de recuperación'],
+    ['RECOVERY SIGNAL', 'SEÑAL DE RECUPERACIÓN'],
+    ['Keep movement easy today. Choose a 20-minute walk instead of intense training.', 'Mantén el movimiento suave hoy. Elige una caminata de 20 minutos en lugar de entrenamiento intenso.'],
+    ['Since your diet is already high-protein, stick to your usual protein portions today and let hydration be the priority.', 'Como tu dieta ya es alta en proteína, mantén tus porciones usuales hoy y deja que la hidratación sea la prioridad.'],
+    ['Since your diet is already high-protein, keep protein steady today instead of adding extra.', 'Como tu dieta ya es alta en proteína, mantén la proteína estable hoy en lugar de añadir extra.'],
+    ['Drink water steadily through the day. Add one extra glass with your next meal.', 'Toma agua de forma constante durante el día. Añade un vaso extra con tu próxima comida.'],
+    ['eGFR at 84 may reflect hydration, recent meals, or recent activity today.', 'El eGFR en 84 puede reflejar hidratación, comidas recientes o actividad reciente hoy.'],
+    ['This signal may reflect temporary shifts in hydration or recent protein intake.', 'Esta señal puede reflejar cambios temporales en hidratación o consumo reciente de proteína.'],
+    ['This is not a red flag in this context.', 'No es una señal de alarma en este contexto.'],
+    ['Creatinine is optimal, which suggests the eGFR reading may be influenced by recent training or fluid status rather than a persistent pattern.', 'La creatinina está óptima, lo que sugiere que la lectura de eGFR puede estar influenciada por entrenamiento reciente o hidratación, más que por un patrón persistente.'],
+    ['Derived from ', 'Derivado de '],
+    ['Meridian interprets, you decide.', 'Meridian interpreta, tú decides.'],
+    ['Meridian interprets, you decide', 'Meridian interpreta, tú decides'],
+  ]
+
+  const localize = (value: string): string => {
+    let next = value
+    for (const [from, to] of replacements) {
+      next = next.split(from).join(to)
+    }
+    return next
+  }
+
+  return {
+    ...insight,
+    headline: localize(insight.headline),
+    status: localize(insight.status),
+    cause: localize(insight.cause),
+    action_steps: insight.action_steps.map(localize),
+    trust_line: localize(insight.trust_line),
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -575,6 +616,10 @@ Return the user-facing fields in ${language === 'es' ? 'Spanish' : 'English'}.`
 
     // ===== GUARDRAIL 1: Hallucination check =====
     const validSlugs = engineResult.all_scores.map(s => s.slug)
+    if (language === 'es') {
+      insight = localizeInsightForSpanish(insight)
+    }
+
     if (!validateMarkers(insight, validSlugs)) {
       console.error('[insight] Hallucination detected — returning insight_unavailable')
       return NextResponse.json({
