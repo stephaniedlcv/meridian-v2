@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 
 export type MeridianLanguage = 'en' | 'es'
 
-export const LANGUAGE_STORAGE_KEY = 'meridian_language'
+export const LANGUAGE_STORAGE_KEY = 'meridian-language-v2'
 
 const translations = {
   en: {
@@ -40,9 +40,9 @@ const translations = {
 export type TranslationKey = keyof typeof translations.en
 
 export function getStoredLanguage(): MeridianLanguage {
-  if (typeof window === 'undefined') return 'en'
+  if (typeof window === 'undefined') return 'es'
   const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY)
-  return stored === 'es' || stored === 'en' ? stored : 'en'
+  return stored === 'es' || stored === 'en' ? stored : 'es'
 }
 
 export function setStoredLanguage(lang: MeridianLanguage) {
@@ -52,7 +52,7 @@ export function setStoredLanguage(lang: MeridianLanguage) {
 }
 
 export function useMeridianLanguage(): [MeridianLanguage, (lang: MeridianLanguage) => void] {
-  const [lang, setLang] = useState<MeridianLanguage>('en')
+  const [lang, setLang] = useState<MeridianLanguage>('es')
 
   useEffect(() => {
     setLang(getStoredLanguage())
