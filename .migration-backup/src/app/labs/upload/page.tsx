@@ -1482,7 +1482,7 @@ function BiomarkerDetailSheet({
 
           {/* Range card — always rendered; optimal range removed in Sprint 1 */}
           <div style={cardStyle}>
-            <p style={labelStyle}>Clinical reference</p>
+            <p style={labelStyle}>Referencia clínica</p>
             {resolvedRange ? (
               renderClinicalReferenceBar(biomarker.value, resolvedRange.min, resolvedRange.max, biomarker.unit || undefined)
             ) : (
@@ -1658,7 +1658,7 @@ function HistoryDetailSheet({
           </div>
           {/* Range card — optimal range removed in Sprint 1 */}
           <div style={cardStyle}>
-            <p style={labelStyle}>Clinical reference</p>
+            <p style={labelStyle}>Referencia clínica</p>
             {resolvedRange ? (
               <>
                 <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 8px' }}><span style={{ fontWeight: 600, color: colors.text }}>{resolvedRange.min} – {resolvedRange.max}</span>{biomarker.unit ? ` ${biomarker.unit}` : ''}</p>
@@ -2022,7 +2022,7 @@ export default function LabsUploadPage() {
             .order('collected_at', { ascending: false })
             .order('created_at', { ascending: false })
           if (histFetchError) {
-            setHistError('Could not load your Timeline. Please try again.')
+            setHistError(lang === 'es' ? 'No se pudo cargar tu línea de tiempo. Inténtalo nuevamente.' : 'Could not load your Timeline. Please try again.')
           } else {
             setHistBiomarkers(histData || [])
             setHistFetched(true)
@@ -2057,7 +2057,7 @@ export default function LabsUploadPage() {
           body: JSON.stringify({ pdf_base64: base64, user_id: userId, biological_profile: bioProfile }),
         })
         const data = await response.json()
-        if (!data.success) { setError(data.error || 'Failed to process PDF'); setUploading(false); return }
+        if (!data.success) { setError(data.error || (lang === 'es' ? 'No se pudo procesar el PDF' : 'Failed to process PDF')); setUploading(false); return }
         setStaged(data.staged_biomarkers)
         setUnmatched(data.unmatched || [])
         setStats({ extracted: data.total_extracted, matched: data.total_matched, errors: data.total_errors })
@@ -2204,7 +2204,7 @@ export default function LabsUploadPage() {
       .order('collected_at', { ascending: false })
       .order('created_at', { ascending: false })
     if (fetchError) {
-      setHistError('Could not load your Timeline. Please try again.')
+      setHistError(lang === 'es' ? 'No se pudo cargar tu línea de tiempo. Inténtalo nuevamente.' : 'Could not load your Timeline. Please try again.')
     } else {
       setHistBiomarkers(data || [])
       setHistFetched(true)
@@ -2391,7 +2391,7 @@ export default function LabsUploadPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '20px' }}>
               <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.6)', flexShrink: 0 }} />
               <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted }}>
-                Biomarker Signals
+                {lang === 'es' ? 'Señales de biomarcadores' : 'Biomarker Signals'}
               </span>
             </div>
             <h1 style={{
@@ -3042,7 +3042,7 @@ export default function LabsUploadPage() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                Upload another PDF
+                {lang === 'es' ? 'Subir otro PDF' : 'Upload another PDF'}
               </motion.button>
               <button
                 onClick={handleReset}
@@ -3130,7 +3130,7 @@ export default function LabsUploadPage() {
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          {view === 'snapshot' ? 'Snapshot' : 'Timeline'}
+                          {view === 'snapshot' ? (lang === 'es' ? 'Resumen' : 'Snapshot') : (lang === 'es' ? 'Línea de tiempo' : 'Timeline')}
                         </button>
                       </div>
                     )
@@ -3224,7 +3224,7 @@ export default function LabsUploadPage() {
                         fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
                         letterSpacing: '0.07em', color: colors.textMuted, margin: 0,
                       }}>
-                        Key Signals
+                        {lang === 'es' ? 'Señales clave' : 'Key Signals'}
                       </p>
                       <span style={{ fontSize: '11px', color: colors.textMuted, opacity: 0.6 }}>
                         Tap any to explore
@@ -3734,7 +3734,7 @@ export default function LabsUploadPage() {
                     No recent labs in the last 12 months.
                   </p>
                   <p style={{ fontSize: '12px', color: colors.textMuted }}>
-                    Your confirmed results are saved in Timeline.
+                    {lang === 'es' ? 'Tus resultados confirmados están guardados en la línea de tiempo.' : 'Your confirmed results are saved in Timeline.'}
                   </p>
                 </div>
                 <button
@@ -3765,7 +3765,7 @@ export default function LabsUploadPage() {
                 {/* Timeline section header */}
                 <div style={{ marginBottom: '20px' }}>
                   <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: colors.textMuted, margin: '0 0 4px' }}>
-                    Timeline
+                    {lang === 'es' ? 'Línea de tiempo' : 'Timeline'}
                   </p>
                   <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 14px', lineHeight: 1.5 }}>
                     Your confirmed lab results over time.
@@ -3807,7 +3807,7 @@ export default function LabsUploadPage() {
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          {view === 'snapshot' ? 'Snapshot' : 'Timeline'}
+                          {view === 'snapshot' ? (lang === 'es' ? 'Resumen' : 'Snapshot') : (lang === 'es' ? 'Línea de tiempo' : 'Timeline')}
                         </button>
                       )
                     })}
