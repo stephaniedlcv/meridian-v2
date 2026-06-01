@@ -2405,7 +2405,7 @@ export default function LabsUploadPage() {
               {hasRecentLabs ? (lang === 'es' ? 'Laboratorios' : 'Labs') : (lang === 'es' ? 'Subir laboratorios' : 'Upload your labs')}
             </h1>
             <p style={{ fontSize: '14px', fontWeight: 600, color: colors.text, marginBottom: '2px' }}>
-              Your clinical markers.
+              {lang === 'es' ? 'Tus marcadores clínicos.' : 'Your clinical markers.'}
             </p>
             <p style={{ fontSize: '14px', color: colors.textSoft, marginBottom: hasRecentLabs ? '24px' : '20px' }}>
               Translated into biological signals.
@@ -3481,7 +3481,7 @@ export default function LabsUploadPage() {
                         color: colors.textMuted, textTransform: 'uppercase',
                         margin: '0 0 10px',
                       }}>
-                        View Mode
+                        {lang === 'es' ? 'Modo de vista' : 'View Mode'}
                       </p>
                       <div style={{
                         display: 'inline-flex',
@@ -3506,7 +3506,7 @@ export default function LabsUploadPage() {
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          Clinical Panels
+                          {lang === 'es' ? 'Paneles clínicos' : 'Clinical Panels'}
                         </button>
                         <button
                           onClick={() => { setSnapshotViewMode('signal_map'); setOptimalExpanded(new Set()) }}
@@ -3521,7 +3521,7 @@ export default function LabsUploadPage() {
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          Signal Map
+                          {lang === 'es' ? 'Mapa de señales' : 'Signal Map'}
                         </button>
                       </div>
                       <p style={{ fontSize: '11px', color: colors.textMuted, marginTop: '4px', lineHeight: 1.5 }}>
@@ -3752,7 +3752,7 @@ export default function LabsUploadPage() {
                     flexShrink: 0,
                   }}
                 >
-                  View Timeline →
+                  {lang === 'es' ? 'Ver línea de tiempo →' : 'View Timeline →'}
                 </button>
               </motion.div>
             )}
@@ -3831,7 +3831,7 @@ export default function LabsUploadPage() {
                   <div style={{ padding: '56px 24px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '16px', textAlign: 'center', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}>
                     <div style={{ fontSize: '40px', marginBottom: '16px' }}>🧬</div>
                     <p style={{ fontSize: '16px', color: colors.textSoft, marginBottom: '6px', fontWeight: 600 }}>No saved labs yet.</p>
-                    <p style={{ fontSize: '13px', color: colors.textMuted }}>Upload a lab PDF to see your biomarkers here.</p>
+                    <p style={{ fontSize: '13px', color: colors.textMuted }}>{lang === 'es' ? 'Sube un PDF de laboratorio para ver tus biomarcadores aquí.' : 'Upload a lab PDF to see your biomarkers here.'}</p>
                   </div>
                 )}
                 {/* Year groups */}
