@@ -1537,7 +1537,7 @@ function BiomarkerDetailSheet({
                 letterSpacing: '0.08em', color: '#F87171',
                 marginBottom: '8px', marginTop: 0,
               }}>
-                Safety Note
+                Nota de seguridad
               </p>
               <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: '0 0 10px' }}>
                 Meridian has flagged this result for clinical review. For markers at this level, Meridian steps back from generating interpretive context and encourages you to share this result with your doctor or care team.
@@ -1550,7 +1550,7 @@ function BiomarkerDetailSheet({
             <>
               {/* Why it matters */}
               <div style={cardStyle}>
-                <p style={labelStyle}>Why it matters</p>
+                <p style={labelStyle}>Por qué importa</p>
                 <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: 0 }}>
                   {intel?.why ?? 'This biomarker is one of the signals Meridian tracks over time. Changes in context alongside related markers tend to be more informative than any single reading.'}
                 </p>
@@ -1558,7 +1558,7 @@ function BiomarkerDetailSheet({
 
               {/* Meridian context */}
               <div style={{ ...cardStyle, marginBottom: 0 }}>
-                <p style={labelStyle}>Meridian context</p>
+                <p style={labelStyle}>Contexto Meridian</p>
                 <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.65, margin: 0 }}>
                   {intel?.context ?? 'Meridian evaluates this signal alongside related markers rather than in isolation. Trends over time carry more weight than any individual result.'}
                 </p>
@@ -1687,18 +1687,18 @@ function HistoryDetailSheet({
           </div>
           {isCritical ? (
             <div style={{ backgroundColor: 'rgba(248,113,113,0.07)', border: '1px solid rgba(248,113,113,0.22)', borderRadius: '14px', padding: '14px 16px', marginBottom: 0 }}>
-              <p style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#F87171', marginBottom: '8px', marginTop: 0 }}>Safety Note</p>
+              <p style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#F87171', marginBottom: '8px', marginTop: 0 }}>Nota de seguridad</p>
               <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: '0 0 8px' }}>Meridian has flagged this result for clinical review. For markers at this level, Meridian steps back from generating interpretive context and encourages you to share this result with your doctor or care team.</p>
               <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.6, margin: 0 }}>This is educational context only — not a diagnosis. If this result is new or unexpected, or if you are experiencing symptoms, please discuss it with a healthcare professional.</p>
             </div>
           ) : (
             <>
               <div style={cardStyle}>
-                <p style={labelStyle}>Why it matters</p>
+                <p style={labelStyle}>Por qué importa</p>
                 <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: 0 }}>{intel?.why ?? interp}</p>
               </div>
               <div style={{ ...cardStyle, marginBottom: 0 }}>
-                <p style={labelStyle}>Meridian context</p>
+                <p style={labelStyle}>Contexto Meridian</p>
                 <p style={{ fontSize: '12px', color: colors.textMuted, lineHeight: 1.65, margin: 0 }}>{intel?.context ?? 'Meridian evaluates this signal alongside related markers rather than in isolation. Trends over time carry more weight than any individual result.'}</p>
               </div>
             </>
@@ -1742,7 +1742,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'metabolic_cluster',
-        title: 'Metabolic Cluster',
+        title: 'Cluster metabólico',
         tagline: 'Lipid · glycemic signals',
         synthesis: 'Triglycerides, HDL, and glycemic markers are part of the same metabolic picture. When they shift together, the combined signal tends to carry more interpretive weight than any marker alone — Meridian watches this cluster for directional consistency across readings.',
         markers: present.map(markerDisplayName),
@@ -1763,7 +1763,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'oxygen_transport',
-        title: 'Oxygen Transport',
+        title: 'Transporte de oxígeno',
         tagline: 'Iron · red cell signals',
         synthesis: 'Iron stores and red cell markers are connected through the same oxygen-delivery system. When ferritin, hemoglobin, or cell size markers shift together, the pattern may connect to energy, recovery capacity, and how efficiently the body is maintaining its oxygen supply.',
         markers: present.map(markerDisplayName),
@@ -1784,7 +1784,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'thyroid_axis',
-        title: 'Thyroid Axis',
+        title: 'Eje tiroideo',
         tagline: 'TSH · thyroid hormone signals',
         synthesis: 'TSH and thyroid hormone levels form an interconnected feedback loop. When multiple markers in this cluster shift in alignment, Meridian places more weight on the pattern — isolated changes in one marker can mean something different than shifts that move across the full thyroid picture.',
         markers: present.map(markerDisplayName),
@@ -1805,7 +1805,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'inflammatory_signal',
-        title: 'Inflammatory Signal',
+        title: 'Señal inflamatoria',
         tagline: 'CRP · immune markers',
         synthesis: 'Inflammatory and immune markers are shifting alongside each other — a combination Meridian watches as part of the broader stress, recovery, and cardiovascular risk picture rather than as isolated values.',
         markers: present.map(markerDisplayName),
@@ -3145,13 +3145,13 @@ export default function LabsUploadPage() {
                         fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
                         letterSpacing: '0.07em', color: colors.textMuted, margin: '0 0 8px',
                       }}>
-                        Connected Insights
+                        Insights conectados
                       </p>
                       <h2 style={{
                         fontFamily: fonts.heading, fontSize: '22px', fontWeight: 700,
                         color: colors.text, margin: 0, lineHeight: 1.25,
                       }}>
-                        What your biology is telling you
+                        Lo que tu biología está mostrando
                       </h2>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -3173,7 +3173,7 @@ export default function LabsUploadPage() {
                                 {insight.title}
                               </p>
                               <span style={{ fontSize: '11px', color: insight.dotColor, fontWeight: 600, letterSpacing: '0.03em' }}>
-                                {insight.severity === 'attention' ? '· pattern detected' : '· tracking'}
+                                {insight.severity === 'attention' ? '· patrón detectado' : '· en seguimiento'}
                               </span>
                             </div>
                             <p style={{ fontSize: '11px', color: colors.textMuted, margin: 0 }}>
@@ -3227,7 +3227,7 @@ export default function LabsUploadPage() {
                         {lang === 'es' ? 'Señales clave' : 'Key Signals'}
                       </p>
                       <span style={{ fontSize: '11px', color: colors.textMuted, opacity: 0.6 }}>
-                        Tap any to explore
+                        Toca cualquiera para explorar
                       </span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -3534,7 +3534,7 @@ export default function LabsUploadPage() {
                     {/* ── Current Markers ── */}
                     <div>
                       <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: colors.textMuted, marginBottom: '12px' }}>
-                        Current Markers
+                        Marcadores actuales
                       </p>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {currentMarkerGroups.map(group => {
@@ -3568,7 +3568,7 @@ export default function LabsUploadPage() {
                                     {sc.Critical > 0 && (sc.Attention > 0 || sc.Watch > 0) && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
                                     {sc.Attention > 0 && <span style={{ color: '#FB923C', fontWeight: 600 }}>{sc.Attention} review</span>}
                                     {sc.Attention > 0 && sc.Watch > 0 && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
-                                    {sc.Watch > 0 && <span style={{ color: '#FCD34D' }}>{sc.Watch} tracking</span>}
+                                    {sc.Watch > 0 && <span style={{ color: '#FCD34D' }}>{sc.Watch} en seguimiento</span>}
                                     {(sc.Critical > 0 || sc.Attention > 0 || sc.Watch > 0) && sc.Optimal > 0 && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
                                     {sc.Optimal > 0 && <span style={{ color: colors.textMuted }}>{sc.Optimal} {lang === 'es' ? 'normal' : 'normal'}</span>}
                                   </span>
@@ -3768,7 +3768,7 @@ export default function LabsUploadPage() {
                     {lang === 'es' ? 'Línea de tiempo' : 'Timeline'}
                   </p>
                   <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 14px', lineHeight: 1.5 }}>
-                    Your confirmed lab results over time.
+                    Tus resultados confirmados de laboratorio a través del tiempo.
                   </p>
                   {/* Snapshot / Timeline toggle */}
                   <div style={{
