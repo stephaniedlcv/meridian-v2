@@ -477,14 +477,14 @@ function isOutOfRangeState(state: string | null): boolean {
 // ── Date helpers ───────────────────────────────────────────────────────────────
 function formatDateShort(iso: string): string {
   const [y, m, d] = iso.split('T')[0].split('-').map(Number)
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('es-PR', {
     month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
   })
 }
 
 function formatDateLong(iso: string): string {
   const [y, m, d] = iso.split('T')[0].split('-').map(Number)
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('es-PR', {
     month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC',
   })
 }
@@ -1245,11 +1245,11 @@ function histGetInterpretation(slug: string): string {
 function histUtcDateKey(isoString: string): string { return isoString.split('T')[0] }
 function histFormatDateLabel(dateKey: string): string {
   const [y, m, d] = dateKey.split('-').map(Number)
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('es-PR', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
 }
 function histFormatMonthLabel(monthKey: string): string {
   const [y, m] = monthKey.split('-').map(Number)
-  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { year: 'numeric', month: 'long', timeZone: 'UTC' })
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('es-PR', { year: 'numeric', month: 'long', timeZone: 'UTC' })
 }
 
 interface HistPanelGroup { panel: string; items: HistBiomarkerRow[]; stateCounts: { Optimal: number; Watch: number; Attention: number; Critical: number } }
@@ -1374,7 +1374,7 @@ function BiomarkerDetailSheet({
   const trendProps = getTrendDisplayProps(contextualState.contextual_severity, contextualState.trend)
 
   function fmtDate(iso: string) {
-    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+    return new Date(iso).toLocaleDateString('es-PR', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
   }
 
   const cardStyle = {
@@ -1488,16 +1488,16 @@ function BiomarkerDetailSheet({
 
           {/* Trend card — Sprint 4 T004: clinically-aware direction coloring */}
           <div style={cardStyle}>
-            <p style={labelStyle}>Trend</p>
+            <p style={labelStyle}>Tendencia</p>
             {prev ? (
               <div>
                 <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 4px' }}>
-                  Previous: <span style={{ fontWeight: 700, color: colors.text }}>{prev.value}{prev.unit ? ` ${prev.unit}` : ''}</span>
-                  <span style={{ color: colors.textMuted }}>{' '}on {fmtDate(prev.collected_at)}</span>
+                  Anterior: <span style={{ fontWeight: 700, color: colors.text }}>{prev.value}{prev.unit ? ` ${prev.unit}` : ''}</span>
+                  <span style={{ color: colors.textMuted }}>{' '}el {fmtDate(prev.collected_at)}</span>
                 </p>
                 {delta !== null && (
                   <p style={{ fontSize: '13px', margin: trendProps.contextLine ? '0 0 3px' : '0', fontWeight: 600, color: trendProps.color }}>
-                    {delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '— '}{delta} from previous
+                    {delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '— '}{delta} desde el resultado anterior
                   </p>
                 )}
                 {trendProps.contextLine && (
@@ -1614,7 +1614,7 @@ function HistoryDetailSheet({
   const histTrendProps = getTrendDisplayProps(histContextualState.contextual_severity, histContextualState.trend)
 
   function fmtDate(iso: string) {
-    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+    return new Date(iso).toLocaleDateString('es-PR', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
   }
   const cardStyle  = { backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px' as const, padding: '14px 16px', marginBottom: '10px' }
   const labelStyle = { fontSize: '10px' as const, color: colors.textMuted, fontWeight: 700 as const, textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: '8px', marginTop: 0 as const }
@@ -1665,11 +1665,11 @@ function HistoryDetailSheet({
             )}
           </div>
           <div style={cardStyle}>
-            <p style={labelStyle}>Trend</p>
+            <p style={labelStyle}>Tendencia</p>
             {prev ? (
               <div>
-                <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 4px' }}>Previous: <span style={{ fontWeight: 700, color: colors.text }}>{prev.value}{prev.unit ? ` ${prev.unit}` : ''}</span><span style={{ color: colors.textMuted }}>{' '}on {fmtDate(prev.collected_at)}</span></p>
-                {delta !== null && <p style={{ fontSize: '13px', margin: histTrendProps.contextLine ? '0 0 3px' : '0', fontWeight: 600, color: histTrendProps.color }}>{delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '— '}{delta} from previous</p>}
+                <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 4px' }}>Anterior: <span style={{ fontWeight: 700, color: colors.text }}>{prev.value}{prev.unit ? ` ${prev.unit}` : ''}</span><span style={{ color: colors.textMuted }}>{' '}el {fmtDate(prev.collected_at)}</span></p>
+                {delta !== null && <p style={{ fontSize: '13px', margin: histTrendProps.contextLine ? '0 0 3px' : '0', fontWeight: 600, color: histTrendProps.color }}>{delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '— '}{delta} desde el resultado anterior</p>}
                 {histTrendProps.contextLine && (
                   <p style={{ fontSize: '12px', margin: 0, color: histTrendProps.color, opacity: 0.82, lineHeight: 1.55 }}>{histTrendProps.contextLine}</p>
                 )}
@@ -2494,9 +2494,9 @@ export default function LabsUploadPage() {
                 justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap',
               }}>
                 <div>
-                  <span style={{ fontSize: '13px', color: colors.textMuted, display: 'block', marginBottom: '4px' }}>Collection Date — correct if needed</span>
+                  <span style={{ fontSize: '13px', color: colors.textMuted, display: 'block', marginBottom: '4px' }}>Fecha de muestra — corrige si hace falta</span>
                   <span style={{ fontSize: '15px', color: colors.text, fontWeight: 600 }}>
-                    {labDate ? new Date(labDate + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not detected'}
+                    {labDate ? new Date(labDate + 'T12:00:00').toLocaleDateString('es-PR', { year: 'numeric', month: 'long', day: 'numeric' }) : 'No detectada'}
                   </span>
                 </div>
                 <input
