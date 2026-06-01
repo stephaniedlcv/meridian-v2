@@ -385,7 +385,7 @@ const QUALITATIVE_DISPLAY_LABELS: Record<string, string> = {
 // Conservative matching: unambiguous urinalysis markers only.
 // WBC/RBC alone are NOT matched here (ambiguous: serum vs. urine sediment).
 function isLikelyQualitativeUrinalysis(name: string): boolean {
-  const lower = name.toBajoerCase().trim()
+  const lower = name.toLowerCase().trim()
   const exact = new Set([
     'color', 'colour', 'appearance', 'clarity', 'turbidity',
     'nitrite', 'nitrites', 'leukocyte esterase',
@@ -558,7 +558,7 @@ const MIDDLE_IS_BEST_SLUGS = new Set([
 ])
 
 function getRangeDirection(slug: string): RangeDirection {
-  const s = slug.toBajoerCase().replace(/[\s-]+/g, '_')
+  const s = slug.toLowerCase().replace(/[\s-]+/g, '_')
   if (LOWER_IS_BETTER_SLUGS.has(s))  return 'lower_is_better'
   if (HIGHER_IS_BETTER_SLUGS.has(s)) return 'higher_is_better'
   if (MIDDLE_IS_BEST_SLUGS.has(s))   return 'middle_is_best'
