@@ -92,10 +92,10 @@ function getTimeGreeting(
     if (safetyAlert || blockColor === 'alert') {
       const lines = [
         'Something in your recent markers warrants a closer look today.',
-        'Your body is flagging something worth attention right now.',
+        'Tu cuerpo está señalando algo que merece atención ahora mismo.',
         'One of your recent signals is asking for a careful review.',
         'A result from your last labs merits attention before moving on.',
-        'Your biology is signaling something that needs follow-through.',
+        'Tu biología está mostrando una señal que merece seguimiento.',
       ]
       return { greeting, subline: lines[dayIndex % lines.length] }
     }
@@ -103,11 +103,11 @@ function getTimeGreeting(
     if (blockColor === 'optimal') {
       const lines = [
         'Recovery systems appear to be responding well.',
-        'Your biology is tracking in a favorable direction.',
+        'Tu biología se está moviendo en una dirección favorable.',
         lang === 'es' ? 'Tus patrones de biomarcadores se ven estables y bien respaldados por ahora.' : 'Biomarker patterns look stable and well-supported right now.',
-        'Your body is signaling a period of good systemic recovery.',
-        'Current markers suggest your biology is near its optimal range.',
-        'Your system is showing signs of balance. A good day to maintain.',
+        'Tu cuerpo está mostrando una buena fase de recuperación sistémica.',
+        'Tus marcadores actuales sugieren que tu biología está cerca de su rango óptimo.',
+        'Tu sistema muestra señales de balance. Buen día para mantener el ritmo.',
       ]
       return { greeting, subline: lines[dayIndex % lines.length] }
     }
@@ -115,19 +115,19 @@ function getTimeGreeting(
     if (blockColor === 'recovery') {
       const lines = [
         'Recovery capacity appears lower than baseline today.',
-        'Your biology is favoring restoration over strain right now.',
-        'Your current recovery state suggests a lighter load today.',
+        'Tu biología está favoreciendo recuperación sobre esfuerzo ahora mismo.',
+        'Tu estado actual de recuperación sugiere una carga más ligera hoy.',
         `Recovery systems appear more sensitive this ${period}.`,
-        'Your body is signaling a need for restoration today.',
+        'Tu cuerpo está señalando una necesidad de recuperación hoy.',
         'Lower recovery markers suggest your system is asking for rest.',
-        'Your biology is in a recovery phase. Worth acknowledging.',
+        'Tu biología está en una fase de recuperación. Vale la pena respetarlo.',
       ]
       return { greeting, subline: lines[dayIndex % lines.length] }
     }
 
     if (state === 'calibrating') {
       const lines = [
-        'Your biological baseline is still building.',
+        'Tu línea base biológica todavía se está construyendo.',
         'More data helps Meridian read your patterns with confidence.',
         'Each upload sharpens how Meridian interprets your biology.',
       ]
@@ -136,18 +136,18 @@ function getTimeGreeting(
 
     if (state === 'labs_saved') {
       const lines = [
-        'Your labs are in. Meridian is mapping your biological baseline.',
-        'Data received. Your biological picture is taking shape.',
-        'Your biomarkers are being integrated into your baseline.',
+        'Tus laboratorios ya están dentro. Meridian está mapeando tu línea base biológica.',
+        'Datos recibidos. Tu panorama biológico está tomando forma.',
+        'Tus biomarcadores se están integrando a tu línea base.',
       ]
       return { greeting, subline: lines[dayIndex % lines.length] }
     }
 
     if (state === 'no_data') {
       const lines = [
-        'Your health intelligence begins with your first lab upload.',
+        'Tu inteligencia de salud comienza con tu primer laboratorio.',
         lang === 'es' ? 'Sube tus laboratorios para desbloquear tu panorama biológico.' : 'Upload your labs to unlock your biological picture.',
-        'Meridian is ready. Your biology is the starting point.',
+        'Meridian está listo. Tu biología es el punto de partida.',
       ]
       return { greeting, subline: lines[dayIndex % lines.length] }
     }
@@ -156,25 +156,25 @@ function getTimeGreeting(
   // ── Fallback: time-of-day ambient lines (no insight context yet) ──────
   const ambient = {
     morning: [
-      'Your overnight signals are ready to review.',
+      'Tus señales de la noche están listas para revisar.',
       'A quiet moment before the day builds. Here\'s your read.',
-      'Your body has been working since sleep.',
+      'Tu cuerpo ha estado trabajando desde el sueño.',
       'A good time to check in on your biology.',
-      'Your recovery window is closing. Here\'s where you stand.',
+      'Tu ventana de recuperación está cerrando. Así estás ahora.',
     ],
     afternoon: [
       'Here\'s where your biology stands right now.',
       'A mid-day check-in on your body\'s current state.',
-      'Your biomarkers have something to say.',
-      'Your system has been tracking all morning.',
-      'Your biology is at full cycle right now.',
+      'Tus biomarcadores tienen algo que decir.',
+      'Tu sistema ha estado registrando señales toda la mañana.',
+      'Tu biología está en pleno ciclo ahora mismo.',
     ],
     evening: [
-      'Your body has been working today.',
+      'Tu cuerpo ha estado trabajando hoy.',
       'A good time to review before your recovery window opens.',
       'The day\'s signals are in.',
-      'Your system has data worth reviewing this evening.',
-      'Your recovery cycle is approaching. Here\'s today\'s read.',
+      'Tu sistema tiene datos que vale la pena revisar esta noche.',
+      'Tu ciclo de recuperación se acerca. Esta es la lectura de hoy.',
     ],
   }
 
