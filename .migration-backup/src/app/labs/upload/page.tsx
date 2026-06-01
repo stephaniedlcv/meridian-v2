@@ -2759,7 +2759,7 @@ export default function LabsUploadPage() {
                           border: `1px solid ${colors.cardBorder}`, borderRadius: '12px', marginBottom: '8px',
                         }}>
                           <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: colors.textMuted, margin: '0 0 4px' }}>
-                            Pending Classification
+                            {lang === 'es' ? 'Clasificación pendiente' : 'Pending Classification'}
                           </p>
                           <p style={{ fontSize: '12px', color: colors.textMuted, margin: 0, lineHeight: 1.55 }}>
                             These markers were extracted but could not be confidently matched to Meridian&apos;s biomarker dictionary. They will not affect your lab results, counts, or health signals.
@@ -2881,7 +2881,7 @@ export default function LabsUploadPage() {
                             fontFamily: fonts.ui, fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                           }}
                         >
-                          Cancel
+                          {lang === 'es' ? 'Cancelar' : 'Cancel'}
                         </button>
                         <button
                           onClick={() => handleConfirm(true)}
@@ -2954,7 +2954,7 @@ export default function LabsUploadPage() {
                     color: colors.textMuted, fontFamily: fonts.ui, fontSize: '16px', cursor: 'pointer',
                   }}
                 >
-                  Cancel
+                  {lang === 'es' ? 'Cancelar' : 'Cancel'}
                 </button>
               </div>
             </motion.div>
@@ -3080,7 +3080,7 @@ export default function LabsUploadPage() {
                     fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em',
                     color: colors.textMuted, textTransform: 'uppercase', margin: '0 0 6px',
                   }}>
-                    Latest lab collection
+                    {lang === 'es' ? 'Última toma de laboratorio' : 'Latest lab collection'}
                   </p>
                   <p style={{
                     fontFamily: fonts.heading, fontSize: '26px', fontWeight: 700,
@@ -3090,7 +3090,7 @@ export default function LabsUploadPage() {
                     {latestDate ? formatDateLong(latestDate) : '—'}
                   </p>
                   <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0, lineHeight: 1.5 }}>
-                    {snapshotBiomarkers.length} biomarkers across {panelSummaries.length} {panelSummaries.length === 1 ? 'panel' : 'panels'}
+                    {lang === 'es' ? `${snapshotBiomarkers.length} biomarcadores en ${panelSummaries.length} ${panelSummaries.length === 1 ? 'panel' : 'paneles'}` : `${snapshotBiomarkers.length} biomarkers across ${panelSummaries.length} ${panelSummaries.length === 1 ? 'panel' : 'panels'}`}
                   </p>
                 </div>
 
@@ -3210,7 +3210,7 @@ export default function LabsUploadPage() {
                           fontFamily: fonts.ui, outline: 'none',
                         }}
                       >
-                        View {connectedInsights.length - 3} more {connectedInsights.length - 3 === 1 ? 'insight' : 'insights'}
+                        {lang === 'es' ? `Ver ${connectedInsights.length - 3} ${connectedInsights.length - 3 === 1 ? 'insight más' : 'insights más'}` : `View ${connectedInsights.length - 3} more ${connectedInsights.length - 3 === 1 ? 'insight' : 'insights'}`}
                       </button>
                     )}
                   </div>
@@ -3306,7 +3306,7 @@ export default function LabsUploadPage() {
                       }}
                     >
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />
-                      {totalStateCounts.Optimal} Normal
+                      {totalStateCounts.Optimal} {lang === 'es' ? 'Normal' : 'Normal'}
                     </button>
                   )}
                   {totalStateCounts.Watch > 0 && (
@@ -3324,7 +3324,7 @@ export default function LabsUploadPage() {
                       }}
                     >
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#FCD34D', display: 'inline-block' }} />
-                      {totalStateCounts.Watch} Tracking
+                      {totalStateCounts.Watch} {lang === 'es' ? 'En seguimiento' : 'Tracking'}
                     </button>
                   )}
                   {totalStateCounts.Attention > 0 && (
@@ -3342,7 +3342,7 @@ export default function LabsUploadPage() {
                       }}
                     >
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />
-                      {totalStateCounts.Attention} Review
+                      {totalStateCounts.Attention} {lang === 'es' ? 'Revisar' : 'Review'}
                     </button>
                   )}
                   {totalStateCounts.Critical > 0 && (
@@ -3360,7 +3360,7 @@ export default function LabsUploadPage() {
                       }}
                     >
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#F87171', display: 'inline-block' }} />
-                      {totalStateCounts.Critical} Critical
+                      {totalStateCounts.Critical} {lang === 'es' ? 'Crítico' : 'Critical'}
                     </button>
                   )}
                 </div>
@@ -3396,7 +3396,7 @@ export default function LabsUploadPage() {
                   /* ── Status-filtered list ── */
                   <div style={{ marginBottom: '8px' }}>
                     <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '10px' }}>
-                      {{ Optimal: 'Normal', Watch: 'Tracking', Attention: 'Review', Critical: 'Critical' }[activeFilter ?? ''] ?? activeFilter} Biomarkers
+                      {lang === 'es' ? ({ Optimal: 'Normales', Watch: 'En seguimiento', Attention: 'Para revisar', Critical: 'Críticos' }[activeFilter ?? ''] ?? activeFilter) : ({ Optimal: 'Normal', Watch: 'Tracking', Attention: 'Review', Critical: 'Critical' }[activeFilter ?? ''] ?? activeFilter)} {lang === 'es' ? 'biomarcadores' : 'Biomarkers'}
                     </p>
                     {filteredBiomarkers.length > 0 ? (
                       <div>
@@ -3564,13 +3564,13 @@ export default function LabsUploadPage() {
                                     {group.count} {group.count === 1 ? 'marker' : 'markers'}
                                   </span>
                                   <span style={{ fontSize: '11px', flexShrink: 0 }}>
-                                    {sc.Critical > 0 && <span style={{ color: '#F87171', fontWeight: 600 }}>{sc.Critical} critical</span>}
+                                    {sc.Critical > 0 && <span style={{ color: '#F87171', fontWeight: 600 }}>{sc.Critical} {lang === 'es' ? 'crítico' : 'critical'}</span>}
                                     {sc.Critical > 0 && (sc.Attention > 0 || sc.Watch > 0) && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
                                     {sc.Attention > 0 && <span style={{ color: '#FB923C', fontWeight: 600 }}>{sc.Attention} review</span>}
                                     {sc.Attention > 0 && sc.Watch > 0 && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
                                     {sc.Watch > 0 && <span style={{ color: '#FCD34D' }}>{sc.Watch} tracking</span>}
                                     {(sc.Critical > 0 || sc.Attention > 0 || sc.Watch > 0) && sc.Optimal > 0 && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
-                                    {sc.Optimal > 0 && <span style={{ color: colors.textMuted }}>{sc.Optimal} normal</span>}
+                                    {sc.Optimal > 0 && <span style={{ color: colors.textMuted }}>{sc.Optimal} {lang === 'es' ? 'normal' : 'normal'}</span>}
                                   </span>
                                 </div>
                                 <span style={{ fontSize: '11px', color: colors.textMuted, lineHeight: 1.5, display: 'block' }}>
@@ -3682,7 +3682,7 @@ export default function LabsUploadPage() {
                                       cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', textAlign: 'center',
                                     }}
                                   >
-                                    View {hiddenOpt} more normal {hiddenOpt === 1 ? 'marker' : 'markers'}
+                                    {lang === 'es' ? `Ver ${hiddenOpt} ${hiddenOpt === 1 ? 'marcador normal más' : 'marcadores normales más'}` : `View ${hiddenOpt} more normal ${hiddenOpt === 1 ? 'marker' : 'markers'}`}
                                   </button>
                                 )}
                                 {isOptExp && hiddenOpt >= 2 && (
@@ -3863,9 +3863,9 @@ export default function LabsUploadPage() {
                               <div style={{ marginBottom: '10px', padding: '12px 16px', backgroundColor: 'rgba(248,113,113,0.07)', border: '1px solid rgba(248,113,113,0.22)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                                 <span style={{ fontSize: '13px', color: colors.textSoft, flex: 1, lineHeight: 1.5 }}>Delete all {dateGroup.total} biomarkers from {dateGroup.label}? This cannot be undone.</span>
                                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                                  <button onClick={() => setDeleteConfirmDate(null)} style={{ padding: '6px 14px', backgroundColor: 'transparent', border: `1px solid ${colors.cardBorder}`, borderRadius: '7px', color: colors.textMuted, fontFamily: fonts.ui, fontSize: '12px', fontWeight: 600, cursor: 'pointer', outline: 'none' }}>Cancel</button>
+                                  <button onClick={() => setDeleteConfirmDate(null)} style={{ padding: '6px 14px', backgroundColor: 'transparent', border: `1px solid ${colors.cardBorder}`, borderRadius: '7px', color: colors.textMuted, fontFamily: fonts.ui, fontSize: '12px', fontWeight: 600, cursor: 'pointer', outline: 'none' }}>{lang === 'es' ? 'Cancelar' : 'Cancel'}</button>
                                   <button onClick={() => handleDeleteSession(dateGroup.dateKey)} disabled={deleteLoading} style={{ padding: '6px 14px', backgroundColor: 'rgba(248,113,113,0.13)', border: '1px solid rgba(248,113,113,0.38)', borderRadius: '7px', color: '#F87171', fontFamily: fonts.ui, fontSize: '12px', fontWeight: 600, cursor: deleteLoading ? 'not-allowed' : 'pointer', outline: 'none' }}>
-                                    {deleteLoading ? 'Deleting…' : 'Delete session'}
+                                    {deleteLoading ? (lang === 'es' ? 'Eliminando…' : 'Deleting…') : (lang === 'es' ? 'Eliminar sesión' : 'Delete session')}
                                   </button>
                                 </div>
                               </div>
