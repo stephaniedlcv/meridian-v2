@@ -3011,7 +3011,7 @@ export default function LabsUploadPage() {
             </div>
 
             <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 20px', lineHeight: 1.6 }}>
-              Your confirmed biomarkers were added to your Lab Snapshot.{' '}
+              Tus biomarcadores confirmados fueron añadidos a tu resumen de laboratorios.{' '}
               <span style={{ color: colors.textMuted }}>
                 {lang === 'es' ? 'Sube otro PDF si esta visita de laboratorio incluyó más de un archivo.' : 'Upload another PDF if this lab visit included more than one file.'}
               </span>
