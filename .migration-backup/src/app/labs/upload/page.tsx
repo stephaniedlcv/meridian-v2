@@ -99,7 +99,7 @@ const SLUG_TO_PANEL: Record<string, string> = {
   basophils_pct: 'CBC', basophils_abs: 'CBC',
   immature_granulocytes_pct: 'CBC', immature_granulocytes_abs: 'CBC',
   nrbc_pct: 'CBC', nrbc_abs: 'CBC',
-  hba1c: 'Glycemic', insulin_fasting: 'Glycemic',
+  hba1c: 'Glycemic', insulin_fasting: 'Glycemic', glucose_fasting: 'Glycemic',
   total_cholesterol: 'Lipid Panel', hdl: 'Lipid Panel', ldl: 'Lipid Panel',
   vldl: 'Lipid Panel', triglycerides: 'Lipid Panel', non_hdl: 'Lipid Panel',
   ldl_hdl_ratio: 'Lipid Panel', chol_hdl_ratio: 'Lipid Panel',
@@ -115,8 +115,8 @@ const SLUG_TO_PANEL: Record<string, string> = {
   ag_ratio: 'Liver', total_protein: 'Liver',
   amylase: 'Pancreatic Enzymes', lipase: 'Pancreatic Enzymes',
   hepatitis_a_igm_ab: 'Serology / Infectious Disease', hepatitis_b_core_igm: 'Serology / Infectious Disease', hepatitis_b_surface_antigen: 'Serology / Infectious Disease', hepatitis_c_ab: 'Serology / Infectious Disease', hiv_1_2_ab: 'Serology / Infectious Disease', rpr_syphilis: 'Serology / Infectious Disease',
-  glucose_fasting: 'Glycemic', sodium: 'Electrolytes', potassium: 'Electrolytes',
-  chloride: 'Electrolytes', co2: 'Electrolytes', calcium: 'Electrolytes', anion_gap: 'Electrolytes',
+  sodium: 'Electrolytes', potassium: 'Electrolytes', chloride: 'Electrolytes',
+  co2: 'Electrolytes', calcium: 'Electrolytes', anion_gap: 'Electrolytes',
   // Urinalysis — dipstick, physical, and microscopy
   urine_color: 'Urinalysis', urine_clarity: 'Urinalysis',
   urine_specific_gravity: 'Urinalysis', urine_ph: 'Urinalysis',
@@ -147,7 +147,7 @@ const OPTIMAL_SHOW_LIMIT = 5
 
 // Marker state sort priority (Critical first)
 // Sprint 1: Clinical Stability Phase — new states sort alongside legacy equivalents.
-// Critical (0) → Low/High (1) → Attention (2) → Watch (3) → Normal/Optimal (4)
+// Critical (0) → Bajo/Alto (1) → Attention (2) → Watch (3) → Normal/Optimal (4)
 const SNAPSHOT_STATE_SORT: Record<string, number> = {
   Critical: 0,
   Low: 1, High: 1,
@@ -217,17 +217,17 @@ const CLINICAL_PANEL_ORDER = [
 
 const CLINICAL_PANEL_EDUCATION: Record<string, string> = {
   'CBC':                         'Tu CBC le da a Meridian una ventana hacia tu actividad inmune, capacidad de transportar oxígeno y patrones de células rojas y blancas — señales que pueden cambiar con estrés, recuperación, nutrición y otros factores.',
-  'Lipid Panel':                 'Cholesterol markers tell a story about how your body transports fats. Meridian watches trends here over time because single readings rarely capture the full cardiovascular picture.',
-  'Glycemic':                    'Blood sugar regulation shapes energy, metabolism, and long-term tissue health. Meridian watches glycemic markers together because the pattern across multiple results matters more than any one number.',
-  'Kidney / Renal':              'Kidney filtration and waste-clearance markers that Meridian watches over time — because kidney capacity tends to shift gradually, and trends carry more signal than any single reading.',
-  'Liver':                       'Liver enzyme and protein markers that can reflect how the liver is responding to stress, recovery, nutrition, and metabolic demands over time.',
-  'Electrolytes':                'Electrolyte balance governs fluid regulation, acid-base chemistry, and cellular signaling. Meridian watches these together because shifts in one often reflect shifts in the broader system.',
+  'Lipid Panel':                 'Los marcadores de colesterol cuentan cómo tu cuerpo transporta grasas. Meridian observa las tendencias con el tiempo porque una lectura aislada rara vez captura todo el panorama cardiovascular.',
+  'Glycemic':                    'La regulación de azúcar en sangre influye en energía, metabolismo y salud de los tejidos a largo plazo. Meridian observa los marcadores glucémicos juntos porque el patrón entre varios resultados importa más que un solo número.',
+  'Kidney / Renal':              'Marcadores de filtración renal y eliminación de desechos que Meridian observa con el tiempo — porque la capacidad renal tiende a cambiar gradualmente y las tendencias tienen más señal que una lectura aislada.',
+  'Liver':                       'Marcadores de enzimas y proteínas hepáticas que pueden reflejar cómo el hígado responde al estrés, recuperación, nutrición y demandas metabólicas con el tiempo.',
+  'Electrolytes':                'El balance de electrolitos regula líquidos, química ácido-base y señalización celular. Meridian los observa en conjunto porque un cambio en uno a menudo refleja ajustes en el sistema completo.',
   'Thyroid Panel':               'Tu tiroides influye en metabolismo, energía, regulación de temperatura y recuperación. Meridian sigue estas señales con el tiempo porque la función tiroidea suele cambiar de forma gradual.',
-  'Vitamins & Nutrients':        'Micronutrient levels — including iron stores — can quietly influence energy, immunity, mood, and recovery. Meridian watches trends here because deficiencies often develop slowly over time.',
-  'Hormones':                    'Hormonal signals shape energy, recovery, stress response, libido, and mood. Meridian watches these as an interconnected system because no single hormone operates alone.',
-  'Inflammation / Cardiac Risk': 'Low-grade inflammation is a background signal linked to cardiovascular risk, metabolic health, and recovery. Meridian watches it over time because sustained elevation can matter more than a one-off reading.',
-  'Urinalysis':                  'Urine findings give Meridian a snapshot of kidney and urinary tract health, hydration balance, and chemical patterns that complement bloodwork context.',
-  'Other':                       'These markers add additional context to your biological profile. Meridian tracks them alongside related signals for a more complete picture.',
+  'Vitamins & Nutrients':        'Los niveles de micronutrientes — incluyendo reservas de hierro — pueden influir silenciosamente en energía, inmunidad, ánimo y recuperación. Meridian observa tendencias porque las deficiencias suelen desarrollarse lentamente.',
+  'Hormones':                    'Las señales hormonales moldean energía, recuperación, respuesta al estrés, libido y ánimo. Meridian las observa como un sistema conectado porque ninguna hormona funciona completamente aislada.',
+  'Inflammation / Cardiac Risk': 'La inflamación de bajo grado es una señal de fondo relacionada con riesgo cardiovascular, salud metabólica y recuperación. Meridian la observa con el tiempo porque una elevación sostenida puede importar más que un resultado aislado.',
+  'Urinalysis':                  'Los hallazgos de orina le dan a Meridian una vista de salud renal y urinaria, balance de hidratación y patrones químicos que complementan el contexto de sangre.',
+  'Other':                       'Estos marcadores añaden contexto adicional a tu perfil biológico. Meridian los sigue junto con señales relacionadas para construir un panorama más completo.',
 }
 
 // ── Signal Map mapping ────────────────────────────────────────────────────────
@@ -290,18 +290,18 @@ const SIGNAL_LAYER_ORDER = [
 ]
 
 const SIGNAL_LAYER_EDUCATION: Record<string, string> = {
-  'Cardiovascular':       'Lipid transport and vascular risk signals. Meridian watches how these move together over time rather than reacting to any single reading.',
-  'Metabolic':            'Blood sugar regulation, electrolyte balance, and cellular energy. Shifts here can connect to diet, hydration, stress, and long-term metabolic health.',
-  'Renal / Filtration':   'Kidney filtration markers that reflect how well the body is clearing waste and managing fluid balance over time.',
-  'Liver':                'Liver enzyme and protein patterns that can reflect cellular stress, recovery, nutrition, and hepatic function changes over time.',
-  'Thyroid / Energy':     'Thyroid hormone signals that influence metabolism, energy output, and recovery. Trends here often matter more than isolated snapshots.',
-  'Blood / Oxygen':       'Red cell size, count, and oxygen-carrying capacity. These signals can connect to iron status, nutrient availability, and recovery.',
-  'Immune':               'White cell counts and differential patterns that can reflect immune activation, recovery stress, or physiological adaptation.',
-  'Vitamins & Nutrients': 'Micronutrient status that quietly shapes energy, immunity, mood, and cellular function over time.',
-  'Hormones':             'Hormonal signals tied to energy, recovery, stress response, and metabolic balance. Meridian watches these as a system, not in isolation.',
-  'Inflammation':         'Systemic inflammation signals that connect to cardiovascular risk, metabolic health, and how the body is managing stress and recovery.',
-  'Urinary':              'Kidney and urinary tract markers that add context on filtration, hydration, and urinary health patterns.',
-  'Other':                'Additional signals that add context to your broader biological profile.',
+  'Cardiovascular':       'Señales de transporte de lípidos y riesgo vascular. Meridian observa cómo se mueven juntas con el tiempo, en lugar de reaccionar a una sola lectura.',
+  'Metabolic':            'Regulación de azúcar en sangre, balance de electrolitos y energía celular. Los cambios aquí pueden conectar con dieta, hidratación, estrés y salud metabólica a largo plazo.',
+  'Renal / Filtration':   'Marcadores de filtración renal que reflejan qué tan bien el cuerpo elimina desechos y maneja el balance de líquidos con el tiempo.',
+  'Liver':                'Patrones de enzimas y proteínas hepáticas que pueden reflejar estrés celular, recuperación, nutrición y cambios en función hepática con el tiempo.',
+  'Thyroid / Energy':     'Señales tiroideas que influyen en metabolismo, producción de energía y recuperación. Las tendencias aquí suelen importar más que lecturas aisladas.',
+  'Blood / Oxygen':       'Tamaño, cantidad y capacidad de transporte de oxígeno de las células rojas. Estas señales pueden conectar con hierro, disponibilidad de nutrientes y recuperación.',
+  'Immune':               'Conteos de células blancas y patrones del diferencial que pueden reflejar activación inmune, estrés de recuperación o adaptación fisiológica.',
+  'Vitamins & Nutrients': 'Estado de micronutrientes que moldea silenciosamente energía, inmunidad, ánimo y función celular con el tiempo.',
+  'Hormones':             'Señales hormonales conectadas con energía, recuperación, respuesta al estrés y balance metabólico. Meridian las observa como sistema, no de forma aislada.',
+  'Inflammation':         'Señales de inflamación sistémica que conectan con riesgo cardiovascular, salud metabólica y cómo el cuerpo maneja estrés y recuperación.',
+  'Urinary':              'Marcadores renales y urinarios que añaden contexto sobre filtración, hidratación y patrones de salud urinaria.',
+  'Other':                'Señales adicionales que añaden contexto a tu perfil biológico más amplio.',
 }
 
 const PANEL_EDUCATION: Record<string, string> = {
@@ -317,7 +317,7 @@ const PANEL_EDUCATION: Record<string, string> = {
   'Inflammation / Cardiac Risk': 'Tus marcadores de inflamación y riesgo cardíaco ayudan a Meridian a entender inflamación sistémica de bajo grado y patrones cardiovasculares con el tiempo.',
   'Serology / Infectious Disease': 'Los marcadores de serología añaden contexto cualitativo para patrones de cernimiento infeccioso. Meridian los sigue como resultados de estilo diagnóstico, no como biomarcadores numéricos.',
   'Urinalysis':                  'Tu urinalysis añade contexto sobre salud renal y urinaria, hidratación y patrones químicos que complementan tus laboratorios de sangre.',
-  'Other':                       'These markers add additional context to your broader biological profile alongside related signals.',
+  'Other':                       'Estos marcadores añaden contexto adicional a tu perfil biológico más amplio junto con señales relacionadas.',
 }
 
 // ── OCR artifact / worksheet code detection ────────────────────────────────────
@@ -385,7 +385,7 @@ const QUALITATIVE_DISPLAY_LABELS: Record<string, string> = {
 // Conservative matching: unambiguous urinalysis markers only.
 // WBC/RBC alone are NOT matched here (ambiguous: serum vs. urine sediment).
 function isLikelyQualitativeUrinalysis(name: string): boolean {
-  const lower = name.toLowerCase().trim()
+  const lower = name.toBajoerCase().trim()
   const exact = new Set([
     'color', 'colour', 'appearance', 'clarity', 'turbidity',
     'nitrite', 'nitrites', 'leukocyte esterase',
@@ -558,7 +558,7 @@ const MIDDLE_IS_BEST_SLUGS = new Set([
 ])
 
 function getRangeDirection(slug: string): RangeDirection {
-  const s = slug.toLowerCase().replace(/[\s-]+/g, '_')
+  const s = slug.toBajoerCase().replace(/[\s-]+/g, '_')
   if (LOWER_IS_BETTER_SLUGS.has(s))  return 'lower_is_better'
   if (HIGHER_IS_BETTER_SLUGS.has(s)) return 'higher_is_better'
   if (MIDDLE_IS_BEST_SLUGS.has(s))   return 'middle_is_best'
@@ -637,8 +637,8 @@ function getStateStyles(state: string) {
   switch (state) {
     // ── Clinical Stability Phase states ───────────────────────────────────────
     case 'Normal':    return { bg: colors.optimal,   border: colors.optimalBorder,   label: 'Normal',   dot: '#2DD4BF' }
-    case 'Low':       return { bg: colors.attention, border: colors.attentionBorder, label: 'Low',      dot: '#FB923C' }
-    case 'High':      return { bg: colors.attention, border: colors.attentionBorder, label: 'High',     dot: '#FB923C' }
+    case 'Low':       return { bg: colors.attention, border: colors.attentionBorder, label: 'Bajo',      dot: '#FB923C' }
+    case 'High':      return { bg: colors.attention, border: colors.attentionBorder, label: 'Alto',     dot: '#FB923C' }
     case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  label: 'Crítico', dot: '#F87171' }
     // ── Legacy states (backward compat for existing DB records) ───────────────
     case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   label: 'Normal',   dot: '#2DD4BF' }
@@ -654,8 +654,8 @@ function getStateBadgeMeta(state: string): string | null {
   switch (state) {
     case 'Watch':     return 'Meridian está observando un patrón contextual'
     case 'Attention': return 'Fuera del rango clínico de referencia'
-    case 'Low':       return 'Below clinical reference range'
-    case 'High':      return 'Above clinical reference range'
+    case 'Low':       return 'Por debajo del rango clínico de referencia'
+    case 'High':      return 'Por encima del rango clínico de referencia'
     default:          return null
   }
 }
@@ -685,86 +685,77 @@ function markerDisplayName(slug: string): string {
 // ── Interpretation copy ────────────────────────────────────────────────────────
 const INTERPRETATIONS: Record<string, string> = {
   // ── CBC ───────────────────────────────────────────────────────────────────────
-  wbc:                    'WBC gives Meridian a window into immune activity — how many white blood cells are circulating and, alongside the differential, which types are elevated or suppressed. Shifts can connect to immune activation, recovery, physiological stress, or adaptation.',
-  rbc:                    'Red blood cells carry oxygen from your lungs to every tissue in your body. Meridian tracks the count because changes over time can connect to iron status, nutrient availability, bone marrow activity, and how efficiently the body is maintaining its oxygen supply.',
-  hemoglobin:             'Hemoglobin carries oxygen through your bloodstream and is central to how your body fuels itself. Meridian tracks it alongside RBC and ferritin to understand oxygen transport capacity and how it changes over time.',
-  hematocrit:             'Hematocrit reflects what proportion of your blood volume is made up of red blood cells. Meridian watches it as part of the oxygen-transport picture — changes can connect to hydration status, iron stores, and red cell production patterns.',
-  mcv:                    'MCV measures the average size of your red blood cells. Meridian watches it because cell size can reflect nutrient availability — particularly iron, B12, and folate — and can sometimes shift before other markers show obvious changes.',
-  mch:                    'MCH reflects how much hemoglobin is packed into the average red blood cell. Meridian tracks it alongside MCV and MCHC as part of the red cell quality picture — together these indices give context on how cells are being produced and how efficiently they carry oxygen.',
-  mchc:                   'MCHC measures the concentration of hemoglobin inside your red blood cells. Meridian watches it alongside MCV and MCH because together these indices give context on whether cells are being produced efficiently and carrying oxygen optimally.',
-  rdw:                    'RDW measures variation in the size of your red blood cells. Meridian watches it because elevated variation can sometimes connect to iron deficiency, B12 status, or emerging changes in cell production — often before other CBC markers shift.',
-  platelets:              'Platelets are essential for clotting and vascular repair. Meridian tracks platelet count over time because shifts in either direction can connect to immune activity, inflammatory patterns, and overall blood health.',
-  neutrophils_pct:        'Neutrophils are your immune system\'s most abundant first responders — cells that mobilize quickly to sites of infection or inflammation. Meridian watches their proportion because shifts can reflect acute immune activity, physiological stress, or more persistent patterns depending on the surrounding context.',
-  neutrophils_abs:        'The absolute neutrophil count reflects how many first-responder immune cells are actively circulating. Meridian tracks it because shifts can connect to immune activation, physiological stress, or recovery — most meaningfully read alongside the full white cell differential.',
-  lymphocytes_pct:        'Lymphocytes are the immune cells that coordinate targeted defense — including T cells and B cells. Meridian watches their proportion because changes can connect to immune resilience, recovery patterns, and how the body is managing ongoing physiological demands.',
-  lymphocytes_abs:        'The absolute lymphocyte count reflects the circulating level of your targeted immune defense cells. Meridian watches it because changes can connect to immune resilience and recovery — most informative when read alongside the full white cell differential.',
-  monocytes_pct:          'Monocytes are immune cells that patrol the bloodstream before maturing into tissue macrophages. Meridian tracks their proportion because elevated counts can sometimes connect to low-grade inflammation, immune activation, or recovery patterns.',
-  monocytes_abs:          'The absolute monocyte count reflects how many of your blood-based immune patrol cells are circulating. Meridian watches it because shifts can sometimes connect to inflammatory activity or immune signaling when read alongside the full differential.',
-  eosinophils_pct:        'Eosinophils are involved in allergic responses and certain types of tissue inflammation. Meridian watches their proportion because persistently elevated counts can sometimes connect to allergic or inflammatory patterns not obvious from other markers alone.',
-  eosinophils_abs:        'The absolute eosinophil count reflects how many of your allergy-related immune cells are circulating. Meridian watches it because elevated counts — particularly when persistent — can connect to allergic inflammation or immune-mediated patterns.',
-  basophils_pct:          'Basophils are the least abundant white blood cells, involved in allergic and inflammatory signaling. Meridian tracks them as part of the complete differential picture — changes are most meaningful when read alongside the broader white cell pattern.',
-  basophils_abs:          'The absolute basophil count is most relevant as part of the full white cell differential. Meridian watches it as one piece of the immune pattern — most informative alongside the complete differential rather than in isolation.',
-  mpv:                    'Mean platelet volume reflects the average size of platelets. Meridian watches it as part of the platelet picture because changes can sometimes connect to platelet production patterns, inflammatory activity, or cardiovascular context.',
-  // ── Lipid Panel ───────────────────────────────────────────────────────────────
-  hdl:                    'HDL helps transport excess cholesterol away from blood vessels. Meridian watches it alongside triglycerides, inflammation markers, and metabolic trends because the relationship between these signals can sometimes reveal more than a single cholesterol number alone.',
-  ldl:                    'LDL is one of the primary cholesterol transport markers in your blood. Meridian tracks it over time as part of a broader cardiovascular picture, since long-term trends tend to be more meaningful than any isolated reading.',
-  triglycerides:          'Triglycerides reflect how much fat is circulating in your blood. Meridian watches them alongside HDL and metabolic markers because elevated levels over time can connect to insulin sensitivity, diet patterns, and cardiovascular context.',
-  total_cholesterol:      'Total cholesterol on its own tells an incomplete story. Meridian uses it as a starting point — always evaluated alongside HDL, LDL, triglycerides, and inflammation markers to understand the fuller cardiovascular picture.',
-  vldl:                   'VLDL carries triglycerides through the bloodstream. Meridian tracks it because elevated VLDL can sometimes connect to metabolic patterns like insulin resistance and elevated triglycerides — signals more meaningful together than in isolation.',
-  non_hdl:                'Non-HDL cholesterol captures all the atherogenic particles in your blood — including LDL and VLDL. Meridian watches it because it may give a more complete cardiovascular picture than LDL alone, particularly over time.',
-  ldl_hdl_ratio:          'The LDL/HDL ratio reflects the balance between a key atherogenic particle and its protective counterpart. Meridian watches this ratio because it can sometimes carry more cardiovascular signal than either number independently.',
-  chol_hdl_ratio:         'The total cholesterol/HDL ratio reflects how much of your total cholesterol is in a protective form. Meridian tracks it over time because the trend in this ratio can sometimes be more meaningful than any individual cholesterol value.',
-  // ── CMP / Electrolytes ────────────────────────────────────────────────────────
-  glucose_fasting:        'Fasting glucose reflects your blood sugar at rest — a snapshot of how your body is managing energy between meals. Meridian tracks it alongside A1c and insulin to understand glucose regulation patterns over time.',
-  sodium:                 'Sodium is the primary electrolyte governing fluid balance in your body. Meridian watches it because shifts — even subtle ones — can connect to hydration status, kidney regulation, adrenal signaling, and how the body is managing fluid at a cellular level.',
-  potassium:              'Potassium is critical for heart rhythm, muscle contraction, and cellular energy balance. Meridian watches it because significant deviations in either direction can carry cardiovascular implications and provide context on kidney function and adrenal regulation.',
-  chloride:               'Chloride works alongside sodium and bicarbonate to maintain fluid balance and acid-base stability. Meridian watches it as part of the electrolyte system, where patterns across multiple markers are usually more informative than any single value.',
-  co2:                    'CO₂ (bicarbonate) reflects how well your body is managing acid-base balance — the chemical equilibrium that underpins most cellular processes. Meridian watches it because shifts can connect to metabolic changes, kidney function, respiratory patterns, and hydration status.',
-  calcium:                'Calcium supports bone integrity, muscle contraction, nerve signaling, and heart function. Meridian watches it because blood calcium is tightly regulated — significant deviations can sometimes reflect parathyroid signaling, vitamin D status, or other metabolic patterns.',
-  anion_gap:              'The anion gap is a calculated value reflecting the balance of charged particles in your blood. Meridian watches it because elevated levels can sometimes signal metabolic acid accumulation — shifts that may not be obvious from individual electrolyte readings alone.',
-  // ── Kidney / Renal ────────────────────────────────────────────────────────────
-  creatinine:             'Creatinine is a waste product your kidneys filter continuously. Meridian watches it alongside eGFR and BUN because together they give a fuller picture of kidney filtration and muscle metabolism.',
-  egfr:                   'eGFR estimates how efficiently your kidneys are filtering waste from your blood. Meridian tracks it over time because kidney function tends to change gradually, and early directional trends can carry long-term significance.',
-  egfr_african_american:  'This adjusted eGFR estimate accounts for biological variation in creatinine production. Meridian watches it as part of long-term kidney context — consistent trends across visits carry more interpretive weight than any single reading.',
-  egfr_non_african_american: 'This eGFR estimate reflects how efficiently your kidneys are filtering waste. Meridian tracks it over time because kidney function tends to change gradually, and directional trends across readings carry more significance than any individual result.',
-  bun:                    'BUN (blood urea nitrogen) reflects how well your kidneys are filtering protein waste. Meridian watches it alongside creatinine because the ratio between them can also provide context on hydration status and dietary protein patterns.',
-  bun_creatinine_ratio:   'The BUN/creatinine ratio gives Meridian additional context on kidney function relative to hydration and muscle mass. It can sometimes help distinguish between different reasons why kidney markers may be shifting.',
-  // ── Liver ─────────────────────────────────────────────────────────────────────
-  ast:                    'AST is an enzyme released when liver, heart, or muscle cells are under stress. Meridian watches it alongside ALT because the pattern across liver enzymes — particularly whether AST and ALT move together — often carries more information than any single marker.',
-  alt:                    'ALT is released by the liver when it\'s under strain or irritation. Meridian watches it because changes over time can reflect how the body may be responding to inflammation, recovery, medications, alcohol, or metabolic stress patterns.',
-  alkaline_phosphatase:   'Alkaline phosphatase is produced by the liver, bile ducts, and bone. Meridian watches it because elevated levels can connect to liver health, bile flow, bone turnover, or inflammatory patterns — and the context of surrounding markers helps identify the most likely origin.',
-  bilirubin_total:        'Bilirubin is a byproduct of red blood cell breakdown that the liver processes and clears. Meridian watches it because changes can connect to liver processing capacity, bile flow, or red blood cell turnover — all part of a fuller hepatic picture.',
-  albumin:                'Albumin is the most abundant protein in your blood, produced by the liver. Meridian watches it because it reflects nutritional status, liver synthetic function, and overall protein balance — signals that can shift with illness, inflammation, or long-term dietary patterns.',
-  globulin:               'Globulins include immune-related antibodies and carrier proteins. Meridian watches them because changes can provide context on immune activity, liver function, chronic inflammation, and protein balance over time.',
-  total_protein:          'Total protein reflects both albumin and globulins together — a broad view of how well the body is producing and maintaining protein. Changes can connect to nutritional status, liver function, immune activity, and recovery.',
-  ag_ratio:               'The albumin/globulin ratio reflects the balance between two major protein groups in your blood. Meridian watches it because shifts can sometimes provide early context on liver function, immune activity, or chronic inflammation before individual markers become obviously abnormal.',
-  // ── Glycemic ──────────────────────────────────────────────────────────────────
-  hba1c:                  'A1c gives Meridian a view of your average blood sugar exposure over approximately the past three months. It\'s one of the clearest long-term windows into glycemic regulation and metabolic health.',
-  insulin_fasting:        'Fasting insulin reveals how hard your body is working to keep blood sugar stable between meals. Meridian watches it because elevated fasting insulin can sometimes precede changes in glucose or A1c — connecting to metabolic efficiency and long-term health patterns.',
-  // ── Thyroid ───────────────────────────────────────────────────────────────────
-  tsh:                    'TSH is the signal your brain sends to regulate your thyroid. Meridian watches it because changes over time can connect to metabolism, sustained energy, temperature regulation, sleep quality, and recovery.',
-  free_t4:                'Free T4 is the main storage form of thyroid hormone in your blood. Meridian tracks it because it reflects the raw material your body converts into the active hormone that drives cellular metabolism — a key part of the thyroid system picture.',
-  free_t3:                'Free T3 es la hormona tiroidea activa que impulsa directamente el uso de energía celular. Meridian lo observa porque los niveles de T3 pueden cambiar incluso cuando TSH parece estable, y puede reflejar mejor cómo tu cuerpo está usando realmente las hormonas tiroideas día a día.',
-  total_t3:               'Total T3 reflects the overall circulating level of your primary active thyroid hormone. Meridian watches it as part of the thyroid picture — particularly when Free T3 is not available — to understand metabolic and energy signaling patterns over time.',
-  tpo_antibodies:         'TPO antibodies are immune proteins that can attack thyroid tissue. Meridian watches them because elevated levels are associated with autoimmune thyroid patterns — including Hashimoto\'s thyroiditis — that often develop gradually and are best understood through long-term trend monitoring.',
-  // ── Vitamins & Nutrients ──────────────────────────────────────────────────────
-  vitamin_d:              'Vitamin D plays a role in immune signaling, recovery, bone health, mood regulation, and metabolic function. Meridian watches long-term trends because consistently low levels can sometimes overlap with broader recovery, inflammation, or energy-related patterns.',
-  vitamin_b12:            'Vitamin B12 supports nerve function, red blood cell production, and energy metabolism at a cellular level. Meridian tracks trends here because deficiency often develops quietly and can connect to fatigue, cognition, and neurological patterns.',
-  ferritin:               'Ferritin reflects your body\'s stored iron reserves. Meridian watches it because low stores can affect energy, oxygen delivery, and immune resilience — often before anaemia becomes apparent.',
-  folate:                 'Folate is essential for DNA repair, cell division, and red blood cell production. Meridian watches it because low levels can connect to elevated homocysteine, red cell changes, and long-term cellular health patterns — often developing quietly over time.',
-  magnesium:              'Magnesium is involved in hundreds of enzymatic reactions — including energy production, muscle function, nerve signaling, and sleep regulation. Meridian watches it because insufficient levels can sometimes connect to fatigue, muscle recovery, and cardiovascular patterns.',
-  // ── Hormones ──────────────────────────────────────────────────────────────────
-  testosterone_total:     'Testosterone plays a role in energy, recovery, muscle maintenance, mood, and metabolic signaling. Meridian watches it alongside cortisol and DHEA-S because hormonal patterns rarely exist in isolation.',
-  cortisol_am:            'Morning cortisol reflects the first wave of your body\'s daily stress and energy response. Meridian watches it because sustained shifts can connect to recovery, immune function, metabolic balance, and adrenal signaling.',
-  dhea_s:                 'DHEA-S is an adrenal hormone associated with resilience and hormonal reserve. Meridian watches it because levels often decline gradually with age and stress — the trend over time tends to be more informative than any single reading.',
-  acth:                   'ACTH is the pituitary signal that tells your adrenal glands to produce cortisol. Meridian tracks it alongside cortisol because together they help build a picture of adrenal and stress-response signaling that neither marker reveals fully on its own.',
-  // ── Inflammation / Cardiac Risk ───────────────────────────────────────────────
-  crp_hs:                 'High-sensitivity CRP is one of the markers Meridian watches for low-grade systemic inflammation. Persistently elevated levels can sometimes connect to cardiovascular risk, metabolic stress, and recovery patterns over time.',
-  homocysteine:           'Homocysteine is an amino acid that accumulates when B-vitamin metabolism is impaired. Meridian watches it because elevated levels have been associated with cardiovascular risk and vascular inflammation — even in people with otherwise normal cholesterol.',
+  wbc: "WBC le da a Meridian una ventana hacia la actividad inmune: cuántos glóbulos blancos circulan y, junto con el diferencial, qué tipos están elevados o bajos. Los cambios pueden conectar con activación inmune, recuperación, estrés fisiológico o adaptación.",
+  rbc: "Los glóbulos rojos llevan oxígeno desde los pulmones hacia los tejidos. Meridian sigue este conteo porque sus cambios pueden conectar con hierro, nutrientes, actividad de médula ósea y eficiencia del transporte de oxígeno.",
+  hemoglobin: "La hemoglobina transporta oxígeno por la sangre y es central para cómo tu cuerpo produce energía. Meridian la sigue junto con RBC y ferritina para entender capacidad de transporte de oxígeno y su tendencia.",
+  hematocrit: "El hematocrito refleja qué proporción del volumen de sangre está compuesta por glóbulos rojos. Meridian lo observa como parte del panorama de oxígeno, hidratación, reservas de hierro y producción celular.",
+  mcv: "MCV mide el tamaño promedio de tus glóbulos rojos. Meridian lo observa porque el tamaño celular puede reflejar disponibilidad de hierro, B12 y folato, a veces antes de que otros marcadores cambien.",
+  mch: "MCH refleja cuánta hemoglobina contiene cada glóbulo rojo en promedio. Meridian lo sigue junto con MCV y MCHC para entender calidad celular y eficiencia del transporte de oxígeno.",
+  mchc: "MCHC mide la concentración de hemoglobina dentro de los glóbulos rojos. Meridian lo observa junto con MCV y MCH para entender si las células se producen y transportan oxígeno eficientemente.",
+  rdw: "RDW mide la variación en el tamaño de los glóbulos rojos. Meridian lo observa porque una variación elevada puede conectar con hierro, B12, folato o cambios tempranos en producción celular.",
+  platelets: "Las plaquetas son esenciales para coagulación y reparación vascular. Meridian sigue su conteo porque cambios en cualquier dirección pueden conectar con actividad inmune, inflamación y salud sanguínea general.",
+  neutrophils_pct: "Los neutrófilos son respondedores principales del sistema inmune. Meridian observa su proporción porque puede reflejar actividad inmune aguda, estrés fisiológico o patrones persistentes según el contexto.",
+  neutrophils_abs: "El conteo absoluto de neutrófilos muestra cuántas células inmunes de primera respuesta están circulando. Meridian lo interpreta mejor junto con el diferencial completo.",
+  lymphocytes_pct: "Los linfocitos coordinan defensas específicas, incluyendo células T y B. Meridian observa su proporción porque puede conectar con resiliencia inmune, recuperación y demandas fisiológicas.",
+  lymphocytes_abs: "El conteo absoluto de linfocitos refleja el nivel circulante de defensa inmune específica. Meridian lo observa por su relación con resiliencia inmune y recuperación.",
+  monocytes_pct: "Los monocitos patrullan la sangre antes de madurar a macrófagos en tejidos. Meridian sigue su proporción porque puede conectar con inflamación de bajo grado, activación inmune o recuperación.",
+  monocytes_abs: "El conteo absoluto de monocitos refleja cuántas células inmunes patrulleras circulan. Meridian lo lee junto con el diferencial completo para contexto inflamatorio e inmune.",
+  eosinophils_pct: "Los eosinófilos participan en respuestas alérgicas y ciertos tipos de inflamación tisular. Meridian los observa porque elevaciones persistentes pueden conectar con patrones alérgicos o inflamatorios.",
+  eosinophils_abs: "El conteo absoluto de eosinófilos muestra cuántas células relacionadas con alergias circulan. Meridian lo observa especialmente cuando las elevaciones son persistentes.",
+  basophils_pct: "Los basófilos son glóbulos blancos poco abundantes relacionados con señales alérgicas e inflamatorias. Meridian los lee dentro del diferencial completo.",
+  basophils_abs: "El conteo absoluto de basófilos se interpreta mejor como parte del diferencial completo. Meridian lo usa como una pieza pequeña del patrón inmune.",
+  mpv: "MPV refleja el tamaño promedio de las plaquetas. Meridian lo observa porque puede conectar con producción plaquetaria, inflamación o contexto cardiovascular.",
+  hdl: "HDL ayuda a transportar colesterol fuera de los vasos sanguíneos. Meridian lo observa junto con triglicéridos, inflamación y tendencias metabólicas.",
+  ldl: "LDL es uno de los principales marcadores de transporte de colesterol. Meridian lo sigue como parte de un panorama cardiovascular más amplio, donde la tendencia importa más que una lectura aislada.",
+  triglycerides: "Los triglicéridos reflejan cuánta grasa circula en sangre. Meridian los observa junto con HDL y marcadores metabólicos por su relación con sensibilidad a la insulina, dieta y riesgo cardiovascular.",
+  total_cholesterol: "El colesterol total por sí solo cuenta una historia incompleta. Meridian lo usa como punto de partida junto con HDL, LDL, triglicéridos e inflamación.",
+  vldl: "VLDL transporta triglicéridos por la sangre. Meridian lo sigue porque puede conectar con patrones metabólicos como resistencia a la insulina y triglicéridos elevados.",
+  non_hdl: "El colesterol no-HDL captura partículas aterogénicas como LDL y VLDL. Meridian lo observa porque puede dar un panorama cardiovascular más completo que LDL solo.",
+  ldl_hdl_ratio: "La razón LDL/HDL refleja el balance entre una partícula aterogénica clave y su contraparte protectora. Meridian la sigue porque puede aportar señal cardiovascular adicional.",
+  chol_hdl_ratio: "La razón colesterol total/HDL refleja qué proporción del colesterol total está en forma protectora. Meridian sigue su tendencia porque puede ser más útil que un valor aislado.",
+  glucose_fasting: "La glucosa en ayunas refleja tu azúcar en sangre en reposo. Meridian la sigue junto con A1c e insulina para entender patrones de regulación glucémica.",
+  sodium: "El sodio es el electrolito principal del balance de líquidos. Meridian lo observa por su relación con hidratación, riñón, señales adrenales y manejo de líquidos.",
+  potassium: "El potasio es crítico para ritmo cardíaco, contracción muscular y energía celular. Meridian lo observa porque desviaciones pueden tener implicaciones cardiovasculares y renales.",
+  chloride: "El cloruro trabaja con sodio y bicarbonato para mantener balance de líquidos y ácido-base. Meridian lo interpreta dentro del sistema de electrolitos.",
+  co2: "CO₂ o bicarbonato refleja cómo el cuerpo maneja el balance ácido-base. Meridian lo observa porque puede conectar con metabolismo, riñón, respiración e hidratación.",
+  calcium: "El calcio apoya huesos, músculo, señales nerviosas y corazón. Meridian lo observa porque está fuertemente regulado y cambios persistentes pueden tener contexto metabólico.",
+  anion_gap: "El anion gap es un valor calculado que refleja el balance de partículas cargadas. Meridian lo observa porque puede señalar acumulación de ácido metabólico no evidente en electrolitos individuales.",
+  creatinine: "La creatinina es un desecho que los riñones filtran continuamente. Meridian la observa junto con eGFR y BUN para entender filtración renal y metabolismo muscular.",
+  egfr: "eGFR estima qué tan eficientemente tus riñones filtran desechos. Meridian lo sigue con el tiempo porque la función renal suele cambiar gradualmente.",
+  egfr_african_american: "Este eGFR ajustado estima capacidad de filtración renal considerando variación biológica en producción de creatinina. Meridian lo usa como contexto renal longitudinal.",
+  egfr_non_african_american: "Este eGFR estima la eficiencia de filtración renal. Meridian lo sigue porque las tendencias direccionales suelen importar más que una lectura individual.",
+  bun: "BUN refleja cómo los riñones filtran desechos de proteína. Meridian lo observa junto con creatinina porque su razón también aporta contexto de hidratación y proteína dietaria.",
+  bun_creatinine_ratio: "La razón BUN/creatinina aporta contexto sobre función renal relativa a hidratación y masa muscular. Puede ayudar a distinguir por qué cambian los marcadores renales.",
+  ast: "AST es una enzima que se libera cuando células del hígado, corazón o músculos están bajo estrés. Meridian la observa junto con ALT para entender el origen del patrón.",
+  alt: "ALT se libera cuando el hígado está bajo irritación o carga. Meridian la observa porque sus cambios pueden reflejar inflamación, recuperación, medicamentos, alcohol o estrés metabólico.",
+  alkaline_phosphatase: "La fosfatasa alcalina se produce en hígado, vías biliares y hueso. Meridian la observa con otros marcadores para entender si el origen parece hepático, biliar, óseo o inflamatorio.",
+  bilirubin_total: "La bilirrubina es un subproducto del recambio de glóbulos rojos que el hígado procesa. Meridian la observa por su relación con hígado, bilis y recambio celular.",
+  albumin: "La albúmina es la proteína más abundante en sangre y la produce el hígado. Meridian la observa como señal de nutrición, función hepática sintética y balance proteico.",
+  globulin: "Las globulinas incluyen anticuerpos y proteínas transportadoras. Meridian las observa por su relación con actividad inmune, función hepática, inflamación y balance proteico.",
+  total_protein: "La proteína total resume albúmina y globulinas. Meridian la usa para entender balance proteico, nutrición, función hepática, actividad inmune y recuperación.",
+  ag_ratio: "La razón A/G refleja el balance entre albúmina y globulinas. Meridian la observa porque puede dar contexto temprano sobre hígado, actividad inmune o inflamación.",
+  hba1c: "A1c le da a Meridian una vista del promedio de exposición a azúcar en sangre durante aproximadamente tres meses. Es una ventana importante hacia regulación glucémica y salud metabólica.",
+  insulin_fasting: "La insulina en ayunas revela cuánto trabaja tu cuerpo para mantener estable el azúcar entre comidas. Meridian la observa porque puede cambiar antes que glucosa o A1c.",
+  tsh: "TSH es la señal que tu cerebro envía para regular la tiroides. Meridian lo observa porque sus cambios pueden conectar con metabolismo, energía, temperatura, sueño y recuperación.",
+  free_t4: "Free T4 es la forma principal de almacenamiento de hormona tiroidea en sangre. Meridian lo sigue porque refleja la materia prima que el cuerpo convierte en hormona activa.",
+  free_t3: "Free T3 es la hormona tiroidea activa que impulsa directamente el uso de energía celular. Meridian lo observa porque puede mostrar cómo el cuerpo usa las hormonas tiroideas día a día.",
+  total_t3: "Total T3 refleja el nivel circulante total de la principal hormona tiroidea activa. Meridian lo observa dentro del panorama tiroideo, especialmente si Free T3 no está disponible.",
+  tpo_antibodies: "Los anticuerpos TPO son proteínas inmunes que pueden atacar tejido tiroideo. Meridian los observa porque elevaciones persistentes se asocian con patrones tiroideos autoinmunes.",
+  vitamin_d: "La vitamina D participa en señales inmunes, recuperación, salud ósea, ánimo y metabolismo. Meridian sigue tendencias porque niveles bajos pueden solaparse con recuperación, inflamación y energía.",
+  vitamin_b12: "La vitamina B12 apoya función nerviosa, producción de glóbulos rojos y metabolismo energético celular. Meridian la sigue porque la deficiencia puede desarrollarse de forma silenciosa.",
+  ferritin: "La ferritina refleja reservas de hierro. Meridian la observa porque reservas bajas pueden afectar energía, transporte de oxígeno e inmunidad antes de que aparezca anemia.",
+  folate: "El folato es esencial para reparación de ADN, división celular y producción de glóbulos rojos. Meridian lo observa por su relación con homocisteína y salud celular.",
+  magnesium: "El magnesio participa en cientos de reacciones, incluyendo energía, músculo, señales nerviosas y sueño. Meridian lo observa por su relación con fatiga, recuperación y patrones cardiovasculares.",
+  testosterone_total: "La testosterona participa en energía, recuperación, masa muscular, ánimo y metabolismo. Meridian la observa junto con cortisol y DHEA-S porque las hormonas rara vez actúan aisladas.",
+  cortisol_am: "El cortisol matutino refleja la primera ola diaria de respuesta al estrés y energía. Meridian lo observa por su relación con recuperación, inmunidad, metabolismo y señal adrenal.",
+  dhea_s: "DHEA-S es una hormona adrenal asociada con resiliencia y reserva hormonal. Meridian la sigue porque tiende a cambiar gradualmente con edad y estrés.",
+  acth: "ACTH es la señal pituitaria que le indica a las glándulas adrenales producir cortisol. Meridian lo sigue junto con cortisol para entender la señalización de estrés.",
+  crp_hs: "La hs-CRP es un marcador que Meridian observa para inflamación sistémica de bajo grado. Elevaciones persistentes pueden conectar con riesgo cardiovascular, estrés metabólico y recuperación.",
+  homocysteine: "La homocisteína es un aminoácido que puede acumularse cuando el metabolismo de vitaminas B está comprometido. Meridian la observa por su relación con riesgo cardiovascular e inflamación vascular.",
 }
 
 function getInterpretation(slug: string): string {
-  return INTERPRETATIONS[slug] ?? 'This biomarker is part of the picture Meridian is building over time. Patterns across related markers tend to carry more weight than any single reading.'
+  return INTERPRETATIONS[slug] ?? 'Este biomarcador forma parte del panorama que Meridian está construyendo con el tiempo. Los patrones entre marcadores relacionados suelen tener más peso que una sola lectura.'
 }
 
 // ── Micro-intelligence layer ───────────────────────────────────────────────────
@@ -789,347 +780,347 @@ const BIOMARKER_CONTEXT: Record<string, BiomarkerIntel> = {
   },
   // ── CBC ─────────────────────────────────────────────────────────────────────
   wbc: {
-    why: 'White blood cells are your immune system\'s first responders. Meridian watches the total count alongside the differential breakdown because the pattern of which cell types are elevated or suppressed can provide context about immune activation, recovery stress, or physiological adaptation.',
-    context: 'Alongside the differential breakdown and inflammatory markers, a WBC shift can help Meridian distinguish temporary immune activation — such as recent illness or physical stress — from a more persistent pattern. Which cell types are shifting tends to tell a more complete story than the total count alone.',
+    why: "Los glóbulos blancos son los primeros respondedores del sistema inmune. Meridian observa el conteo total junto con el diferencial porque el patrón de tipos celulares elevados o bajos puede dar contexto sobre activación inmune, estrés de recuperación o adaptación fisiológica.",
+    context: "Junto con el diferencial y los marcadores inflamatorios, un cambio en WBC puede ayudar a distinguir activación inmune temporal — como enfermedad reciente o estrés físico — de un patrón más persistente. Qué tipos de células están cambiando suele contar una historia más completa que el conteo total solo.",
   },
   rbc: {
-    why: 'Red blood cells carry oxygen from your lungs to every tissue in your body. Meridian tracks RBC count because changes over time can connect to nutrient availability, iron status, bone marrow activity, and how efficiently your body is maintaining its oxygen supply.',
-    context: 'In context with hemoglobin, hematocrit, and ferritin, a shift in RBC count may reflect changes in iron availability or nutrient status. Meridian is watching whether this represents an evolving oxygen-transport pattern or an isolated fluctuation — the cluster of signals together tends to be more informative than any single reading.',
+    why: "Los glóbulos rojos transportan oxígeno desde los pulmones hacia cada tejido. Meridian sigue el conteo RBC porque sus cambios pueden conectar con disponibilidad de nutrientes, hierro, actividad de médula ósea y eficiencia del suministro de oxígeno.",
+    context: "En contexto con hemoglobina, hematocrito y ferritina, un cambio en RBC puede reflejar disponibilidad de hierro o nutrientes. Meridian observa si esto representa un patrón de transporte de oxígeno en evolución o una fluctuación aislada; el cluster completo suele ser más informativo.",
   },
   hemoglobin: {
-    why: 'Hemoglobin is the protein inside red blood cells that carries oxygen through your bloodstream. Meridian watches it because it\'s central to how your body fuels itself — shifts can connect to energy levels, endurance, recovery capacity, and iron or nutrient status.',
-    context: 'In context with RBC, hematocrit, and ferritin, a hemoglobin shift may appear more consistent with iron or nutrient-related changes than a structural blood issue. Meridian is watching whether this pattern persists or resolves, and how the related signals move alongside it over time.',
+    why: "La hemoglobina es la proteína dentro de los glóbulos rojos que transporta oxígeno. Meridian la observa porque es central para cómo el cuerpo se energiza; sus cambios pueden conectar con energía, resistencia, recuperación y estado de hierro o nutrientes.",
+    context: "En contexto con RBC, hematocrito y ferritina, un cambio en hemoglobina puede parecer más consistente con hierro o nutrientes que con un problema sanguíneo estructural. Meridian observa si el patrón persiste o se resuelve y cómo se mueven las señales relacionadas.",
   },
   hematocrit: {
-    why: 'Hematocrit reflects what proportion of your blood volume is made up of red blood cells. Meridian tracks it as part of the oxygen-transport picture, since changes can connect to hydration status, iron stores, and red cell production.',
-    context: 'When hematocrit shifts alongside hemoglobin and RBC, Meridian can begin to assess whether the change reflects a consistent oxygen-transport pattern or a transient fluctuation — sometimes connected to hydration changes or temporary iron depletion. Persistent movement across the cluster tends to carry more interpretive weight.',
+    why: "El hematocrito refleja qué proporción de la sangre está compuesta por glóbulos rojos. Meridian lo sigue como parte del panorama de transporte de oxígeno, ya que puede conectar con hidratación, reservas de hierro y producción celular.",
+    context: "Cuando el hematocrito cambia junto con hemoglobina y RBC, Meridian puede evaluar si refleja un patrón consistente de transporte de oxígeno o una fluctuación temporal, a veces relacionada con hidratación o hierro. La persistencia del cluster tiene más peso.",
   },
   mcv: {
-    why: 'MCV measures the average size of your red blood cells. Meridian watches it because cell size can reflect nutrient availability — particularly iron, B12, and folate — and can sometimes shift before other markers show obvious changes.',
-    context: 'An MCV change becomes more interpretable in context with ferritin, B12, and folate. When MCV shifts alongside low ferritin, an iron-related cell production pattern may be emerging. When it shifts alongside low B12 or folate, a different nutrient pathway may be involved. Meridian is watching the cluster for directional consistency across readings.',
+    why: "MCV mide el tamaño promedio de los glóbulos rojos. Meridian lo observa porque el tamaño celular puede reflejar disponibilidad de hierro, B12 y folato, y puede cambiar antes que otros marcadores.",
+    context: "Un cambio en MCV se interpreta mejor con ferritina, B12 y folato. Si MCV se mueve con ferritina baja, puede emerger un patrón relacionado con hierro; si se mueve con B12 o folato bajos, puede apuntar a otra vía nutricional.",
   },
   mch: {
-    why: 'MCH reflects how much hemoglobin is packed into the average red blood cell. Meridian tracks it because it provides context on red cell quality and oxygen-carrying efficiency alongside other CBC signals.',
-    context: 'MCH changes rarely carry strong standalone signal — but in context with MCV, MCHC, and nutrient markers, they can add texture to the red cell picture. Meridian is watching whether this reflects an evolving production pattern or sits within normal biological variation.',
+    why: "MCH refleja cuánta hemoglobina contiene cada glóbulo rojo en promedio. Meridian lo sigue porque añade contexto sobre calidad celular y eficiencia de transporte de oxígeno junto con otros marcadores CBC.",
+    context: "MCH rara vez tiene fuerte señal por sí solo, pero junto con MCV, MCHC y marcadores nutricionales puede añadir textura al panorama de células rojas. Meridian observa si refleja un patrón de producción o variación biológica normal.",
   },
   mchc: {
-    why: 'MCHC measures the concentration of hemoglobin within your red blood cells. Meridian watches it alongside MCV and MCH because together these indices give context on whether cells are being produced efficiently and carrying oxygen optimally.',
-    context: 'When MCHC moves alongside MCV and MCH, the combined pattern can sometimes help Meridian distinguish between different types of red cell changes. An isolated MCHC shift often reflects normal variation; consistent movement across the CBC cluster may suggest a more persistent pattern worth continuing to track.',
+    why: "MCHC mide la concentración de hemoglobina dentro de los glóbulos rojos. Meridian lo observa junto con MCV y MCH porque estos índices muestran si las células se producen eficientemente y transportan oxígeno de forma óptima.",
+    context: "Cuando MCHC se mueve junto con MCV y MCH, el patrón combinado puede ayudar a distinguir tipos de cambios en células rojas. Un cambio aislado suele reflejar variación normal; un movimiento consistente del cluster puede merecer seguimiento.",
   },
   rdw: {
-    why: 'RDW measures how much variation there is in the size of your red blood cells. Meridian watches it because elevated variation can sometimes connect to iron deficiency, B12 status, or emerging changes in cell production — often before other markers shift.',
-    context: 'An elevated RDW can be one of the earliest signals in a developing nutrient-related cell pattern. In context with ferritin, B12, and MCV, Meridian is watching whether this reflects an early iron or B-vitamin signal — or a transient fluctuation. When multiple markers in this cluster shift together, the pattern tends to be more meaningful.',
+    why: "RDW mide cuánta variación hay en el tamaño de los glóbulos rojos. Meridian lo observa porque una variación elevada puede conectar con deficiencia de hierro, B12 o cambios tempranos en producción celular.",
+    context: "RDW elevado puede ser una señal temprana de un patrón nutricional. En contexto con ferritina, B12 y MCV, Meridian observa si apunta a hierro, vitaminas B o una fluctuación temporal. Cuando varios marcadores se mueven juntos, el patrón gana peso.",
   },
   platelets: {
-    why: 'Platelets are essential for clotting and vascular repair. Meridian tracks platelet count because significant shifts in either direction can provide context on immune activity, inflammatory patterns, and overall blood health.',
-    context: 'Alongside other CBC markers and inflammatory signals, platelet count shifts can sometimes reflect immune activation or recovery stress rather than a primary platelet issue. Meridian is watching whether this appears isolated or moves as part of a broader inflammatory or recovery pattern over time.',
+    why: "Las plaquetas son esenciales para coagulación y reparación vascular. Meridian sigue su conteo porque cambios importantes pueden aportar contexto sobre actividad inmune, inflamación y salud sanguínea general.",
+    context: "Junto con otros marcadores CBC e inflamatorios, cambios en plaquetas pueden reflejar activación inmune o estrés de recuperación más que un problema plaquetario primario. Meridian observa si el cambio es aislado o parte de un patrón mayor.",
   },
   // ── Glycemic ────────────────────────────────────────────────────────────────
   hba1c: {
-    why: 'A1c reflects your average blood sugar exposure over approximately the past three months. Meridian watches it because it\'s one of the clearest long-term windows into how well your body is regulating glucose — a signal that connects to energy, metabolic health, and long-term tissue resilience.',
-    context: 'In context with fasting glucose and insulin, A1c shifts can help Meridian assess whether the glycemic picture appears to be improving, drifting, or holding steady. A rising A1c alongside elevated fasting glucose may suggest a broader regulation pattern; a stable A1c in the context of shifting fasting glucose may reflect short-term variation rather than a persistent trend.',
+    why: "A1c refleja la exposición promedio a azúcar en sangre durante aproximadamente tres meses. Meridian lo observa porque es una ventana clara hacia regulación de glucosa, energía, salud metabólica y resiliencia tisular.",
+    context: "En contexto con glucosa en ayunas e insulina, A1c ayuda a evaluar si el panorama glucémico mejora, se desplaza o se mantiene estable. A1c estable con glucosa variable puede reflejar variación de corto plazo más que tendencia persistente.",
   },
   insulin_fasting: {
-    why: 'Fasting insulin reveals how hard your body is working to keep blood sugar stable between meals. Meridian watches it because elevated fasting insulin can sometimes precede changes in glucose or A1c — and may connect to metabolic efficiency, energy patterns, and long-term cardiovascular context.',
-    context: 'In context with fasting glucose and A1c, elevated fasting insulin can sometimes suggest the body is working harder than expected to maintain blood sugar stability — a pattern that may precede visible changes in other glycemic markers. Meridian is watching whether this resolves or persists across readings, since the trajectory carries more signal than any single value.',
+    why: "La insulina en ayunas revela cuánto trabaja el cuerpo para mantener estable el azúcar entre comidas. Meridian la observa porque puede elevarse antes de que cambien glucosa o A1c, conectando con eficiencia metabólica y riesgo cardiovascular.",
+    context: "En contexto con glucosa en ayunas y A1c, una insulina elevada puede sugerir que el cuerpo trabaja más de lo esperado para mantener estabilidad glucémica. Meridian observa si se resuelve o persiste, porque la trayectoria tiene más señal que un solo valor.",
   },
   glucose_fasting: {
-    why: 'Fasting glucose gives Meridian a snapshot of how your body manages blood sugar at rest — a fundamental window into metabolic health. Meridian watches trends here because small, sustained changes over time can connect to energy regulation, metabolic resilience, and long-term health patterns.',
-    context: 'In isolation this shift may appear mild, but together with A1c and fasting insulin, Meridian can begin to assess whether this reflects transient variation or a broader glucose regulation pattern. When fasting glucose moves consistently across visits — even within reference range — it can sometimes suggest an evolving metabolic signal worth continuing to monitor.',
+    why: "La glucosa en ayunas le da a Meridian una foto de cómo el cuerpo maneja azúcar en reposo. Las tendencias pequeñas pero sostenidas pueden conectar con energía, resiliencia metabólica y salud a largo plazo.",
+    context: "Aislada puede parecer leve, pero junto con A1c e insulina, Meridian puede evaluar si refleja variación temporal o un patrón más amplio de regulación de glucosa. Cambios consistentes entre visitas pueden merecer seguimiento.",
   },
   // ── Lipid Panel ─────────────────────────────────────────────────────────────
   total_cholesterol: {
-    why: 'Total cholesterol reflects the sum of all cholesterol particles in your blood. On its own it tells an incomplete story — Meridian uses it as a starting point, always evaluated in the context of HDL, LDL, triglycerides, and inflammation.',
-    context: 'Total cholesterol carries most of its interpretive value through its component parts. In context with HDL, LDL, triglycerides, and hs-CRP, Meridian is watching whether the cholesterol picture appears more consistent with a metabolically favorable pattern or one that warrants continued attention as trends develop.',
+    why: "El colesterol total refleja la suma de las partículas de colesterol en sangre. Por sí solo cuenta una historia incompleta; Meridian lo usa como punto de partida dentro del contexto de HDL, LDL, triglicéridos e inflamación.",
+    context: "Su valor interpretativo viene de sus componentes. En contexto con HDL, LDL, triglicéridos y hs-CRP, Meridian observa si el panorama parece metabólicamente favorable o si amerita atención con las tendencias.",
   },
   hdl: {
-    why: 'HDL helps transport excess cholesterol away from blood vessels and back to the liver. Meridian watches it because consistently low HDL alongside elevated triglycerides and inflammation can sometimes connect to cardiovascular and metabolic risk patterns that no single number fully captures.',
-    context: 'Meridian watches HDL together with triglycerides, inflammation markers, and long-term metabolic trends because the relationship between these signals can sometimes reveal more than a single cholesterol value alone. A low HDL pattern alongside elevated triglycerides may suggest a broader metabolic context — while HDL that is stable or rising within a favorable lipid cluster is generally a reassuring signal.',
+    why: "HDL ayuda a llevar exceso de colesterol fuera de los vasos y de vuelta al hígado. Meridian lo observa porque HDL bajo junto con triglicéridos altos e inflamación puede conectar con patrones cardiometabólicos que un número solo no captura.",
+    context: "Meridian observa HDL junto con triglicéridos, inflamación y tendencias metabólicas. HDL bajo con triglicéridos altos puede sugerir contexto metabólico más amplio; HDL estable o en aumento dentro de un cluster favorable suele ser una señal tranquilizadora.",
   },
   ldl: {
-    why: 'LDL carries cholesterol to tissues throughout the body and is one of the most tracked cardiovascular markers. Meridian watches it over time because long-term trends — rather than isolated readings — provide the most useful context, particularly alongside inflammation and metabolic signals.',
-    context: 'In context with HDL ratio, triglycerides, and hs-CRP, an LDL shift can take on very different meanings. An elevated LDL alongside high triglycerides and elevated inflammation may suggest a more metabolically significant pattern than elevated LDL in an otherwise favorable lipid and inflammatory picture. Meridian is watching how this fits the broader cardiovascular cluster over time.',
+    why: "LDL transporta colesterol hacia tejidos y es uno de los marcadores cardiovasculares más seguidos. Meridian lo observa con el tiempo porque las tendencias, no lecturas aisladas, aportan el contexto más útil.",
+    context: "En contexto con razón HDL, triglicéridos y hs-CRP, un cambio en LDL puede significar cosas distintas. LDL alto con triglicéridos e inflamación altos puede ser más significativo que LDL alto en un panorama metabólico favorable.",
   },
   vldl: {
-    why: 'VLDL is responsible for carrying triglycerides through the bloodstream. Meridian tracks it because elevated VLDL can sometimes overlap with metabolic patterns like insulin resistance, elevated triglycerides, and cardiovascular risk signals.',
-    context: 'VLDL tends to track closely with triglyceride levels. When both are elevated, Meridian is watching whether the combined pattern may reflect broader metabolic signaling — such as insulin sensitivity or dietary fat patterns — rather than an isolated lipid fluctuation.',
+    why: "VLDL transporta triglicéridos por la sangre. Meridian lo sigue porque VLDL elevado puede solaparse con patrones metabólicos como resistencia a la insulina, triglicéridos altos y riesgo cardiovascular.",
+    context: "VLDL suele moverse de cerca con triglicéridos. Cuando ambos están elevados, Meridian observa si el patrón combinado refleja señal metabólica más amplia, como sensibilidad a la insulina o patrones dietarios, en lugar de una fluctuación aislada.",
   },
   triglycerides: {
-    why: 'Triglycerides reflect how much fat is circulating in your blood after fasting. Meridian watches them because elevated levels over time can connect to dietary patterns, insulin sensitivity, metabolic health, and cardiovascular risk — particularly when combined with low HDL.',
-    context: 'In context with HDL and fasting insulin, a triglyceride shift can sometimes suggest a broader metabolic pattern. Elevated triglycerides alongside low HDL is a cluster Meridian watches carefully — this combination can sometimes reflect insulin sensitivity or dietary patterns that no single marker would reveal on its own.',
+    why: "Los triglicéridos reflejan cuánta grasa circula en sangre tras el ayuno. Meridian los observa porque elevaciones sostenidas pueden conectar con dieta, sensibilidad a la insulina, salud metabólica y riesgo cardiovascular, especialmente junto con HDL bajo.",
+    context: "En contexto con HDL e insulina, un cambio en triglicéridos puede sugerir un patrón metabólico más amplio. Triglicéridos altos junto con HDL bajo es un cluster que Meridian observa cuidadosamente.",
   },
   non_hdl: {
-    why: 'Non-HDL cholesterol captures all the cholesterol-carrying particles that can contribute to arterial buildup — including LDL, VLDL, and others. Meridian watches it because it may give a more complete cardiovascular picture than LDL alone.',
-    context: 'Non-HDL adds interpretive depth to the lipid picture when LDL and VLDL are considered together. In context with the full lipid cluster and hs-CRP, Meridian is watching whether non-HDL appears to reflect a consistent atherogenic pattern or whether the broader cardiovascular signals remain favorable.',
+    why: "El colesterol no-HDL captura todas las partículas que pueden contribuir a acumulación arterial, incluyendo LDL y VLDL. Meridian lo observa porque puede dar un panorama cardiovascular más completo que LDL solo.",
+    context: "Non-HDL añade profundidad cuando se considera junto con LDL y VLDL. En contexto con el cluster lipídico y hs-CRP, Meridian observa si refleja un patrón aterogénico consistente o si las señales globales siguen favorables.",
   },
   ldl_hdl_ratio: {
-    why: 'The LDL/HDL ratio reflects the balance between a key atherosclerotic particle and its protective counterpart. Meridian watches this ratio because it can sometimes carry more signal than either number independently.',
-    context: 'The LDL/HDL ratio often carries more cardiovascular signal than either marker alone. Meridian is watching whether this ratio is moving in a favorable or unfavorable direction alongside inflammation and metabolic markers — a ratio trend across multiple readings tends to be more meaningful than any single value.',
+    why: "La razón LDL/HDL refleja el balance entre una partícula aterosclerótica clave y su contraparte protectora. Meridian la observa porque puede llevar más señal que cualquiera de los dos valores por separado.",
+    context: "Esta razón puede llevar más señal cardiovascular que los marcadores individuales. Meridian observa si se mueve en dirección favorable o desfavorable junto con inflamación y metabolismo; la tendencia pesa más que un valor aislado.",
   },
   chol_hdl_ratio: {
-    why: 'The total cholesterol/HDL ratio is a cardiovascular signal that reflects how much of your total cholesterol is in a protective form. Meridian tracks it over time alongside absolute values for a fuller picture.',
-    context: 'In context with the full lipid and inflammatory picture, this ratio gives Meridian a view of the overall cardiovascular signal balance. A worsening ratio in the presence of elevated triglycerides or inflammation may suggest a broader pattern; a stable or improving ratio alongside favorable lipid trends is generally an encouraging signal.',
+    why: "La razón colesterol total/HDL es una señal cardiovascular que refleja cuánto del colesterol total está en una forma protectora. Meridian la sigue junto con valores absolutos para una imagen más completa.",
+    context: "En contexto con lípidos e inflamación, esta razón muestra el balance cardiovascular global. Si empeora junto con triglicéridos o inflamación, puede sugerir un patrón más amplio; si mejora con lípidos favorables, suele ser alentador.",
   },
   // ── Hormones ────────────────────────────────────────────────────────────────
   testosterone_total: {
-    why: 'Testosterone plays a role in energy, muscle maintenance, recovery, libido, mood, and metabolic signaling in both men and women. Meridian watches it because sustained changes can connect to how the body is managing stress, recovery, and hormonal balance more broadly.',
-    context: 'In context with cortisol and DHEA-S, a testosterone shift may sometimes reflect broader hormonal system balance rather than an isolated change. Elevated cortisol alongside suppressed testosterone is a pattern Meridian watches, as it can sometimes connect to chronic stress load or recovery capacity. A stable testosterone within a balanced hormonal cluster is generally a favorable signal.',
+    why: "La testosterona participa en energía, mantenimiento muscular, recuperación, libido, ánimo y metabolismo en hombres y mujeres. Meridian la observa porque cambios sostenidos pueden conectar con estrés, recuperación y balance hormonal.",
+    context: "En contexto con cortisol y DHEA-S, un cambio en testosterona puede reflejar balance hormonal sistémico. Cortisol alto con testosterona baja es un patrón que Meridian observa por posible relación con carga de estrés o recuperación.",
   },
   cortisol_am: {
-    why: 'Morning cortisol represents the first wave of your body\'s daily stress and activation response. Meridian watches it because sustained elevations or significant drops can connect to recovery quality, immune function, metabolic balance, sleep patterns, and adrenal signaling over time.',
-    context: 'In context with thyroid markers, glucose, and inflammatory signals, a morning cortisol pattern can help Meridian assess whether the stress-recovery picture appears balanced or shifted. A persistently elevated cortisol alongside disrupted thyroid or metabolic signals may reflect a broader physiological adaptation; an isolated fluctuation without related cluster changes is generally less significant.',
+    why: "El cortisol matutino representa la primera ola diaria de respuesta al estrés y activación. Meridian lo observa porque cambios sostenidos pueden conectar con recuperación, inmunidad, metabolismo, sueño y señal adrenal.",
+    context: "En contexto con tiroides, glucosa e inflamación, el cortisol matutino ayuda a evaluar si el panorama estrés-recuperación está balanceado o desplazado. Una fluctuación aislada pesa menos que un cluster consistente.",
   },
   dhea_s: {
-    why: 'DHEA-S is an adrenal hormone that serves as a precursor to sex hormones and is associated with resilience, recovery, and hormonal reserve. Meridian watches it because levels often decline gradually with age and stress, and the trend over time can be more informative than a single reading.',
-    context: 'In context with cortisol and testosterone, a DHEA-S trend can help Meridian assess the overall balance of adrenal and hormonal signaling. A falling DHEA-S alongside persistently elevated cortisol may suggest an adrenal pattern worth monitoring over time. When the hormonal cluster appears balanced and stable, an isolated DHEA-S reading carries less weight than a persistent trend.',
+    why: "DHEA-S es una hormona adrenal precursora de hormonas sexuales y asociada con resiliencia, recuperación y reserva hormonal. Meridian la observa porque la tendencia suele ser más informativa que un valor aislado.",
+    context: "En contexto con cortisol y testosterona, DHEA-S ayuda a evaluar el balance adrenal y hormonal. DHEA-S descendente junto con cortisol persistentemente elevado puede sugerir un patrón adrenal a monitorear.",
   },
   // ── Inflammation / Cardiac Risk ─────────────────────────────────────────────
   crp_hs: {
-    why: 'High-sensitivity CRP is one of the most sensitive markers Meridian watches for low-grade systemic inflammation. Persistently elevated levels — even within the conventional normal range — can sometimes connect to cardiovascular risk, metabolic stress, recovery patterns, and how the body is responding to ongoing physiological demands.',
-    context: 'In context with lipid, metabolic, and hormonal markers, a sustained hs-CRP elevation can sometimes suggest that inflammation is part of a broader biological pattern rather than a temporary response. Meridian is watching whether this signal appears alongside other cluster shifts — or whether it appears isolated, which may be more consistent with transient physiological stress.',
+    why: "La hs-CRP es uno de los marcadores más sensibles que Meridian observa para inflamación sistémica de bajo grado. Elevaciones persistentes pueden conectar con riesgo cardiovascular, estrés metabólico y recuperación.",
+    context: "En contexto con lípidos, metabolismo y hormonas, una hs-CRP sostenida puede sugerir que la inflamación forma parte de un patrón biológico más amplio. Meridian observa si aparece junto con otros cambios o aislada.",
   },
   homocysteine: {
-    why: 'Homocysteine is an amino acid that accumulates when B-vitamin metabolism is impaired. Meridian watches it because elevated levels over time have been associated with cardiovascular risk, vascular inflammation, and methylation patterns — even in people with otherwise normal cholesterol.',
-    context: 'In context with B12, folate, and inflammatory markers, an elevated homocysteine may reflect either a nutrient pathway impairment or a broader cardiovascular risk signal — sometimes both. Meridian is watching whether related nutrient markers support a methylation or B-vitamin pattern, which can help distinguish a nutritional origin from a more complex vascular picture.',
+    why: "La homocisteína es un aminoácido que se acumula cuando el metabolismo de vitaminas B está comprometido. Meridian la observa porque niveles elevados se han asociado con riesgo cardiovascular, inflamación vascular y metilación.",
+    context: "En contexto con B12, folato e inflamación, homocisteína elevada puede reflejar una vía nutricional o una señal cardiovascular más compleja. Meridian observa si los nutrientes apoyan un patrón de metilación o vitaminas B.",
   },
   // ── Vitamins & Nutrients ────────────────────────────────────────────────────
   vitamin_d: {
-    why: 'Vitamin D plays a role in immune signaling, recovery, bone health, mood regulation, and metabolic function. Meridian watches long-term trends because consistently low levels can sometimes overlap with broader patterns in recovery, inflammation, immune resilience, and energy.',
-    context: 'In context with inflammatory markers and hormonal signals, a consistently low Vitamin D pattern can sometimes overlap with broader immune and recovery signaling — particularly when it persists across multiple readings. Meridian is watching whether Vitamin D appears as an isolated deficiency or as part of a wider pattern that may connect to inflammatory tone or recovery quality.',
+    why: "La vitamina D participa en señalización inmune, recuperación, salud ósea, ánimo y metabolismo. Meridian observa tendencias porque niveles bajos sostenidos pueden solaparse con recuperación, inflamación, inmunidad y energía.",
+    context: "En contexto con inflamación y hormonas, vitamina D baja persistente puede formar parte de señales inmunes y de recuperación más amplias. Meridian observa si es una deficiencia aislada o parte de un patrón mayor.",
   },
   vitamin_b12: {
-    why: 'Vitamin B12 supports nerve conduction, red blood cell production, DNA synthesis, and cellular energy metabolism. Meridian watches it because deficiency often develops quietly over time and can connect to fatigue, cognitive patterns, and neurological signals before it becomes clinically obvious.',
-    context: 'In context with folate, homocysteine, and CBC markers — particularly MCV and RDW — a B12 pattern can help Meridian assess whether nutrient status may be quietly affecting cell production or neurological signaling. When B12 shifts alongside elevated homocysteine or enlarged red cells, the cluster may suggest an active nutrient pattern rather than isolated variation.',
+    why: "La vitamina B12 apoya conducción nerviosa, producción de glóbulos rojos, síntesis de ADN y energía celular. Meridian la observa porque la deficiencia puede desarrollarse silenciosamente y conectar con fatiga, cognición y señales neurológicas.",
+    context: "En contexto con folato, homocisteína y CBC — especialmente MCV y RDW — B12 ayuda a evaluar si el estado nutricional afecta producción celular o señal neurológica.",
   },
   folate: {
-    why: 'Folate is essential for DNA repair, cell division, and red blood cell production. Meridian watches it because low levels can connect to elevated homocysteine, red cell changes, recovery capacity, and long-term cellular health patterns.',
-    context: 'In context with B12 and homocysteine, a folate shift can help Meridian assess whether a methylation or B-vitamin pattern may be emerging. When folate, B12, and homocysteine move together in a consistent direction, the combined signal tends to be more interpretively meaningful than any single nutrient marker alone.',
+    why: "El folato es esencial para reparación de ADN, división celular y producción de glóbulos rojos. Meridian lo observa porque niveles bajos pueden conectar con homocisteína elevada, cambios en células rojas, recuperación y salud celular.",
+    context: "En contexto con B12 y homocisteína, un cambio en folato ayuda a evaluar si emerge un patrón de metilación o vitaminas B. Cuando se mueven juntos, la señal combinada gana significado.",
   },
   magnesium: {
-    why: 'Magnesium is involved in over 300 enzymatic reactions in the body — including energy production, muscle contraction, nerve signaling, and sleep regulation. Meridian watches it because insufficient levels can sometimes connect to fatigue, muscle recovery, stress response, and cardiovascular patterns.',
-    context: 'Serum magnesium may not fully reflect intracellular stores, which means Meridian watches it alongside electrolyte balance and metabolic markers rather than in isolation. A consistently low-normal magnesium pattern — particularly alongside fatigue signals, cardiovascular markers, or stress indicators — may be worth continuing to track over time.',
+    why: "El magnesio participa en más de 300 reacciones enzimáticas, incluyendo producción de energía, contracción muscular, señal nerviosa y sueño. Meridian lo observa por su relación con fatiga, recuperación muscular, estrés y patrones cardiovasculares.",
+    context: "El magnesio sérico no siempre refleja reservas intracelulares, por eso Meridian lo observa junto con electrolitos y metabolismo. Un patrón bajo-normal persistente puede merecer seguimiento en contexto.",
   },
   ferritin: {
-    why: 'Ferritin reflects your body\'s stored iron reserves — the backup supply your body draws on before anaemia becomes apparent. Meridian watches it because low ferritin can quietly connect to fatigue, poor recovery, cognitive fog, and immune resilience, often well before other markers shift.',
-    context: 'In context with hemoglobin, RBC, and MCV, a ferritin pattern can help Meridian assess whether iron availability may be quietly affecting oxygen transport or recovery capacity. A low ferritin alongside stable hemoglobin may reflect early iron depletion before anaemia develops; when ferritin, hemoglobin, and MCV all shift together, the pattern tends to suggest a more established iron-related change.',
+    why: "La ferritina refleja reservas de hierro: el respaldo que el cuerpo usa antes de que la anemia sea evidente. Meridian la observa porque ferritina baja puede conectar con fatiga, recuperación pobre, niebla mental e inmunidad.",
+    context: "En contexto con hemoglobina, RBC y MCV, ferritina ayuda a evaluar si la disponibilidad de hierro afecta transporte de oxígeno o recuperación. Ferritina baja con hemoglobina estable puede reflejar depleción temprana.",
   },
   // ── Kidney / Renal ──────────────────────────────────────────────────────────
   creatinine: {
-    why: 'Creatinine is a waste product of muscle activity that your kidneys continuously filter from the blood. Meridian watches it as a proxy for kidney filtration efficiency — levels that trend upward over time can sometimes signal changes in how well the kidneys are clearing metabolic waste.',
-    context: 'In context with eGFR and BUN, a creatinine shift may appear more consistent with hydration variation or muscle load than with kidney function change — particularly if eGFR remains stable. When creatinine and eGFR move together in the same direction across readings, Meridian places more interpretive weight on the pattern as potentially reflecting kidney filtration trends.',
+    why: "La creatinina es un desecho de actividad muscular que los riñones filtran continuamente. Meridian la observa como proxy de eficiencia de filtración renal; tendencias al alza pueden señalar cambios en eliminación de desechos.",
+    context: "En contexto con eGFR y BUN, creatinina puede parecer más relacionada con hidratación o carga muscular que con función renal si eGFR está estable. Cuando creatinina y eGFR se mueven juntos, el patrón pesa más.",
   },
   bun: {
-    why: 'BUN (blood urea nitrogen) reflects how well your kidneys are filtering protein waste from your blood. Meridian watches it alongside creatinine because the ratio between them can also provide context on hydration status and protein metabolism.',
-    context: 'In context with creatinine and eGFR, a BUN shift can help Meridian distinguish between a kidney filtration change and a variation in hydration or protein metabolism. An isolated BUN fluctuation alongside stable creatinine and eGFR may be more consistent with hydration or dietary protein variation than a kidney pattern.',
+    why: "BUN refleja cómo los riñones filtran desechos proteicos de la sangre. Meridian lo observa junto con creatinina porque la relación entre ambos aporta contexto de hidratación y metabolismo de proteína.",
+    context: "En contexto con creatinina y eGFR, BUN ayuda a distinguir entre cambio de filtración renal y variación de hidratación o proteína. BUN aislado con creatinina/eGFR estables suele apuntar más a hidratación o dieta.",
   },
   bun_creatinine_ratio: {
-    why: 'The BUN/creatinine ratio gives Meridian additional context on kidney function relative to muscle mass and hydration state. It can sometimes help distinguish between different reasons for kidney marker changes.',
-    context: 'A shifting BUN/creatinine ratio, read in context with the full renal cluster, can help Meridian interpret the likely origin of a kidney marker change. A high ratio with stable eGFR can sometimes suggest dehydration or high protein turnover; a broadly elevated renal cluster may suggest a different pattern. Meridian is watching whether these signals remain consistent or converge across readings.',
+    why: "La razón BUN/creatinina da contexto adicional sobre función renal relativa a masa muscular e hidratación. Puede ayudar a distinguir diferentes razones por las que cambian los marcadores renales.",
+    context: "Leída con el cluster renal completo, esta razón ayuda a interpretar el origen probable del cambio. Una razón alta con eGFR estable puede sugerir deshidratación o alto recambio proteico.",
   },
   egfr: {
-    why: 'eGFR estimates how well your kidneys are filtering waste from your blood — one of the most direct measures of kidney function available from standard bloodwork. Meridian watches it over time because kidney capacity tends to change gradually, and early trends can carry long-term significance.',
-    context: 'Meridian watches eGFR over time because a single reading reflects a snapshot — while a consistent directional drift across visits carries more interpretive weight. In context with creatinine and BUN, Meridian is watching whether the renal picture appears stable, improving, or showing a sustained pattern of change that warrants continued attention.',
+    why: "eGFR estima qué tan bien los riñones filtran desechos de la sangre, una de las medidas más directas de función renal en laboratorios estándar. Meridian lo observa porque la capacidad renal suele cambiar gradualmente.",
+    context: "Meridian observa eGFR con el tiempo porque una lectura aislada es una foto; una deriva consistente entre visitas tiene más peso. Junto con creatinina y BUN, muestra si el panorama renal está estable, mejora o requiere seguimiento.",
   },
   egfr_african_american: {
-    why: 'This eGFR calculation accounts for biological variation in creatinine production and provides an adjusted estimate of kidney filtration capacity. Meridian watches it as part of long-term kidney context.',
-    context: 'In context with creatinine and BUN, Meridian uses this adjusted eGFR to assess kidney filtration patterns over time. A single reading reflects a snapshot — consistent directional trends across visits are what Meridian watches most closely.',
+    why: "Este cálculo de eGFR toma en cuenta variación biológica en producción de creatinina y ofrece una estimación ajustada de filtración renal. Meridian lo observa como contexto renal longitudinal.",
+    context: "En contexto con creatinina y BUN, Meridian usa este eGFR ajustado para evaluar patrones de filtración renal. Una lectura es una foto; las tendencias consistentes entre visitas importan más.",
   },
   egfr_non_african_american: {
-    why: 'eGFR estimates how well your kidneys are filtering waste from your blood — one of the most direct measures of kidney function from standard bloodwork. Meridian watches it over time because kidney capacity tends to change gradually.',
-    context: 'In context with creatinine and BUN, Meridian uses this eGFR estimate to assess kidney filtration patterns over time. A single reading reflects a snapshot — consistent directional trends across visits are what Meridian watches most closely.',
+    why: "eGFR estima qué tan bien los riñones filtran desechos de la sangre. Meridian lo observa con el tiempo porque la capacidad renal tiende a cambiar gradualmente.",
+    context: "En contexto con creatinina y BUN, Meridian usa esta estimación para evaluar patrones de filtración renal. Las tendencias direccionales consistentes pesan más que una lectura aislada.",
   },
   // ── Liver ───────────────────────────────────────────────────────────────────
   ast: {
-    why: 'AST is an enzyme found in the liver, heart, and muscles that gets released when cells are under stress or damaged. Meridian watches it because changes over time can provide context on liver health, muscle stress, recovery patterns, and broader tissue inflammation.',
-    context: 'In context with ALT and alkaline phosphatase, an AST shift can help Meridian assess whether a change may reflect a hepatic pattern or a non-liver origin. An AST shift without corresponding ALT elevation can sometimes connect to muscle stress or recovery; when AST and ALT move together, a hepatic origin is more likely. The pattern across the enzyme cluster tends to carry more signal than any single marker.',
+    why: "AST es una enzima presente en hígado, corazón y músculos que se libera cuando las células están bajo estrés o daño. Meridian la observa por su relación con hígado, estrés muscular, recuperación e inflamación tisular.",
+    context: "En contexto con ALT y fosfatasa alcalina, AST ayuda a evaluar si un cambio parece hepático o de origen no hepático. AST sin ALT puede conectar con músculo; AST y ALT juntos apuntan más a hígado.",
   },
   alt: {
-    why: 'ALT is one of the markers your liver releases when it\'s under strain or irritation. Meridian watches it because changes over time can help reveal how your body may be responding to inflammation, recovery, medications, alcohol, metabolic health, or broader liver stress patterns.',
-    context: 'In context with the related liver markers Meridian is tracking, a shift in ALT may appear more consistent with metabolic inflammation, recovery stress, or transient dietary patterns than a persistent liver issue — particularly if the shift is mild and the surrounding cluster remains favorable. Meridian is watching whether this resolves or persists over subsequent readings.',
+    why: "ALT es uno de los marcadores que el hígado libera cuando está bajo irritación o carga. Meridian lo observa porque sus cambios pueden revelar respuesta a inflamación, recuperación, medicamentos, alcohol, metabolismo o estrés hepático.",
+    context: "En contexto con otros marcadores hepáticos, ALT puede parecer más consistente con inflamación metabólica, estrés de recuperación o dieta que con un problema persistente, especialmente si el cambio es leve.",
   },
   alkaline_phosphatase: {
-    why: 'Alkaline phosphatase is produced by the liver, bile ducts, and bone. Meridian watches it because elevated levels can sometimes connect to liver health, bile flow, bone turnover, or inflammatory patterns — and the context of which other markers are shifting helps interpret it.',
-    context: 'In context with AST, ALT, and bilirubin, an alkaline phosphatase shift can help Meridian assess whether a change may relate to liver and bile flow, bone turnover, or a broader inflammatory signal. When alkaline phosphatase rises alongside AST and ALT, a hepatic pattern may be more likely; a rise in isolation may suggest a different origin worth watching over time.',
+    why: "La fosfatasa alcalina se produce en hígado, vías biliares y hueso. Meridian la observa porque niveles elevados pueden conectar con hígado, bilis, recambio óseo o inflamación.",
+    context: "En contexto con AST, ALT y bilirrubina, un cambio en fosfatasa alcalina ayuda a evaluar si se relaciona con hígado/bilis, hueso o señal inflamatoria. El cluster define mejor el origen.",
   },
   bilirubin_total: {
-    why: 'Bilirubin is a byproduct of red blood cell breakdown that the liver processes and clears. Meridian watches it because changes can connect to liver processing capacity, bile flow, or red blood cell turnover — signals that help build a fuller hepatic picture.',
-    context: 'In context with AST, ALT, and CBC markers, a bilirubin shift can help Meridian assess whether the pattern may connect to liver processing, bile flow, or red blood cell turnover. When bilirubin shifts in isolation without corresponding liver enzyme changes, red blood cell turnover is sometimes the more likely origin — though Meridian continues to watch how the cluster evolves.',
+    why: "La bilirrubina es un subproducto del recambio de glóbulos rojos que el hígado procesa y elimina. Meridian la observa porque puede conectar con procesamiento hepático, flujo biliar o recambio celular.",
+    context: "En contexto con AST, ALT y CBC, bilirrubina ayuda a evaluar si el patrón conecta con hígado, bilis o recambio de glóbulos rojos. Si cambia aislada, el recambio celular puede ser más probable.",
   },
   albumin: {
-    why: 'Albumin is the most abundant protein in your blood and is produced by the liver. Meridian watches it because it reflects nutritional status, liver synthetic function, and overall protein balance — signals that can shift with illness, inflammation, or long-term dietary patterns.',
-    context: 'In context with total protein, A/G ratio, and liver markers, an albumin shift can sometimes reflect changes in liver synthetic function, nutritional status, or inflammatory state. A low albumin alongside elevated globulin may suggest an inflammatory or immune-related protein shift; when albumin shifts alongside liver enzymes, a hepatic production pattern may be more likely.',
+    why: "La albúmina es la proteína más abundante en sangre y la produce el hígado. Meridian la observa porque refleja nutrición, función hepática sintética y balance proteico.",
+    context: "En contexto con proteína total, razón A/G y marcadores hepáticos, albúmina puede reflejar cambios de síntesis hepática, nutrición o inflamación. Albúmina baja con globulina alta puede sugerir señal inflamatoria o inmune.",
   },
   globulin: {
-    why: 'Globulins are a group of proteins that include immune-related antibodies and carrier proteins. Meridian watches them because changes can provide context on immune activity, liver function, chronic inflammation, and overall protein balance.',
-    context: 'In context with albumin and the A/G ratio, a globulin shift can help Meridian assess whether a protein pattern may reflect immune activation, chronic inflammation, or liver-related changes. When globulin rises as albumin falls, Meridian is watching this as a potentially meaningful protein balance shift — rather than an isolated fluctuation in one marker.',
+    why: "Las globulinas son proteínas que incluyen anticuerpos y proteínas transportadoras. Meridian las observa porque pueden dar contexto sobre actividad inmune, función hepática, inflamación crónica y balance proteico.",
+    context: "En contexto con albúmina y A/G, globulina ayuda a evaluar si un patrón proteico refleja activación inmune, inflamación crónica o cambios hepáticos. Globulina alta con albúmina baja puede ser significativo.",
   },
   total_protein: {
-    why: 'Total protein reflects both albumin and globulins together, giving Meridian a broad view of how well the body is producing and maintaining protein. Changes can connect to nutritional status, liver function, immune activity, and recovery.',
-    context: 'In context with albumin and globulin, total protein adds a summary view of overall protein balance. When albumin and globulin move in opposite directions while total protein remains stable, Meridian is watching this as a protein balance shift rather than a synthesis problem — a pattern worth continuing to track alongside liver and immune markers.',
+    why: "La proteína total refleja albúmina y globulinas juntas, dando una vista amplia de producción y mantenimiento de proteína. Puede conectar con nutrición, hígado, inmunidad y recuperación.",
+    context: "En contexto con albúmina y globulina, proteína total resume el balance proteico. Cuando albúmina y globulina se mueven en direcciones opuestas con proteína total estable, Meridian observa un cambio de balance.",
   },
   ag_ratio: {
-    why: 'The albumin/globulin ratio reflects the balance between two major protein groups in your blood. Meridian watches it because shifts in this ratio can sometimes provide early context on liver function, immune activity, or chronic inflammation before individual markers become obviously abnormal.',
-    context: 'When the A/G ratio shifts, Meridian is watching which component — albumin or globulin — is driving the change, as this can sometimes help distinguish a liver production pattern from an immune or inflammatory one. A persistently falling A/G ratio, particularly alongside other liver or immune signals, may carry more interpretive weight than an isolated reading.',
+    why: "La razón albúmina/globulina refleja el balance entre dos grandes grupos de proteínas. Meridian la observa porque sus cambios pueden dar contexto temprano sobre hígado, inmunidad o inflamación crónica.",
+    context: "Cuando cambia la razón A/G, Meridian observa qué componente — albúmina o globulina — impulsa el cambio. Una caída persistente junto con otras señales hepáticas o inmunes puede tener más peso.",
   },
   // ── CMP electrolytes ────────────────────────────────────────────────────────
   sodium: {
-    why: 'Sodium is the primary electrolyte governing fluid balance in your body. Meridian watches it because shifts — even subtle ones — can connect to hydration status, kidney regulation, adrenal signaling, and how the body is managing fluid across cells.',
-    context: 'In context with potassium, chloride, and CO2, a sodium shift can help Meridian assess whether fluid balance appears broadly stable or may be part of a wider electrolyte pattern. Sodium fluctuations are often transient and hydration-related; when multiple electrolytes shift together, Meridian considers whether a more integrated kidney or adrenal pattern may be emerging.',
+    why: "El sodio es el electrolito principal que gobierna balance de líquidos. Meridian lo observa porque cambios sutiles pueden conectar con hidratación, regulación renal, señal adrenal y manejo de líquidos celulares.",
+    context: "En contexto con potasio, cloruro y CO2, sodio ayuda a evaluar si el balance de líquidos está estable o si forma parte de un patrón de electrolitos. Cambios múltiples pesan más que sodio aislado.",
   },
   potassium: {
-    why: 'Potassium is critical for heart rhythm, muscle contraction, and cellular energy balance. Meridian watches it because significant deviations in either direction can carry cardiovascular implications, and it provides important context on kidney function and adrenal regulation.',
-    context: 'In context with sodium and the broader electrolyte cluster, a potassium shift can help Meridian assess whether the change appears consistent with hydration variation, dietary patterns, or a more persistent renal or adrenal signal. When potassium moves outside of normal range consistently, or alongside other electrolyte changes, Meridian watches this cluster more closely.',
+    why: "El potasio es crítico para ritmo cardíaco, contracción muscular y energía celular. Meridian lo observa porque desviaciones importantes pueden tener implicaciones cardiovasculares y dar contexto renal/adrenal.",
+    context: "En contexto con sodio y electrolitos, un cambio en potasio ayuda a evaluar si parece hidratación, dieta o señal renal/adrenal persistente. Cambios fuera de rango o junto con otros electrolitos se observan más de cerca.",
   },
   chloride: {
-    why: 'Chloride works alongside sodium and bicarbonate to maintain fluid balance and acid-base stability in the body. Meridian watches it as part of the electrolyte system, where the pattern across multiple markers is usually more informative than any single value.',
-    context: 'In context with sodium and CO2, a chloride shift can help Meridian assess whether the acid-base and electrolyte picture appears balanced. An isolated chloride fluctuation is often transient; when chloride moves alongside CO2 in an opposing direction, Meridian may be watching for an evolving acid-base pattern.',
+    why: "El cloruro trabaja junto con sodio y bicarbonato para mantener balance de líquidos y ácido-base. Meridian lo observa dentro del sistema de electrolitos, donde el patrón importa más que un valor aislado.",
+    context: "En contexto con sodio y CO2, cloruro ayuda a evaluar si el panorama ácido-base y de electrolitos está balanceado. Un cambio aislado suele ser transitorio; junto con CO2 puede apuntar a patrón ácido-base.",
   },
   co2: {
-    why: 'CO2 (reported as bicarbonate) reflects how well your body is managing acid-base balance — the chemical equilibrium that underpins most cellular processes. Meridian watches it because shifts can connect to metabolic changes, kidney function, respiratory patterns, and hydration status.',
-    context: 'In context with chloride and the anion gap, a CO2 shift can help Meridian assess whether the acid-base picture is stable or showing a directional pattern. A falling CO2 alongside a rising anion gap may suggest an accumulating acid load; when CO2 fluctuates without supporting cluster changes, it is more often consistent with transient variation.',
+    why: "CO2 reportado como bicarbonato refleja cómo el cuerpo maneja el balance ácido-base, el equilibrio químico que sostiene procesos celulares. Meridian lo observa por su relación con metabolismo, riñón, respiración e hidratación.",
+    context: "En contexto con cloruro y anion gap, CO2 ayuda a evaluar si el ácido-base está estable o mostrando dirección. CO2 bajo con anion gap alto puede tener más significado que un valor aislado.",
   },
   calcium: {
-    why: 'Calcium supports bone integrity, muscle contraction, nerve signaling, and heart function. Meridian watches it because blood calcium is tightly regulated — significant deviations can sometimes reflect parathyroid signaling, vitamin D status, or other metabolic patterns.',
-    context: 'Blood calcium is tightly regulated, so meaningful shifts — particularly persistent ones — are worth watching in context with vitamin D and metabolic markers. Meridian is watching whether a calcium change appears isolated or moves alongside related signals that might suggest a broader mineral balance or parathyroid-related pattern.',
+    why: "El calcio apoya huesos, contracción muscular, señal nerviosa y función cardíaca. Meridian lo observa porque el calcio en sangre está muy regulado y desviaciones pueden reflejar vitamina D, paratiroides u otros patrones metabólicos.",
+    context: "El calcio en sangre está fuertemente regulado, por eso cambios persistentes se observan en contexto con vitamina D y metabolismo. Meridian evalúa si el cambio es aislado o conectado a señales relacionadas.",
   },
   anion_gap: {
-    why: 'The anion gap is a calculated value that reflects the balance of charged particles in your blood. Meridian watches it because elevated levels can sometimes signal metabolic acid accumulation — shifts that might not be obvious from individual electrolyte readings alone.',
-    context: 'In context with CO2 and chloride, an elevated anion gap can help Meridian assess whether the acid-base picture may reflect metabolic acid accumulation. When the anion gap rises alongside a falling CO2 and stable chloride, the pattern may be more interpretively significant than an isolated value — Meridian watches the electrolyte cluster together rather than any single marker.',
+    why: "El anion gap es un valor calculado que refleja el balance de partículas cargadas en sangre. Meridian lo observa porque elevaciones pueden señalar acumulación de ácido metabólico no evidente en electrolitos individuales.",
+    context: "En contexto con CO2 y cloruro, anion gap elevado puede ayudar a evaluar carga ácida metabólica. Cuando sube junto con CO2 bajo, el patrón puede tener más peso que una lectura aislada.",
   },
   // ── CBC Differential ────────────────────────────────────────────────────────
   neutrophils_pct: {
-    why: 'Neutrophils are your immune system\'s most abundant first responders — the cells that mobilize quickly to sites of infection or inflammation. Meridian tracks their proportion as part of the white cell differential because the balance of cell types often tells a more complete immune story than the total WBC count alone.',
-    context: 'In context with the full white cell differential and inflammatory markers like hs-CRP, a neutrophil shift can help Meridian distinguish between a temporary response — such as physical stress or recent illness — and a more persistent immune activation pattern. Elevated neutrophils alongside suppressed lymphocytes is a shift Meridian watches carefully over time.',
+    why: "Los neutrófilos son los respondedores más abundantes del sistema inmune, movilizados rápidamente ante infección o inflamación. Meridian sigue su proporción dentro del diferencial porque el balance de tipos celulares cuenta mejor la historia inmune.",
+    context: "En contexto con el diferencial completo y hs-CRP, un cambio de neutrófilos ayuda a distinguir respuesta temporal — estrés físico o enfermedad reciente — de activación inmune persistente.",
   },
   neutrophils_abs: {
-    why: 'The absolute neutrophil count reflects how many of your immune system\'s primary first-responder cells are actively circulating. Meridian tracks the absolute count alongside the percentage because together they give a fuller picture of immune activity than either measurement alone.',
-    context: 'In context with other differential markers and hs-CRP, an absolute neutrophil shift can help Meridian assess whether an immune pattern appears transient — such as after illness or physical stress — or more persistent. Absolute counts tend to be most informative when read alongside the full differential cluster and the surrounding clinical picture.',
+    why: "El conteo absoluto de neutrófilos refleja cuántas células de primera respuesta están circulando. Meridian lo sigue junto con el porcentaje para una imagen más completa de actividad inmune.",
+    context: "En contexto con otros marcadores diferenciales y hs-CRP, un cambio absoluto ayuda a evaluar si el patrón inmune parece transitorio o persistente. Los conteos absolutos son más útiles dentro del cluster completo.",
   },
   lymphocytes_pct: {
-    why: 'Lymphocytes are the immune cells responsible for targeted defense — including T cells that coordinate immune responses and B cells that produce antibodies. Meridian watches their proportion because changes can connect to immune resilience, recovery patterns, and how the body is managing ongoing physiological demands.',
-    context: 'In context with total WBC and other differential markers, a lymphocyte percentage shift can help Meridian assess whether the immune picture reflects a transient response or a more persistent pattern. A relatively low lymphocyte proportion alongside elevated neutrophils can sometimes suggest a stress or recovery-related immune shift rather than a primary lymphocyte issue.',
+    why: "Los linfocitos son células de defensa específica, incluyendo células T y B. Meridian observa su proporción porque puede conectar con resiliencia inmune, recuperación y manejo de demandas fisiológicas.",
+    context: "En contexto con WBC y otros diferenciales, linfocitos ayudan a evaluar si el panorama inmune refleja una respuesta transitoria o persistente. Linfocitos relativamente bajos con neutrófilos altos puede sugerir estrés o recuperación.",
   },
   lymphocytes_abs: {
-    why: 'The absolute lymphocyte count reflects the circulating level of your targeted immune defense cells. Meridian watches it because changes can connect to immune resilience, response patterns, and recovery — often alongside shifts in other white cell markers.',
-    context: 'In context with other differential markers and inflammatory signals, an absolute lymphocyte shift is most meaningful as part of a pattern rather than as an isolated value. Meridian is watching whether lymphocyte changes persist across readings or appear consistent with transient immune activity.',
+    why: "El conteo absoluto de linfocitos refleja el nivel circulante de defensa inmune específica. Meridian lo observa porque puede conectar con resiliencia inmune, respuesta y recuperación.",
+    context: "En contexto con otros diferenciales e inflamación, un cambio absoluto de linfocitos es más significativo como patrón que aislado. Meridian observa si persiste o parece actividad inmune temporal.",
   },
   monocytes_pct: {
-    why: 'Monocytes are immune cells that circulate in the blood before maturing into tissue macrophages. Meridian watches them because elevated counts can sometimes connect to chronic low-grade inflammation, immune activation, or recovery patterns — particularly when other inflammatory markers are also shifting.',
-    context: 'In context with other white cell differential markers and hs-CRP, a monocyte shift can add texture to the immune picture. Monocyte elevations alongside other inflammatory signals may suggest a more persistent activation pattern rather than a transient response.',
+    why: "Los monocitos circulan antes de madurar en macrófagos tisulares. Meridian los observa porque elevaciones pueden conectar con inflamación de bajo grado, activación inmune o recuperación, especialmente con otros marcadores inflamatorios.",
+    context: "En contexto con el diferencial y hs-CRP, los monocitos añaden textura al panorama inmune. Elevaciones junto con señales inflamatorias pueden sugerir activación más persistente.",
   },
   monocytes_abs: {
-    why: 'The absolute monocyte count reflects how many of your blood-based immune patrol cells are circulating. Meridian tracks it because shifts can sometimes connect to inflammatory activity or immune signaling patterns when read alongside the full white cell differential.',
-    context: 'In context with the differential cluster and hs-CRP, an absolute monocyte shift adds context to the immune picture. Meridian is watching whether monocyte changes appear isolated or form part of a consistent broader inflammatory pattern across readings.',
+    why: "El conteo absoluto de monocitos refleja cuántas células inmunes patrulleras circulan. Meridian lo sigue porque cambios pueden conectar con actividad inflamatoria o señales inmunes.",
+    context: "En contexto con el diferencial y hs-CRP, monocitos absolutos añaden contexto. Meridian observa si aparecen aislados o como parte de un patrón inflamatorio más amplio.",
   },
   eosinophils_pct: {
-    why: 'Eosinophils are immune cells involved in allergic responses, parasitic defense, and certain types of tissue inflammation. Meridian tracks them because persistently elevated counts can sometimes connect to allergic or inflammatory patterns that may not be obvious from other markers alone.',
-    context: 'In context with other CBC differential markers, an eosinophil shift can help Meridian assess whether the pattern may connect to allergic activity, environmental exposures, or a broader immune response. An isolated mild elevation is often transient; persistent elevation across readings tends to carry more interpretive weight.',
+    why: "Los eosinófilos participan en alergias, defensa parasitaria y ciertos tipos de inflamación tisular. Meridian los sigue porque elevaciones persistentes pueden conectar con patrones alérgicos o inflamatorios.",
+    context: "En contexto con otros diferenciales CBC, eosinófilos ayudan a evaluar si el patrón puede conectar con alergias, ambiente o respuesta inmune. Elevación aislada leve suele ser transitoria.",
   },
   eosinophils_abs: {
-    why: 'The absolute eosinophil count reflects how many of your allergy-related immune cells are actively circulating. Meridian watches it because elevated absolute counts — particularly when persistent — can connect to allergic inflammation, environmental triggers, or other immune-mediated patterns.',
-    context: 'In context with the full differential and inflammatory markers, absolute eosinophil shifts are most meaningful when they persist across readings or coincide with other immune pattern changes. An isolated elevation is often transient and less significant than a consistent trend.',
+    why: "El conteo absoluto de eosinófilos refleja cuántas células relacionadas con alergias circulan. Meridian lo observa porque elevaciones persistentes pueden conectar con inflamación alérgica o patrones inmunes.",
+    context: "En contexto con el diferencial e inflamación, los eosinófilos absolutos importan más cuando persisten o coinciden con otros cambios. Una elevación aislada suele pesar menos.",
   },
   basophils_pct: {
-    why: 'Basophils are the least abundant white blood cells and are involved in allergic and inflammatory signaling. Meridian tracks them as part of the complete immune picture — while isolated changes are rarely significant on their own, patterns within the broader white cell differential can add context.',
-    context: 'In context with the full differential and eosinophils, a basophil shift is most meaningful as part of a broader immune pattern rather than as a standalone signal. Meridian watches the differential cluster as a whole rather than reacting to any single cell type in isolation.',
+    why: "Los basófilos son los glóbulos blancos menos abundantes y participan en señales alérgicas e inflamatorias. Meridian los sigue como parte del panorama inmune completo.",
+    context: "En contexto con el diferencial y eosinófilos, un cambio de basófilos es más significativo como parte de un patrón inmune que aislado. Meridian observa el cluster completo.",
   },
   basophils_abs: {
-    why: 'The absolute basophil count is typically very low and is most relevant as part of the complete white cell differential. Meridian tracks it as one small component of the immune pattern — shifts are rarely significant in isolation but may add context when read alongside the full differential.',
-    context: 'Absolute basophil counts carry most of their interpretive value in context with the full white cell differential and inflammatory signals. Meridian watches this as one piece of the broader immune picture rather than interpreting it independently.',
+    why: "El conteo absoluto de basófilos suele ser muy bajo y es más relevante dentro del diferencial completo. Meridian lo sigue como un pequeño componente del patrón inmune.",
+    context: "Los basófilos absolutos tienen más valor en contexto con el diferencial completo y señales inflamatorias. Meridian los interpreta como una pieza del panorama inmune amplio.",
   },
   // ── Additional CBC ────────────────────────────────────────────────────────────
   mpv: {
-    why: 'Mean platelet volume (MPV) reflects the average size of platelets in your blood. Meridian watches it as part of the platelet picture because changes in size can sometimes connect to platelet production patterns, inflammatory activity, or cardiovascular context.',
-    context: 'In context with platelet count and other CBC markers, MPV adds texture to the platelet picture. A lower platelet count alongside a higher MPV can sometimes suggest active platelet production; when MPV shifts without platelet count changes, Meridian is watching whether this appears as isolated variation or part of a broader pattern.',
+    why: "MPV refleja el tamaño promedio de las plaquetas. Meridian lo observa como parte del panorama plaquetario porque cambios pueden conectar con producción plaquetaria, inflamación o contexto cardiovascular.",
+    context: "En contexto con plaquetas y CBC, MPV añade textura. Plaquetas bajas con MPV alto puede sugerir producción activa; MPV aislado se observa como variación o parte de patrón mayor.",
   },
   rdw_sd: {
-    why: 'RDW-SD measures the standard deviation of red blood cell sizes — a complementary angle to RDW-CV for understanding size variation across your red cell population. Meridian tracks it because elevated variation can sometimes connect to nutrient-related or production-related changes in red cell quality.',
-    context: 'In context with RDW-CV, ferritin, B12, and MCV, an RDW-SD shift adds texture to the red cell size picture. Meridian evaluates both RDW measurements alongside nutrient markers to understand whether cell production patterns may be quietly shifting.',
+    why: "RDW-SD mide la desviación estándar del tamaño de glóbulos rojos, complementando RDW-CV. Meridian lo sigue porque variación elevada puede conectar con cambios nutricionales o de producción celular.",
+    context: "En contexto con RDW-CV, ferritina, B12 y MCV, RDW-SD añade textura al tamaño celular. Meridian evalúa ambos RDW junto con nutrientes para detectar patrones de producción.",
   },
   // ── Additional Thyroid ─────────────────────────────────────────────────────
   tpo_antibodies: {
-    why: 'TPO antibodies are immune proteins that can attack thyroid peroxidase — an enzyme critical for thyroid hormone production. Meridian watches them because persistently elevated levels are associated with autoimmune thyroid patterns, including Hashimoto\'s thyroiditis, which often develops gradually over time.',
-    context: 'In context with TSH, Free T4, and Free T3, a TPO antibody result can help Meridian understand whether thyroid function changes may have an autoimmune component. An elevated antibody result without current thyroid hormone disruption may warrant continued monitoring of the full thyroid cluster over time.',
+    why: "Los anticuerpos TPO son proteínas inmunes que pueden atacar la peroxidasa tiroidea, enzima clave para producir hormona tiroidea. Meridian los observa porque elevaciones persistentes se asocian con patrones autoinmunes tiroideos.",
+    context: "En contexto con TSH, Free T4 y Free T3, TPO ayuda a entender si cambios tiroideos pueden tener componente autoinmune. Anticuerpos elevados sin disfunción hormonal actual pueden ameritar seguimiento.",
   },
   // ── Additional Hormones ────────────────────────────────────────────────────
   acth: {
-    why: 'ACTH is a pituitary hormone that signals the adrenal glands to produce cortisol. Meridian watches it because ACTH and cortisol together give context on adrenal and stress-response signaling that neither marker reveals fully on its own.',
-    context: 'In context with cortisol AM and DHEA-S, an ACTH pattern can help Meridian assess whether the adrenal signaling picture appears balanced or shifted. When ACTH and cortisol move in opposing directions across readings, Meridian is watching whether this reflects a pituitary or adrenal-origin pattern — a distinction that context from the full hormonal cluster helps clarify.',
+    why: "ACTH es una hormona pituitaria que le indica a las adrenales producir cortisol. Meridian la observa porque ACTH y cortisol juntos dan contexto sobre señalización adrenal y de estrés.",
+    context: "En contexto con cortisol AM y DHEA-S, ACTH ayuda a evaluar si el panorama adrenal está balanceado o desplazado. ACTH y cortisol moviéndose en direcciones opuestas puede sugerir origen pituitario/adrenal.",
   },
   // ── Urinalysis — Physical ────────────────────────────────────────────────
   urine_color: {
-    why: 'Urine color is one of the simplest physical properties Meridian tracks as part of a complete urinalysis. While color varies widely with hydration, diet, and medications, unusual or persistent changes can sometimes provide early context alongside the chemical and microscopy findings.',
-    context: 'Urine color carries most of its interpretive value alongside hydration and chemical markers. Changes attributable to diet or hydration rarely require further attention; unusual or persistent color findings, particularly in the presence of other abnormal urinalysis signals, may be worth continued monitoring over time.',
+    why: "El color de orina es una propiedad física simple que Meridian sigue dentro del urinalysis completo. Aunque varía con hidratación, dieta y medicamentos, cambios inusuales o persistentes pueden añadir contexto.",
+    context: "El color tiene más valor junto con hidratación y marcadores químicos. Cambios por dieta o hidratación rara vez requieren atención; hallazgos inusuales persistentes junto con otros marcadores pesan más.",
   },
   urine_clarity: {
-    why: 'Urine clarity reflects whether the sample is clear or turbid. Meridian tracks it as part of the complete urinalysis picture because cloudiness can sometimes coincide with elevated cell counts or bacteria — though an isolated turbidity finding is rarely significant on its own.',
-    context: 'In context with microscopy and chemical markers, a turbid urine finding can sometimes align with elevated cell counts or infection-related signals. When clarity is the only finding in an otherwise unremarkable urinalysis, it is typically less interpretively significant than when it appears alongside other abnormal markers.',
+    why: "La claridad de la orina refleja si la muestra está clara o turbia. Meridian la sigue porque turbidez puede coincidir con células elevadas o bacterias, aunque aislada suele tener poco peso.",
+    context: "En contexto con microscopía y químicos, la turbidez puede alinearse con células o señales de infección. Si es el único hallazgo en un urinalysis normal, suele ser menos significativa.",
   },
   urine_specific_gravity: {
-    why: 'Specific gravity reflects how concentrated your urine is — how much dissolved material the kidneys are retaining or releasing relative to water. Meridian tracks it because patterns over time can provide context on hydration status and kidney concentrating ability.',
-    context: 'Specific gravity varies considerably with fluid intake and hydration, which limits the interpretive value of any single reading. In context with sodium and kidney markers, a consistently high or low specific gravity pattern across readings may sometimes reflect hydration habits or kidney concentrating function — though isolated values are rarely independently significant.',
+    why: "La densidad específica refleja qué tan concentrada está la orina: cuánto material disuelto retienen o liberan los riñones respecto al agua. Meridian la sigue por hidratación y capacidad de concentración renal.",
+    context: "La densidad específica varía mucho con líquidos e hidratación. En contexto con sodio y marcadores renales, un patrón alto o bajo persistente puede reflejar hábitos de hidratación o función de concentración renal.",
   },
   urine_ph: {
-    why: 'Urine pH reflects the acidity or alkalinity of your urine. Meridian watches it as a physical property of the urinalysis because it can sometimes provide background context on metabolic patterns, diet, and urinary tract chemistry — though it varies widely with normal, everyday factors.',
-    context: 'Urine pH fluctuates naturally with diet, hydration, and time of day, which limits the weight Meridian places on any single reading. In context with other chemical urinalysis markers, a persistently alkaline pattern can sometimes connect to bacterial activity; a consistently acidic pattern may reflect dietary or metabolic factors. Meridian watches these tendencies over multiple readings rather than reacting to isolated values.',
+    why: "El pH urinario refleja acidez o alcalinidad de la orina. Meridian lo observa como propiedad física porque puede dar contexto sobre dieta, metabolismo y química urinaria, aunque varía con factores normales.",
+    context: "El pH fluctúa con dieta, hidratación y hora del día, por eso Meridian no pesa una lectura aislada. Patrones persistentemente alcalinos o ácidos pueden añadir contexto cuando se ven con otros marcadores.",
   },
   // ── Urinalysis — Chemical (Dipstick) ────────────────────────────────────
   urine_protein_ua: {
-    why: 'Protein is not normally present in significant amounts in urine — the kidneys are designed to keep it in the bloodstream. Meridian watches this marker because a pattern of urine protein can sometimes connect to kidney filtration health, and it is worth tracking alongside bloodwork markers over time.',
-    context: 'In context with creatinine, eGFR, and BUN, a urine protein result can help Meridian assess whether the kidney picture appears stable or whether this may be part of a broader renal pattern. An isolated mild finding — particularly after exercise, with concurrent illness, or in a single sample — is often transient; a pattern across multiple readings, especially alongside other renal signals, carries more interpretive weight.',
+    why: "La proteína no suele estar presente en cantidades significativas en orina; los riñones están diseñados para mantenerla en sangre. Meridian la observa porque un patrón puede conectar con salud de filtración renal.",
+    context: "En contexto con creatinina, eGFR y BUN, proteína urinaria ayuda a evaluar si el panorama renal está estable o si forma parte de un patrón. Un hallazgo leve aislado puede ser transitorio.",
   },
   urine_blood_ua: {
-    why: 'The presence of blood in urine is something Meridian watches carefully. While it can sometimes reflect entirely benign causes — such as vigorous exercise, minor irritation, or sample timing — it can also provide important context when it appears alongside other urinary findings or persists across readings.',
-    context: 'In context with urine WBC, bacteria, and protein findings, a blood marker can help Meridian assess whether the pattern may connect to a possible infection, a benign cause, or a urinary finding worth following. A single isolated finding is often transient; a pattern that persists or appears alongside other abnormal urinalysis markers carries more interpretive weight.',
+    why: "La presencia de sangre en orina es algo que Meridian observa cuidadosamente. Puede tener causas benignas como ejercicio, irritación o timing de la muestra, pero también aporta contexto si persiste o aparece con otros hallazgos.",
+    context: "En contexto con WBC, bacterias y proteína, sangre en orina ayuda a evaluar si el patrón conecta con infección, causa benigna o hallazgo urinario a seguir. La persistencia da más peso.",
   },
   urine_glucose_ua: {
-    why: 'Glucose is not normally found in urine. Meridian watches urine glucose because its presence can sometimes indicate that blood sugar has reached levels where the kidneys begin to pass it through — a finding that may complement the bloodwork picture even when fasting glucose appears within range.',
-    context: 'In context with fasting glucose, A1c, and fasting insulin, a urine glucose result can help Meridian assess whether blood sugar regulation may be shifting in ways not yet fully visible in bloodwork. A single finding is worth noting; a persistent pattern alongside moving glycemic markers tends to carry more interpretive significance.',
+    why: "La glucosa normalmente no aparece en orina. Meridian la observa porque su presencia puede indicar que el azúcar en sangre alcanzó niveles donde los riñones comienzan a eliminarla.",
+    context: "En contexto con glucosa, A1c e insulina, glucosa urinaria ayuda a evaluar si la regulación glucémica puede estar cambiando de formas aún no visibles completamente en sangre.",
   },
   urine_ketones_ua: {
-    why: 'Ketones in urine indicate the body is using fat for fuel instead of glucose. Meridian watches this marker because ketone presence can connect to several different physiological states — including dietary choices, prolonged fasting, intense exercise, or, at elevated levels, certain metabolic patterns worth monitoring.',
-    context: 'In context with fasting glucose and A1c, a urine ketone result can help Meridian assess whether the finding reflects a dietary or fasting pattern versus something worth closer attention. A mild isolated finding is often benign and diet-related; high levels, particularly alongside elevated glucose markers, are a pattern Meridian watches more carefully alongside the full glycemic picture.',
+    why: "Las cetonas en orina indican que el cuerpo usa grasa como combustible en lugar de glucosa. Meridian las observa porque pueden conectar con dieta, ayuno, ejercicio intenso o patrones metabólicos.",
+    context: "En contexto con glucosa y A1c, cetonas ayudan a distinguir un patrón dietario/ayuno de algo que merece más atención. Cetonas altas con glucosa elevada se observan más de cerca.",
   },
   urine_nitrite_ua: {
-    why: 'Nitrite in urine can form when certain bacteria metabolize compounds in the urinary tract. Meridian watches it because a positive result can sometimes be one of the signals that connects to a urinary tract infection pattern — though it is most meaningful when viewed alongside supporting markers.',
-    context: 'In context with leukocyte esterase, urine WBC, and bacteria findings, a positive nitrite result adds weight to the picture of possible urinary tract immune activity. The combination of nitrite and leukocyte esterase together tends to carry more interpretive significance than either in isolation. A negative nitrite result does not rule out infection — some bacteria do not produce detectable nitrite levels.',
+    why: "El nitrito en orina puede formarse cuando ciertas bacterias metabolizan compuestos en el tracto urinario. Meridian lo observa porque un resultado positivo puede conectar con patrón de infección urinaria.",
+    context: "En contexto con leukocyte esterase, WBC y bacterias, nitrito positivo añade peso a posible actividad inmune urinaria. Nitrito negativo no descarta infección porque algunas bacterias no lo producen.",
   },
   urine_leukocyte_esterase_ua: {
-    why: 'Leukocyte esterase is an enzyme released by white blood cells. Meridian watches it because its presence in urine can indicate immune cell activity in the urinary tract — which may connect to inflammation or infection-related patterns when viewed alongside supporting markers.',
-    context: 'In context with nitrite, urine WBC, and bacteria findings, leukocyte esterase adds to the picture of whether urinary tract white cell activity may be present. A positive result is most meaningful when it persists or appears alongside other infection-related signals; an isolated mild finding can sometimes reflect sample timing, hydration, or transient factors rather than an active infection pattern.',
+    why: "Leukocyte esterase es una enzima liberada por glóbulos blancos. Meridian la observa porque su presencia en orina puede indicar actividad inmune en el tracto urinario.",
+    context: "En contexto con nitrito, WBC y bacterias, leukocyte esterase ayuda a evaluar actividad de glóbulos blancos urinarios. Es más significativa cuando persiste o aparece con otros hallazgos.",
   },
   urine_bilirubin_ua: {
-    why: 'Bilirubin is not normally present in urine. Meridian watches it because urine bilirubin can sometimes reflect liver processing patterns or bile flow — a finding that is worth tracking alongside bloodwork liver markers when both are available.',
-    context: 'In context with serum bilirubin, AST, and ALT, urine bilirubin adds context to the hepatic picture. A positive finding alongside elevated liver enzymes may align with a hepatic pattern; an isolated urine bilirubin finding without supporting bloodwork changes is less interpretively significant, but worth continued monitoring if it persists.',
+    why: "La bilirrubina normalmente no está presente en orina. Meridian la observa porque puede reflejar procesamiento hepático o flujo biliar, especialmente junto con marcadores hepáticos de sangre.",
+    context: "En contexto con bilirrubina sérica, AST y ALT, bilirrubina urinaria añade contexto hepático. Un hallazgo aislado sin cambios en sangre pesa menos, pero se sigue si persiste.",
   },
   urine_urobilinogen_ua: {
-    why: 'Urobilinogen is a byproduct of bilirubin breakdown that normally appears in small amounts in urine. Meridian watches it because values outside the expected range can sometimes provide context on liver function, bile flow, or red blood cell turnover patterns.',
-    context: 'In context with serum bilirubin, AST, ALT, and CBC markers, urobilinogen adds one more layer to the liver and red blood cell picture. Mildly elevated urobilinogen is common and often unremarkable; a consistently elevated pattern alongside other hepatic or hemolytic signals may carry more interpretive weight.',
+    why: "El urobilinógeno es un subproducto del metabolismo de bilirrubina que aparece en pequeñas cantidades en orina. Meridian lo observa porque valores fuera de rango pueden dar contexto sobre hígado, bilis o recambio de glóbulos rojos.",
+    context: "En contexto con bilirrubina sérica, AST, ALT y CBC, urobilinógeno añade una capa al panorama hepático y de glóbulos rojos. Elevación leve suele ser común; persistencia con otras señales pesa más.",
   },
   // ── Urinalysis — Microscopy ──────────────────────────────────────────────
   urine_wbc_hpf: {
-    why: 'Urine WBC count reflects how many white blood cells are present in a microscopy field. Meridian watches it because elevated counts can indicate immune cell activity in the urinary tract — a direct signal that can sometimes connect to inflammation or infection-related patterns.',
-    context: 'In context with leukocyte esterase, nitrite, and bacteria findings, urine WBC count provides quantitative precision to the infection-related picture. An elevated count alongside positive leukocyte esterase and bacteria tends to be more interpretively significant than any single finding alone; isolated mild elevations can sometimes reflect sample handling or transient factors.',
+    why: "El conteo de WBC en orina refleja cuántos glóbulos blancos hay en un campo microscópico. Meridian lo observa porque elevaciones pueden indicar actividad inmune en el tracto urinario.",
+    context: "En contexto con leukocyte esterase, nitrito y bacterias, WBC urinario da precisión cuantitativa. Elevación junto con señales positivas pesa más que cualquier hallazgo aislado.",
   },
   urine_rbc_hpf: {
-    why: 'Urine RBC count reflects how many red blood cells appear in urine microscopy. Meridian watches it because while small numbers are often benign, consistently elevated counts — particularly when they appear alongside other urinary findings — can be worth following over time.',
-    context: 'In context with urine blood, protein, and other urinalysis markers, urine RBC adds quantitative context to the blood-in-urine picture. The significance of an RBC count depends greatly on its context — isolated small elevations are common and often transient; persistent or elevated counts, particularly alongside other abnormal findings, tend to carry more interpretive weight.',
+    why: "El conteo de RBC en orina refleja cuántos glóbulos rojos aparecen en microscopía. Meridian lo observa porque números pequeños pueden ser benignos, pero elevaciones persistentes merecen seguimiento.",
+    context: "En contexto con sangre, proteína y otros marcadores urinarios, RBC añade precisión al panorama de sangre en orina. La persistencia o presencia junto con otros hallazgos da más peso.",
   },
   urine_bacteria_hpf: {
-    why: 'Bacteria detected in urine microscopy can reflect a urinary tract infection pattern or, in some cases, sample handling and collection factors. Meridian watches it alongside infection-related chemical markers to build a more complete picture.',
-    context: 'In context with nitrite, leukocyte esterase, and urine WBC, bacteria detection adds to the infection-related picture. Bacterial findings are most informative when they appear alongside multiple supporting signals; an isolated bacteria finding without other infection markers may sometimes reflect specimen collection factors or transient activity rather than an active infection pattern.',
+    why: "Bacterias en microscopía de orina pueden reflejar infección urinaria o factores de colección de muestra. Meridian las observa junto con marcadores químicos relacionados con infección.",
+    context: "En contexto con nitrito, leukocyte esterase y WBC, bacterias añaden peso al patrón. Aisladas sin otras señales pueden reflejar colección de muestra más que infección activa.",
   },
   urine_epithelial_cells_hpf: {
-    why: 'Epithelial cells in urine come from the lining of the urinary tract. Small numbers are normal and expected; Meridian tracks elevated counts because they can sometimes reflect local tissue activity — or, in some cases, sample handling factors worth noting alongside other urinary findings.',
-    context: 'In context with other microscopy findings, urine epithelial cell counts add texture to the overall urinary picture. Mildly elevated counts are often benign and may reflect normal cellular turnover or specimen collection; elevated counts alongside infection-related markers may be more meaningful as part of a broader urinary pattern.',
+    why: "Las células epiteliales en orina vienen del revestimiento urinario. Pequeñas cantidades son normales; Meridian observa elevaciones porque pueden reflejar actividad local o factores de muestra.",
+    context: "En contexto con otros hallazgos microscópicos, células epiteliales añaden textura. Elevaciones leves suelen ser benignas o de colección; junto con señales de infección pueden ser más significativas.",
   },
   urine_casts_hpf: {
-    why: 'Urinary casts are protein structures that form in the kidney tubules and can shed into urine. Meridian watches them because certain cast types can sometimes provide context on kidney health patterns — though many casts, particularly hyaline casts, are benign and often related to physical activity.',
-    context: 'The type and number of urinary casts matters considerably for interpretation. Hyaline casts after exercise are common and generally benign; other cast types may warrant clinical context. Meridian watches cast findings alongside kidney markers like creatinine and eGFR rather than interpreting them in isolation.',
+    why: "Los cilindros urinarios son estructuras proteicas que se forman en túbulos renales y pueden aparecer en orina. Meridian los observa porque ciertos tipos dan contexto renal, aunque muchos son benignos.",
+    context: "El tipo y número de cilindros importa mucho. Cilindros hialinos tras ejercicio son comunes; otros tipos requieren contexto clínico. Meridian los lee junto con creatinina y eGFR.",
   },
   urine_mucus_hpf: {
-    why: 'Mucus in urine is a common finding that typically reflects normal secretions from the urinary tract lining. Meridian tracks it as part of the complete urinalysis, though it is rarely clinically significant when it appears in isolation.',
-    context: 'Isolated urine mucus in microscopy is most often benign and related to normal urinary tract secretions. In context with other microscopy and infection-related markers, persistent or heavy mucus findings can add background texture — though they are typically among the least interpretively significant urinalysis signals Meridian tracks.',
+    why: "El mucus en orina es común y suele reflejar secreciones normales del tracto urinario. Meridian lo sigue como parte del urinalysis completo, aunque rara vez es significativo aislado.",
+    context: "El mucus aislado suele ser benigno. En contexto con otros hallazgos microscópicos o de infección, mucus persistente o abundante puede añadir textura, aunque suele tener bajo peso interpretativo.",
   },
 }
 
@@ -1233,8 +1224,8 @@ function histGetStateStyle(state: string | null) {
   switch (state) {
     // ── Clinical Stability Phase states ───────────────────────────────────────
     case 'Normal':    return { bg: colors.optimal,   border: colors.optimalBorder,   dot: '#2DD4BF', label: 'Normal'   }
-    case 'Low':       return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'Low'      }
-    case 'High':      return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'High'     }
+    case 'Low':       return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'Bajo'      }
+    case 'High':      return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'Alto'     }
     case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  dot: '#F87171', label: 'Crítico' }
     // ── Legacy states (backward compat for existing DB records) ───────────────
     case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   dot: '#2DD4BF', label: 'Normal'   }
@@ -1248,7 +1239,7 @@ function histGetStateStyle(state: string | null) {
 // Both Snapshot and Timeline detail sheets draw from the same single source of truth.
 const HIST_INTERPRETATIONS = INTERPRETATIONS
 function histGetInterpretation(slug: string): string {
-  return HIST_INTERPRETATIONS[slug] ?? 'This biomarker is part of the picture Meridian is building over time. Patterns across related markers tend to carry more weight than any single reading.'
+  return HIST_INTERPRETATIONS[slug] ?? 'Este biomarcador forma parte del panorama que Meridian está construyendo con el tiempo. Los patrones entre marcadores relacionados suelen tener más peso que una sola lectura.'
 }
 
 function histUtcDateKey(isoString: string): string { return isoString.split('T')[0] }
@@ -1552,7 +1543,7 @@ function BiomarkerDetailSheet({
               <div style={cardStyle}>
                 <p style={labelStyle}>Por qué importa</p>
                 <p style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.65, margin: 0 }}>
-                  {intel?.why ?? 'This biomarker is one of the signals Meridian tracks over time. Changes in context alongside related markers tend to be more informative than any single reading.'}
+                  {intel?.why ?? 'Este biomarcador es una de las señales que Meridian sigue con el tiempo. Los cambios en contexto junto con marcadores relacionados suelen ser más informativos que una sola lectura.'}
                 </p>
               </div>
 
@@ -1743,7 +1734,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       insights.push({
         id: 'metabolic_cluster',
         title: 'Cluster metabólico',
-        tagline: 'Lipid · glycemic signals',
+        tagline: 'Señales lipídicas · glucémicas',
         synthesis: 'Triglicéridos, HDL y marcadores glucémicos forman parte del mismo panorama metabólico. Cuando se mueven juntos, la señal combinada suele tener más peso interpretativo que cualquier marcador aislado — Meridian observa este cluster para identificar consistencia direccional entre lecturas.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
@@ -1764,7 +1755,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       insights.push({
         id: 'oxygen_transport',
         title: 'Transporte de oxígeno',
-        tagline: 'Iron · red cell signals',
+        tagline: 'Hierro · señales de células rojas',
         synthesis: 'Las reservas de hierro y los marcadores de células rojas están conectados por el mismo sistema de transporte de oxígeno. Cuando ferritina, hemoglobina o marcadores de tamaño celular cambian juntos, el patrón puede conectar con energía, capacidad de recuperación y eficiencia del cuerpo para mantener su suministro de oxígeno.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
@@ -1785,7 +1776,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       insights.push({
         id: 'thyroid_axis',
         title: 'Eje tiroideo',
-        tagline: 'TSH · thyroid hormone signals',
+        tagline: 'TSH · señales tiroideas',
         synthesis: 'TSH y las hormonas tiroideas forman un circuito de retroalimentación conectado. Cuando varios marcadores de este cluster se mueven en la misma dirección, Meridian le da más peso al patrón — un cambio aislado puede significar algo distinto a un movimiento dentro de todo el panorama tiroideo.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
@@ -1806,7 +1797,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       insights.push({
         id: 'inflammatory_signal',
         title: 'Señal inflamatoria',
-        tagline: 'CRP · immune markers',
+        tagline: 'CRP · marcadores inmunes',
         synthesis: 'Los marcadores inflamatorios e inmunes se están moviendo en conjunto — una combinación que Meridian observa dentro del panorama más amplio de estrés, recuperación y riesgo cardiovascular, no como valores aislados.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
@@ -1826,8 +1817,8 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'stress_hormone',
-        title: 'Hormonal Balance',
-        tagline: 'Cortisol · sex hormone signals',
+        title: 'Balance hormonal',
+        tagline: 'Cortisol · señales hormonales sexuales',
         synthesis: 'Cortisol, DHEA-S y testosterona están conectados a través del sistema adrenal y de reserva hormonal. Cuando cambian juntos, el patrón combinado puede reflejar carga de estrés, capacidad de recuperación o balance hormonal — señales que una sola hormona no mostraría con claridad por sí sola.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
@@ -1847,8 +1838,8 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'methylation',
-        title: 'Methylation Pathway',
-        tagline: 'B-vitamin · homocysteine signals',
+        title: 'Vía de metilación',
+        tagline: 'Vitaminas B · señales de homocisteína',
         synthesis: 'B12, folato y homocisteína operan dentro de la misma vía metabólica. Cuando se mueven en una dirección consistente, el patrón puede reflejar una señal de disponibilidad nutricional — algo que una lectura individual puede pasar por alto si se mira de forma aislada.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
@@ -1868,8 +1859,8 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'renal_cluster',
-        title: 'Renal Function',
-        tagline: 'Kidney filtration signals',
+        title: 'Función renal',
+        tagline: 'Señales de filtración renal',
         synthesis: 'Creatinina, eGFR y BUN son ventanas al mismo sistema de filtración renal. Cuando se mueven en conjunto, el patrón tiene más peso interpretativo que cualquier lectura individual — Meridian observa las tendencias direccionales de este cluster con el tiempo.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
@@ -2254,10 +2245,10 @@ export default function LabsUploadPage() {
   const panelSummaries = hasRecentLabs ? buildPanelSummaries(snapshotBiomarkers) : []
   const latestDate = hasRecentLabs ? snapshotBiomarkers[0].collected_at : null
   // Sprint 1: Clinical Stability Phase — raw DB states used directly.
-  // No Watch-guardrail transform needed; new engine only produces Normal/Low/High/Critical.
+  // No Watch-guardrail transform needed; new engine only produces Normal/Bajo/Alto/Critical.
   const snapshotBiomarkersDisplay = snapshotBiomarkers
   const totalStateCounts = {
-    // New engine: Normal → Optimal bucket; Low/High → Attention bucket.
+    // New engine: Normal → Optimal bucket; Bajo/Alto → Attention bucket.
     // Legacy engine: Optimal/Watch/Attention/Critical map to same buckets.
     Optimal:   snapshotBiomarkersDisplay.filter(b => isInRangeState(b.state)).length,
     Watch:     snapshotBiomarkersDisplay.filter(b => b.state === 'Watch').length,
@@ -2837,28 +2828,28 @@ export default function LabsUploadPage() {
                 const level = (duplicateWarning.count <= 2 || ratio < 0.25) ? 'low'
                             : ratio > 0.70 ? 'high'
                             : 'moderate'
-                const isLow = level === 'low'
+                const isBajo = level === 'low'
                 return (
                   <div style={{
                     padding: '14px 18px',
-                    backgroundColor: isLow ? 'rgba(45,212,191,0.06)' : 'rgba(250,204,21,0.07)',
-                    border: `1px solid ${isLow ? 'rgba(45,212,191,0.25)' : 'rgba(250,204,21,0.28)'}`,
+                    backgroundColor: isBajo ? 'rgba(45,212,191,0.06)' : 'rgba(250,204,21,0.07)',
+                    border: `1px solid ${isBajo ? 'rgba(45,212,191,0.25)' : 'rgba(250,204,21,0.28)'}`,
                     borderRadius: '12px',
                     marginBottom: '16px',
                   }}>
-                    <p style={{ fontSize: '13px', fontWeight: 600, color: isLow ? colors.teal : '#FCD34D', margin: '0 0 5px' }}>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: isBajo ? colors.teal : '#FCD34D', margin: '0 0 5px' }}>
                       {level === 'low' ? 'Same-day lab panel detected'
                         : level === 'high' ? 'Possible duplicate upload'
                         : 'Possible overlap detected'}
                     </p>
-                    <p style={{ fontSize: '13px', color: colors.textSoft, margin: `0 0 ${isLow ? '10px' : '14px'}`, lineHeight: 1.5 }}>
+                    <p style={{ fontSize: '13px', color: colors.textSoft, margin: `0 0 ${isBajo ? '10px' : '14px'}`, lineHeight: 1.5 }}>
                       {level === 'low'
                         ? 'Some markers from this date may already exist. Meridian can save this PDF and add the new markers to your Lab Snapshot.'
                         : level === 'high'
                         ? 'Most markers in this PDF appear to already exist for this date. Save anyway only if this is a corrected or separate file.'
                         : lang === 'es' ? 'Algunos biomarcadores de esta fecha podrían existir ya. Revisa antes de guardar, o guarda de todos modos si es un panel de laboratorio separado.' : 'Some biomarkers from this date may already exist. Review before saving, or save anyway if this is a separate lab panel.'}
                     </p>
-                    {isLow ? (
+                    {isBajo ? (
                       <button
                         onClick={() => setDuplicateWarning(null)}
                         style={{
