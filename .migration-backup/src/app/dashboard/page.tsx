@@ -863,6 +863,17 @@ function localizeDashboardInsightForSpanish(insight: GoldenInsight, lang: Meridi
 
   const localize = (value: string): string => {
     let next = value
+
+    next = next.replace(
+      /This signal may reflect\s+\*\*temporary shifts in hydration\*\*\s+or recent protein intake\.?/g,
+      'Esta señal puede reflejar cambios temporales en hidratación o consumo reciente de proteína.'
+    )
+
+    next = next.replace(
+      /This signal may reflect\s+temporary shifts in hydration\s+or recent protein intake\.?/g,
+      'Esta señal puede reflejar cambios temporales en hidratación o consumo reciente de proteína.'
+    )
+
     for (const [from, to] of replacements) {
       next = next.split(from).join(to)
     }
