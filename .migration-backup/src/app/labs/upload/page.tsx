@@ -1476,7 +1476,7 @@ function BiomarkerDetailSheet({
               )}
             </div>
             <p style={{ fontSize: '12px', color: colors.textMuted, marginTop: '6px', marginBottom: 0 }}>
-              Collected {fmtDate(biomarker.collected_at)}
+              Fecha de muestra {fmtDate(biomarker.collected_at)}
             </p>
           </div>
 
@@ -1654,7 +1654,7 @@ function HistoryDetailSheet({
               <span style={{ fontFamily: fonts.heading, fontSize: '46px', fontWeight: 800, color: colors.text, lineHeight: 1 }}>{biomarker.value}</span>
               {biomarker.unit && <span style={{ fontSize: '16px', color: colors.textMuted, marginLeft: '6px', fontWeight: 500 }}>{biomarker.unit}</span>}
             </div>
-            <p style={{ fontSize: '12px', color: colors.textMuted, marginTop: '6px', marginBottom: 0 }}>Collected {fmtDate(biomarker.collected_at)}</p>
+            <p style={{ fontSize: '12px', color: colors.textMuted, marginTop: '6px', marginBottom: 0 }}>Fecha de muestra {fmtDate(biomarker.collected_at)}</p>
           </div>
           {/* Range card — optimal range removed in Sprint 1 */}
           <div style={cardStyle}>
@@ -1906,7 +1906,6 @@ function computeKeyBiomarkers(
 
 export default function LabsUploadPage() {
   const router = useRouter()
-  const [lang] = useMeridianLanguage()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -1933,6 +1932,7 @@ export default function LabsUploadPage() {
   const [ignoredPending, setIgnoredPending] = useState<Set<number>>(new Set())
 
   // ── Recent snapshot state ────────────────────────────────────────────────────
+  const [lang] = useMeridianLanguage()
   const [recentBiomarkers, setRecentBiomarkers] = useState<RecentBiomarker[]>([])
   const [hasAnyLabs, setHasAnyLabs] = useState(false)
   const [snapshotLoading, setSnapshotLoading] = useState(true)
@@ -2856,7 +2856,7 @@ export default function LabsUploadPage() {
                         ? 'Some markers from this date may already exist. Meridian can save this PDF and add the new markers to your Lab Snapshot.'
                         : level === 'high'
                         ? 'Most markers in this PDF appear to already exist for this date. Save anyway only if this is a corrected or separate file.'
-                        : 'Some biomarkers from this date may already exist. Review before saving, or save anyway if this is a separate lab panel.'}
+                        : lang === 'es' ? 'Algunos biomarcadores de esta fecha podrían existir ya. Revisa antes de guardar, o guarda de todos modos si es un panel de laboratorio separado.' : 'Some biomarkers from this date may already exist. Review before saving, or save anyway if this is a separate lab panel.'}
                     </p>
                     {isLow ? (
                       <button
