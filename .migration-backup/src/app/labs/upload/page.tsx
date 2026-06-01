@@ -639,11 +639,11 @@ function getStateStyles(state: string) {
     case 'Normal':    return { bg: colors.optimal,   border: colors.optimalBorder,   label: 'Normal',   dot: '#2DD4BF' }
     case 'Low':       return { bg: colors.attention, border: colors.attentionBorder, label: 'Low',      dot: '#FB923C' }
     case 'High':      return { bg: colors.attention, border: colors.attentionBorder, label: 'High',     dot: '#FB923C' }
-    case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  label: 'Critical', dot: '#F87171' }
+    case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  label: 'Crítico', dot: '#F87171' }
     // ── Legacy states (backward compat for existing DB records) ───────────────
     case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   label: 'Normal',   dot: '#2DD4BF' }
-    case 'Watch':     return { bg: colors.watch,      border: colors.watchBorder,     label: 'Tracking', dot: '#FCD34D' }
-    case 'Attention': return { bg: colors.attention,  border: colors.attentionBorder, label: 'Review',   dot: '#FB923C' }
+    case 'Watch':     return { bg: colors.watch,      border: colors.watchBorder,     label: 'En seguimiento', dot: '#FCD34D' }
+    case 'Attention': return { bg: colors.attention,  border: colors.attentionBorder, label: 'Revisión',   dot: '#FB923C' }
     default:          return { bg: colors.cardBg,     border: colors.cardBorder,      label: '—',        dot: colors.textMuted }
   }
 }
@@ -1235,11 +1235,11 @@ function histGetStateStyle(state: string | null) {
     case 'Normal':    return { bg: colors.optimal,   border: colors.optimalBorder,   dot: '#2DD4BF', label: 'Normal'   }
     case 'Low':       return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'Low'      }
     case 'High':      return { bg: colors.attention, border: colors.attentionBorder, dot: '#FB923C', label: 'High'     }
-    case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  dot: '#F87171', label: 'Critical' }
+    case 'Critical':  return { bg: colors.critical,  border: colors.criticalBorder,  dot: '#F87171', label: 'Crítico' }
     // ── Legacy states (backward compat for existing DB records) ───────────────
     case 'Optimal':   return { bg: colors.optimal,   border: colors.optimalBorder,   dot: '#2DD4BF', label: 'Normal'   }
-    case 'Watch':     return { bg: colors.watch,      border: colors.watchBorder,     dot: '#FCD34D', label: 'Tracking' }
-    case 'Attention': return { bg: colors.attention,  border: colors.attentionBorder, dot: '#FB923C', label: 'Review'   }
+    case 'Watch':     return { bg: colors.watch,      border: colors.watchBorder,     dot: '#FCD34D', label: 'En seguimiento' }
+    case 'Attention': return { bg: colors.attention,  border: colors.attentionBorder, dot: '#FB923C', label: 'Revisión'   }
     default:          return { bg: colors.cardBg,     border: colors.cardBorder,      dot: colors.textMuted, label: '—' }
   }
 }
@@ -3566,7 +3566,7 @@ export default function LabsUploadPage() {
                                   <span style={{ fontSize: '11px', flexShrink: 0 }}>
                                     {sc.Critical > 0 && <span style={{ color: '#F87171', fontWeight: 600 }}>{sc.Critical} {lang === 'es' ? 'crítico' : 'critical'}</span>}
                                     {sc.Critical > 0 && (sc.Attention > 0 || sc.Watch > 0) && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
-                                    {sc.Attention > 0 && <span style={{ color: '#FB923C', fontWeight: 600 }}>{sc.Attention} review</span>}
+                                    {sc.Attention > 0 && <span style={{ color: '#FB923C', fontWeight: 600 }}>{sc.Attention} en revisión</span>}
                                     {sc.Attention > 0 && sc.Watch > 0 && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
                                     {sc.Watch > 0 && <span style={{ color: '#FCD34D' }}>{sc.Watch} en seguimiento</span>}
                                     {(sc.Critical > 0 || sc.Attention > 0 || sc.Watch > 0) && sc.Optimal > 0 && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
