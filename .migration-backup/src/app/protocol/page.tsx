@@ -170,6 +170,13 @@ const COPY = {
     title: 'Plan',
     subtitleStrong: 'Tu plan activo.',
     subtitleLine: 'Registro semanal y rotación de sitio.',
+    loadingPlan: 'Cargando tu plan...',
+    noActiveProtocolsTitle: 'No hay protocolos activos.',
+    noActiveProtocolsCopy:
+      'Si GLP-1 forma parte de tu plan actual, puedes activarlo desde tu perfil. Si no lo usas, esta sección se mantiene limpia para no mostrar información que no te aplica.',
+    goToProfile: 'Ir a Perfil',
+    protocolNotEnabledSaveError: 'Activa el seguimiento GLP-1 desde tu perfil antes de guardar entradas.',
+    profileLoadError: 'No pudimos cargar la configuración de tu plan. Intenta nuevamente.',
     currentDose: 'Dosis actual',
     daysSinceLast: 'Días desde última',
     nextDate: 'Próxima fecha',
@@ -212,6 +219,13 @@ const COPY = {
     title: 'Plan',
     subtitleStrong: 'Your active plan.',
     subtitleLine: 'Weekly tracking and site rotation.',
+    loadingPlan: 'Loading your plan...',
+    noActiveProtocolsTitle: 'No active protocols.',
+    noActiveProtocolsCopy:
+      'If GLP-1 is part of your current plan, you can enable it from your profile. If you do not use it, this section stays clean and does not show information that does not apply to you.',
+    goToProfile: 'Go to Profile',
+    protocolNotEnabledSaveError: 'Enable GLP-1 tracking from your profile before saving entries.',
+    profileLoadError: 'We could not load your plan settings. Please try again.',
     currentDose: 'Current dose',
     daysSinceLast: 'Days since last',
     nextDate: 'Next date',
@@ -561,6 +575,31 @@ const styles: Record<string, CSSProperties> = {
     lineHeight: 1.6,
     background: 'rgba(6,19,22,0.28)',
   },
+  inactiveTitle: {
+    margin: 0,
+    fontFamily: '"Fraunces", Georgia, serif',
+    color: COLORS.text,
+    fontSize: 24,
+    lineHeight: 1.1,
+    letterSpacing: '-0.035em',
+  },
+  inactiveCopy: {
+    margin: '10px 0 0',
+    color: COLORS.textSoft,
+    fontSize: 14,
+    lineHeight: 1.65,
+  },
+  secondaryButton: {
+    width: 'fit-content',
+    border: `1px solid ${COLORS.cardBorder}`,
+    borderRadius: 14,
+    padding: '12px 14px',
+    background: 'rgba(103,232,249,0.08)',
+    color: COLORS.cyan,
+    fontWeight: 850,
+    fontSize: 13,
+    cursor: 'pointer',
+  },
 };
 
 export default function ProtocolPage() {
@@ -580,6 +619,7 @@ export default function ProtocolPage() {
   const copy = COPY[lang];
 
   const [userId, setUserId] = useState<string | null>(null);
+  const [glp1ProtocolEnabled, setGlp1ProtocolEnabled] = useState(false);
   const [entries, setEntries] = useState<TirzepatideEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -597,15 +637,16 @@ export default function ProtocolPage() {
   const daysSinceLast = latestEntry ? getDaysSince(latestEntry.date) : null;
 
   useEffect(() => {
-    setLang(getPreferredLanguage());
-  }, []);
-
-  useEffect(() => {
     let isMounted = true;
 
-    async function loadEntries() {
+    async function loadProtocolData() {
+      const selectedLang = getPreferredLanguage();
+      const selectedCopy = COPY[selectedLang];
+
+      setLang(selectedLang);
       setLoading(true);
       setErrorMessage('');
+      setSuccessMessage('');
 
       const {
         data: { user },
@@ -616,46 +657,71 @@ export default function ProtocolPage() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('tirzepatide_entries')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false });
-
       if (!isMounted) {
         return;
       }
 
       setUserId(user.id);
 
-      if (error) {
-        setErrorMessage(copy.loadError);
+      const response = await fetch('/api/tirzepatide', {
+        method: 'GET',
+        cache: 'no-store',
+      });
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (!response.ok) {
+        setErrorMessage(response.status === 401 ? selectedCopy.profileLoadError : selectedCopy.loadError);
+        setGlp1ProtocolEnabled(false);
         setEntries([]);
-      } else {
-        const loadedEntries = sortEntries((data ?? []) as TirzepatideEntry[]);
-        setEntries(loadedEntries);
+        setLoading(false);
+        return;
+      }
 
+      const payload = (await response.json()) as {
+        success?: boolean;
+        protocol_enabled?: boolean;
+        data?: TirzepatideEntry[];
+      };
+
+      const isProtocolEnabled = Boolean(payload.protocol_enabled);
+      setGlp1ProtocolEnabled(isProtocolEnabled);
+
+      if (!isProtocolEnabled) {
+        setEntries([]);
         setDate(formatDateInput(new Date()));
+        setDose(2.5);
+        setSite('abdomen_left');
         setNotes('');
+        setLoading(false);
+        return;
+      }
 
-        if (loadedEntries.length > 0) {
-          setDose(Number(loadedEntries[0].dose));
-          setSite(getSuggestedSite(loadedEntries));
-        } else {
-          setDose(2.5);
-          setSite('abdomen_left');
-        }
+      const loadedEntries = sortEntries((payload.data ?? []) as TirzepatideEntry[]);
+      setEntries(loadedEntries);
+
+      setDate(formatDateInput(new Date()));
+      setNotes('');
+
+      if (loadedEntries.length > 0) {
+        setDose(Number(loadedEntries[0].dose));
+        setSite(getSuggestedSite(loadedEntries));
+      } else {
+        setDose(2.5);
+        setSite('abdomen_left');
       }
 
       setLoading(false);
     }
 
-    loadEntries();
+    loadProtocolData();
 
     return () => {
       isMounted = false;
     };
-  }, [copy.loadError, router, supabase]);
+  }, [router, supabase]);
 
   function openNativeDatePicker() {
     const input = dateInputRef.current;
@@ -686,41 +752,45 @@ export default function ProtocolPage() {
       return;
     }
 
+    if (!glp1ProtocolEnabled) {
+      setErrorMessage(copy.protocolNotEnabledSaveError);
+      return;
+    }
+
     setSaving(true);
     setErrorMessage('');
     setSuccessMessage('');
 
-    const payload = {
-      user_id: userId,
-      date,
-      dose,
-      site,
-      notes: notes.trim() ? notes.trim() : null,
-    };
+    const response = await fetch('/api/tirzepatide', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        date,
+        dose,
+        site,
+        notes: notes.trim() ? notes.trim() : null,
+      }),
+    });
 
-    const { data, error } = await supabase
-      .from('tirzepatide_entries')
-      .insert(payload)
-      .select('*')
-      .single();
+    const payload = (await response.json().catch(() => null)) as {
+      success?: boolean;
+      data?: TirzepatideEntry;
+      error?: string;
+    } | null;
 
-    if (error) {
-      const isDuplicate = error.code === '23505';
-
-      setErrorMessage(
-        isDuplicate
-          ? copy.duplicateError
-          : copy.saveError,
-      );
+    if (!response.ok || !payload?.success || !payload.data) {
+      setErrorMessage(response.status === 409 ? copy.duplicateError : copy.saveError);
       setSaving(false);
       return;
     }
 
-    const updatedEntries = sortEntries([data as TirzepatideEntry, ...entries]);
+    const updatedEntries = sortEntries([payload.data, ...entries]);
 
     setEntries(updatedEntries);
     setDate(formatDateInput(new Date()));
-    setDose(Number((data as TirzepatideEntry).dose));
+    setDose(Number(payload.data.dose));
     setSite(getSuggestedSite(updatedEntries));
     setNotes('');
     setSuccessMessage(copy.saved);
@@ -741,6 +811,44 @@ export default function ProtocolPage() {
             </p>
           </header>
 
+          {loading ? (
+            <section style={styles.section}>
+              <div style={{ ...styles.card, ...styles.block }}>
+                <div style={styles.emptyState}>{copy.loadingPlan}</div>
+              </div>
+            </section>
+          ) : !glp1ProtocolEnabled ? (
+            <section style={styles.section}>
+              <div style={{ ...styles.card, ...styles.block }}>
+                <h2 style={styles.inactiveTitle}>{copy.noActiveProtocolsTitle}</h2>
+                <p style={styles.inactiveCopy}>{copy.noActiveProtocolsCopy}</p>
+
+                <div style={{ marginTop: 18 }}>
+                  <button
+                    type="button"
+                    style={styles.secondaryButton}
+                    onClick={() => router.push('/profile')}
+                  >
+                    {copy.goToProfile}
+                  </button>
+                </div>
+
+                {errorMessage ? (
+                  <div
+                    style={{
+                      ...styles.message,
+                      border: '1px solid rgba(248,113,113,0.24)',
+                      background: 'rgba(248,113,113,0.08)',
+                      color: '#FCA5A5',
+                    }}
+                  >
+                    {errorMessage}
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          ) : (
+            <>
           <section style={styles.section}>
             <div style={styles.grid}>
               <article style={{ ...styles.card, ...styles.statusCard }}>
@@ -913,10 +1021,10 @@ export default function ProtocolPage() {
                 <button
                   style={{
                     ...styles.button,
-                    ...(saving || loading ? styles.buttonDisabled : {}),
+                    ...(saving || loading || !glp1ProtocolEnabled ? styles.buttonDisabled : {}),
                   }}
                   type="submit"
-                  disabled={saving || loading}
+                  disabled={saving || loading || !glp1ProtocolEnabled}
                 >
                   {saving ? copy.saving : copy.saveEntry}
                 </button>
@@ -983,6 +1091,8 @@ export default function ProtocolPage() {
               )}
             </div>
           </section>
+            </>
+          )}
         </div>
       </main>
 
