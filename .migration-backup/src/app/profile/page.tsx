@@ -636,66 +636,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ════════════════════════ LANGUAGE SETTINGS ═══ */}
-        <div style={cardStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', marginBottom: '14px' }}>
-            <div>
-              <span style={{ ...cardLabel, display: 'block', marginBottom: '4px' }}>Language</span>
-              <p style={{ margin: 0, fontSize: '11px', color: colors.textMuted, lineHeight: 1.45 }}>
-                Choose how Meridian displays navigation and interface labels.
-              </p>
-            </div>
-            <span style={{
-              fontSize: '9px',
-              fontWeight: 800,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: colors.teal,
-              opacity: 0.85,
-            }}>
-              {lang === 'es' ? 'Español' : 'English'}
-            </span>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            {(['en', 'es'] as MeridianLanguage[]).map(option => {
-              const active = lang === option
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setLanguage(option)}
-                  style={{
-                    padding: '12px 14px',
-                    borderRadius: '12px',
-                    border: active ? '1px solid rgba(45,212,191,0.78)' : `1px solid ${colors.cardBorder}`,
-                    background: active ? 'rgba(45,212,191,0.10)' : colors.inputBg,
-                    color: active ? colors.teal : colors.textSoft,
-                    fontSize: '13px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    fontFamily: fonts.ui,
-                    letterSpacing: '-0.01em',
-                    transition: 'all 160ms ease',
-                    touchAction: 'manipulation',
-                  }}
-                >
-                  {option === 'es' ? 'Español' : 'English'}
-                </button>
-              )
-            })}
-          </div>
-
-          <p style={{ ...fieldHint, marginTop: '10px' }}>
-            This setting is saved on this device. More Spanish translations will be added screen by screen.
-          </p>
-        </div>
-
-        {/* ════════════════════════ PLAN SETTINGS ═══ */}
-        <div style={{ marginBottom: '10px' }}>
-          <Glp1ProtocolToggle />
-        </div>
-
         {/* ════════════════════════ BIOLOGICAL PASSPORT ═══ */}
         <div style={cardStyle}>
           {/* Passport header */}
@@ -1140,6 +1080,11 @@ export default function ProfilePage() {
           )}
         </div>
 
+        {/* ═══════════════════════════ PLAN PROTOCOLS ═══ */}
+        <div style={{ marginBottom: '10px' }}>
+          <Glp1ProtocolToggle />
+        </div>
+
         {/* ════════════════════════ DATA CONSTELLATION ═══ */}
         <div style={cardStyle}>
           <span style={{ ...cardLabel, display: 'block', marginBottom: '6px' }}>Data Constellation</span>
@@ -1263,7 +1208,59 @@ export default function ProfilePage() {
 
           <div>
             {/* App preferences */}
-            <ControlRow label="App preferences" soon />
+            <div style={{
+              padding: '13px 0',
+              borderBottom: `1px solid ${colors.cardBorder}`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '10px' }}>
+                <div>
+                  <span style={{ fontSize: '14px', color: colors.textSoft, fontWeight: 700 }}>App preferences</span>
+                  <p style={{ margin: '3px 0 0', fontSize: '11px', color: colors.textMuted, lineHeight: 1.4 }}>
+                    Language and interface settings.
+                  </p>
+                </div>
+                <span style={{
+                  fontSize: '10px',
+                  color: colors.textMuted,
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  background: 'rgba(95,142,133,0.10)',
+                  border: '1px solid rgba(95,142,133,0.18)',
+                  borderRadius: '6px',
+                  padding: '2px 8px',
+                }}>
+                  {lang === 'es' ? 'Español' : 'English'}
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                {(['en', 'es'] as MeridianLanguage[]).map(option => {
+                  const active = lang === option
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setLanguage(option)}
+                      style={{
+                        padding: '9px 12px',
+                        borderRadius: '10px',
+                        border: active ? '1px solid rgba(45,212,191,0.72)' : `1px solid ${colors.cardBorder}`,
+                        background: active ? 'rgba(45,212,191,0.09)' : colors.inputBg,
+                        color: active ? colors.teal : colors.textSoft,
+                        fontSize: '12px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        fontFamily: fonts.ui,
+                        letterSpacing: '-0.01em',
+                      }}
+                    >
+                      {option === 'es' ? 'Español' : 'English'}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
             {/* Data sources */}
             <ControlRow label="Data sources" soon />
             {/* Privacy controls */}
