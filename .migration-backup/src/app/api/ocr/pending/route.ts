@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedRouteContext } from '@/lib/supabase/route-auth'
 
 // ── Pending Classification Queue ───────────────────────────────────────────────
 // Stores unrecognized markers from OCR extraction that could not be confidently
@@ -24,12 +25,25 @@ interface PendingMarkerInput {
 
 export async function POST(request: NextRequest) {
   try {
+    const { context, errorResponse } = await getAuthenticatedRouteContext()
+
+    if (errorResponse || !context) {
+      return errorResponse
+    }
+
     const body = await request.json()
     const { user_id, markers, collected_at, source_pdf_name } = body
 
-    if (!user_id || !markers || !Array.isArray(markers)) {
+    if (user_id && user_id !== context.user.id) {
       return NextResponse.json(
-        { success: false, error: 'Missing user_id or markers array' },
+        { success: false, error: 'Forbidden.' },
+        { status: 403 }
+      )
+    }
+
+    if (!markers || !Array.isArray(markers)) {
+      return NextResponse.json(
+        { success: false, error: 'Missing markers array' },
         { status: 400 }
       )
     }
@@ -46,7 +60,7 @@ export async function POST(request: NextRequest) {
     const collectedDate = collected_at || new Date().toISOString()
 
     const rows = (markers as PendingMarkerInput[]).map(m => ({
-      user_id,
+      user_id: context.user.id,
       raw_name:             m.raw_name,
       raw_value:            m.raw_value,
       raw_unit:             m.raw_unit,

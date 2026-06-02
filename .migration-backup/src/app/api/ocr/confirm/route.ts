@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedRouteContext } from '@/lib/supabase/route-auth'
 
 // Qualitative result values that Meridian recognises and persists.
 // Any value outside this set is rejected to prevent garbage data.
@@ -56,12 +57,25 @@ function normalizeState(state: string): 'Optimal' | 'Watch' | 'Attention' | 'Cri
 
 export async function POST(request: NextRequest) {
   try {
+    const { context, errorResponse } = await getAuthenticatedRouteContext()
+
+    if (errorResponse || !context) {
+      return errorResponse
+    }
+
     const body = await request.json()
     const { user_id, biomarkers, collected_at, source_pdf_url } = body
 
-    if (!user_id || !biomarkers || !Array.isArray(biomarkers)) {
+    if (user_id && user_id !== context.user.id) {
       return NextResponse.json(
-        { success: false, error: 'Missing user_id or biomarkers array' },
+        { success: false, error: 'Forbidden.' },
+        { status: 403 }
+      )
+    }
+
+    if (!biomarkers || !Array.isArray(biomarkers)) {
+      return NextResponse.json(
+        { success: false, error: 'Missing biomarkers array' },
         { status: 400 }
       )
     }
@@ -97,7 +111,7 @@ export async function POST(request: NextRequest) {
           })
         }
         return {
-          user_id,
+          user_id: context.user.id,
           marker_name:          b.slug,
           value:                isQualitative ? null : b.value,
           value_qualitative:    isQualitative ? b.qualitative_value : null,

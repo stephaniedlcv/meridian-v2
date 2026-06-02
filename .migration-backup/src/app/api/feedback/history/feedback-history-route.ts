@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { getAuthenticatedRouteContext } from '@/lib/supabase/route-auth';
 
 type ErrorResponse = {
   success: false;
@@ -27,23 +27,17 @@ function errorResponse(message: string, status: number): NextResponse<ErrorRespo
   return NextResponse.json({ success: false, error: message }, { status });
 }
 
-export async function GET(request: Request): Promise<NextResponse<SuccessResponse | ErrorResponse>> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+export async function GET(): Promise<NextResponse<SuccessResponse | ErrorResponse>> {
+  const { context, errorResponse: authError } = await getAuthenticatedRouteContext();
 
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('user_id');
-
-  if (!userId || userId.trim().length === 0) {
-    return errorResponse('user_id is required.', 400);
+  if (authError || !context) {
+    return authError as NextResponse<ErrorResponse>;
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await context.supabase
     .from('feedback_loop')
     .select('*')
-    .eq('user_id', userId.trim())
+    .eq('user_id', context.user.id)
     .order('created_at', { ascending: false })
     .limit(10);
 

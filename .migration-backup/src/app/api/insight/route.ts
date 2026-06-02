@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedRouteContext } from '@/lib/supabase/route-auth'
 import { runDecisionEngine, BiomarkerRecord } from '@/lib/decision-engine'
 import { CANONICAL_DICTIONARY } from '@/lib/canonical-dictionary'
 import { getTrendDirection, calculateDelta, calculatePercentChange } from '@/lib/trend-engine'
@@ -387,17 +388,25 @@ function localizeInsightForSpanish(insight: GoldenInsight): GoldenInsight {
 
 export async function GET(request: NextRequest) {
   try {
+    const { context, errorResponse } = await getAuthenticatedRouteContext()
+
+    if (errorResponse || !context) {
+      return errorResponse
+    }
+
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('user_id')
+    const requestedUserId = searchParams.get('user_id')
     const langParam = searchParams.get('lang')
     const language: InsightLanguage = langParam === 'es' ? 'es' : 'en'
 
-    if (!userId) {
+    if (requestedUserId && requestedUserId !== context.user.id) {
       return NextResponse.json(
-        { success: false, error: 'Missing user_id parameter' },
-        { status: 400 }
+        { success: false, error: 'Forbidden.' },
+        { status: 403 }
       )
     }
+
+    const userId = context.user.id
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getAuthenticatedRouteContext } from '@/lib/supabase/route-auth'
 import {
   CANONICAL_DICTIONARY,
   matchMarkerToSlug,
@@ -317,12 +318,25 @@ function parseReferenceRange(rangeStr: string | undefined): { min: number | null
 
 export async function POST(request: NextRequest) {
   try {
+    const { context, errorResponse } = await getAuthenticatedRouteContext()
+
+    if (errorResponse || !context) {
+      return errorResponse
+    }
+
     const body = await request.json()
     const { pdf_base64, user_id, biological_profile } = body
 
-    if (!pdf_base64 || !user_id) {
+    if (user_id && user_id !== context.user.id) {
       return NextResponse.json(
-        { success: false, error: 'Missing pdf_base64 or user_id' },
+        { success: false, error: 'Forbidden.' },
+        { status: 403 }
+      )
+    }
+
+    if (!pdf_base64) {
+      return NextResponse.json(
+        { success: false, error: 'Missing pdf_base64' },
         { status: 400 }
       )
     }

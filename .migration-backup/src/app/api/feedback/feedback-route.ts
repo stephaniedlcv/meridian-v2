@@ -1,8 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { getAuthenticatedRouteContext } from '@/lib/supabase/route-auth';
 
 type FeedbackRequestBody = {
-  user_id?: unknown;
+  user_id?: unknown; // Ignored for security. Authenticated user.id is the source of truth.
   insight_id?: unknown;
   adherence_score?: unknown;
   skip_reason?: unknown;
@@ -28,10 +28,11 @@ function errorResponse(message: string, status: number): NextResponse<ErrorRespo
 }
 
 export async function POST(request: Request): Promise<NextResponse<SuccessResponse | ErrorResponse>> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  const { context, errorResponse: authError } = await getAuthenticatedRouteContext();
+
+  if (authError || !context) {
+    return authError as NextResponse<ErrorResponse>;
+  }
 
   let body: FeedbackRequestBody;
 
@@ -41,11 +42,7 @@ export async function POST(request: Request): Promise<NextResponse<SuccessRespon
     return errorResponse('Invalid JSON body.', 400);
   }
 
-  const { user_id, insight_id, adherence_score, skip_reason } = body;
-
-  if (typeof user_id !== 'string' || user_id.trim().length === 0) {
-    return errorResponse('user_id is required.', 400);
-  }
+  const { insight_id, adherence_score, skip_reason } = body;
 
   if (typeof insight_id !== 'string' || insight_id.trim().length === 0) {
     return errorResponse('insight_id is required.', 400);
@@ -60,10 +57,10 @@ export async function POST(request: Request): Promise<NextResponse<SuccessRespon
       ? skip_reason.trim()
       : null;
 
-  const { data, error } = await supabase
+  const { data, error } = await context.supabase
     .from('feedback_loop')
     .insert({
-      user_id: user_id.trim(),
+      user_id: context.user.id,
       insight_id: insight_id.trim(),
       adherence_score,
       skip_reason: normalizedSkipReason,

@@ -2,19 +2,28 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedRouteContext } from '@/lib/supabase/route-auth'
 import { runDecisionEngine, BiomarkerRecord } from '@/lib/decision-engine'
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('user_id')
+    const { context, errorResponse } = await getAuthenticatedRouteContext()
 
-    if (!userId) {
+    if (errorResponse || !context) {
+      return errorResponse
+    }
+
+    const { searchParams } = new URL(request.url)
+    const requestedUserId = searchParams.get('user_id')
+
+    if (requestedUserId && requestedUserId !== context.user.id) {
       return NextResponse.json(
-        { success: false, error: 'Missing user_id parameter' },
-        { status: 400 }
+        { success: false, error: 'Forbidden.' },
+        { status: 403 }
       )
     }
+
+    const userId = context.user.id
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

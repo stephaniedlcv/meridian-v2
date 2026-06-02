@@ -291,7 +291,7 @@ export default function MeridianApp() {
   useEffect(() => {
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     )
     async function checkAuth() {
       const { data: { user } } = await supabase.auth.getUser()
