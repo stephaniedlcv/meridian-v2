@@ -6,53 +6,28 @@ import {
   getPastHealthEvents,
   getUpcomingHealthEvents,
 } from '@/lib/timeline/healthEvents';
-import {
-  downloadLabDocument,
-  getLabDocuments,
-} from '@/lib/timeline/labDocuments';
-import {
-  formatAppointmentDateTime,
-  formatLabDate,
-} from '@/lib/timeline/dateFormat';
+import { getLabDocuments } from '@/lib/timeline/labDocuments';
+import { AppointmentCard } from '@/components/timeline/AppointmentCard';
+import { AppointmentModal } from '@/components/timeline/AppointmentModal';
+import { LabDocumentList } from '@/components/timeline/LabDocumentList';
+import { LabUploadModal } from '@/components/timeline/LabUploadModal';
 
 type TimelineTab = 'upcoming' | 'past' | 'labs';
-
-const STATUS_LABELS: Record<string, string> = {
-  upcoming: 'Próxima',
-  completed: 'Completada',
-  cancelled: 'Cancelada',
-  needs_follow_up: 'Requiere seguimiento',
-};
-
-const PREP_STATUS_LABELS: Record<string, string> = {
-  not_started: 'No iniciada',
-  in_progress: 'En progreso',
-  ready: 'Lista',
-};
-
-function getStatusLabel(status: string) {
-  return STATUS_LABELS[status] ?? status;
-}
-
-function getPrepStatusLabel(status: string) {
-  return PREP_STATUS_LABELS[status] ?? status;
-}
-
-function getLinkedLabsCount(event: HealthEvent) {
-  return event.related_lab_ids?.length ?? 0;
-}
+type AppointmentModalMode = 'create' | 'edit' | 'view';
 
 export default function HealthTimelinePage() {
   const [activeTab, setActiveTab] = useState<TimelineTab>('upcoming');
   const [upcomingEvents, setUpcomingEvents] = useState<HealthEvent[]>([]);
   const [pastEvents, setPastEvents] = useState<HealthEvent[]>([]);
   const [labDocuments, setLabDocuments] = useState<LabDocument[]>([]);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<HealthEvent | null>(null);
+  const [appointmentModalMode, setAppointmentModalMode] =
+    useState<AppointmentModalMode>('create');
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [isLabUploadModalOpen, setIsLabUploadModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDownloadingLabId, setIsDownloadingLabId] = useState<string | null>(
-    null,
-  );
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
 
   async function loadTimelineData() {
     setIsLoading(true);
@@ -87,26 +62,37 @@ export default function HealthTimelinePage() {
     return activeTab === 'upcoming' ? upcomingEvents : pastEvents;
   }, [activeTab, upcomingEvents, pastEvents]);
 
-  async function handleDownloadLab(lab: LabDocument) {
-    setIsDownloadingLabId(lab.id);
-    setError(null);
-
-    try {
-      await downloadLabDocument(lab);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'No pudimos generar el enlace de descarga.',
-      );
-    } finally {
-      setIsDownloadingLabId(null);
-    }
+  function openCreateAppointmentModal() {
+    setSelectedAppointment(null);
+    setAppointmentModalMode('create');
+    setIsAppointmentModalOpen(true);
   }
 
-  function handleComingSoon(action: string) {
-    setNotice(`${action} se añadirá en el próximo task.`);
-    window.setTimeout(() => setNotice(null), 3500);
+  function openViewAppointmentModal(event: HealthEvent) {
+    setSelectedAppointment(event);
+    setAppointmentModalMode('view');
+    setIsAppointmentModalOpen(true);
+  }
+
+  function handleAppointmentModalClose() {
+    setIsAppointmentModalOpen(false);
+    setSelectedAppointment(null);
+  }
+
+  async function handleAppointmentSaved() {
+    await loadTimelineData();
+  }
+
+  async function handleAppointmentDeleted() {
+    await loadTimelineData();
+  }
+
+  async function handleLabUploaded() {
+    await loadTimelineData();
+  }
+
+  async function handleLabListChanged() {
+    await loadTimelineData();
   }
 
   return (
@@ -129,7 +115,7 @@ export default function HealthTimelinePage() {
 
             <button
               type="button"
-              onClick={() => handleComingSoon('Añadir cita')}
+              onClick={openCreateAppointmentModal}
               className="inline-flex items-center justify-center rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
             >
               + Añadir cita
@@ -140,12 +126,6 @@ export default function HealthTimelinePage() {
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-100">
             {error}
-          </div>
-        ) : null}
-
-        {notice ? (
-          <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 px-4 py-3 text-sm text-cyan-100">
-            {notice}
           </div>
         ) : null}
 
@@ -172,11 +152,10 @@ export default function HealthTimelinePage() {
         {isLoading ? (
           <TimelineLoadingState />
         ) : activeTab === 'labs' ? (
-          <LabsSection
+          <LabDocumentList
             labs={labDocuments}
-            isDownloadingLabId={isDownloadingLabId}
-            onUploadClick={() => handleComingSoon('Subir laboratorio')}
-            onDownloadLab={handleDownloadLab}
+            onUploadClick={() => setIsLabUploadModalOpen(true)}
+            onChanged={handleLabListChanged}
           />
         ) : (
           <EventsSection
@@ -196,15 +175,30 @@ export default function HealthTimelinePage() {
             }
             onEmptyAction={() => {
               if (activeTab === 'upcoming') {
-                handleComingSoon('Añadir cita');
+                openCreateAppointmentModal();
               } else {
                 setActiveTab('upcoming');
               }
             }}
-            onViewDetails={() => handleComingSoon('Ver detalles')}
+            onViewDetails={openViewAppointmentModal}
           />
         )}
       </div>
+
+      <AppointmentModal
+        isOpen={isAppointmentModalOpen}
+        mode={appointmentModalMode}
+        appointment={selectedAppointment}
+        onClose={handleAppointmentModalClose}
+        onSaved={handleAppointmentSaved}
+        onDeleted={handleAppointmentDeleted}
+      />
+
+      <LabUploadModal
+        isOpen={isLabUploadModalOpen}
+        onClose={() => setIsLabUploadModalOpen(false)}
+        onUploaded={handleLabUploaded}
+      />
     </main>
   );
 }
@@ -276,133 +270,12 @@ function EventsSection({
   return (
     <section className="grid gap-3">
       {events.map((event) => (
-        <article
+        <AppointmentCard
           key={event.id}
-          className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-xl shadow-black/10"
-        >
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div className="min-w-0">
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-medium text-cyan-100">
-                  {event.specialty}
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-medium text-slate-200">
-                  {getStatusLabel(event.status)}
-                </span>
-              </div>
-
-              <h2 className="text-lg font-semibold text-white">
-                {event.provider_name || event.title || event.specialty}
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-300">
-                {formatAppointmentDateTime(event.starts_at)}
-                {' · '}
-                {event.is_virtual
-                  ? 'Virtual'
-                  : event.location || 'Lugar pendiente'}
-              </p>
-
-              {event.reason ? (
-                <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-300">
-                  <span className="font-medium text-slate-100">Razón: </span>
-                  {event.reason}
-                </p>
-              ) : null}
-
-              <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-300">
-                <span className="rounded-full bg-white/5 px-3 py-1">
-                  Labs vinculados: {getLinkedLabsCount(event)}
-                </span>
-                <span className="rounded-full bg-white/5 px-3 py-1">
-                  Prep: {getPrepStatusLabel(event.prep_status)}
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => onViewDetails(event)}
-              className="shrink-0 rounded-2xl border border-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-            >
-              Ver detalles →
-            </button>
-          </div>
-        </article>
+          event={event}
+          onViewDetails={onViewDetails}
+        />
       ))}
-    </section>
-  );
-}
-
-function LabsSection({
-  labs,
-  isDownloadingLabId,
-  onUploadClick,
-  onDownloadLab,
-}: {
-  labs: LabDocument[];
-  isDownloadingLabId: string | null;
-  onUploadClick: () => void;
-  onDownloadLab: (lab: LabDocument) => void;
-}) {
-  if (!labs.length) {
-    return (
-      <EmptyState
-        title="No has subido laboratorios todavía."
-        description="Sube PDFs o imágenes de laboratorios para vincularlos a tus próximas citas."
-        actionLabel="+ Subir laboratorio"
-        onAction={onUploadClick}
-      />
-    );
-  }
-
-  return (
-    <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-white">Laboratorios</h2>
-          <p className="mt-1 text-sm text-slate-300">
-            Documentos disponibles para vincular a tus citas.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={onUploadClick}
-          className="rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
-        >
-          + Subir laboratorio
-        </button>
-      </div>
-
-      <div className="grid gap-3">
-        {labs.map((lab) => (
-          <article
-            key={lab.id}
-            className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-slate-950/40 p-4 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div>
-              <h3 className="font-medium text-white">{lab.name}</h3>
-              <p className="mt-1 text-sm text-slate-300">
-                {lab.lab_date ? formatLabDate(lab.lab_date) : 'Sin fecha'}
-                {lab.specialty ? ` · ${lab.specialty}` : ''}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                {lab.file_name || 'Archivo guardado'}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              disabled={isDownloadingLabId === lab.id}
-              onClick={() => onDownloadLab(lab)}
-              className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isDownloadingLabId === lab.id ? 'Generando…' : 'Download'}
-            </button>
-          </article>
-        ))}
-      </div>
     </section>
   );
 }
