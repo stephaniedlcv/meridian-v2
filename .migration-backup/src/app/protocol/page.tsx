@@ -71,13 +71,6 @@ const SITE_ROTATION: Record<InjectionSite, InjectionSite> = {
 
 const DOSE_OPTIONS = [2.5, 5, 7.5, 10, 12.5, 15];
 
-const SEED_ENTRY = {
-  date: '2026-05-20',
-  dose: 2.5,
-  site: 'abdomen_left' as InjectionSite,
-  notes: 'Reducción de 5mg a 2.5mg para mantenimiento',
-};
-
 function getSiteLabel(site: string) {
   return SITE_OPTIONS.find((option) => option.value === site)?.label ?? 'No registrado';
 }
@@ -148,7 +141,7 @@ const styles: Record<string, CSSProperties> = {
   },
   shell: {
     width: '100%',
-    maxWidth: 1120,
+    maxWidth: 680,
     margin: '0 auto',
   },
   header: {
@@ -264,7 +257,7 @@ const styles: Record<string, CSSProperties> = {
   },
   rotationGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
     gap: 12,
   },
   rotationCard: {
@@ -440,10 +433,10 @@ export default function ProtocolPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const [date, setDate] = useState(SEED_ENTRY.date);
-  const [dose, setDose] = useState<number>(SEED_ENTRY.dose);
-  const [site, setSite] = useState<InjectionSite>(SEED_ENTRY.site);
-  const [notes, setNotes] = useState(SEED_ENTRY.notes);
+  const [date, setDate] = useState(() => formatDateInput(new Date()));
+  const [dose, setDose] = useState<number>(2.5);
+  const [site, setSite] = useState<InjectionSite>('abdomen_left');
+  const [notes, setNotes] = useState('');
 
   const latestEntry = entries[0] ?? null;
   const suggestedSite = getSuggestedSite(entries);
@@ -485,11 +478,15 @@ export default function ProtocolPage() {
         const loadedEntries = sortEntries((data ?? []) as TirzepatideEntry[]);
         setEntries(loadedEntries);
 
+        setDate(formatDateInput(new Date()));
+        setNotes('');
+
         if (loadedEntries.length > 0) {
-          setDate(formatDateInput(new Date()));
           setDose(Number(loadedEntries[0].dose));
           setSite(getSuggestedSite(loadedEntries));
-          setNotes('');
+        } else {
+          setDose(2.5);
+          setSite('abdomen_left');
         }
       }
 
@@ -782,8 +779,8 @@ export default function ProtocolPage() {
                 <div style={styles.emptyState}>Cargando historial...</div>
               ) : entries.length === 0 ? (
                 <div style={styles.emptyState}>
-                  Todavía no hay entradas guardadas. El formulario está preparado con tu registro
-                  inicial real para que puedas guardarlo primero.
+                  Todavía no hay entradas guardadas. El formulario está listo para que el usuario
+                  registre su primera dosis cuando corresponda.
                 </div>
               ) : (
                 <div style={styles.historyList}>
