@@ -30,6 +30,22 @@ export type BiomarkerState =
 
 export type FeedbackEffectiveness = 'validated' | 'neutral' | 'failed';
 
+export type InjectionSite =
+  | 'abdomen_left'
+  | 'abdomen_right'
+  | 'thigh_left'
+  | 'thigh_right';
+
+export type TirzepatideEntry = {
+  id: string;
+  user_id: string;
+  date: string;
+  dose: number;
+  site: InjectionSite;
+  notes: string | null;
+  created_at: string;
+};
+
 // Status values for the pending classification queue.
 // pending_classification — inserted by /api/ocr/pending; awaiting manual review
 // ignored              — dismissed by user on the upload review screen
@@ -89,6 +105,7 @@ export type Profile = {
   training_days: number | null;
   body_goal_phase: string | null;
   diet_pattern: string | null;
+  glp1_protocol_enabled: boolean;
   // Moderation columns — added by migration 003_admin_moderation.sql
   account_status: string;
   suspended_at: string | null;
@@ -172,6 +189,7 @@ export type Database = {
           training_days?: number | null;
           body_goal_phase?: string | null;
           diet_pattern?: string | null;
+          glp1_protocol_enabled?: boolean;
           account_status?: string;
           suspended_at?: string | null;
           banned_at?: string | null;
@@ -200,6 +218,7 @@ export type Database = {
           training_days?: number | null;
           body_goal_phase?: string | null;
           diet_pattern?: string | null;
+          glp1_protocol_enabled?: boolean;
           account_status?: string;
           suspended_at?: string | null;
           banned_at?: string | null;
@@ -360,6 +379,28 @@ export type Database = {
           biometric_delta?: Json | null;
           effectiveness?: FeedbackEffectiveness;
           window_days?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      tirzepatide_entries: {
+        Row: TirzepatideEntry;
+        Insert: {
+          id?: string;
+          user_id: string;
+          date: string;
+          dose: number;
+          site: InjectionSite;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          date?: string;
+          dose?: number;
+          site?: InjectionSite;
+          notes?: string | null;
           created_at?: string;
         };
         Relationships: [];
