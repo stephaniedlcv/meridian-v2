@@ -2399,7 +2399,7 @@ export default function LabsUploadPage() {
               {lang === 'es' ? 'Tus marcadores clínicos.' : 'Your clinical markers.'}
             </p>
             <p style={{ fontSize: '14px', color: colors.textSoft, marginBottom: hasRecentLabs ? '24px' : '20px' }}>
-              Translated into biological signals.
+              Traducido en señales biológicas.
             </p>
             <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(103,232,249,0.12) 40%, rgba(103,232,249,0.08) 60%, transparent)', marginBottom: '28px' }} />
           </motion.div>
