@@ -17,115 +17,47 @@ export type UserProfile =
   | 'condicion'
   | 'primer_paso';
 
-// Clinical Stability Phase states (new): Normal | Low | High | Critical
-// Legacy states (backward compat for existing DB records): Optimal | Watch | Attention
-export type BiomarkerState =
-  | 'Normal'    // value within clinical reference range (new engine)
-  | 'Low'       // value below reference range, <50% deviation (new engine)
-  | 'High'      // value above reference range, <50% deviation (new engine)
-  | 'Critical'  // severe deviation >50% OR impossible value (both engines)
-  | 'Optimal'   // legacy: was within optimal range (old engine — existing DB records)
-  | 'Watch'     // legacy: within clinical but outside optimal (old engine — existing DB records)
-  | 'Attention' // legacy: mildly outside clinical range (old engine — existing DB records)
+export type BiomarkerState = 'Optimal' | 'Watch' | 'Attention' | 'Critical';
 
 export type FeedbackEffectiveness = 'validated' | 'neutral' | 'failed';
 
-export type InjectionSite =
-  | 'abdomen_left'
-  | 'abdomen_right'
-  | 'thigh_left'
-  | 'thigh_right';
+export type HealthEventType =
+  | 'appointment'
+  | 'lab'
+  | 'inbody'
+  | 'imaging'
+  | 'other';
 
-export type TirzepatideEntry = {
-  id: string;
-  user_id: string;
-  date: string;
-  dose: number;
-  site: InjectionSite;
-  notes: string | null;
-  created_at: string;
-};
+export type PrepStatus =
+  | 'not_started'
+  | 'in_progress'
+  | 'ready';
 
-// Status values for the pending classification queue.
-// pending_classification — inserted by /api/ocr/pending; awaiting manual review
-// ignored              — dismissed by user on the upload review screen
-// mapped               — successfully aliased to a canonical marker slug
-// rejected             — confirmed as non-classifiable
-export type PendingBiomarkerStatus =
-  | 'pending_classification'
-  | 'ignored'
-  | 'mapped'
-  | 'rejected';
-
-// Row shape for pending_biomarkers.
-// Fields inserted by /api/ocr/pending (confirmed from route.ts):
-//   user_id, raw_name, raw_value, raw_unit, raw_reference_range,
-//   collected_at, source_pdf_name, status, reason
-// Fields assumed nullable — present in DB schema for future use but not yet
-// written by any current route: source_panel, suggested_marker_slug, confidence_score
-export type PendingBiomarker = {
-  id: string;
-  user_id: string;
-  raw_name: string;
-  raw_value: number;
-  raw_unit: string;
-  raw_reference_range: string | null;
-  collected_at: string;
-  source_pdf_name: string | null;
-  // Assumed nullable — reserved for future classification pipeline
-  source_panel: string | null;
-  suggested_marker_slug: string | null;
-  confidence_score: number | null;
-  reason: string | null;
-  status: PendingBiomarkerStatus;
-  created_at: string;
-};
+export type HealthEventStatus =
+  | 'upcoming'
+  | 'completed'
+  | 'cancelled'
+  | 'needs_follow_up';
 
 export type Profile = {
   id: string;
   full_name: string | null;
-  first_name: string | null;
-  last_name: string | null;
-  display_name: string | null;
-  biological_profile: BiologicalProfile | null;
+  biological_profile: BiologicalProfile;
   hormonal_profile: string | null;
   birth_date: string | null;
   medications: Json | null;
   safety_status: SafetyStatus;
-  user_profile: UserProfile | null;
-  // current_state stores a JSON array string of StateValue slugs collected at
-  // onboarding step 2. Added by migration 004_onboarding_current_state.sql.
-  current_state: string | null;
+  user_profile: UserProfile;
   onboarding_completed: boolean;
   created_at: string;
-  updated_at: string | null;
-  height_cm: number | null;
-  weight_kg: number | null;
-  activity_level: string | null;
-  training_days: number | null;
-  body_goal_phase: string | null;
-  diet_pattern: string | null;
-  glp1_protocol_enabled: boolean;
-  // Moderation columns — added by migration 003_admin_moderation.sql
-  account_status: string;
-  suspended_at: string | null;
-  banned_at: string | null;
-  disabled_at: string | null;
-  deleted_at: string | null;
-  moderation_reason: string | null;
 };
 
 export type BiomarkerStatic = {
   id: string;
   user_id: string;
   marker_name: string;
-  value: number | null;             // null for qualitative markers (serology, urinalysis dipstick)
-  value_qualitative: string | null; // non-null for qualitative markers; null for quantitative
-  result_type: string | null;       // 'quantitative' | 'qualitative' — mirrors canonical-dictionary result_type
-  source_marker_name: string | null; // raw label from the PDF before canonicalization
-  source_raw_value: string | null;  // raw string value from the PDF before parsing
-  panel_type: string | null;        // e.g. 'CBC', 'CMP', 'Lipid Panel', 'Urinalysis'
-  unit: string;
+  value: number;
+  unit: string | null;
   reference_range_min: number | null;
   reference_range_max: number | null;
   optimal_range_min: number | null;
@@ -163,6 +95,56 @@ export type FeedbackLoop = {
   created_at: string;
 };
 
+export type HealthEvent = {
+  id: string;
+  user_id: string;
+
+  event_type: HealthEventType;
+  title: string | null;
+  specialty: string;
+  provider_name: string | null;
+  location: string | null;
+  is_virtual: boolean;
+  starts_at: string;
+  reason: string | null;
+
+  symptoms_notes: string | null;
+  medications_to_review: string | null;
+  supplements_to_review: string | null;
+  related_lab_ids: string[];
+  things_to_bring: string | null;
+  user_questions: string | null;
+
+  ai_suggested_questions: Json | null;
+  prep_status: PrepStatus;
+
+  outcome_notes: string | null;
+  follow_up_tasks: string | null;
+  follow_up_date: string | null;
+
+  status: HealthEventStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LabDocument = {
+  id: string;
+  user_id: string;
+
+  name: string;
+  lab_date: string | null;
+  specialty: string | null;
+
+  storage_path: string;
+  file_name: string | null;
+  file_size: number | null;
+  file_type: string | null;
+  notes: string | null;
+
+  created_at: string;
+  updated_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -171,113 +153,26 @@ export type Database = {
         Insert: {
           id: string;
           full_name?: string | null;
-          first_name?: string | null;
-          last_name?: string | null;
-          display_name?: string | null;
-          biological_profile?: BiologicalProfile | null;
+          biological_profile: BiologicalProfile;
           hormonal_profile?: string | null;
           birth_date?: string | null;
           medications?: Json | null;
           safety_status?: SafetyStatus;
-          user_profile?: UserProfile | null;
+          user_profile?: UserProfile;
           onboarding_completed?: boolean;
           created_at?: string;
-          updated_at?: string | null;
-          height_cm?: number | null;
-          weight_kg?: number | null;
-          activity_level?: string | null;
-          training_days?: number | null;
-          body_goal_phase?: string | null;
-          diet_pattern?: string | null;
-          glp1_protocol_enabled?: boolean;
-          account_status?: string;
-          suspended_at?: string | null;
-          banned_at?: string | null;
-          disabled_at?: string | null;
-          deleted_at?: string | null;
-          moderation_reason?: string | null;
         };
         Update: {
           id?: string;
           full_name?: string | null;
-          first_name?: string | null;
-          last_name?: string | null;
-          display_name?: string | null;
-          biological_profile?: BiologicalProfile | null;
+          biological_profile?: BiologicalProfile;
           hormonal_profile?: string | null;
           birth_date?: string | null;
           medications?: Json | null;
           safety_status?: SafetyStatus;
-          user_profile?: UserProfile | null;
+          user_profile?: UserProfile;
           onboarding_completed?: boolean;
           created_at?: string;
-          updated_at?: string | null;
-          height_cm?: number | null;
-          weight_kg?: number | null;
-          activity_level?: string | null;
-          training_days?: number | null;
-          body_goal_phase?: string | null;
-          diet_pattern?: string | null;
-          glp1_protocol_enabled?: boolean;
-          account_status?: string;
-          suspended_at?: string | null;
-          banned_at?: string | null;
-          disabled_at?: string | null;
-          deleted_at?: string | null;
-          moderation_reason?: string | null;
-        };
-        Relationships: [];
-      };
-      landing_experience: {
-        Row: {
-          id:                   string;
-          is_active:            boolean;
-          hero_video_url:       string | null;
-          mobile_video_url:     string | null;
-          poster_image_url:     string | null;
-          headline:             string;
-          subcopy:              string;
-          primary_cta_label:    string;
-          secondary_cta_label:  string;
-          logo_variant_url:     string | null;
-          background_theme:     string;
-          overlay_opacity:      number;
-          ambient_mode:         string;
-          created_at:           string;
-          updated_at:           string;
-        };
-        Insert: {
-          id?:                   string;
-          is_active?:            boolean;
-          hero_video_url?:       string | null;
-          mobile_video_url?:     string | null;
-          poster_image_url?:     string | null;
-          headline?:             string;
-          subcopy?:              string;
-          primary_cta_label?:    string;
-          secondary_cta_label?:  string;
-          logo_variant_url?:     string | null;
-          background_theme?:     string;
-          overlay_opacity?:      number;
-          ambient_mode?:         string;
-          created_at?:           string;
-          updated_at?:           string;
-        };
-        Update: {
-          id?:                   string;
-          is_active?:            boolean;
-          hero_video_url?:       string | null;
-          mobile_video_url?:     string | null;
-          poster_image_url?:     string | null;
-          headline?:             string;
-          subcopy?:              string;
-          primary_cta_label?:    string;
-          secondary_cta_label?:  string;
-          logo_variant_url?:     string | null;
-          background_theme?:     string;
-          overlay_opacity?:      number;
-          ambient_mode?:         string;
-          updated_at?:           string;
         };
         Relationships: [];
       };
@@ -287,13 +182,8 @@ export type Database = {
           id?: string;
           user_id: string;
           marker_name: string;
-          value?: number | null;
-          value_qualitative?: string | null;
-          result_type?: string | null;
-          source_marker_name?: string | null;
-          source_raw_value?: string | null;
-          panel_type?: string | null;
-          unit: string;
+          value: number;
+          unit?: string | null;
           reference_range_min?: number | null;
           reference_range_max?: number | null;
           optimal_range_min?: number | null;
@@ -309,13 +199,8 @@ export type Database = {
           id?: string;
           user_id?: string;
           marker_name?: string;
-          value?: number | null;
-          value_qualitative?: string | null;
-          result_type?: string | null;
-          source_marker_name?: string | null;
-          source_raw_value?: string | null;
-          panel_type?: string | null;
-          unit?: string;
+          value?: number;
+          unit?: string | null;
           reference_range_min?: number | null;
           reference_range_max?: number | null;
           optimal_range_min?: number | null;
@@ -383,197 +268,107 @@ export type Database = {
         };
         Relationships: [];
       };
-      tirzepatide_entries: {
-        Row: TirzepatideEntry;
+      health_events: {
+        Row: HealthEvent;
         Insert: {
           id?: string;
           user_id: string;
-          date: string;
-          dose: number;
-          site: InjectionSite;
-          notes?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          date?: string;
-          dose?: number;
-          site?: InjectionSite;
-          notes?: string | null;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-      pending_biomarkers: {
-        Row: PendingBiomarker;
-        Insert: {
-          id?: string;
-          user_id: string;
-          raw_name: string;
-          raw_value: number;
-          raw_unit: string;
-          raw_reference_range?: string | null;
-          collected_at: string;
-          source_pdf_name?: string | null;
-          source_panel?: string | null;
-          suggested_marker_slug?: string | null;
-          confidence_score?: number | null;
+
+          event_type?: HealthEventType;
+          title?: string | null;
+          specialty: string;
+          provider_name?: string | null;
+          location?: string | null;
+          is_virtual?: boolean;
+          starts_at: string;
           reason?: string | null;
-          status: PendingBiomarkerStatus;
+
+          symptoms_notes?: string | null;
+          medications_to_review?: string | null;
+          supplements_to_review?: string | null;
+          related_lab_ids?: string[];
+          things_to_bring?: string | null;
+          user_questions?: string | null;
+
+          ai_suggested_questions?: Json | null;
+          prep_status?: PrepStatus;
+
+          outcome_notes?: string | null;
+          follow_up_tasks?: string | null;
+          follow_up_date?: string | null;
+
+          status?: HealthEventStatus;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
-          raw_name?: string;
-          raw_value?: number;
-          raw_unit?: string;
-          raw_reference_range?: string | null;
-          collected_at?: string;
-          source_pdf_name?: string | null;
-          source_panel?: string | null;
-          suggested_marker_slug?: string | null;
-          confidence_score?: number | null;
+
+          event_type?: HealthEventType;
+          title?: string | null;
+          specialty?: string;
+          provider_name?: string | null;
+          location?: string | null;
+          is_virtual?: boolean;
+          starts_at?: string;
           reason?: string | null;
-          status?: PendingBiomarkerStatus;
+
+          symptoms_notes?: string | null;
+          medications_to_review?: string | null;
+          supplements_to_review?: string | null;
+          related_lab_ids?: string[];
+          things_to_bring?: string | null;
+          user_questions?: string | null;
+
+          ai_suggested_questions?: Json | null;
+          prep_status?: PrepStatus;
+
+          outcome_notes?: string | null;
+          follow_up_tasks?: string | null;
+          follow_up_date?: string | null;
+
+          status?: HealthEventStatus;
           created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
-      admin_users: {
-        Row: {
-          id: string;
-          user_id: string;
-          role: string;
-          created_by: string | null;
-          created_at: string;
-          updated_at: string;
-        };
+      lab_documents: {
+        Row: LabDocument;
         Insert: {
           id?: string;
           user_id: string;
-          role: string;
-          created_by?: string | null;
+
+          name: string;
+          lab_date?: string | null;
+          specialty?: string | null;
+
+          storage_path: string;
+          file_name?: string | null;
+          file_size?: number | null;
+          file_type?: string | null;
+          notes?: string | null;
+
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
-          role?: string;
-          created_by?: string | null;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      admin_activity_logs: {
-        Row: {
-          id: string;
-          admin_user_id: string;
-          action: string;
-          resource_type: string | null;
-          resource_id: string | null;
-          metadata: Record<string, unknown> | null;
-          ip_address: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          admin_user_id: string;
-          action: string;
-          resource_type?: string | null;
-          resource_id?: string | null;
-          metadata?: Record<string, unknown> | null;
-          ip_address?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          admin_user_id?: string;
-          action?: string;
-          resource_type?: string | null;
-          resource_id?: string | null;
-          metadata?: Record<string, unknown> | null;
-          ip_address?: string | null;
-        };
-        Relationships: [];
-      };
-      notifications: {
-        Row: {
-          id: string;
-          title: string;
-          body: string;
-          type: string;
-          status: string;
-          target_segment: string;
-          segment_filters: Record<string, unknown> | null;
-          recipient_count: number;
-          created_by: string | null;
-          scheduled_for: string | null;
-          sent_at: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          title: string;
-          body: string;
-          type: string;
-          status?: string;
-          target_segment?: string;
-          segment_filters?: Record<string, unknown> | null;
-          recipient_count?: number;
-          created_by?: string | null;
-          scheduled_for?: string | null;
-          sent_at?: string | null;
+
+          name?: string;
+          lab_date?: string | null;
+          specialty?: string | null;
+
+          storage_path?: string;
+          file_name?: string | null;
+          file_size?: number | null;
+          file_type?: string | null;
+          notes?: string | null;
+
           created_at?: string;
           updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          title?: string;
-          body?: string;
-          type?: string;
-          status?: string;
-          target_segment?: string;
-          segment_filters?: Record<string, unknown> | null;
-          recipient_count?: number;
-          scheduled_for?: string | null;
-          sent_at?: string | null;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      notification_recipients: {
-        Row: {
-          id: string;
-          notification_id: string;
-          user_id: string;
-          delivered: boolean;
-          opened: boolean;
-          clicked: boolean;
-          delivered_at: string | null;
-          opened_at: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          notification_id: string;
-          user_id: string;
-          delivered?: boolean;
-          opened?: boolean;
-          clicked?: boolean;
-          delivered_at?: string | null;
-          opened_at?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          delivered?: boolean;
-          opened?: boolean;
-          clicked?: boolean;
-          delivered_at?: string | null;
-          opened_at?: string | null;
         };
         Relationships: [];
       };
