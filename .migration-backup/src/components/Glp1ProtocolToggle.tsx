@@ -15,12 +15,11 @@ const COLORS = {
   textMuted: '#5F8E85',
   cardBg: 'rgba(232,248,245,0.055)',
   cardBorder: 'rgba(103,232,249,0.13)',
+  inputBg: 'rgba(6,19,22,0.6)',
 };
 
 function getPreferredLanguage(): AppLanguage {
-  if (typeof window === 'undefined') {
-    return 'es';
-  }
+  if (typeof window === 'undefined') return 'es';
 
   const localValues = [
     window.localStorage.getItem('meridian_language'),
@@ -39,98 +38,113 @@ function getPreferredLanguage(): AppLanguage {
 
 const COPY = {
   es: {
-    eyebrow: 'PLAN',
+    eyebrow: 'Plan protocols',
     title: 'Seguimiento GLP-1',
-    copy:
-      'Activa esta opción solo si GLP-1 o tirzepatide forma parte de tu plan actual. Si no aplica, Plan se mantiene limpio y sin tracker de inyecciones.',
-    enabled: 'Activado',
-    disabled: 'Desactivado',
-    saving: 'Guardando...',
-    savedOn: 'Seguimiento GLP-1 activado.',
-    savedOff: 'Seguimiento GLP-1 desactivado.',
-    error: 'No pudimos actualizar esta preferencia. Intenta nuevamente.',
+    copy: 'Muestra el tracker en Plan solo si forma parte de tu tratamiento actual.',
+    enabled: 'Activo',
+    disabled: 'Inactivo',
+    saving: 'Guardando',
+    savedOn: 'Activado.',
+    savedOff: 'Desactivado.',
+    error: 'No pudimos actualizar esta preferencia.',
   },
   en: {
-    eyebrow: 'PLAN',
+    eyebrow: 'Plan protocols',
     title: 'GLP-1 tracking',
-    copy:
-      'Enable this only if GLP-1 or tirzepatide is part of your current plan. If it does not apply, Plan stays clean with no injection tracker.',
-    enabled: 'Enabled',
-    disabled: 'Disabled',
-    saving: 'Saving...',
-    savedOn: 'GLP-1 tracking enabled.',
-    savedOff: 'GLP-1 tracking disabled.',
-    error: 'We could not update this preference. Please try again.',
+    copy: 'Shows the tracker in Plan only if it is part of your current treatment.',
+    enabled: 'Active',
+    disabled: 'Inactive',
+    saving: 'Saving',
+    savedOn: 'Enabled.',
+    savedOff: 'Disabled.',
+    error: 'We could not update this preference.',
   },
 } satisfies Record<AppLanguage, Record<string, string>>;
 
 const styles: Record<string, CSSProperties> = {
   card: {
-    border: `1px solid ${COLORS.cardBorder}`,
     background: COLORS.cardBg,
-    borderRadius: 18,
-    padding: 20,
-    backdropFilter: 'blur(18px)',
+    border: `1px solid ${COLORS.cardBorder}`,
+    borderRadius: 20,
+    backdropFilter: 'blur(24px)',
+    WebkitBackdropFilter: 'blur(24px)',
+    padding: 18,
+    marginBottom: 10,
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
   },
   row: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 16,
+    gap: 14,
   },
   eyebrow: {
-    margin: '0 0 8px',
-    color: COLORS.teal,
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: '0.16em',
+    margin: '0 0 7px',
+    color: COLORS.textMuted,
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: '0.1em',
     textTransform: 'uppercase',
   },
   title: {
     margin: 0,
-    fontFamily: '"Fraunces", Georgia, serif',
     color: COLORS.text,
-    fontSize: 22,
-    lineHeight: 1.1,
-    letterSpacing: '-0.035em',
+    fontSize: 14,
+    fontWeight: 800,
+    letterSpacing: '-0.01em',
+    lineHeight: 1.25,
   },
   copy: {
-    margin: '8px 0 0',
-    color: COLORS.textSoft,
-    fontSize: 14,
-    lineHeight: 1.6,
+    margin: '5px 0 0',
+    color: COLORS.textMuted,
+    fontSize: 11,
+    lineHeight: 1.45,
+    maxWidth: 330,
   },
   switchButton: {
     position: 'relative',
     flex: '0 0 auto',
-    width: 58,
-    height: 34,
+    width: 46,
+    height: 28,
     borderRadius: 999,
     border: `1px solid ${COLORS.cardBorder}`,
-    background: 'rgba(6,19,22,0.62)',
+    background: COLORS.inputBg,
     cursor: 'pointer',
-    padding: 3,
+    padding: 2,
+    transition: 'all 160ms ease',
   },
   knob: {
-    width: 26,
-    height: 26,
+    width: 22,
+    height: 22,
     borderRadius: 999,
-    background: COLORS.textMuted,
-    transition: 'transform 160ms ease, background 160ms ease',
+    transition: 'transform 160ms ease, background 160ms ease, box-shadow 160ms ease',
   },
-  status: {
-    margin: '14px 0 0',
-    color: COLORS.textMuted,
-    fontSize: 12,
+  footer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 13,
+    paddingTop: 12,
+    borderTop: `1px solid ${COLORS.cardBorder}`,
+  },
+  statusPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5,
+    padding: '3px 8px',
+    borderRadius: 7,
+    fontSize: 10,
     fontWeight: 800,
-    letterSpacing: '0.08em',
+    letterSpacing: '0.06em',
     textTransform: 'uppercase',
   },
   message: {
-    margin: '12px 0 0',
-    color: COLORS.textSoft,
-    fontSize: 13,
-    lineHeight: 1.5,
+    margin: 0,
+    color: COLORS.textMuted,
+    fontSize: 11,
+    lineHeight: 1.35,
+    textAlign: 'right',
   },
 };
 
@@ -178,15 +192,12 @@ export default function Glp1ProtocolToggle() {
         .eq('id', user.id)
         .single();
 
-      if (!isMounted) {
-        return;
-      }
+      if (!isMounted) return;
 
-      if (error) {
-        setMessage(COPY[selectedLang].error);
-        setEnabled(false);
-      } else {
-        setEnabled(Boolean((data as { glp1_protocol_enabled?: boolean } | null)?.glp1_protocol_enabled));
+      if (!error) {
+        setEnabled(
+          Boolean((data as { glp1_protocol_enabled?: boolean } | null)?.glp1_protocol_enabled),
+        );
       }
 
       setLoading(false);
@@ -200,9 +211,7 @@ export default function Glp1ProtocolToggle() {
   }, [router, supabase]);
 
   async function togglePreference() {
-    if (saving || loading) {
-      return;
-    }
+    if (saving || loading) return;
 
     setSaving(true);
     setMessage('');
@@ -233,6 +242,8 @@ export default function Glp1ProtocolToggle() {
     setSaving(false);
   }
 
+  const statusText = saving ? copy.saving : enabled ? copy.enabled : copy.disabled;
+
   return (
     <section style={styles.card}>
       <div style={styles.row}>
@@ -250,8 +261,9 @@ export default function Glp1ProtocolToggle() {
           disabled={saving || loading}
           style={{
             ...styles.switchButton,
-            opacity: saving || loading ? 0.6 : 1,
-            background: enabled ? 'rgba(45,212,191,0.16)' : 'rgba(6,19,22,0.62)',
+            opacity: saving || loading ? 0.62 : 1,
+            background: enabled ? 'rgba(45,212,191,0.13)' : COLORS.inputBg,
+            borderColor: enabled ? 'rgba(45,212,191,0.28)' : COLORS.cardBorder,
           }}
           onClick={togglePreference}
         >
@@ -259,18 +271,28 @@ export default function Glp1ProtocolToggle() {
             style={{
               ...styles.knob,
               display: 'block',
-              transform: enabled ? 'translateX(24px)' : 'translateX(0)',
-              background: enabled ? COLORS.teal : COLORS.textMuted,
+              transform: enabled ? 'translateX(18px)' : 'translateX(0)',
+              background: enabled ? COLORS.teal : 'rgba(95,142,133,0.82)',
+              boxShadow: enabled ? '0 0 10px rgba(45,212,191,0.25)' : 'none',
             }}
           />
         </button>
       </div>
 
-      <p style={styles.status}>
-        {saving ? copy.saving : enabled ? copy.enabled : copy.disabled}
-      </p>
+      <div style={styles.footer}>
+        <span
+          style={{
+            ...styles.statusPill,
+            color: enabled ? COLORS.teal : COLORS.textMuted,
+            background: enabled ? 'rgba(45,212,191,0.07)' : 'rgba(95,142,133,0.07)',
+            border: enabled ? '1px solid rgba(45,212,191,0.18)' : '1px solid rgba(95,142,133,0.18)',
+          }}
+        >
+          {statusText}
+        </span>
 
-      {message ? <p style={styles.message}>{message}</p> : null}
+        {message ? <p style={styles.message}>{message}</p> : null}
+      </div>
     </section>
   );
 }
