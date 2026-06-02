@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import type { Database } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +12,8 @@ type TirzepatidePayload = {
   site?: InjectionSite;
   notes?: string | null;
 };
+
+type RouteClient = ReturnType<typeof createRouteClient>;
 
 const ALLOWED_SITES: InjectionSite[] = [
   'abdomen_left',
@@ -26,7 +27,7 @@ const ALLOWED_DOSES = [2.5, 5, 7.5, 10, 12.5, 15];
 function createRouteClient() {
   const cookieStore = cookies();
 
-  return createServerClient<Database>(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
@@ -83,10 +84,7 @@ async function getAuthenticatedContext() {
   return { supabase, user, errorResponse: null };
 }
 
-async function getProtocolEnabled(
-  supabase: ReturnType<typeof createRouteClient>,
-  userId: string,
-) {
+async function getProtocolEnabled(supabase: RouteClient, userId: string) {
   const { data, error } = await supabase
     .from('profiles')
     .select('glp1_protocol_enabled')
