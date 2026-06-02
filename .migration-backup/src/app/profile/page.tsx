@@ -5,6 +5,7 @@ import { useMeridianLanguage, type MeridianLanguage } from '../../lib/i18n'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
+import Glp1ProtocolToggle from '@/components/Glp1ProtocolToggle'
 import { getNextOnboardingStep } from '@/lib/onboarding'
 
 // ——— Design tokens ———
@@ -151,7 +152,7 @@ export default function ProfilePage() {
   const router = useRouter()
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
   )
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -688,6 +689,11 @@ export default function ProfilePage() {
           <p style={{ ...fieldHint, marginTop: '10px' }}>
             This setting is saved on this device. More Spanish translations will be added screen by screen.
           </p>
+        </div>
+
+        {/* ════════════════════════ PLAN SETTINGS ═══ */}
+        <div style={{ marginBottom: '10px' }}>
+          <Glp1ProtocolToggle />
         </div>
 
         {/* ════════════════════════ BIOLOGICAL PASSPORT ═══ */}
