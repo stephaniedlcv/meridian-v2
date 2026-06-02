@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import NavBar from '@/components/NavBar';
@@ -443,6 +443,33 @@ const styles: Record<string, CSSProperties> = {
     fontSize: 14,
     fontFamily: 'inherit',
   },
+  dateInputWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  dateInput: {
+    paddingRight: 52,
+    cursor: 'pointer',
+  },
+  datePickerButton: {
+    position: 'absolute',
+    right: 8,
+    top: '50%',
+    transform: 'translateY(-50%)',
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    border: `1px solid ${COLORS.cardBorder}`,
+    background: 'rgba(103,232,249,0.08)',
+    color: COLORS.cyan,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    fontSize: 15,
+    lineHeight: 1,
+  },
   textarea: {
     width: '100%',
     minHeight: 104,
@@ -538,6 +565,7 @@ const styles: Record<string, CSSProperties> = {
 
 export default function ProtocolPage() {
   const router = useRouter();
+  const dateInputRef = useRef<HTMLInputElement | null>(null);
 
   const supabase = useMemo(
     () =>
@@ -628,6 +656,27 @@ export default function ProtocolPage() {
       isMounted = false;
     };
   }, [copy.loadError, router, supabase]);
+
+  function openNativeDatePicker() {
+    const input = dateInputRef.current;
+
+    if (!input) {
+      return;
+    }
+
+    input.focus();
+
+    const inputWithPicker = input as HTMLInputElement & {
+      showPicker?: () => void;
+    };
+
+    if (typeof inputWithPicker.showPicker === 'function') {
+      inputWithPicker.showPicker();
+      return;
+    }
+
+    input.click();
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -794,13 +843,25 @@ export default function ProtocolPage() {
               <div style={styles.formGrid}>
                 <label style={styles.field}>
                   <span style={styles.label}>{copy.date}</span>
-                  <input
-                    style={styles.input}
-                    type="date"
-                    value={date}
-                    onChange={(event) => setDate(event.target.value)}
-                    required
-                  />
+                  <div style={styles.dateInputWrap}>
+                    <input
+                      ref={dateInputRef}
+                      style={{ ...styles.input, ...styles.dateInput }}
+                      type="date"
+                      value={date}
+                      onClick={openNativeDatePicker}
+                      onChange={(event) => setDate(event.target.value)}
+                      required
+                    />
+                    <button
+                      aria-label={copy.date}
+                      type="button"
+                      style={styles.datePickerButton}
+                      onClick={openNativeDatePicker}
+                    >
+                      ▦
+                    </button>
+                  </div>
                 </label>
 
                 <label style={styles.field}>
