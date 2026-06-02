@@ -137,7 +137,7 @@ const styles: Record<string, CSSProperties> = {
       'radial-gradient(circle at 20% 0%, rgba(45,212,191,0.15), transparent 30%), radial-gradient(circle at 80% 10%, rgba(103,232,249,0.12), transparent 28%), #061316',
     color: COLORS.text,
     fontFamily: '"Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    padding: '28px 18px 112px',
+    padding: '40px 18px 112px',
   },
   shell: {
     width: '100%',
@@ -147,31 +147,35 @@ const styles: Record<string, CSSProperties> = {
   header: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 10,
-    marginBottom: 24,
+    gap: 8,
+    marginBottom: 34,
   },
   eyebrow: {
     margin: 0,
-    color: COLORS.cyan,
-    fontSize: 12,
+    color: COLORS.teal,
+    fontSize: 11,
     fontWeight: 800,
-    letterSpacing: '0.18em',
+    letterSpacing: '0.16em',
     textTransform: 'uppercase',
   },
   title: {
     margin: 0,
     fontFamily: '"Fraunces", Georgia, serif',
-    fontSize: 'clamp(38px, 7vw, 68px)',
-    lineHeight: 0.95,
-    letterSpacing: '-0.06em',
+    fontSize: 'clamp(30px, 4vw, 34px)',
+    lineHeight: 1.05,
+    letterSpacing: '-0.035em',
     color: COLORS.text,
   },
   subtitle: {
     margin: 0,
     maxWidth: 680,
     color: COLORS.textSoft,
-    fontSize: 15,
-    lineHeight: 1.7,
+    fontSize: 14,
+    lineHeight: 1.45,
+  },
+  subtitleStrong: {
+    color: COLORS.text,
+    fontWeight: 850,
   },
   section: {
     marginTop: 18,
@@ -554,11 +558,12 @@ export default function ProtocolPage() {
       <main style={styles.page}>
         <div style={styles.shell}>
           <header style={styles.header}>
-            <p style={styles.eyebrow}>Meridian Protocol</p>
+            <p style={styles.eyebrow}>• SEGUIMIENTO DE PROTOCOLO</p>
             <h1 style={styles.title}>Protocolo</h1>
             <p style={styles.subtitle}>
-              Registro de tirzepatide, rotación de sitio y seguimiento semanal para mantener una
-              lectura clara de dosis, consistencia y patrón de aplicación.
+              <strong style={styles.subtitleStrong}>Registro de tirzepatide.</strong>
+              <br />
+              Rotación de sitio y seguimiento semanal.
             </p>
           </header>
 
