@@ -6,6 +6,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import NavBar from '@/components/NavBar';
 
 type InjectionSite = 'abdomen_left' | 'abdomen_right' | 'thigh_left' | 'thigh_right';
+type AppLanguage = 'es' | 'en';
 
 type TirzepatideEntry = {
   id: string;
@@ -19,9 +20,9 @@ type TirzepatideEntry = {
 
 type SiteOption = {
   value: InjectionSite;
-  label: string;
-  shortLabel: string;
-  description: string;
+  label: Record<AppLanguage, string>;
+  shortLabel: Record<AppLanguage, string>;
+  description: Record<AppLanguage, string>;
 };
 
 const COLORS = {
@@ -38,27 +39,39 @@ const COLORS = {
 const SITE_OPTIONS: SiteOption[] = [
   {
     value: 'abdomen_left',
-    label: 'Abdomen izquierdo',
-    shortLabel: 'Abd. izq.',
-    description: 'Zona abdominal izquierda',
+    label: { es: 'Abdomen izquierdo', en: 'Left abdomen' },
+    shortLabel: { es: 'Abd. izq.', en: 'Left abd.' },
+    description: {
+      es: 'Zona abdominal izquierda',
+      en: 'Left abdominal area',
+    },
   },
   {
     value: 'thigh_right',
-    label: 'Muslo derecho',
-    shortLabel: 'Muslo der.',
-    description: 'Zona frontal/lateral del muslo derecho',
+    label: { es: 'Muslo derecho', en: 'Right thigh' },
+    shortLabel: { es: 'Muslo der.', en: 'Right thigh' },
+    description: {
+      es: 'Zona frontal/lateral del muslo derecho',
+      en: 'Front or outer area of the right thigh',
+    },
   },
   {
     value: 'abdomen_right',
-    label: 'Abdomen derecho',
-    shortLabel: 'Abd. der.',
-    description: 'Zona abdominal derecha',
+    label: { es: 'Abdomen derecho', en: 'Right abdomen' },
+    shortLabel: { es: 'Abd. der.', en: 'Right abd.' },
+    description: {
+      es: 'Zona abdominal derecha',
+      en: 'Right abdominal area',
+    },
   },
   {
     value: 'thigh_left',
-    label: 'Muslo izquierdo',
-    shortLabel: 'Muslo izq.',
-    description: 'Zona frontal/lateral del muslo izquierdo',
+    label: { es: 'Muslo izquierdo', en: 'Left thigh' },
+    shortLabel: { es: 'Muslo izq.', en: 'Left thigh' },
+    description: {
+      es: 'Zona frontal/lateral del muslo izquierdo',
+      en: 'Front or outer area of the left thigh',
+    },
   },
 ];
 
@@ -71,12 +84,13 @@ const SITE_ROTATION: Record<InjectionSite, InjectionSite> = {
 
 const DOSE_OPTIONS = [2.5, 5, 7.5, 10, 12.5, 15];
 
-function getSiteLabel(site: string) {
-  return SITE_OPTIONS.find((option) => option.value === site)?.label ?? 'No registrado';
+function getSiteLabel(site: string, lang: AppLanguage) {
+  return SITE_OPTIONS.find((option) => option.value === site)?.label[lang] ??
+    (lang === 'en' ? 'Not recorded' : 'No registrado');
 }
 
-function getSiteShortLabel(site: string) {
-  return SITE_OPTIONS.find((option) => option.value === site)?.shortLabel ?? '—';
+function getSiteShortLabel(site: string, lang: AppLanguage) {
+  return SITE_OPTIONS.find((option) => option.value === site)?.shortLabel[lang] ?? '—';
 }
 
 function getSuggestedSite(entries: TirzepatideEntry[]): InjectionSite {
@@ -94,8 +108,8 @@ function parseLocalDate(date: string) {
   return new Date(year, month - 1, day);
 }
 
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat('es-PR', {
+function formatDate(date: string, lang: AppLanguage) {
+  return new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : 'es-PR', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -130,6 +144,113 @@ function sortEntries(entries: TirzepatideEntry[]) {
   return [...entries].sort((a, b) => parseLocalDate(b.date).getTime() - parseLocalDate(a.date).getTime());
 }
 
+function getPreferredLanguage(): AppLanguage {
+  if (typeof window === 'undefined') {
+    return 'es';
+  }
+
+  const localValues = [
+    window.localStorage.getItem('meridian_language'),
+    window.localStorage.getItem('meridian-lang'),
+    window.localStorage.getItem('meridianLang'),
+    window.localStorage.getItem('language'),
+    window.localStorage.getItem('lang'),
+    window.localStorage.getItem('locale'),
+  ].filter(Boolean) as string[];
+
+  const rawLanguage =
+    localValues[0] || document.documentElement.lang || window.navigator.language || 'es';
+
+  return rawLanguage.toLowerCase().startsWith('en') ? 'en' : 'es';
+}
+
+const COPY = {
+  es: {
+    eyebrow: '• PLAN DE SALUD',
+    title: 'Plan',
+    subtitleStrong: 'Tu plan activo.',
+    subtitleLine: 'Registro semanal y rotación de sitio.',
+    currentDose: 'Dosis actual',
+    daysSinceLast: 'Días desde última',
+    nextDate: 'Próxima fecha',
+    suggestedSite: 'Sitio sugerido',
+    noSavedRecords: 'Sin registros guardados.',
+    firstDosePrompt: 'Registra tu primera dosis.',
+    appearsAfterFirst: 'Aparecerá luego del primer registro.',
+    calculatedFromLast: 'Calculado desde tu última entrada.',
+    estimatedWeekly: 'Estimado usando una cadencia semanal.',
+    lastRecord: 'Último registro',
+    rotationMap: 'Mapa de rotación',
+    rotationCopy:
+      'La rotación recomendada sigue el orden: abdomen izquierdo → muslo derecho → abdomen derecho → muslo izquierdo.',
+    suggested: 'Sugerido',
+    lastSiteUsed: 'Último sitio usado',
+    nextSuggested: 'Próximo sugerido',
+    newEntry: 'Nueva entrada',
+    newEntryCopy: 'Guarda la fecha, dosis, sitio de aplicación y cualquier nota relevante.',
+    date: 'Fecha',
+    dose: 'Dosis',
+    site: 'Sitio',
+    notes: 'Notas',
+    notesPlaceholder:
+      'Ej. reducción de dosis, mantenimiento, síntomas, tolerancia o contexto relevante.',
+    saving: 'Guardando...',
+    saveEntry: 'Guardar entrada',
+    loadError: 'No pudimos cargar tu historial del plan. Intenta nuevamente.',
+    duplicateError: 'Ya existe una entrada para esa fecha. Cambia la fecha o revisa el historial.',
+    saveError: 'No pudimos guardar la entrada. Intenta nuevamente.',
+    saved: 'Entrada guardada correctamente.',
+    history: 'Historial',
+    historyCopy: 'Entradas guardadas en orden descendente por fecha.',
+    loadingHistory: 'Cargando historial...',
+    emptyHistory:
+      'Todavía no hay entradas guardadas. El formulario está listo para que el usuario registre su primera dosis cuando corresponda.',
+    noNotes: 'Sin notas registradas.',
+  },
+  en: {
+    eyebrow: '• HEALTH PLAN',
+    title: 'Plan',
+    subtitleStrong: 'Your active plan.',
+    subtitleLine: 'Weekly tracking and site rotation.',
+    currentDose: 'Current dose',
+    daysSinceLast: 'Days since last',
+    nextDate: 'Next date',
+    suggestedSite: 'Suggested site',
+    noSavedRecords: 'No saved records.',
+    firstDosePrompt: 'Log your first dose.',
+    appearsAfterFirst: 'This will appear after your first entry.',
+    calculatedFromLast: 'Calculated from your latest entry.',
+    estimatedWeekly: 'Estimated using a weekly cadence.',
+    lastRecord: 'Last record',
+    rotationMap: 'Rotation map',
+    rotationCopy:
+      'The recommended rotation follows this order: left abdomen → right thigh → right abdomen → left thigh.',
+    suggested: 'Suggested',
+    lastSiteUsed: 'Last site used',
+    nextSuggested: 'Next suggested',
+    newEntry: 'New entry',
+    newEntryCopy: 'Save the date, dose, injection site, and any relevant notes.',
+    date: 'Date',
+    dose: 'Dose',
+    site: 'Site',
+    notes: 'Notes',
+    notesPlaceholder:
+      'Example: dose reduction, maintenance, symptoms, tolerance, or relevant context.',
+    saving: 'Saving...',
+    saveEntry: 'Save entry',
+    loadError: 'We could not load your plan history. Please try again.',
+    duplicateError: 'An entry already exists for that date. Change the date or review your history.',
+    saveError: 'We could not save this entry. Please try again.',
+    saved: 'Entry saved successfully.',
+    history: 'History',
+    historyCopy: 'Saved entries in descending order by date.',
+    loadingHistory: 'Loading history...',
+    emptyHistory:
+      'No entries have been saved yet. The form is ready for the user to log their first dose when appropriate.',
+    noNotes: 'No notes recorded.',
+  },
+} satisfies Record<AppLanguage, Record<string, string>>;
+
 const styles: Record<string, CSSProperties> = {
   page: {
     minHeight: '100dvh',
@@ -137,7 +258,7 @@ const styles: Record<string, CSSProperties> = {
       'radial-gradient(circle at 20% 0%, rgba(45,212,191,0.15), transparent 30%), radial-gradient(circle at 80% 10%, rgba(103,232,249,0.12), transparent 28%), #061316',
     color: COLORS.text,
     fontFamily: '"Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    padding: '40px 18px 112px',
+    padding: '44px 18px 112px',
   },
   shell: {
     width: '100%',
@@ -147,11 +268,10 @@ const styles: Record<string, CSSProperties> = {
   header: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 8,
-    marginBottom: 34,
+    marginBottom: 40,
   },
   eyebrow: {
-    margin: 0,
+    margin: '0 0 24px',
     color: COLORS.teal,
     fontSize: 11,
     fontWeight: 800,
@@ -159,7 +279,7 @@ const styles: Record<string, CSSProperties> = {
     textTransform: 'uppercase',
   },
   title: {
-    margin: 0,
+    margin: '0 0 12px',
     fontFamily: '"Fraunces", Georgia, serif',
     fontSize: 'clamp(30px, 4vw, 34px)',
     lineHeight: 1.05,
@@ -430,6 +550,9 @@ export default function ProtocolPage() {
     [],
   );
 
+  const [lang, setLang] = useState<AppLanguage>('es');
+  const copy = COPY[lang];
+
   const [userId, setUserId] = useState<string | null>(null);
   const [entries, setEntries] = useState<TirzepatideEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -446,6 +569,10 @@ export default function ProtocolPage() {
   const suggestedSite = getSuggestedSite(entries);
   const nextDate = latestEntry ? addDays(latestEntry.date, 7) : null;
   const daysSinceLast = latestEntry ? getDaysSince(latestEntry.date) : null;
+
+  useEffect(() => {
+    setLang(getPreferredLanguage());
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -476,7 +603,7 @@ export default function ProtocolPage() {
       setUserId(user.id);
 
       if (error) {
-        setErrorMessage('No pudimos cargar tu historial del protocolo. Intenta nuevamente.');
+        setErrorMessage(copy.loadError);
         setEntries([]);
       } else {
         const loadedEntries = sortEntries((data ?? []) as TirzepatideEntry[]);
@@ -502,7 +629,7 @@ export default function ProtocolPage() {
     return () => {
       isMounted = false;
     };
-  }, [router, supabase]);
+  }, [copy.loadError, router, supabase]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -535,8 +662,8 @@ export default function ProtocolPage() {
 
       setErrorMessage(
         isDuplicate
-          ? 'Ya existe una entrada para esa fecha. Cambia la fecha o revisa el historial.'
-          : 'No pudimos guardar la entrada. Intenta nuevamente.',
+          ? copy.duplicateError
+          : copy.saveError,
       );
       setSaving(false);
       return;
@@ -549,7 +676,7 @@ export default function ProtocolPage() {
     setDose(Number((data as TirzepatideEntry).dose));
     setSite(getSuggestedSite(updatedEntries));
     setNotes('');
-    setSuccessMessage('Entrada guardada correctamente.');
+    setSuccessMessage(copy.saved);
     setSaving(false);
   }
 
@@ -558,12 +685,12 @@ export default function ProtocolPage() {
       <main style={styles.page}>
         <div style={styles.shell}>
           <header style={styles.header}>
-            <p style={styles.eyebrow}>• SEGUIMIENTO DE PROTOCOLO</p>
-            <h1 style={styles.title}>Protocolo</h1>
+            <p style={styles.eyebrow}>{copy.eyebrow}</p>
+            <h1 style={styles.title}>{copy.title}</h1>
             <p style={styles.subtitle}>
-              <strong style={styles.subtitleStrong}>Registro de tirzepatide.</strong>
+              <strong style={styles.subtitleStrong}>{copy.subtitleStrong}</strong>
               <br />
-              Rotación de sitio y seguimiento semanal.
+              {copy.subtitleLine}
             </p>
           </header>
 
@@ -571,40 +698,40 @@ export default function ProtocolPage() {
             <div style={styles.grid}>
               <article style={{ ...styles.card, ...styles.statusCard }}>
                 <div>
-                  <p style={styles.statusLabel}>Dosis actual</p>
+                  <p style={styles.statusLabel}>{copy.currentDose}</p>
                   <p style={styles.statusValue}>{latestEntry ? `${Number(latestEntry.dose)} mg` : '—'}</p>
                 </div>
                 <p style={styles.statusHint}>
-                  {latestEntry ? `Último registro: ${formatDate(latestEntry.date)}` : 'Sin registros guardados.'}
+                  {latestEntry ? `${copy.lastRecord}: ${formatDate(latestEntry.date, lang)}` : copy.noSavedRecords}
                 </p>
               </article>
 
               <article style={{ ...styles.card, ...styles.statusCard }}>
                 <div>
-                  <p style={styles.statusLabel}>Días desde última</p>
+                  <p style={styles.statusLabel}>{copy.daysSinceLast}</p>
                   <p style={styles.statusValue}>{daysSinceLast !== null ? daysSinceLast : '—'}</p>
                 </div>
                 <p style={styles.statusHint}>
-                  {daysSinceLast !== null ? 'Calculado desde tu última entrada.' : 'Registra tu primera dosis.'}
+                  {daysSinceLast !== null ? copy.calculatedFromLast : copy.firstDosePrompt}
                 </p>
               </article>
 
               <article style={{ ...styles.card, ...styles.statusCard }}>
                 <div>
-                  <p style={styles.statusLabel}>Próxima fecha</p>
-                  <p style={styles.statusValue}>{nextDate ? formatDate(nextDate) : '—'}</p>
+                  <p style={styles.statusLabel}>{copy.nextDate}</p>
+                  <p style={styles.statusValue}>{nextDate ? formatDate(nextDate, lang) : '—'}</p>
                 </div>
                 <p style={styles.statusHint}>
-                  {nextDate ? 'Estimado usando una cadencia semanal.' : 'Aparecerá luego del primer registro.'}
+                  {nextDate ? copy.estimatedWeekly : copy.appearsAfterFirst}
                 </p>
               </article>
 
               <article style={{ ...styles.card, ...styles.statusCard }}>
                 <div>
-                  <p style={styles.statusLabel}>Sitio sugerido</p>
-                  <p style={styles.statusValue}>{getSiteShortLabel(suggestedSite)}</p>
+                  <p style={styles.statusLabel}>{copy.suggestedSite}</p>
+                  <p style={styles.statusValue}>{getSiteShortLabel(suggestedSite, lang)}</p>
                 </div>
-                <p style={styles.statusHint}>{getSiteLabel(suggestedSite)}</p>
+                <p style={styles.statusHint}>{getSiteLabel(suggestedSite, lang)}</p>
               </article>
             </div>
           </section>
@@ -613,13 +740,10 @@ export default function ProtocolPage() {
             <div style={{ ...styles.card, ...styles.block }}>
               <div style={styles.blockHeader}>
                 <div>
-                  <h2 style={styles.blockTitle}>Mapa de rotación</h2>
-                  <p style={styles.blockCopy}>
-                    La rotación recomendada sigue el orden: abdomen izquierdo → muslo derecho →
-                    abdomen derecho → muslo izquierdo.
-                  </p>
+                  <h2 style={styles.blockTitle}>{copy.rotationMap}</h2>
+                  <p style={styles.blockCopy}>{copy.rotationCopy}</p>
                 </div>
-                <span style={styles.badge}>Sugerido: {getSiteShortLabel(suggestedSite)}</span>
+                <span style={styles.badge}>{copy.suggested}: {getSiteShortLabel(suggestedSite, lang)}</span>
               </div>
 
               <div style={styles.rotationGrid}>
@@ -647,11 +771,11 @@ export default function ProtocolPage() {
                       >
                         {index + 1}
                       </div>
-                      <p style={styles.rotationName}>{option.label}</p>
+                      <p style={styles.rotationName}>{option.label[lang]}</p>
                       <p style={styles.rotationDescription}>
-                        {option.description}
-                        {isLatest ? ' · Último sitio usado' : ''}
-                        {isSuggested ? ' · Próximo sugerido' : ''}
+                        {option.description[lang]}
+                        {isLatest ? ` · ${copy.lastSiteUsed}` : ''}
+                        {isSuggested ? ` · ${copy.nextSuggested}` : ''}
                       </p>
                     </article>
                   );
@@ -664,16 +788,14 @@ export default function ProtocolPage() {
             <form style={{ ...styles.card, ...styles.block }} onSubmit={handleSubmit}>
               <div style={styles.blockHeader}>
                 <div>
-                  <h2 style={styles.blockTitle}>Nueva entrada</h2>
-                  <p style={styles.blockCopy}>
-                    Guarda la fecha, dosis, sitio de aplicación y cualquier nota relevante.
-                  </p>
+                  <h2 style={styles.blockTitle}>{copy.newEntry}</h2>
+                  <p style={styles.blockCopy}>{copy.newEntryCopy}</p>
                 </div>
               </div>
 
               <div style={styles.formGrid}>
                 <label style={styles.field}>
-                  <span style={styles.label}>Fecha</span>
+                  <span style={styles.label}>{copy.date}</span>
                   <input
                     style={styles.input}
                     type="date"
@@ -684,7 +806,7 @@ export default function ProtocolPage() {
                 </label>
 
                 <label style={styles.field}>
-                  <span style={styles.label}>Dosis</span>
+                  <span style={styles.label}>{copy.dose}</span>
                   <select
                     style={styles.input}
                     value={dose}
@@ -700,7 +822,7 @@ export default function ProtocolPage() {
                 </label>
 
                 <label style={styles.field}>
-                  <span style={styles.label}>Sitio</span>
+                  <span style={styles.label}>{copy.site}</span>
                   <select
                     style={styles.input}
                     value={site}
@@ -709,7 +831,7 @@ export default function ProtocolPage() {
                   >
                     {SITE_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
-                        {option.label}
+                        {option.label[lang]}
                       </option>
                     ))}
                   </select>
@@ -718,12 +840,12 @@ export default function ProtocolPage() {
 
               <div style={{ marginTop: 14 }}>
                 <label style={styles.field}>
-                  <span style={styles.label}>Notas</span>
+                  <span style={styles.label}>{copy.notes}</span>
                   <textarea
                     style={styles.textarea}
                     value={notes}
                     onChange={(event) => setNotes(event.target.value)}
-                    placeholder="Ej. reducción de dosis, mantenimiento, síntomas, tolerancia o contexto relevante."
+                    placeholder={copy.notesPlaceholder}
                   />
                 </label>
               </div>
@@ -737,7 +859,7 @@ export default function ProtocolPage() {
                   type="submit"
                   disabled={saving || loading}
                 >
-                  {saving ? 'Guardando...' : 'Guardar entrada'}
+                  {saving ? copy.saving : copy.saveEntry}
                 </button>
               </div>
 
@@ -773,34 +895,29 @@ export default function ProtocolPage() {
             <div style={{ ...styles.card, ...styles.block }}>
               <div style={styles.blockHeader}>
                 <div>
-                  <h2 style={styles.blockTitle}>Historial</h2>
-                  <p style={styles.blockCopy}>
-                    Entradas guardadas en orden descendente por fecha.
-                  </p>
+                  <h2 style={styles.blockTitle}>{copy.history}</h2>
+                  <p style={styles.blockCopy}>{copy.historyCopy}</p>
                 </div>
               </div>
 
               {loading ? (
-                <div style={styles.emptyState}>Cargando historial...</div>
+                <div style={styles.emptyState}>{copy.loadingHistory}</div>
               ) : entries.length === 0 ? (
-                <div style={styles.emptyState}>
-                  Todavía no hay entradas guardadas. El formulario está listo para que el usuario
-                  registre su primera dosis cuando corresponda.
-                </div>
+                <div style={styles.emptyState}>{copy.emptyHistory}</div>
               ) : (
                 <div style={styles.historyList}>
                   {entries.map((entry) => (
                     <article key={entry.id} style={styles.historyItem}>
                       <div>
-                        <p style={styles.historyDate}>{formatDate(entry.date)}</p>
-                        <p style={styles.historyMeta}>{getSiteLabel(entry.site)}</p>
+                        <p style={styles.historyDate}>{formatDate(entry.date, lang)}</p>
+                        <p style={styles.historyMeta}>{getSiteLabel(entry.site, lang)}</p>
                       </div>
 
                       <div>
                         <span style={styles.historyDose}>{Number(entry.dose)} mg</span>
                       </div>
 
-                      <p style={styles.historyNotes}>{entry.notes || 'Sin notas registradas.'}</p>
+                      <p style={styles.historyNotes}>{entry.notes || copy.noNotes}</p>
                     </article>
                   ))}
                 </div>
