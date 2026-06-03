@@ -5,7 +5,7 @@ router = "application"
 deploymentTarget = "autoscale"
 
 [deployment.postBuild]
-args = ["pnpm", "store", "prune"]
+args = ["sh", "-c", "echo Build complete"]
 env = { "CI" = "true" }
 
 [workflows]
@@ -33,12 +33,8 @@ waitForPort = 3000
 outputType = "webview"
 
 [agent]
-stack = "PNPM_WORKSPACE"
 expertMode = true
 
-[postMerge]
-path = "scripts/post-merge.sh"
-timeoutMs = 20000
 
 [[ports]]
 localPort = 3000
