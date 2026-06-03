@@ -49,6 +49,7 @@ export type Profile = {
   safety_status: SafetyStatus;
   user_profile: UserProfile;
   onboarding_completed: boolean;
+  glp1_protocol_enabled: boolean;
   created_at: string;
 };
 
@@ -160,6 +161,7 @@ export type Database = {
           safety_status?: SafetyStatus;
           user_profile?: UserProfile;
           onboarding_completed?: boolean;
+          glp1_protocol_enabled?: boolean;
           created_at?: string;
         };
         Update: {
@@ -172,6 +174,7 @@ export type Database = {
           safety_status?: SafetyStatus;
           user_profile?: UserProfile;
           onboarding_completed?: boolean;
+          glp1_protocol_enabled?: boolean;
           created_at?: string;
         };
         Relationships: [];
