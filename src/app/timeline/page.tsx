@@ -41,8 +41,7 @@ const styles: Record<string, CSSProperties> = {
     color: colors.text,
     background:
       'radial-gradient(circle at 50% 0%, rgba(45,212,191,0.08) 0%, rgba(45,212,191,0.025) 28%, transparent 58%), linear-gradient(180deg, #061316 0%, #02090B 100%)',
-    padding:
-      'calc(env(safe-area-inset-top, 0px) + 138px) 20px calc(env(safe-area-inset-bottom, 0px) + 126px)',
+    padding: '78px 18px 112px',
     fontFamily: fonts.ui,
   },
   shell: {
@@ -51,16 +50,16 @@ const styles: Record<string, CSSProperties> = {
     margin: '0 auto',
   },
   eyebrow: {
-    margin: 0,
+    margin: '0 0 30px',
     color: colors.teal,
     fontSize: 11,
     lineHeight: 1,
     fontWeight: 800,
-    letterSpacing: '0.24em',
+    letterSpacing: '0.16em',
     textTransform: 'uppercase',
   },
   hero: {
-    marginBottom: 28,
+    marginBottom: 38,
   },
   heroTop: {
     display: 'flex',
@@ -69,27 +68,27 @@ const styles: Record<string, CSSProperties> = {
     gap: 18,
   },
   title: {
-    margin: '13px 0 0',
+    margin: 0,
     color: colors.text,
     fontFamily: fonts.heading,
-    fontSize: 'clamp(31px, 5vw, 42px)',
-    lineHeight: 0.96,
+    fontSize: 'clamp(30px, 4vw, 34px)',
+    lineHeight: 1.05,
     fontWeight: 800,
-    letterSpacing: '-0.04em',
+    letterSpacing: '-0.035em',
     textShadow: '0 16px 42px rgba(103,232,249,0.10)',
   },
   subtitle: {
-    margin: '17px 0 0',
-    maxWidth: 560,
+    margin: '14px 0 0',
+    maxWidth: 680,
     color: colors.textSoft,
-    fontSize: 15,
-    lineHeight: 1.68,
+    fontSize: 14,
+    lineHeight: 1.45,
   },
   primaryButton: {
     border: `1px solid ${colors.cardBorderActive}`,
     borderRadius: 16,
-    padding: '11px 14px',
-    color: colors.text,
+    padding: '7px 11px',
+    color: colors.teal,
     background:
       'linear-gradient(135deg, rgba(45,212,191,0.14), rgba(103,232,249,0.055))',
     boxShadow:
@@ -128,7 +127,7 @@ const styles: Record<string, CSSProperties> = {
     fontFamily: fonts.heading,
     fontSize: 24,
     lineHeight: 1,
-    fontWeight: 800,
+    fontWeight: 700,
   },
   tabWrap: {
     display: 'grid',
@@ -176,16 +175,16 @@ const styles: Record<string, CSSProperties> = {
     color: colors.text,
     fontFamily: fonts.heading,
     fontSize: 24,
-    lineHeight: 1.05,
-    fontWeight: 800,
-    letterSpacing: '-0.03em',
+    lineHeight: 1.1,
+    fontWeight: 700,
+    letterSpacing: '-0.035em',
   },
   emptyDescription: {
-    margin: '12px auto 0',
+    margin: '10px auto 0',
     maxWidth: 420,
     color: colors.textSoft,
     fontSize: 14,
-    lineHeight: 1.7,
+    lineHeight: 1.6,
   },
   secondaryButton: {
     marginTop: 22,
