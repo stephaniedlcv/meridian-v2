@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEven
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import NavBar from '@/components/NavBar';
+import { MeridianPageShell } from '@/components/MeridianPageShell';
+import { MeridianPageHeader } from '@/components/MeridianPageHeader';
 
 type InjectionSite = 'abdomen_left' | 'abdomen_right' | 'thigh_left' | 'thigh_right';
 type AppLanguage = 'es' | 'en';
@@ -266,48 +268,6 @@ const COPY = {
 } satisfies Record<AppLanguage, Record<string, string>>;
 
 const styles: Record<string, CSSProperties> = {
-  page: {
-    minHeight: '100dvh',
-    background:
-      'radial-gradient(circle at 18% 0%, rgba(45,212,191,0.10), transparent 28%), #061316',
-    color: COLORS.text,
-    fontFamily: '"Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    padding: '24px 24px 100px',
-  },
-  shell: {
-    width: '100%',
-    maxWidth: 640,
-    margin: '0 auto',
-  },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    marginBottom: 26,
-  },
-  eyebrow: {
-    margin: '0 0 12px',
-    color: COLORS.textMuted,
-    fontSize: 11,
-    fontWeight: 600,
-    letterSpacing: '0.07em',
-    textTransform: 'uppercase',
-  },
-  title: {
-    margin: 0,
-    fontFamily: '"Fraunces", Georgia, serif',
-    fontSize: 'clamp(26px, 6vw, 34px)',
-    lineHeight: 1.15,
-    fontWeight: 700,
-    letterSpacing: '-0.04em',
-    color: COLORS.text,
-  },
-  subtitle: {
-    margin: '8px 0 0',
-    maxWidth: 360,
-    color: COLORS.textSoft,
-    fontSize: 14,
-    lineHeight: 1.65,
-  },
   subtitleStrong: {
     color: COLORS.text,
     fontWeight: 850,
@@ -800,17 +760,18 @@ export default function ProtocolPage() {
 
   return (
     <>
-      <main style={styles.page}>
-        <div style={styles.shell}>
-          <header style={styles.header}>
-            <p style={styles.eyebrow}>{copy.eyebrow}</p>
-            <h1 style={styles.title}>{copy.title}</h1>
-            <p style={styles.subtitle}>
+      <MeridianPageShell>
+        <MeridianPageHeader
+          eyebrow={copy.eyebrow}
+          title={copy.title}
+          subtitle={
+            <>
               <strong style={styles.subtitleStrong}>{copy.subtitleStrong}</strong>
               <br />
               {copy.subtitleLine}
-            </p>
-          </header>
+            </>
+          }
+        />
 
           {loading ? (
             <section style={styles.section}>
@@ -1094,8 +1055,7 @@ export default function ProtocolPage() {
           </section>
             </>
           )}
-        </div>
-      </main>
+      </MeridianPageShell>
 
       <NavBar />
     </>
