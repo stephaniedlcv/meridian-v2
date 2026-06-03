@@ -17,7 +17,7 @@ export type UpdateHealthEventInput = Omit<
 >;
 
 async function getCurrentUserId() {
-  const supabase = createClient();
+  const supabase = createClient() as any;
 
   const {
     data: { user },
@@ -36,7 +36,7 @@ async function getCurrentUserId() {
 }
 
 export async function getUpcomingHealthEvents(): Promise<HealthEvent[]> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
   const now = new Date().toISOString();
 
   const { data, error } = await supabase
@@ -54,7 +54,7 @@ export async function getUpcomingHealthEvents(): Promise<HealthEvent[]> {
 }
 
 export async function getPastHealthEvents(): Promise<HealthEvent[]> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
   const now = new Date().toISOString();
 
   const { data, error } = await supabase
@@ -71,7 +71,7 @@ export async function getPastHealthEvents(): Promise<HealthEvent[]> {
 }
 
 export async function getNextHealthEvent(): Promise<HealthEvent | null> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
   const now = new Date().toISOString();
 
   const { data, error } = await supabase
@@ -91,7 +91,7 @@ export async function getNextHealthEvent(): Promise<HealthEvent | null> {
 }
 
 export async function getHealthEventById(id: string): Promise<HealthEvent | null> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
 
   const { data, error } = await supabase
     .from('health_events')
@@ -109,7 +109,7 @@ export async function getHealthEventById(id: string): Promise<HealthEvent | null
 export async function createHealthEvent(
   input: CreateHealthEventInput,
 ): Promise<HealthEvent> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
   const userId = await getCurrentUserId();
 
   const payload: HealthEventInsert = {
@@ -139,7 +139,7 @@ export async function updateHealthEvent(
   id: string,
   input: UpdateHealthEventInput,
 ): Promise<HealthEvent> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
 
   const payload: HealthEventUpdate = {
     ...input,
@@ -164,7 +164,7 @@ export async function updateHealthEvent(
 }
 
 export async function deleteHealthEvent(id: string): Promise<void> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
 
   const { error } = await supabase.from('health_events').delete().eq('id', id);
 

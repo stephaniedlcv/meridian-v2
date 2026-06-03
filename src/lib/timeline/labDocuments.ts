@@ -22,7 +22,7 @@ export type UpdateLabDocumentInput = Omit<
 >;
 
 async function getCurrentUserId() {
-  const supabase = createClient();
+  const supabase = createClient() as any;
 
   const {
     data: { user },
@@ -59,7 +59,7 @@ function assertAllowedFile(file: File) {
 }
 
 export async function getLabDocuments(): Promise<LabDocument[]> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
 
   const { data, error } = await supabase
     .from('lab_documents')
@@ -77,7 +77,7 @@ export async function getLabDocuments(): Promise<LabDocument[]> {
 export async function getLabDocumentById(
   id: string,
 ): Promise<LabDocument | null> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
 
   const { data, error } = await supabase
     .from('lab_documents')
@@ -95,7 +95,7 @@ export async function getLabDocumentById(
 export async function getLabDocumentsByIds(
   ids: string[],
 ): Promise<LabDocument[]> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
 
   if (!ids.length) {
     return [];
@@ -118,7 +118,7 @@ export async function uploadLabDocument(
   file: File,
   metadata: UploadLabDocumentMetadata,
 ): Promise<LabDocument> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
   const userId = await getCurrentUserId();
 
   assertAllowedFile(file);
@@ -174,7 +174,7 @@ export async function updateLabDocument(
   id: string,
   input: UpdateLabDocumentInput,
 ): Promise<LabDocument> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
 
   const payload: LabDocumentUpdate = {
     ...input,
@@ -205,7 +205,7 @@ export async function createSignedLabUrl(
   storagePath: string,
   expiresIn = SIGNED_URL_EXPIRY_SECONDS,
 ): Promise<string> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
 
   const { data, error } = await supabase.storage
     .from(LAB_DOCUMENTS_BUCKET)
@@ -234,7 +234,7 @@ export async function downloadLabDocument(
 }
 
 export async function deleteLabDocument(id: string): Promise<void> {
-  const supabase = createClient();
+  const supabase = createClient() as any;
 
   const { data: labDocument, error: fetchError } = await supabase
     .from('lab_documents')

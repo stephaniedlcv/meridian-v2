@@ -26,7 +26,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd .migration-backup && npm run dev"
+args = "npm run dev"
 waitForPort = 3000
 
 [workflows.workflow.metadata]
