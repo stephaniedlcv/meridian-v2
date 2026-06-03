@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import NavBar from '@/components/NavBar';
 import { MeridianPageShell } from '@/components/MeridianPageShell';
 import { MeridianPageHeader } from '@/components/MeridianPageHeader';
-import { meridianPageStyles } from '@/lib/meridianDesignTokens';
 import type { HealthEvent, LabDocument } from '@/types/database';
 import {
   getPastHealthEvents,
@@ -105,9 +104,9 @@ const styles: Record<string, CSSProperties> = {
   statsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-    gap: 10,
+    gap: 9,
     marginBottom: 16,
-    marginTop: 24,
+    marginTop: 20,
   },
   statCard: {
     border: `1px solid ${colors.cardBorder}`,
@@ -304,15 +303,6 @@ export default function HealthTimelinePage() {
               Organiza tus citas médicas, laboratorios y seguimientos en un
               solo lugar.
             </>
-          }
-          action={
-            <button
-              type="button"
-              onClick={openCreateAppointmentModal}
-              style={meridianPageStyles.actionButton}
-            >
-              + Añadir cita
-            </button>
           }
         />
 

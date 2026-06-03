@@ -26,53 +26,87 @@ export const meridianFonts = {
 };
 
 export const meridianPageStyles = {
+  // Based on Labs real page wrapper:
+  // padding: 44px 20px 120px
   page: {
     minHeight: '100vh',
+    backgroundColor: meridianColors.background,
     color: meridianColors.text,
-    background:
-      'radial-gradient(circle at 50% 0%, rgba(45,212,191,0.08) 0%, rgba(45,212,191,0.025) 28%, transparent 58%), linear-gradient(180deg, #061316 0%, #02090B 100%)',
-    padding: '24px 24px 100px',
     fontFamily: meridianFonts.ui,
+    position: 'relative',
+    overflow: 'hidden',
+    padding: '44px 20px 120px',
   } satisfies CSSProperties,
 
+  // Based on Labs real content width:
+  // maxWidth: 680px
   shell: {
     width: '100%',
-    maxWidth: 640,
+    maxWidth: '680px',
     margin: '0 auto',
+    position: 'relative',
+    zIndex: 1,
   } satisfies CSSProperties,
 
+  // Based on Dashboard/Labs header rhythm.
   header: {
+    marginBottom: '28px',
+  } satisfies CSSProperties,
+
+  // Based on Labs page context label:
+  // flex row + dot + uppercase 11px label.
+  eyebrowRow: {
     display: 'flex',
-    flexDirection: 'column',
-    marginBottom: 26,
+    alignItems: 'center',
+    gap: '7px',
+    marginBottom: '20px',
+  } satisfies CSSProperties,
+
+  eyebrowDot: {
+    width: '5px',
+    height: '5px',
+    borderRadius: '50%',
+    background: meridianColors.teal,
+    boxShadow: '0 0 6px rgba(45,212,191,0.6)',
+    flexShrink: 0,
   } satisfies CSSProperties,
 
   eyebrow: {
-    margin: '0 0 12px',
-    color: meridianColors.textMuted,
-    fontSize: 11,
-    lineHeight: 1,
-    fontWeight: 600,
-    letterSpacing: '0.07em',
+    fontSize: '11px',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
     textTransform: 'uppercase',
+    color: meridianColors.textMuted,
   } satisfies CSSProperties,
 
+  // Based on Labs real title:
+  // clamp(26px, 5vw, 32px), lineHeight 1.2, marginBottom 16px.
   title: {
-    margin: 0,
-    color: meridianColors.text,
     fontFamily: meridianFonts.heading,
-    fontSize: 'clamp(26px, 6vw, 34px)',
-    lineHeight: 1.15,
+    fontSize: 'clamp(26px, 5vw, 32px)',
     fontWeight: 700,
+    color: meridianColors.text,
+    margin: '0 0 16px',
+    lineHeight: 1.2,
     letterSpacing: '-0.04em',
   } satisfies CSSProperties,
 
+  // Based on Dashboard/Labs body copy:
+  // 14px, textSoft, readable lineHeight.
   subtitle: {
-    margin: '8px 0 0',
-    maxWidth: 360,
+    margin: 0,
+    maxWidth: '360px',
     color: meridianColors.textSoft,
-    fontSize: 14,
+    fontSize: '14px',
     lineHeight: 1.65,
+  } satisfies CSSProperties,
+
+  divider: {
+    height: '1px',
+    background:
+      'linear-gradient(90deg, transparent, rgba(103,232,249,0.12) 40%, rgba(103,232,249,0.08) 60%, transparent)',
+    marginTop: '24px',
+    marginBottom: '28px',
   } satisfies CSSProperties,
 
   actionButton: {
