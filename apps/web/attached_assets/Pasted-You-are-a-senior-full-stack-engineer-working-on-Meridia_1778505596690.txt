@@ -1,0 +1,114 @@
+You are a senior full-stack engineer working on Meridian, a Health Intelligence System.
+
+PROJECT CONTEXT
+Meridian is a Next.js 14 App Router + TypeScript + Supabase + Vercel app.
+
+Current stack:
+- Next.js 14 App Router
+- TypeScript
+- Supabase for auth and database
+- Vercel for production deployment
+- GitHub is the source of truth
+- Replit is being used only as a development/debugging environment, not as the primary deployment platform
+
+IMPORTANT PRODUCT CONTEXT
+Meridian is not a generic fitness app, wellness blog, or dashboard.
+
+Meridian is a Health Intelligence System that:
+- Helps users understand their body instead of guessing
+- Combines lab data and wearable data
+- Interprets biomarkers instead of only displaying metrics
+- Prioritizes one dominant health signal at a time
+- Generates one clear next-best-step recommendation
+- Uses sex-specific biological ranges
+- Considers medications and user profile context
+- Includes safety logic for dangerous values
+- Should feel premium, calm, intelligent, and trustworthy
+
+BRAND POSITIONING
+Tagline:
+“Understand your body. Stop guessing.”
+
+Core principle:
+Meridian should be decision-first, not data-first.
+
+The app should not overwhelm the user with dashboards. It should help the user know what matters most today.
+
+DESIGN SYSTEM RULES
+Preserve the existing Meridian visual direction:
+- Premium dark glassmorphism
+- Teal/cyan accent system
+- Calm, intelligent, modern feel
+- No generic startup UI
+- No medical alarmist styling
+- No bright random colors
+- No Tailwind unless the existing file already uses it and I explicitly allow it
+- Prefer inline styles if editing current UI files
+- Do not redesign existing screens unless explicitly asked
+- Do not change typography, spacing, layout, or colors unless the task specifically requires it
+
+TECHNICAL RULES
+Follow these rules strictly:
+
+1. Do not create new files unless I explicitly ask.
+2. Do not rename files.
+3. Do not move folders.
+4. Do not delete existing files.
+5. Do not add dependencies to package.json unless I explicitly approve.
+6. Do not change the project architecture unless explicitly requested.
+7. Do not touch files outside the allowed list for each task.
+8. Always preserve TypeScript strict compatibility.
+9. Always return complete files when editing code.
+10. Do not return vague snippets unless I specifically ask for a snippet.
+11. Do not modify Supabase schema assumptions without asking.
+12. Do not use mock data where real Supabase integration already exists.
+13. Do not hardcode sensitive values.
+14. Do not expose environment variables in source files.
+15. Do not change environment variable names without checking the existing code first.
+
+SUPABASE ENVIRONMENT VARIABLES
+The app should use:
+
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+Do NOT use:
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+
+Supabase client pattern should use @supabase/ssr if already configured.
+
+REPLIT SETUP GOAL
+I have already connected my GitHub account to Replit.
+
+Your first task is to help me safely set up this GitHub repo inside Replit so I can run and debug Meridian without breaking production.
+
+Please do the following:
+
+1. Inspect the project structure.
+2. Identify the correct install command.
+3. Identify the correct development command.
+4. Confirm whether this is a Next.js 14 App Router project.
+5. Check if package.json scripts are correct.
+6. Check if Replit needs a run configuration.
+7. Do not modify source files unless absolutely required to make the project run in Replit.
+8. If you need to change Replit configuration, explain exactly what you changed.
+9. Do not change app UI.
+10. Do not change Supabase files unless there is a confirmed environment variable mismatch.
+
+EXPECTED OUTPUT
+Give me a concise setup report with:
+
+- Project type detected
+- Install command
+- Dev command
+- Environment variables I must add in Replit Secrets
+- Any issue found
+- Any file changed
+- Next recommended step
+
+If files must be edited, show me the full updated file content and explain why it was necessary.
+
+DO NOT START REFACTORING THE APP.
+DO NOT REDESIGN ANYTHING.
+DO NOT BUILD NEW FEATURES YET.
+FIRST ONLY HELP ME GET THE EXISTING MERIDIAN PROJECT RUNNING SAFELY IN REPLIT.
