@@ -41,12 +41,238 @@ interface GoldenInsight {
   logic_trace: string
 }
 
+interface UpcomingHealthEvent {
+  id: string
+  event_type: string | null
+  title: string | null
+  specialty: string | null
+  provider_name: string | null
+  starts_at: string
+  location: string | null
+  is_virtual: boolean | null
+  prep_status: string | null
+}
+
 function getBlockColors(blockColor: string) {
   switch (blockColor) {
     case 'alert': return { bg: colors.alert, border: colors.alertBorder, accent: '#F87171' }
     case 'optimal': return { bg: colors.optimal, border: colors.optimalBorder, accent: '#4ADE80' }
     default: return { bg: colors.recovery, border: colors.recoveryBorder, accent: colors.teal }
   }
+}
+
+function formatUpcomingEventDate(value: string, lang: MeridianLanguage): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return lang === 'es' ? 'Fecha pendiente' : 'Date pending'
+  }
+
+  return date.toLocaleDateString(lang === 'es' ? 'es-PR' : 'en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+function formatUpcomingEventTime(value: string, lang: MeridianLanguage): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+
+  return date.toLocaleTimeString(lang === 'es' ? 'es-PR' : 'en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
+function getPrepStatusLabel(status: string | null, lang: MeridianLanguage): string {
+  switch (status) {
+    case 'ready':
+      return lang === 'es' ? 'Preparación lista' : 'Prep ready'
+    case 'in_progress':
+      return lang === 'es' ? 'Preparación en progreso' : 'Prep in progress'
+    default:
+      return lang === 'es' ? 'Preparación pendiente' : 'Prep pending'
+  }
+}
+
+function DashboardTimelineCard({
+  event,
+  onOpen,
+  lang,
+}: {
+  event: UpcomingHealthEvent | null
+  onOpen: () => void
+  lang: MeridianLanguage
+}) {
+  const hasEvent = Boolean(event)
+  const title = event?.title || event?.specialty || (lang === 'es' ? 'Próxima cita' : 'Upcoming appointment')
+  const subtitle = event?.provider_name || event?.specialty || (lang === 'es' ? 'Añade tu próxima cita médica o fecha importante.' : 'Add your next appointment or important health date.')
+  const dateLabel = event ? formatUpcomingEventDate(event.starts_at, lang) : (lang === 'es' ? 'Sin cita próxima' : 'No upcoming date')
+  const timeLabel = event ? formatUpcomingEventTime(event.starts_at, lang) : ''
+  const locationLabel = event?.is_virtual
+    ? (lang === 'es' ? 'Telehealth / Virtual' : 'Telehealth / Virtual')
+    : event?.location
+
+  return (
+    <motion.div
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') onOpen()
+      }}
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.22 }}
+      style={{
+        marginTop: '24px',
+        padding: '18px',
+        borderRadius: '22px',
+        background: 'linear-gradient(135deg, rgba(232,248,245,0.075) 0%, rgba(103,232,249,0.045) 100%)',
+        border: `1px solid ${colors.cardBorder}`,
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.055), 0 18px 44px rgba(0,0,0,0.18)',
+        backdropFilter: 'blur(28px)',
+        cursor: 'pointer',
+        outline: 'none',
+      }}
+    >
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '14px',
+        marginBottom: '14px',
+      }}>
+        <div>
+          <div style={{
+            fontSize: '11px',
+            fontWeight: 700,
+            letterSpacing: '0.09em',
+            textTransform: 'uppercase',
+            color: colors.teal,
+            marginBottom: '5px',
+          }}>
+            {lang === 'es' ? 'Fechas importantes' : 'Important dates'}
+          </div>
+          <div style={{
+            fontSize: '13px',
+            color: colors.textMuted,
+            lineHeight: 1.45,
+          }}>
+            {lang === 'es'
+              ? 'Próximas citas, preparación y documentos clave.'
+              : 'Upcoming appointments, prep, and key documents.'}
+          </div>
+        </div>
+
+        <div style={{
+          width: '38px',
+          height: '38px',
+          borderRadius: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(45,212,191,0.09)',
+          border: '1px solid rgba(45,212,191,0.22)',
+          boxShadow: '0 0 18px rgba(45,212,191,0.08)',
+          flexShrink: 0,
+        }}>
+          <span style={{ fontSize: '18px' }}>📅</span>
+        </div>
+      </div>
+
+      <div style={{
+        display: 'flex',
+        gap: '14px',
+        alignItems: 'stretch',
+      }}>
+        <div style={{
+          minWidth: '92px',
+          padding: '12px 10px',
+          borderRadius: '16px',
+          background: 'rgba(6,19,22,0.42)',
+          border: '1px solid rgba(103,232,249,0.10)',
+          textAlign: 'center',
+        }}>
+          <div style={{
+            fontSize: '12px',
+            color: colors.textSoft,
+            fontWeight: 700,
+            lineHeight: 1.35,
+          }}>
+            {dateLabel}
+          </div>
+          {timeLabel && (
+            <div style={{
+              marginTop: '5px',
+              fontSize: '11px',
+              color: colors.textMuted,
+              fontWeight: 600,
+            }}>
+              {timeLabel}
+            </div>
+          )}
+        </div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: '15px',
+            fontWeight: 700,
+            color: colors.text,
+            letterSpacing: '-0.02em',
+            marginBottom: '4px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {title}
+          </div>
+
+          <div style={{
+            fontSize: '12px',
+            color: colors.textSoft,
+            lineHeight: 1.5,
+            marginBottom: '8px',
+          }}>
+            {subtitle}
+          </div>
+
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '7px',
+            alignItems: 'center',
+          }}>
+            <span style={{
+              padding: '5px 9px',
+              borderRadius: '999px',
+              background: 'rgba(45,212,191,0.08)',
+              border: '1px solid rgba(45,212,191,0.16)',
+              color: colors.textSoft,
+              fontSize: '10.5px',
+              fontWeight: 700,
+            }}>
+              {hasEvent ? getPrepStatusLabel(event?.prep_status ?? null, lang) : (lang === 'es' ? 'Crear primera fecha' : 'Add first date')}
+            </span>
+
+            {locationLabel && (
+              <span style={{
+                padding: '5px 9px',
+                borderRadius: '999px',
+                background: 'rgba(103,232,249,0.06)',
+                border: '1px solid rgba(103,232,249,0.14)',
+                color: colors.textMuted,
+                fontSize: '10.5px',
+                fontWeight: 600,
+              }}>
+                {locationLabel}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
 }
 
 function getFirstName(fullName: string): string {
@@ -204,6 +430,7 @@ export default function DashboardPage() {
   // Safety Engine V1: set when any recent biomarker meets a critical threshold.
   // Gates LabsSavedBlock copy and reinforces safetyAlert in SolvedBlock.
   const [hasCriticalMarker, setHasCriticalMarker] = useState(false)
+  const [nextHealthEvent, setNextHealthEvent] = useState<UpcomingHealthEvent | null>(null)
 
   useEffect(() => {
     async function loadDashboard() {
@@ -224,6 +451,23 @@ export default function DashboardPage() {
       if (nextStep) { router.push(nextStep); return }
 
       setUserName(profile?.full_name || 'there')
+
+      // Upcoming health event — powers the Fechas importantes dashboard card.
+      try {
+        const { data: upcomingEvent } = await (supabase as any)
+          .from('health_events')
+          .select('id, event_type, title, specialty, provider_name, starts_at, location, is_virtual, prep_status')
+          .eq('user_id', user.id)
+          .gte('starts_at', new Date().toISOString())
+          .order('starts_at', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+
+        setNextHealthEvent((upcomingEvent ?? null) as UpcomingHealthEvent | null)
+      } catch (err) {
+        console.error('[Meridian] Upcoming health event error:', err)
+        setNextHealthEvent(null)
+      }
 
       // Lightweight biomarker count — runs before insight so any insight failure
       // can still show the correct state rather than false no_data.
@@ -467,6 +711,12 @@ export default function DashboardPage() {
             />
           )}
         </motion.div>
+
+        <DashboardTimelineCard
+          event={nextHealthEvent}
+          onOpen={() => router.push('/timeline')}
+          lang={lang}
+        />
 
         {/* Quick Actions — only shown before first labs upload */}
         {state === 'no_data' && (
