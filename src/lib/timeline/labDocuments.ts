@@ -9,6 +9,10 @@ const SIGNED_URL_EXPIRY_SECONDS = 60 * 60;
 type LabDocumentInsert = Database['public']['Tables']['lab_documents']['Insert'];
 type LabDocumentUpdate = Database['public']['Tables']['lab_documents']['Update'];
 
+function getTimelineClient() {
+  return createClient() as any;
+}
+
 export type UploadLabDocumentMetadata = {
   name: string;
   lab_date?: string | null;
@@ -22,7 +26,7 @@ export type UpdateLabDocumentInput = Omit<
 >;
 
 async function getCurrentUserId() {
-  const supabase = createClient() as any;
+  const supabase = getTimelineClient();
 
   const {
     data: { user },
@@ -59,7 +63,7 @@ function assertAllowedFile(file: File) {
 }
 
 export async function getLabDocuments(): Promise<LabDocument[]> {
-  const supabase = createClient() as any;
+  const supabase = getTimelineClient();
 
   const { data, error } = await supabase
     .from('lab_documents')
@@ -77,7 +81,7 @@ export async function getLabDocuments(): Promise<LabDocument[]> {
 export async function getLabDocumentById(
   id: string,
 ): Promise<LabDocument | null> {
-  const supabase = createClient() as any;
+  const supabase = getTimelineClient();
 
   const { data, error } = await supabase
     .from('lab_documents')
@@ -95,7 +99,7 @@ export async function getLabDocumentById(
 export async function getLabDocumentsByIds(
   ids: string[],
 ): Promise<LabDocument[]> {
-  const supabase = createClient() as any;
+  const supabase = getTimelineClient();
 
   if (!ids.length) {
     return [];
@@ -118,7 +122,7 @@ export async function uploadLabDocument(
   file: File,
   metadata: UploadLabDocumentMetadata,
 ): Promise<LabDocument> {
-  const supabase = createClient() as any;
+  const supabase = getTimelineClient();
   const userId = await getCurrentUserId();
 
   assertAllowedFile(file);
@@ -174,7 +178,7 @@ export async function updateLabDocument(
   id: string,
   input: UpdateLabDocumentInput,
 ): Promise<LabDocument> {
-  const supabase = createClient() as any;
+  const supabase = getTimelineClient();
 
   const payload: LabDocumentUpdate = {
     ...input,
@@ -205,7 +209,7 @@ export async function createSignedLabUrl(
   storagePath: string,
   expiresIn = SIGNED_URL_EXPIRY_SECONDS,
 ): Promise<string> {
-  const supabase = createClient() as any;
+  const supabase = getTimelineClient();
 
   const { data, error } = await supabase.storage
     .from(LAB_DOCUMENTS_BUCKET)
@@ -234,7 +238,7 @@ export async function downloadLabDocument(
 }
 
 export async function deleteLabDocument(id: string): Promise<void> {
-  const supabase = createClient() as any;
+  const supabase = getTimelineClient();
 
   const { data: labDocument, error: fetchError } = await supabase
     .from('lab_documents')
