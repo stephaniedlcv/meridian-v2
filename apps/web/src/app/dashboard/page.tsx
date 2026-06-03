@@ -152,7 +152,7 @@ function DashboardTimelineCard({
             color: colors.teal,
             marginBottom: '5px',
           }}>
-            {lang === 'es' ? 'Fechas importantes' : 'Important dates'}
+            {lang === 'es' ? 'Agenda de salud' : 'Health Agenda'}
           </div>
           <div style={{
             fontSize: '13px',
@@ -452,7 +452,7 @@ export default function DashboardPage() {
 
       setUserName(profile?.full_name || 'there')
 
-      // Upcoming health event — powers the Fechas importantes dashboard card.
+      // Upcoming health event — powers the Health Agenda dashboard card.
       try {
         const { data: upcomingEvent } = await (supabase as any)
           .from('health_events')

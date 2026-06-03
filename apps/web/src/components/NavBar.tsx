@@ -19,12 +19,17 @@ const fonts = {
   ui:      '"Plus Jakarta Sans", sans-serif',
 }
 
-// 4-item nav — Notifications moved to global bell
-const navConfig: { path: string; labelKey: TranslationKey; id: string }[] = [
+// 4-item nav — Notifications and Profile moved to global top actions
+const navConfig: {
+  path: string
+  labelKey?: TranslationKey
+  label?: { en: string; es: string }
+  id: string
+}[] = [
   { path: '/dashboard',   labelKey: 'nav.home',     id: 'home'     },
   { path: '/labs/upload', labelKey: 'nav.labs',     id: 'labs'     },
   { path: '/protocol',    labelKey: 'nav.protocol', id: 'protocol' },
-  { path: '/profile',     labelKey: 'nav.profile',  id: 'profile'  },
+  { path: '/timeline',    label: { en: 'Agenda', es: 'Agenda' }, id: 'timeline' },
 ]
 
 function NavIcon({ id, isActive }: { id: string; isActive: boolean }) {
@@ -80,6 +85,20 @@ function NavIcon({ id, isActive }: { id: string; isActive: boolean }) {
     )
   }
 
+  if (id === 'timeline') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="14" height="13" rx="2.2" />
+        <path d="M6.5 2.5v3" />
+        <path d="M13.5 2.5v3" />
+        <path d="M3 8h14" />
+        <path d="M6.5 11h2" />
+        <path d="M11.5 11h2" />
+        <path d="M6.5 14h2" />
+      </svg>
+    )
+  }
+
   return null
 }
 
@@ -120,6 +139,57 @@ function relTime(iso: string, lang: MeridianLanguage): string {
   if (hours >= 1) return lang === 'es' ? `${hours}h` : `${hours}h ago`
   if (mins  >= 1) return lang === 'es' ? `${mins}min` : `${mins}m ago`
   return t(lang, 'notifications.justNow')
+}
+
+// ── Global profile shortcut ───────────────────────────────────────────
+function ProfileButton({
+  pathname,
+  onOpen,
+  lang,
+}: {
+  pathname: string
+  onOpen: () => void
+  lang: MeridianLanguage
+}) {
+  const isActive = pathname === '/profile' || pathname.startsWith('/profile/')
+  const stroke = isActive ? colors.teal : colors.textSoft
+
+  return (
+    <button
+      onClick={onOpen}
+      aria-label={lang === 'es' ? 'Abrir perfil' : 'Open profile'}
+      style={{
+        position:             'fixed',
+        top:                  'calc(env(safe-area-inset-top, 0px) + 14px)',
+        right:                'calc(env(safe-area-inset-right, 0px) + 66px)',
+        zIndex:               90,
+        width:                '42px',
+        height:               '42px',
+        borderRadius:         '13px',
+        background:           isActive
+          ? 'rgba(45,212,191,0.08)'
+          : 'rgba(6,19,22,0.82)',
+        border:               isActive
+          ? '1px solid rgba(45,212,191,0.22)'
+          : `1px solid ${colors.cardBorder}`,
+        backdropFilter:       'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        boxShadow:            '0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)',
+        cursor:               'pointer',
+        display:              'flex',
+        alignItems:           'center',
+        justifyContent:       'center',
+        padding:              0,
+        touchAction:          'manipulation',
+        transition:           'box-shadow 0.3s ease, border 0.3s ease, background 0.25s ease, transform 0.18s ease',
+      }}
+    >
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke={stroke} strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="10" cy="6.5" r="3" />
+        <path d="M3 18c0-3.9 3.1-6 7-6s7 2.1 7 6" />
+      </svg>
+    </button>
+  )
 }
 
 // ── Global notification bell ──────────────────────────────────────────
@@ -311,7 +381,13 @@ export default function NavBar() {
         }
       `}</style>
 
-      {/* Global notification bell */}
+      {/* Global top actions */}
+      <ProfileButton
+        pathname={pathname ?? ''}
+        onOpen={() => router.push('/profile')}
+        lang={lang}
+      />
+
       <NotificationBell
         unreadCount={displayCount}
         pathname={pathname ?? ''}
@@ -612,7 +688,7 @@ export default function NavBar() {
                   color:         isActive ? colors.teal : colors.textMuted,
                   whiteSpace:    'nowrap',
                 }}>
-                  {t(lang, item.labelKey)}
+                  {item.label ? item.label[lang] : t(lang, item.labelKey!)}
                 </span>
               </button>
             )
