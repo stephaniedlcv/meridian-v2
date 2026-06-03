@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import NavBar from '@/components/NavBar';
 import type { HealthEvent, LabDocument } from '@/types/database';
 import {
   getPastHealthEvents,
@@ -26,7 +27,7 @@ const colors = {
   card: 'rgba(7, 29, 31, 0.72)',
   cardSoft: 'rgba(255,255,255,0.035)',
   cardBorder: 'rgba(103,232,249,0.13)',
-  cardBorderActive: 'rgba(45,212,191,0.38)',
+  cardBorderActive: 'rgba(45,212,191,0.34)',
 };
 
 const fonts = {
@@ -39,14 +40,14 @@ const styles: Record<string, CSSProperties> = {
     minHeight: '100vh',
     color: colors.text,
     background:
-      'radial-gradient(circle at 50% 0%, rgba(45,212,191,0.09) 0%, rgba(45,212,191,0.025) 28%, transparent 56%), linear-gradient(180deg, #061316 0%, #02090B 100%)',
+      'radial-gradient(circle at 50% 0%, rgba(45,212,191,0.08) 0%, rgba(45,212,191,0.025) 28%, transparent 58%), linear-gradient(180deg, #061316 0%, #02090B 100%)',
     padding:
-      'calc(env(safe-area-inset-top, 0px) + 118px) 20px calc(env(safe-area-inset-bottom, 0px) + 118px)',
+      'calc(env(safe-area-inset-top, 0px) + 138px) 20px calc(env(safe-area-inset-bottom, 0px) + 126px)',
     fontFamily: fonts.ui,
   },
   shell: {
     width: '100%',
-    maxWidth: 760,
+    maxWidth: 680,
     margin: '0 auto',
   },
   eyebrow: {
@@ -55,11 +56,11 @@ const styles: Record<string, CSSProperties> = {
     fontSize: 11,
     lineHeight: 1,
     fontWeight: 800,
-    letterSpacing: '0.26em',
+    letterSpacing: '0.24em',
     textTransform: 'uppercase',
   },
   hero: {
-    marginBottom: 26,
+    marginBottom: 28,
   },
   heroTop: {
     display: 'flex',
@@ -68,32 +69,32 @@ const styles: Record<string, CSSProperties> = {
     gap: 18,
   },
   title: {
-    margin: '14px 0 0',
+    margin: '13px 0 0',
     color: colors.text,
     fontFamily: fonts.heading,
-    fontSize: 'clamp(38px, 6vw, 56px)',
-    lineHeight: 0.92,
+    fontSize: 'clamp(31px, 5vw, 42px)',
+    lineHeight: 0.96,
     fontWeight: 800,
-    letterSpacing: '-0.045em',
+    letterSpacing: '-0.04em',
     textShadow: '0 16px 42px rgba(103,232,249,0.10)',
   },
   subtitle: {
-    margin: '18px 0 0',
-    maxWidth: 620,
+    margin: '17px 0 0',
+    maxWidth: 560,
     color: colors.textSoft,
     fontSize: 15,
-    lineHeight: 1.7,
+    lineHeight: 1.68,
   },
   primaryButton: {
     border: `1px solid ${colors.cardBorderActive}`,
-    borderRadius: 18,
-    padding: '12px 16px',
+    borderRadius: 16,
+    padding: '11px 14px',
     color: colors.text,
     background:
-      'linear-gradient(135deg, rgba(45,212,191,0.18), rgba(103,232,249,0.08))',
+      'linear-gradient(135deg, rgba(45,212,191,0.14), rgba(103,232,249,0.055))',
     boxShadow:
-      '0 18px 45px rgba(45,212,191,0.10), inset 0 1px 0 rgba(255,255,255,0.08)',
-    fontSize: 13,
+      '0 16px 42px rgba(45,212,191,0.08), inset 0 1px 0 rgba(255,255,255,0.07)',
+    fontSize: 12,
     fontWeight: 800,
     letterSpacing: '0.01em',
     cursor: 'pointer',
@@ -103,14 +104,14 @@ const styles: Record<string, CSSProperties> = {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
     gap: 10,
-    marginBottom: 18,
+    marginBottom: 16,
   },
   statCard: {
     border: `1px solid ${colors.cardBorder}`,
     borderRadius: 22,
     padding: '14px 15px',
-    background: colors.cardSoft,
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+    background: 'rgba(7, 29, 31, 0.50)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.035)',
   },
   statLabel: {
     margin: 0,
@@ -137,32 +138,32 @@ const styles: Record<string, CSSProperties> = {
     padding: 6,
     border: `1px solid ${colors.cardBorder}`,
     borderRadius: 22,
-    background: 'rgba(2, 9, 11, 0.52)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+    background: 'rgba(2, 9, 11, 0.46)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.035)',
   },
   section: {
     display: 'grid',
     gap: 12,
   },
   emptyCard: {
-    minHeight: 250,
+    minHeight: 236,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     border: '1px dashed rgba(103,232,249,0.18)',
     borderRadius: 30,
     background:
-      'linear-gradient(180deg, rgba(7,29,31,0.76), rgba(2,9,11,0.42))',
+      'linear-gradient(180deg, rgba(7,29,31,0.62), rgba(2,9,11,0.40))',
     boxShadow:
-      '0 22px 60px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.04)',
+      '0 22px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.035)',
     padding: 24,
     textAlign: 'center',
   },
   emptyIcon: {
-    width: 44,
-    height: 44,
-    margin: '0 auto 16px',
-    borderRadius: 16,
+    width: 42,
+    height: 42,
+    margin: '0 auto 15px',
+    borderRadius: 15,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -174,14 +175,14 @@ const styles: Record<string, CSSProperties> = {
     margin: 0,
     color: colors.text,
     fontFamily: fonts.heading,
-    fontSize: 25,
+    fontSize: 24,
     lineHeight: 1.05,
     fontWeight: 800,
     letterSpacing: '-0.03em',
   },
   emptyDescription: {
     margin: '12px auto 0',
-    maxWidth: 440,
+    maxWidth: 420,
     color: colors.textSoft,
     fontSize: 14,
     lineHeight: 1.7,
@@ -290,107 +291,110 @@ export default function HealthTimelinePage() {
   }
 
   return (
-    <main style={styles.page}>
-      <div style={styles.shell}>
-        <section style={styles.hero}>
-          <div style={styles.heroTop}>
-            <div>
-              <p style={styles.eyebrow}>Agenda de salud</p>
-              <h1 style={styles.title}>Próximas citas y seguimiento</h1>
-              <p style={styles.subtitle}>
-                Organiza tus citas médicas, laboratorios y próximos pasos en un
-                solo lugar, con el contexto que necesitas antes y después de cada
-                visita.
-              </p>
+    <>
+      <main style={styles.page}>
+        <div style={styles.shell}>
+          <section style={styles.hero}>
+            <div style={styles.heroTop}>
+              <div>
+                <p style={styles.eyebrow}>Agenda de salud</p>
+                <h1 style={styles.title}>Agenda</h1>
+                <p style={styles.subtitle}>
+                  Organiza tus citas médicas, laboratorios y seguimientos en un
+                  solo lugar.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={openCreateAppointmentModal}
+                style={styles.primaryButton}
+              >
+                + Añadir cita
+              </button>
             </div>
+          </section>
 
-            <button
-              type="button"
-              onClick={openCreateAppointmentModal}
-              style={styles.primaryButton}
-            >
-              + Añadir cita
-            </button>
-          </div>
-        </section>
+          <section style={styles.statsGrid}>
+            <MiniStat label="Próximas" value={upcomingEvents.length} />
+            <MiniStat label="Historial" value={pastEvents.length} />
+            <MiniStat label="Labs" value={labDocuments.length} />
+          </section>
 
-        <section style={styles.statsGrid}>
-          <MiniStat label="Próximas" value={upcomingEvents.length} />
-          <MiniStat label="Historial" value={pastEvents.length} />
-          <MiniStat label="Labs" value={labDocuments.length} />
-        </section>
+          {error ? <div style={styles.error}>{error}</div> : null}
 
-        {error ? <div style={styles.error}>{error}</div> : null}
+          <section style={styles.tabWrap}>
+            <TimelineTabButton
+              label="Próximas"
+              isActive={activeTab === 'upcoming'}
+              onClick={() => setActiveTab('upcoming')}
+            />
+            <TimelineTabButton
+              label="Historial"
+              isActive={activeTab === 'past'}
+              onClick={() => setActiveTab('past')}
+            />
+            <TimelineTabButton
+              label="Laboratorios"
+              isActive={activeTab === 'labs'}
+              onClick={() => setActiveTab('labs')}
+            />
+          </section>
 
-        <section style={styles.tabWrap}>
-          <TimelineTabButton
-            label="Próximas"
-            isActive={activeTab === 'upcoming'}
-            onClick={() => setActiveTab('upcoming')}
-          />
-          <TimelineTabButton
-            label="Historial"
-            isActive={activeTab === 'past'}
-            onClick={() => setActiveTab('past')}
-          />
-          <TimelineTabButton
-            label="Laboratorios"
-            isActive={activeTab === 'labs'}
-            onClick={() => setActiveTab('labs')}
-          />
-        </section>
-
-        {isLoading ? (
-          <TimelineLoadingState />
-        ) : activeTab === 'labs' ? (
-          <LabDocumentList
-            labs={labDocuments}
-            onUploadClick={() => setIsLabUploadModalOpen(true)}
-            onChanged={handleLabListChanged}
-          />
-        ) : (
-          <EventsSection
-            events={currentEvents}
-            emptyTitle={
-              activeTab === 'upcoming'
-                ? 'No tienes próximas citas.'
-                : 'No hay historial todavía.'
-            }
-            emptyDescription={
-              activeTab === 'upcoming'
-                ? 'Añade tu primera cita para empezar a organizar tu seguimiento de salud.'
-                : 'Cuando completes una cita, aparecerá aquí para que puedas revisar notas y próximos pasos.'
-            }
-            emptyActionLabel={
-              activeTab === 'upcoming' ? '+ Añadir cita' : 'Ver próximas'
-            }
-            onEmptyAction={() => {
-              if (activeTab === 'upcoming') {
-                openCreateAppointmentModal();
-              } else {
-                setActiveTab('upcoming');
+          {isLoading ? (
+            <TimelineLoadingState />
+          ) : activeTab === 'labs' ? (
+            <LabDocumentList
+              labs={labDocuments}
+              onUploadClick={() => setIsLabUploadModalOpen(true)}
+              onChanged={handleLabListChanged}
+            />
+          ) : (
+            <EventsSection
+              events={currentEvents}
+              emptyTitle={
+                activeTab === 'upcoming'
+                  ? 'No tienes próximas citas.'
+                  : 'No hay historial todavía.'
               }
-            }}
-            onViewDetails={openViewAppointmentModal}
-          />
-        )}
-      </div>
+              emptyDescription={
+                activeTab === 'upcoming'
+                  ? 'Añade tu primera cita para empezar a organizar tu seguimiento de salud.'
+                  : 'Cuando completes una cita, aparecerá aquí para que puedas revisar notas y próximos pasos.'
+              }
+              emptyActionLabel={
+                activeTab === 'upcoming' ? '+ Añadir cita' : 'Ver próximas'
+              }
+              onEmptyAction={() => {
+                if (activeTab === 'upcoming') {
+                  openCreateAppointmentModal();
+                } else {
+                  setActiveTab('upcoming');
+                }
+              }}
+              onViewDetails={openViewAppointmentModal}
+            />
+          )}
+        </div>
 
-      <AppointmentModal
-        isOpen={isAppointmentModalOpen}
-        mode={appointmentModalMode}
-        appointment={selectedAppointment}
-        onClose={handleAppointmentModalClose}
-        onSaved={handleAppointmentSaved}
-        onDeleted={handleAppointmentDeleted}
-      />
+        <AppointmentModal
+          isOpen={isAppointmentModalOpen}
+          mode={appointmentModalMode}
+          appointment={selectedAppointment}
+          onClose={handleAppointmentModalClose}
+          onSaved={handleAppointmentSaved}
+          onDeleted={handleAppointmentDeleted}
+        />
 
-      <LabUploadModal
-        isOpen={isLabUploadModalOpen}
-        onClose={() => setIsLabUploadModalOpen(false)}
-        onUploaded={handleLabUploaded}
-      />
-    </main>
+        <LabUploadModal
+          isOpen={isLabUploadModalOpen}
+          onClose={() => setIsLabUploadModalOpen(false)}
+          onUploaded={handleLabUploaded}
+        />
+      </main>
+
+      <NavBar />
+    </>
   );
 }
 
@@ -424,10 +428,10 @@ function TimelineTabButton({
         padding: '12px 10px',
         color: isActive ? colors.text : colors.textMuted,
         background: isActive
-          ? 'linear-gradient(135deg, rgba(45,212,191,0.14), rgba(103,232,249,0.06))'
+          ? 'linear-gradient(135deg, rgba(45,212,191,0.13), rgba(103,232,249,0.055))'
           : 'transparent',
         boxShadow: isActive
-          ? '0 10px 30px rgba(45,212,191,0.08), inset 0 1px 0 rgba(255,255,255,0.05)'
+          ? '0 10px 30px rgba(45,212,191,0.075), inset 0 1px 0 rgba(255,255,255,0.05)'
           : 'none',
         fontSize: 12,
         fontWeight: 800,
@@ -511,7 +515,7 @@ function EmptyState({
 }) {
   return (
     <section style={styles.emptyCard}>
-      <div style={{ maxWidth: 460 }}>
+      <div style={{ maxWidth: 440 }}>
         <div style={styles.emptyIcon}>
           <svg
             width="20"
