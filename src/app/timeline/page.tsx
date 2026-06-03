@@ -47,7 +47,7 @@ export default function HealthTimelinePage() {
       setError(
         err instanceof Error
           ? err.message
-          : 'No pudimos cargar tus fechas importantes.',
+          : 'No pudimos cargar tu agenda de salud.',
       );
     } finally {
       setIsLoading(false);
@@ -105,11 +105,11 @@ export default function HealthTimelinePage() {
                 Meridian
               </p>
               <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                Fechas importantes
+                Agenda de salud
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
                 Organiza tus próximas citas, laboratorios y seguimientos en un
-                solo lugar.
+                solo lugar, sin perder contexto.
               </p>
             </div>
 
