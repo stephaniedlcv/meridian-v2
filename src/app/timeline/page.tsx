@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import type { HealthEvent, LabDocument } from '@/types/database';
 import {
   getPastHealthEvents,
@@ -14,6 +14,200 @@ import { LabUploadModal } from '@/components/timeline/LabUploadModal';
 
 type TimelineTab = 'upcoming' | 'past' | 'labs';
 type AppointmentModalMode = 'create' | 'edit' | 'view';
+
+const colors = {
+  background: '#061316',
+  backgroundDeep: '#02090B',
+  teal: '#2DD4BF',
+  cyan: '#67E8F9',
+  text: '#EAFBF7',
+  textSoft: '#9ACBC1',
+  textMuted: '#5F8E85',
+  card: 'rgba(7, 29, 31, 0.72)',
+  cardSoft: 'rgba(255,255,255,0.035)',
+  cardBorder: 'rgba(103,232,249,0.13)',
+  cardBorderActive: 'rgba(45,212,191,0.38)',
+};
+
+const fonts = {
+  heading: 'var(--font-fraunces), "Fraunces", serif',
+  ui: 'var(--font-plus-jakarta-sans), "Plus Jakarta Sans", sans-serif',
+};
+
+const styles: Record<string, CSSProperties> = {
+  page: {
+    minHeight: '100vh',
+    color: colors.text,
+    background:
+      'radial-gradient(circle at 50% 0%, rgba(45,212,191,0.09) 0%, rgba(45,212,191,0.025) 28%, transparent 56%), linear-gradient(180deg, #061316 0%, #02090B 100%)',
+    padding:
+      'calc(env(safe-area-inset-top, 0px) + 118px) 20px calc(env(safe-area-inset-bottom, 0px) + 118px)',
+    fontFamily: fonts.ui,
+  },
+  shell: {
+    width: '100%',
+    maxWidth: 760,
+    margin: '0 auto',
+  },
+  eyebrow: {
+    margin: 0,
+    color: colors.teal,
+    fontSize: 11,
+    lineHeight: 1,
+    fontWeight: 800,
+    letterSpacing: '0.26em',
+    textTransform: 'uppercase',
+  },
+  hero: {
+    marginBottom: 26,
+  },
+  heroTop: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 18,
+  },
+  title: {
+    margin: '14px 0 0',
+    color: colors.text,
+    fontFamily: fonts.heading,
+    fontSize: 'clamp(38px, 6vw, 56px)',
+    lineHeight: 0.92,
+    fontWeight: 800,
+    letterSpacing: '-0.045em',
+    textShadow: '0 16px 42px rgba(103,232,249,0.10)',
+  },
+  subtitle: {
+    margin: '18px 0 0',
+    maxWidth: 620,
+    color: colors.textSoft,
+    fontSize: 15,
+    lineHeight: 1.7,
+  },
+  primaryButton: {
+    border: `1px solid ${colors.cardBorderActive}`,
+    borderRadius: 18,
+    padding: '12px 16px',
+    color: colors.text,
+    background:
+      'linear-gradient(135deg, rgba(45,212,191,0.18), rgba(103,232,249,0.08))',
+    boxShadow:
+      '0 18px 45px rgba(45,212,191,0.10), inset 0 1px 0 rgba(255,255,255,0.08)',
+    fontSize: 13,
+    fontWeight: 800,
+    letterSpacing: '0.01em',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  statsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: 10,
+    marginBottom: 18,
+  },
+  statCard: {
+    border: `1px solid ${colors.cardBorder}`,
+    borderRadius: 22,
+    padding: '14px 15px',
+    background: colors.cardSoft,
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+  },
+  statLabel: {
+    margin: 0,
+    color: colors.textMuted,
+    fontSize: 10,
+    lineHeight: 1,
+    fontWeight: 800,
+    letterSpacing: '0.18em',
+    textTransform: 'uppercase',
+  },
+  statValue: {
+    margin: '10px 0 0',
+    color: colors.text,
+    fontFamily: fonts.heading,
+    fontSize: 24,
+    lineHeight: 1,
+    fontWeight: 800,
+  },
+  tabWrap: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: 8,
+    marginBottom: 18,
+    padding: 6,
+    border: `1px solid ${colors.cardBorder}`,
+    borderRadius: 22,
+    background: 'rgba(2, 9, 11, 0.52)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+  },
+  section: {
+    display: 'grid',
+    gap: 12,
+  },
+  emptyCard: {
+    minHeight: 250,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px dashed rgba(103,232,249,0.18)',
+    borderRadius: 30,
+    background:
+      'linear-gradient(180deg, rgba(7,29,31,0.76), rgba(2,9,11,0.42))',
+    boxShadow:
+      '0 22px 60px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.04)',
+    padding: 24,
+    textAlign: 'center',
+  },
+  emptyIcon: {
+    width: 44,
+    height: 44,
+    margin: '0 auto 16px',
+    borderRadius: 16,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: `1px solid ${colors.cardBorderActive}`,
+    background: 'rgba(45,212,191,0.08)',
+    color: colors.teal,
+  },
+  emptyTitle: {
+    margin: 0,
+    color: colors.text,
+    fontFamily: fonts.heading,
+    fontSize: 25,
+    lineHeight: 1.05,
+    fontWeight: 800,
+    letterSpacing: '-0.03em',
+  },
+  emptyDescription: {
+    margin: '12px auto 0',
+    maxWidth: 440,
+    color: colors.textSoft,
+    fontSize: 14,
+    lineHeight: 1.7,
+  },
+  secondaryButton: {
+    marginTop: 22,
+    border: `1px solid ${colors.cardBorderActive}`,
+    borderRadius: 16,
+    padding: '11px 15px',
+    color: colors.text,
+    background: 'rgba(45,212,191,0.10)',
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: 'pointer',
+  },
+  error: {
+    marginBottom: 14,
+    border: '1px solid rgba(248,113,113,0.22)',
+    borderRadius: 18,
+    background: 'rgba(248,113,113,0.08)',
+    color: '#FECACA',
+    padding: '12px 14px',
+    fontSize: 13,
+    lineHeight: 1.5,
+  },
+};
 
 export default function HealthTimelinePage() {
   const [activeTab, setActiveTab] = useState<TimelineTab>('upcoming');
@@ -96,57 +290,54 @@ export default function HealthTimelinePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 shadow-2xl shadow-black/20 sm:p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <main style={styles.page}>
+      <div style={styles.shell}>
+        <section style={styles.hero}>
+          <div style={styles.heroTop}>
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-300/80">
-                Meridian
-              </p>
-              <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                Agenda de salud
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                Organiza tus próximas citas, laboratorios y seguimientos en un
-                solo lugar, sin perder contexto.
+              <p style={styles.eyebrow}>Agenda de salud</p>
+              <h1 style={styles.title}>Próximas citas y seguimiento</h1>
+              <p style={styles.subtitle}>
+                Organiza tus citas médicas, laboratorios y próximos pasos en un
+                solo lugar, con el contexto que necesitas antes y después de cada
+                visita.
               </p>
             </div>
 
             <button
               type="button"
               onClick={openCreateAppointmentModal}
-              className="inline-flex items-center justify-center rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
+              style={styles.primaryButton}
             >
               + Añadir cita
             </button>
           </div>
         </section>
 
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-            {error}
-          </div>
-        ) : null}
+        <section style={styles.statsGrid}>
+          <MiniStat label="Próximas" value={upcomingEvents.length} />
+          <MiniStat label="Historial" value={pastEvents.length} />
+          <MiniStat label="Labs" value={labDocuments.length} />
+        </section>
 
-        <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-3">
-          <div className="grid grid-cols-3 gap-2">
-            <TimelineTabButton
-              label="Próximas"
-              isActive={activeTab === 'upcoming'}
-              onClick={() => setActiveTab('upcoming')}
-            />
-            <TimelineTabButton
-              label="Historial"
-              isActive={activeTab === 'past'}
-              onClick={() => setActiveTab('past')}
-            />
-            <TimelineTabButton
-              label="Laboratorios"
-              isActive={activeTab === 'labs'}
-              onClick={() => setActiveTab('labs')}
-            />
-          </div>
+        {error ? <div style={styles.error}>{error}</div> : null}
+
+        <section style={styles.tabWrap}>
+          <TimelineTabButton
+            label="Próximas"
+            isActive={activeTab === 'upcoming'}
+            onClick={() => setActiveTab('upcoming')}
+          />
+          <TimelineTabButton
+            label="Historial"
+            isActive={activeTab === 'past'}
+            onClick={() => setActiveTab('past')}
+          />
+          <TimelineTabButton
+            label="Laboratorios"
+            isActive={activeTab === 'labs'}
+            onClick={() => setActiveTab('labs')}
+          />
         </section>
 
         {isLoading ? (
@@ -203,6 +394,15 @@ export default function HealthTimelinePage() {
   );
 }
 
+function MiniStat({ label, value }: { label: string; value: number }) {
+  return (
+    <article style={styles.statCard}>
+      <p style={styles.statLabel}>{label}</p>
+      <p style={styles.statValue}>{value}</p>
+    </article>
+  );
+}
+
 function TimelineTabButton({
   label,
   isActive,
@@ -216,12 +416,24 @@ function TimelineTabButton({
     <button
       type="button"
       onClick={onClick}
-      className={[
-        'rounded-2xl px-3 py-2.5 text-sm font-medium transition',
-        isActive
-          ? 'bg-white text-slate-950 shadow-lg shadow-black/20'
-          : 'text-slate-300 hover:bg-white/10 hover:text-white',
-      ].join(' ')}
+      style={{
+        border: isActive
+          ? `1px solid ${colors.cardBorderActive}`
+          : '1px solid transparent',
+        borderRadius: 16,
+        padding: '12px 10px',
+        color: isActive ? colors.text : colors.textMuted,
+        background: isActive
+          ? 'linear-gradient(135deg, rgba(45,212,191,0.14), rgba(103,232,249,0.06))'
+          : 'transparent',
+        boxShadow: isActive
+          ? '0 10px 30px rgba(45,212,191,0.08), inset 0 1px 0 rgba(255,255,255,0.05)'
+          : 'none',
+        fontSize: 12,
+        fontWeight: 800,
+        letterSpacing: '0.02em',
+        cursor: 'pointer',
+      }}
     >
       {label}
     </button>
@@ -230,11 +442,17 @@ function TimelineTabButton({
 
 function TimelineLoadingState() {
   return (
-    <div className="grid gap-3">
+    <div style={{ display: 'grid', gap: 12 }}>
       {[0, 1, 2].map((item) => (
         <div
           key={item}
-          className="h-36 animate-pulse rounded-3xl border border-white/10 bg-white/[0.04]"
+          style={{
+            height: 128,
+            borderRadius: 28,
+            border: `1px solid ${colors.cardBorder}`,
+            background: colors.cardSoft,
+            opacity: 0.72,
+          }}
         />
       ))}
     </div>
@@ -268,7 +486,7 @@ function EventsSection({
   }
 
   return (
-    <section className="grid gap-3">
+    <section style={styles.section}>
       {events.map((event) => (
         <AppointmentCard
           key={event.id}
@@ -292,15 +510,33 @@ function EmptyState({
   onAction: () => void;
 }) {
   return (
-    <section className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] px-5 py-12 text-center">
-      <div className="mx-auto max-w-md">
-        <h2 className="text-lg font-semibold text-white">{title}</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-300">{description}</p>
-        <button
-          type="button"
-          onClick={onAction}
-          className="mt-6 rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
-        >
+    <section style={styles.emptyCard}>
+      <div style={{ maxWidth: 460 }}>
+        <div style={styles.emptyIcon}>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.45"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="4" width="14" height="13" rx="2.2" />
+            <path d="M6.5 2.5v3" />
+            <path d="M13.5 2.5v3" />
+            <path d="M3 8h14" />
+            <path d="M6.5 11h2" />
+            <path d="M11.5 11h2" />
+            <path d="M6.5 14h2" />
+          </svg>
+        </div>
+
+        <h2 style={styles.emptyTitle}>{title}</h2>
+        <p style={styles.emptyDescription}>{description}</p>
+
+        <button type="button" onClick={onAction} style={styles.secondaryButton}>
           {actionLabel}
         </button>
       </div>
