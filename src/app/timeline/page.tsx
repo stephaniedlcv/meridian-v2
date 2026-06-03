@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import NavBar from '@/components/NavBar';
 import type { HealthEvent, LabDocument } from '@/types/database';
 import {
   getPastHealthEvents,
@@ -14,6 +15,200 @@ import { LabUploadModal } from '@/components/timeline/LabUploadModal';
 
 type TimelineTab = 'upcoming' | 'past' | 'labs';
 type AppointmentModalMode = 'create' | 'edit' | 'view';
+
+const colors = {
+  background: '#061316',
+  backgroundDeep: '#02090B',
+  teal: '#2DD4BF',
+  cyan: '#67E8F9',
+  text: '#EAFBF7',
+  textSoft: '#9ACBC1',
+  textMuted: '#5F8E85',
+  card: 'rgba(7, 29, 31, 0.72)',
+  cardSoft: 'rgba(255,255,255,0.035)',
+  cardBorder: 'rgba(103,232,249,0.13)',
+  cardBorderActive: 'rgba(45,212,191,0.34)',
+};
+
+const fonts = {
+  heading: 'var(--font-fraunces), "Fraunces", serif',
+  ui: 'var(--font-plus-jakarta-sans), "Plus Jakarta Sans", sans-serif',
+};
+
+const styles: Record<string, CSSProperties> = {
+  page: {
+    minHeight: '100vh',
+    color: colors.text,
+    background:
+      'radial-gradient(circle at 50% 0%, rgba(45,212,191,0.08) 0%, rgba(45,212,191,0.025) 28%, transparent 58%), linear-gradient(180deg, #061316 0%, #02090B 100%)',
+    padding: '24px 24px 100px',
+    fontFamily: fonts.ui,
+  },
+  shell: {
+    width: '100%',
+    maxWidth: 640,
+    margin: '0 auto',
+  },
+  eyebrow: {
+    margin: '0 0 12px',
+    color: colors.textMuted,
+    fontSize: 11,
+    lineHeight: 1,
+    fontWeight: 600,
+    letterSpacing: '0.07em',
+    textTransform: 'uppercase',
+  },
+  hero: {
+    marginBottom: 26,
+  },
+  heroTop: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 18,
+  },
+  title: {
+    margin: 0,
+    color: colors.text,
+    fontFamily: fonts.heading,
+    fontSize: 'clamp(26px, 6vw, 34px)',
+    lineHeight: 1.15,
+    fontWeight: 700,
+    letterSpacing: '-0.04em',
+    textShadow: '0 16px 42px rgba(103,232,249,0.10)',
+  },
+  subtitle: {
+    margin: '8px 0 0',
+    maxWidth: 360,
+    color: colors.textSoft,
+    fontSize: 14,
+    lineHeight: 1.65,
+  },
+  primaryButton: {
+    border: `1px solid ${colors.cardBorderActive}`,
+    borderRadius: 14,
+    padding: '8px 12px',
+    color: colors.teal,
+    background:
+      'linear-gradient(135deg, rgba(45,212,191,0.12), rgba(103,232,249,0.045))',
+    boxShadow:
+      '0 12px 32px rgba(45,212,191,0.07), inset 0 1px 0 rgba(255,255,255,0.06)',
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: '-0.01em',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  statsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: 10,
+    marginBottom: 16,
+    marginTop: 24,
+  },
+  statCard: {
+    border: `1px solid ${colors.cardBorder}`,
+    borderRadius: 22,
+    padding: '14px 15px',
+    background: 'rgba(7, 29, 31, 0.50)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.035)',
+  },
+  statLabel: {
+    margin: 0,
+    color: colors.textMuted,
+    fontSize: 10,
+    lineHeight: 1,
+    fontWeight: 800,
+    letterSpacing: '0.18em',
+    textTransform: 'uppercase',
+  },
+  statValue: {
+    margin: '10px 0 0',
+    color: colors.text,
+    fontFamily: fonts.heading,
+    fontSize: 24,
+    lineHeight: 1,
+    fontWeight: 700,
+  },
+  tabWrap: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: 8,
+    marginBottom: 18,
+    padding: 6,
+    border: `1px solid ${colors.cardBorder}`,
+    borderRadius: 22,
+    background: 'rgba(2, 9, 11, 0.46)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.035)',
+  },
+  section: {
+    display: 'grid',
+    gap: 12,
+  },
+  emptyCard: {
+    minHeight: 236,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px dashed rgba(103,232,249,0.18)',
+    borderRadius: 30,
+    background:
+      'linear-gradient(180deg, rgba(7,29,31,0.62), rgba(2,9,11,0.40))',
+    boxShadow:
+      '0 22px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.035)',
+    padding: 24,
+    textAlign: 'center',
+  },
+  emptyIcon: {
+    width: 42,
+    height: 42,
+    margin: '0 auto 15px',
+    borderRadius: 15,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: `1px solid ${colors.cardBorderActive}`,
+    background: 'rgba(45,212,191,0.08)',
+    color: colors.teal,
+  },
+  emptyTitle: {
+    margin: 0,
+    color: colors.text,
+    fontFamily: fonts.heading,
+    fontSize: 24,
+    lineHeight: 1.1,
+    fontWeight: 700,
+    letterSpacing: '-0.035em',
+  },
+  emptyDescription: {
+    margin: '10px auto 0',
+    maxWidth: 420,
+    color: colors.textSoft,
+    fontSize: 14,
+    lineHeight: 1.6,
+  },
+  secondaryButton: {
+    marginTop: 22,
+    border: `1px solid ${colors.cardBorderActive}`,
+    borderRadius: 16,
+    padding: '11px 15px',
+    color: colors.text,
+    background: 'rgba(45,212,191,0.10)',
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: 'pointer',
+  },
+  error: {
+    marginBottom: 14,
+    border: '1px solid rgba(248,113,113,0.22)',
+    borderRadius: 18,
+    background: 'rgba(248,113,113,0.08)',
+    color: '#FECACA',
+    padding: '12px 14px',
+    fontSize: 13,
+    lineHeight: 1.5,
+  },
+};
 
 export default function HealthTimelinePage() {
   const [activeTab, setActiveTab] = useState<TimelineTab>('upcoming');
@@ -47,7 +242,7 @@ export default function HealthTimelinePage() {
       setError(
         err instanceof Error
           ? err.message
-          : 'No pudimos cargar tus fechas importantes.',
+          : 'No pudimos cargar tu agenda de salud.',
       );
     } finally {
       setIsLoading(false);
@@ -96,41 +291,39 @@ export default function HealthTimelinePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 shadow-2xl shadow-black/20 sm:p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-300/80">
-                Meridian
-              </p>
-              <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                Fechas importantes
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                Organiza tus próximas citas, laboratorios y seguimientos en un
-                solo lugar.
-              </p>
+    <>
+      <main style={styles.page}>
+        <div style={styles.shell}>
+          <section style={styles.hero}>
+            <div style={styles.heroTop}>
+              <div>
+                <p style={styles.eyebrow}>Agenda de salud</p>
+                <h1 style={styles.title}>Agenda</h1>
+                <p style={styles.subtitle}>
+                  Organiza tus citas médicas, laboratorios y seguimientos en un
+                  solo lugar.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={openCreateAppointmentModal}
+                style={styles.primaryButton}
+              >
+                + Añadir cita
+              </button>
             </div>
+          </section>
 
-            <button
-              type="button"
-              onClick={openCreateAppointmentModal}
-              className="inline-flex items-center justify-center rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
-            >
-              + Añadir cita
-            </button>
-          </div>
-        </section>
+          <section style={styles.statsGrid}>
+            <MiniStat label="Próximas" value={upcomingEvents.length} />
+            <MiniStat label="Historial" value={pastEvents.length} />
+            <MiniStat label="Labs" value={labDocuments.length} />
+          </section>
 
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-            {error}
-          </div>
-        ) : null}
+          {error ? <div style={styles.error}>{error}</div> : null}
 
-        <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-3">
-          <div className="grid grid-cols-3 gap-2">
+          <section style={styles.tabWrap}>
             <TimelineTabButton
               label="Próximas"
               isActive={activeTab === 'upcoming'}
@@ -146,60 +339,71 @@ export default function HealthTimelinePage() {
               isActive={activeTab === 'labs'}
               onClick={() => setActiveTab('labs')}
             />
-          </div>
-        </section>
+          </section>
 
-        {isLoading ? (
-          <TimelineLoadingState />
-        ) : activeTab === 'labs' ? (
-          <LabDocumentList
-            labs={labDocuments}
-            onUploadClick={() => setIsLabUploadModalOpen(true)}
-            onChanged={handleLabListChanged}
-          />
-        ) : (
-          <EventsSection
-            events={currentEvents}
-            emptyTitle={
-              activeTab === 'upcoming'
-                ? 'No tienes próximas citas.'
-                : 'No hay historial todavía.'
-            }
-            emptyDescription={
-              activeTab === 'upcoming'
-                ? 'Añade tu primera cita para empezar a organizar tu seguimiento de salud.'
-                : 'Cuando completes una cita, aparecerá aquí para que puedas revisar notas y próximos pasos.'
-            }
-            emptyActionLabel={
-              activeTab === 'upcoming' ? '+ Añadir cita' : 'Ver próximas'
-            }
-            onEmptyAction={() => {
-              if (activeTab === 'upcoming') {
-                openCreateAppointmentModal();
-              } else {
-                setActiveTab('upcoming');
+          {isLoading ? (
+            <TimelineLoadingState />
+          ) : activeTab === 'labs' ? (
+            <LabDocumentList
+              labs={labDocuments}
+              onUploadClick={() => setIsLabUploadModalOpen(true)}
+              onChanged={handleLabListChanged}
+            />
+          ) : (
+            <EventsSection
+              events={currentEvents}
+              emptyTitle={
+                activeTab === 'upcoming'
+                  ? 'No tienes próximas citas.'
+                  : 'No hay historial todavía.'
               }
-            }}
-            onViewDetails={openViewAppointmentModal}
-          />
-        )}
-      </div>
+              emptyDescription={
+                activeTab === 'upcoming'
+                  ? 'Añade tu primera cita para empezar a organizar tu seguimiento de salud.'
+                  : 'Cuando completes una cita, aparecerá aquí para que puedas revisar notas y próximos pasos.'
+              }
+              emptyActionLabel={
+                activeTab === 'upcoming' ? '+ Añadir cita' : 'Ver próximas'
+              }
+              onEmptyAction={() => {
+                if (activeTab === 'upcoming') {
+                  openCreateAppointmentModal();
+                } else {
+                  setActiveTab('upcoming');
+                }
+              }}
+              onViewDetails={openViewAppointmentModal}
+            />
+          )}
+        </div>
 
-      <AppointmentModal
-        isOpen={isAppointmentModalOpen}
-        mode={appointmentModalMode}
-        appointment={selectedAppointment}
-        onClose={handleAppointmentModalClose}
-        onSaved={handleAppointmentSaved}
-        onDeleted={handleAppointmentDeleted}
-      />
+        <AppointmentModal
+          isOpen={isAppointmentModalOpen}
+          mode={appointmentModalMode}
+          appointment={selectedAppointment}
+          onClose={handleAppointmentModalClose}
+          onSaved={handleAppointmentSaved}
+          onDeleted={handleAppointmentDeleted}
+        />
 
-      <LabUploadModal
-        isOpen={isLabUploadModalOpen}
-        onClose={() => setIsLabUploadModalOpen(false)}
-        onUploaded={handleLabUploaded}
-      />
-    </main>
+        <LabUploadModal
+          isOpen={isLabUploadModalOpen}
+          onClose={() => setIsLabUploadModalOpen(false)}
+          onUploaded={handleLabUploaded}
+        />
+      </main>
+
+      <NavBar />
+    </>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: number }) {
+  return (
+    <article style={styles.statCard}>
+      <p style={styles.statLabel}>{label}</p>
+      <p style={styles.statValue}>{value}</p>
+    </article>
   );
 }
 
@@ -216,12 +420,24 @@ function TimelineTabButton({
     <button
       type="button"
       onClick={onClick}
-      className={[
-        'rounded-2xl px-3 py-2.5 text-sm font-medium transition',
-        isActive
-          ? 'bg-white text-slate-950 shadow-lg shadow-black/20'
-          : 'text-slate-300 hover:bg-white/10 hover:text-white',
-      ].join(' ')}
+      style={{
+        border: isActive
+          ? `1px solid ${colors.cardBorderActive}`
+          : '1px solid transparent',
+        borderRadius: 16,
+        padding: '12px 10px',
+        color: isActive ? colors.text : colors.textMuted,
+        background: isActive
+          ? 'linear-gradient(135deg, rgba(45,212,191,0.13), rgba(103,232,249,0.055))'
+          : 'transparent',
+        boxShadow: isActive
+          ? '0 10px 30px rgba(45,212,191,0.075), inset 0 1px 0 rgba(255,255,255,0.05)'
+          : 'none',
+        fontSize: 12,
+        fontWeight: 800,
+        letterSpacing: '0.02em',
+        cursor: 'pointer',
+      }}
     >
       {label}
     </button>
@@ -230,11 +446,17 @@ function TimelineTabButton({
 
 function TimelineLoadingState() {
   return (
-    <div className="grid gap-3">
+    <div style={{ display: 'grid', gap: 12 }}>
       {[0, 1, 2].map((item) => (
         <div
           key={item}
-          className="h-36 animate-pulse rounded-3xl border border-white/10 bg-white/[0.04]"
+          style={{
+            height: 128,
+            borderRadius: 28,
+            border: `1px solid ${colors.cardBorder}`,
+            background: colors.cardSoft,
+            opacity: 0.72,
+          }}
         />
       ))}
     </div>
@@ -268,7 +490,7 @@ function EventsSection({
   }
 
   return (
-    <section className="grid gap-3">
+    <section style={styles.section}>
       {events.map((event) => (
         <AppointmentCard
           key={event.id}
@@ -292,15 +514,33 @@ function EmptyState({
   onAction: () => void;
 }) {
   return (
-    <section className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] px-5 py-12 text-center">
-      <div className="mx-auto max-w-md">
-        <h2 className="text-lg font-semibold text-white">{title}</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-300">{description}</p>
-        <button
-          type="button"
-          onClick={onAction}
-          className="mt-6 rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
-        >
+    <section style={styles.emptyCard}>
+      <div style={{ maxWidth: 440 }}>
+        <div style={styles.emptyIcon}>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.45"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="4" width="14" height="13" rx="2.2" />
+            <path d="M6.5 2.5v3" />
+            <path d="M13.5 2.5v3" />
+            <path d="M3 8h14" />
+            <path d="M6.5 11h2" />
+            <path d="M11.5 11h2" />
+            <path d="M6.5 14h2" />
+          </svg>
+        </div>
+
+        <h2 style={styles.emptyTitle}>{title}</h2>
+        <p style={styles.emptyDescription}>{description}</p>
+
+        <button type="button" onClick={onAction} style={styles.secondaryButton}>
           {actionLabel}
         </button>
       </div>
