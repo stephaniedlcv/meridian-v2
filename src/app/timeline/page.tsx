@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import NavBar from '@/components/NavBar';
+import { MeridianPageShell } from '@/components/MeridianPageShell';
+import { MeridianPageHeader } from '@/components/MeridianPageHeader';
 import type { HealthEvent, LabDocument } from '@/types/database';
 import {
   getPastHealthEvents,
@@ -102,9 +104,9 @@ const styles: Record<string, CSSProperties> = {
   statsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-    gap: 10,
+    gap: 9,
     marginBottom: 16,
-    marginTop: 24,
+    marginTop: 20,
   },
   statCard: {
     border: `1px solid ${colors.cardBorder}`,
@@ -292,28 +294,17 @@ export default function HealthTimelinePage() {
 
   return (
     <>
-      <main style={styles.page}>
-        <div style={styles.shell}>
-          <section style={styles.hero}>
-            <div style={styles.heroTop}>
-              <div>
-                <p style={styles.eyebrow}>Agenda de salud</p>
-                <h1 style={styles.title}>Agenda</h1>
-                <p style={styles.subtitle}>
-                  Organiza tus citas médicas, laboratorios y seguimientos en un
-                  solo lugar.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={openCreateAppointmentModal}
-                style={styles.primaryButton}
-              >
-                + Añadir cita
-              </button>
-            </div>
-          </section>
+      <MeridianPageShell>
+        <MeridianPageHeader
+          eyebrow="Agenda de salud"
+          title="Agenda"
+          subtitle={
+            <>
+              Organiza tus citas médicas, laboratorios y seguimientos en un
+              solo lugar.
+            </>
+          }
+        />
 
           <section style={styles.statsGrid}>
             <MiniStat label="Próximas" value={upcomingEvents.length} />
@@ -375,9 +366,9 @@ export default function HealthTimelinePage() {
               onViewDetails={openViewAppointmentModal}
             />
           )}
-        </div>
+      </MeridianPageShell>
 
-        <AppointmentModal
+      <AppointmentModal
           isOpen={isAppointmentModalOpen}
           mode={appointmentModalMode}
           appointment={selectedAppointment}
@@ -391,7 +382,6 @@ export default function HealthTimelinePage() {
           onClose={() => setIsLabUploadModalOpen(false)}
           onUploaded={handleLabUploaded}
         />
-      </main>
 
       <NavBar />
     </>
