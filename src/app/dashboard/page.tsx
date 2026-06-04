@@ -330,6 +330,355 @@ function WearableScores({ lang }: { lang: MeridianLanguage }) {
 }
 
 // ─── Dashboard Timeline Card ───────────────────────────────────────────────────
+
+function getPulseCopy({
+  lang,
+  state,
+  insight,
+  safetyAlert,
+  hasEvent,
+}: {
+  lang: MeridianLanguage
+  state: string
+  insight: GoldenInsight | null
+  safetyAlert: boolean
+  hasEvent: boolean
+}) {
+  if (safetyAlert || insight?.block_color === 'alert') {
+    return {
+      eyebrow: lang === 'es' ? 'PULSO DE HOY' : 'TODAY’S PULSE',
+      title: lang === 'es' ? 'Hay una señal que merece revisión antes de optimizar.' : 'A signal deserves review before optimizing.',
+      body: lang === 'es'
+        ? 'Meridian mantiene la prioridad en seguridad y contexto. Usa esta lectura como una señal para revisar, no como una conclusión.'
+        : 'Meridian is keeping the priority on safety and context. Treat this as a signal to review, not a conclusion.',
+      accent: '#F87171',
+    }
+  }
+
+  if (hasEvent) {
+    return {
+      eyebrow: lang === 'es' ? 'PULSO DE HOY' : 'TODAY’S PULSE',
+      title: lang === 'es' ? 'Tu enfoque principal hoy está en preparación y seguimiento.' : 'Today’s focus is preparation and follow-through.',
+      body: lang === 'es'
+        ? 'Tienes una fecha o evento de salud próximo. Mantén tu plan simple y asegúrate de tener lo necesario listo.'
+        : 'You have an upcoming health event. Keep today’s plan simple and make sure what you need is ready.',
+      accent: colors.cyan,
+    }
+  }
+
+  if (state === 'solved' && insight) {
+    return {
+      eyebrow: lang === 'es' ? 'PULSO DE HOY' : 'TODAY’S PULSE',
+      title: insight.block_color === 'optimal'
+        ? (lang === 'es' ? 'Tu sistema muestra una señal estable para mantener el ritmo.' : 'Your system shows a stable signal for maintaining momentum.')
+        : (lang === 'es' ? 'Tu cuerpo parece pedir consistencia y recuperación.' : 'Your body appears to be asking for consistency and recovery.'),
+      body: insight.status,
+      accent: insight.block_color === 'optimal' ? '#4ADE80' : colors.teal,
+    }
+  }
+
+  if (state === 'no_data') {
+    return {
+      eyebrow: lang === 'es' ? 'PULSO DE HOY' : 'TODAY’S PULSE',
+      title: lang === 'es' ? 'Tu centro de salud está listo para construir contexto.' : 'Your health command center is ready to build context.',
+      body: lang === 'es'
+        ? 'Comienza con labs, agenda o un protocolo base. Meridian se vuelve más útil mientras conectas tus datos.'
+        : 'Start with labs, agenda, or a base protocol. Meridian becomes more useful as your data connects.',
+      accent: colors.teal,
+    }
+  }
+
+  return {
+    eyebrow: lang === 'es' ? 'PULSO DE HOY' : 'TODAY’S PULSE',
+    title: lang === 'es' ? 'Hoy la prioridad es mantener el plan simple y consistente.' : 'Today’s priority is keeping the plan simple and consistent.',
+    body: lang === 'es'
+      ? 'Meridian está usando tu contexto disponible para ayudarte a enfocar el día sin sobrecargar la pantalla.'
+      : 'Meridian is using your available context to help focus the day without overloading the screen.',
+    accent: colors.teal,
+  }
+}
+
+function PulseCard({
+  lang,
+  state,
+  insight,
+  safetyAlert,
+  hasEvent,
+}: {
+  lang: MeridianLanguage
+  state: string
+  insight: GoldenInsight | null
+  safetyAlert: boolean
+  hasEvent: boolean
+}) {
+  const copy = getPulseCopy({ lang, state, insight, safetyAlert, hasEvent })
+
+  return (
+    <section style={{
+      padding: '26px',
+      borderRadius: '26px',
+      background: `linear-gradient(135deg, ${copy.accent}16 0%, rgba(232,248,245,0.055) 58%, rgba(103,232,249,0.035) 100%)`,
+      border: `1px solid ${copy.accent}33`,
+      borderLeft: `3px solid ${copy.accent}`,
+      backdropFilter: 'blur(28px)',
+      minHeight: '230px',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+    }}>
+      <div>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '7px',
+          fontSize: '10px',
+          fontWeight: 800,
+          letterSpacing: '0.10em',
+          textTransform: 'uppercase',
+          color: copy.accent,
+          marginBottom: '16px',
+        }}>
+          <span style={{ width: '5px', height: '5px', borderRadius: '999px', background: copy.accent, boxShadow: `0 0 10px ${copy.accent}` }} />
+          {copy.eyebrow}
+        </div>
+
+        <h2 style={{
+          margin: 0,
+          fontFamily: fonts.heading,
+          fontSize: 'clamp(30px, 4vw, 48px)',
+          lineHeight: 1.02,
+          letterSpacing: '-0.055em',
+          color: colors.text,
+          maxWidth: '760px',
+        }}>
+          {copy.title}
+        </h2>
+
+        <p style={{
+          margin: '16px 0 0',
+          fontSize: '15px',
+          lineHeight: 1.7,
+          color: colors.textSoft,
+          maxWidth: '760px',
+        }}>
+          {copy.body}
+        </p>
+      </div>
+    </section>
+  )
+}
+
+function TodayPriorityCard({
+  lang,
+  insight,
+  safetyAlert,
+  hasEvent,
+}: {
+  lang: MeridianLanguage
+  insight: GoldenInsight | null
+  safetyAlert: boolean
+  hasEvent: boolean
+}) {
+  const priority = safetyAlert
+    ? (lang === 'es' ? 'Revisa la señal marcada antes de tomar decisiones de optimización.' : 'Review the flagged signal before making optimization decisions.')
+    : hasEvent
+      ? (lang === 'es' ? 'Prepara lo necesario para tu próxima fecha de salud.' : 'Prepare what you need for your next health date.')
+      : insight?.action_steps?.[0]
+        ? insight.action_steps[0]
+        : (lang === 'es' ? 'Completa tu protocolo base: hidratación, proteína, movimiento y descanso.' : 'Complete your base protocol: hydration, protein, movement, and rest.')
+
+  return (
+    <section style={{
+      padding: '20px',
+      borderRadius: '22px',
+      background: colors.cardBg,
+      border: `1px solid ${colors.cardBorder}`,
+    }}>
+      <div style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.teal, marginBottom: '12px' }}>
+        {lang === 'es' ? 'PRIORIDAD DE HOY' : "TODAY’S PRIORITY"}
+      </div>
+      <p style={{ margin: 0, fontSize: '16px', lineHeight: 1.6, color: colors.text, fontWeight: 650 }}>
+        {priority}
+      </p>
+    </section>
+  )
+}
+
+function DailyProtocolCard({ lang }: { lang: MeridianLanguage }) {
+  const items = [
+    lang === 'es' ? 'Hidratación estable' : 'Steady hydration',
+    lang === 'es' ? 'Proteína objetivo' : 'Protein target',
+    lang === 'es' ? 'Movimiento o entrenamiento planificado' : 'Planned movement or training',
+    lang === 'es' ? 'Suplementos base' : 'Base supplements',
+  ]
+
+  return (
+    <section style={{
+      padding: '20px',
+      borderRadius: '22px',
+      background: colors.cardBg,
+      border: `1px solid ${colors.cardBorder}`,
+    }}>
+      <div style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted, marginBottom: '14px' }}>
+        {lang === 'es' ? 'PROTOCOLO DIARIO' : 'DAILY PROTOCOL'}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {items.map((item) => (
+          <div key={item} style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '11px 12px',
+            borderRadius: '14px',
+            background: 'rgba(255,255,255,0.025)',
+            border: `1px solid ${colors.cardBorder}`,
+          }}>
+            <span style={{
+              width: '18px',
+              height: '18px',
+              borderRadius: '6px',
+              border: `1px solid rgba(45,212,191,0.28)`,
+              background: 'rgba(45,212,191,0.06)',
+              flexShrink: 0,
+            }} />
+            <span style={{ fontSize: '13px', color: colors.textSoft, lineHeight: 1.4 }}>{item}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function ActiveSignalsCard({
+  lang,
+  state,
+  insight,
+  hasEvent,
+}: {
+  lang: MeridianLanguage
+  state: string
+  insight: GoldenInsight | null
+  hasEvent: boolean
+}) {
+  const signals = [
+    { label: lang === 'es' ? 'Recuperación' : 'Recovery', value: insight?.block_color === 'recovery' ? (lang === 'es' ? 'Prioritaria' : 'Priority') : '—' },
+    { label: lang === 'es' ? 'Labs' : 'Labs', value: state === 'no_data' ? (lang === 'es' ? 'Pendiente' : 'Pending') : (lang === 'es' ? 'Contexto' : 'Context') },
+    { label: lang === 'es' ? 'Agenda' : 'Agenda', value: hasEvent ? (lang === 'es' ? 'Próxima' : 'Upcoming') : '—' },
+    { label: 'HRV', value: '—' },
+  ]
+
+  return (
+    <section style={{
+      padding: '20px',
+      borderRadius: '22px',
+      background: colors.cardBg,
+      border: `1px solid ${colors.cardBorder}`,
+    }}>
+      <div style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted, marginBottom: '14px' }}>
+        {lang === 'es' ? 'SEÑALES ACTIVAS' : 'ACTIVE SIGNALS'}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        {signals.map((signal) => (
+          <div key={signal.label} style={{
+            padding: '12px',
+            borderRadius: '15px',
+            background: 'rgba(255,255,255,0.024)',
+            border: `1px solid rgba(103,232,249,0.09)`,
+          }}>
+            <div style={{ fontSize: '11px', color: colors.textMuted, marginBottom: '6px' }}>{signal.label}</div>
+            <div style={{ fontSize: '13px', color: colors.text, fontWeight: 700 }}>{signal.value}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function LabContextCard({
+  lang,
+  state,
+  insight,
+  onOpen,
+}: {
+  lang: MeridianLanguage
+  state: string
+  insight: GoldenInsight | null
+  onOpen: () => void
+}) {
+  const hasLabs = state !== 'no_data'
+
+  return (
+    <section style={{
+      padding: '18px',
+      borderRadius: '22px',
+      background: 'rgba(232,248,245,0.04)',
+      border: `1px solid ${colors.cardBorder}`,
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'flex-start' }}>
+        <div>
+          <div style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted, marginBottom: '8px' }}>
+            {lang === 'es' ? 'CONTEXTO DE LABS' : 'LAB CONTEXT'}
+          </div>
+          <p style={{ margin: 0, color: colors.textSoft, fontSize: '13px', lineHeight: 1.6 }}>
+            {hasLabs
+              ? (lang === 'es'
+                ? 'Tus laboratorios siguen disponibles como contexto biológico, pero no dominan la prioridad diaria salvo que haya una señal nueva o relevante.'
+                : 'Your labs remain available as biological context, but they do not dominate the daily priority unless there is a new or relevant signal.')
+              : (lang === 'es'
+                ? 'Aún no hay labs guardados. Puedes subirlos cuando quieras construir tu contexto biológico.'
+                : 'No labs are saved yet. Upload them when you are ready to build biological context.')}
+          </p>
+          {insight?.headline && (
+            <p style={{ margin: '10px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.5 }}>
+              {lang === 'es' ? 'Última señal: ' : 'Latest signal: '}
+              <span style={{ color: colors.text }}>{insight.headline}</span>
+            </p>
+          )}
+        </div>
+
+        <button
+          onClick={onOpen}
+          style={{
+            border: `1px solid ${colors.cardBorder}`,
+            background: 'rgba(45,212,191,0.06)',
+            color: colors.teal,
+            borderRadius: '999px',
+            padding: '9px 12px',
+            fontSize: '12px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {lang === 'es' ? 'Ver labs' : 'View labs'}
+        </button>
+      </div>
+    </section>
+  )
+}
+
+function DashboardDisclaimer({ lang }: { lang: MeridianLanguage }) {
+  return (
+    <div style={{
+      padding: '14px 16px',
+      borderRadius: '18px',
+      background: 'rgba(232,248,245,0.035)',
+      border: `1px solid rgba(103,232,249,0.08)`,
+      fontSize: '11px',
+      color: colors.textMuted,
+      textAlign: 'center',
+      lineHeight: 1.7,
+    }}>
+      {lang === 'es'
+        ? 'Meridian ofrece información de salud solo con fines educativos. No es consejo médico, diagnóstico ni tratamiento. Meridian interpreta, tú decides.'
+        : 'Meridian provides health insights for educational purposes only. It is not medical advice, diagnosis, or treatment. Meridian interprets, you decide.'}
+    </div>
+  )
+}
+
+
 function DashboardTimelineCard({ event, onOpen, lang }: { event: UpcomingHealthEvent | null; onOpen: () => void; lang: MeridianLanguage }) {
   const hasEvent   = Boolean(event)
   const title      = event?.title || event?.specialty || (lang === 'es' ? 'Próxima cita' : 'Upcoming appointment')
@@ -541,46 +890,60 @@ export default function DashboardPage() {
               <WearableScores lang={lang} />
             </motion.div>
 
-            {/* ── FULL WIDTH: Intelligence Block ── */}
+            {/* ── DASHBOARD V2: Daily Command Center ── */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              style={{ marginBottom: '20px' }}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'minmax(0, 1.7fr) minmax(320px, 0.9fr)',
+                gap: '20px',
+                alignItems: 'start',
+              }}
             >
-              {state === 'no_data'   && <NoDataBlock   onUpload={() => router.push('/labs/upload')} lang={lang} />}
-              {state === 'labs_saved' && <LabsSavedBlock onHistory={() => router.push('/labs/upload?view=history')} onUpload={() => router.push('/labs/upload')} hasCritical={hasCriticalMarker} lang={lang} />}
-              {state === 'calibrating' && <CalibratingBlock onUpload={() => router.push('/labs/upload')} lang={lang} />}
-              {(state === 'solved' || state === 'safety_alert') && insight && <SolvedBlock insight={insight} safetyAlert={safetyAlert} lang={lang} />}
-            </motion.div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <PulseCard
+                  lang={lang}
+                  state={state}
+                  insight={insight}
+                  safetyAlert={safetyAlert}
+                  hasEvent={Boolean(nextHealthEvent)}
+                />
 
-            {/* ── TWO COLUMNS: Timeline card + disclaimer (only when solved) ── */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              {(state === 'solved' || state === 'safety_alert') ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }}>
-                  <DashboardTimelineCard event={nextHealthEvent} onOpen={() => router.push('/timeline')} lang={lang} />
-                  <div style={{ padding: '16px', borderRadius: '22px', background: colors.cardBg, border: `1px solid ${colors.cardBorder}`, fontSize: '11px', color: colors.textMuted, textAlign: 'center', lineHeight: 1.7 }}>
-                    {lang === 'es' ? 'Meridian ofrece información de salud solo con fines educativos. No es consejo médico, diagnóstico ni tratamiento. Consulta siempre a un profesional de salud cualificado.' : 'Meridian provides health insights for informational purposes only. Not medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider.'}
-                  </div>
-                </div>
-              ) : state === 'no_data' ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }}>
-                  <DashboardTimelineCard event={nextHealthEvent} onOpen={() => router.push('/timeline')} lang={lang} />
-                  <button
-                    onClick={() => router.push('/labs/upload')}
-                    style={{ padding: '18px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '22px', cursor: 'pointer', textAlign: 'center', width: '100%' }}
-                  >
-                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>🧪</div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>{lang === 'es' ? 'Subir laboratorios' : 'Upload Labs'}</div>
-                  </button>
-                </div>
-              ) : (
-                <DashboardTimelineCard event={nextHealthEvent} onOpen={() => router.push('/timeline')} lang={lang} />
-              )}
+                <TodayPriorityCard
+                  lang={lang}
+                  insight={insight}
+                  safetyAlert={safetyAlert}
+                  hasEvent={Boolean(nextHealthEvent)}
+                />
+
+                <DailyProtocolCard lang={lang} />
+
+                <LabContextCard
+                  lang={lang}
+                  state={state}
+                  insight={insight}
+                  onOpen={() => router.push('/labs/upload?view=history')}
+                />
+              </div>
+
+              <aside style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <DashboardTimelineCard
+                  event={nextHealthEvent}
+                  onOpen={() => router.push('/timeline')}
+                  lang={lang}
+                />
+
+                <ActiveSignalsCard
+                  lang={lang}
+                  state={state}
+                  insight={insight}
+                  hasEvent={Boolean(nextHealthEvent)}
+                />
+
+                <DashboardDisclaimer lang={lang} />
+              </aside>
             </motion.div>
 
           </div>
