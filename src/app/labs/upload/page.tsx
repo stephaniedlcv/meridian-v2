@@ -4031,7 +4031,6 @@ export default function LabsUploadPage() {
       <NavBar />
     </div>
   )
-
   if (isDesktop) {
     const sidebarPanels = currentMarkerGroups.map(group => {
       const sc = group.stateCounts
@@ -4375,14 +4374,634 @@ export default function LabsUploadPage() {
               )}
             </aside>
 
-            {/* Main Labs content */}
+            {/* ── Desktop main content area ── */}
             <main style={{
               flex: 1,
               minWidth: 0,
               overflowY: 'auto',
+              height: 'calc(100vh - 48px)',
               position: 'relative',
             }}>
-              {content}
+
+              {/* Detail sheets — rendered over main content */}
+              {selectedBiomarker && (
+                <BiomarkerDetailSheet
+                  biomarker={selectedBiomarker}
+                  allBiomarkers={recentBiomarkers}
+                  bioProfile={bioProfile}
+                  onClose={() => setSelectedBiomarker(null)}
+                />
+              )}
+              {histSelectedBiomarker && (
+                <HistoryDetailSheet
+                  biomarker={histSelectedBiomarker}
+                  allBiomarkers={histBiomarkers}
+                  bioProfile={bioProfile}
+                  onClose={() => setHistSelectedBiomarker(null)}
+                />
+              )}
+
+              {/* ════════════════════════════════════════════════════════════
+                  UPLOAD FLOW — centered column, no sidebar interference
+                  ════════════════════════════════════════════════════════════ */}
+              {inUploadFlow && (
+                <div style={{ padding: '40px 48px', maxWidth: '720px' }}>
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+                    <h2 style={{ fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700, color: colors.text, marginBottom: '8px' }}>
+                      {lang === 'es' ? 'Subir laboratorios' : 'Upload your labs'}
+                    </h2>
+                    <p style={{ fontSize: '15px', color: colors.textSoft, marginBottom: '24px', lineHeight: 1.6 }}>
+                      {lang === 'es' ? 'Sube un PDF de tu laboratorio. Meridian extraerá tus biomarcadores automáticamente.' : 'Upload a PDF from your lab provider. Meridian will extract your biomarkers automatically.'}
+                    </p>
+                    <div style={{ height: '1px', background: `linear-gradient(90deg, transparent, ${colors.cardBorder} 40%, ${colors.cardBorder} 60%, transparent)`, marginBottom: '28px' }} />
+                  </motion.div>
+
+                  {uploading && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '60px 24px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '16px', backdropFilter: 'blur(24px)', textAlign: 'center' }}>
+                      <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} style={{ width: '48px', height: '48px', margin: '0 auto 16px', border: `3px solid ${colors.cardBorder}`, borderTopColor: colors.teal, borderRadius: '50%' }} />
+                      <p style={{ fontSize: '18px', fontWeight: 600, color: colors.text, marginBottom: '8px' }}>Analyzing {fileName}...</p>
+                      <p style={{ fontSize: '14px', color: colors.textMuted }}>Extracting biomarkers with Claude AI</p>
+                    </motion.div>
+                  )}
+
+                  {error && (
+                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: colors.error, fontSize: '14px', textAlign: 'center', marginTop: '16px' }}>
+                      {error}
+                    </motion.p>
+                  )}
+
+                  <AnimatePresence>
+                    {staged && !confirmed && (
+                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }}>
+                        {/* Stats bar */}
+                        <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                          <div style={{ padding: '12px 20px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '12px', backdropFilter: 'blur(24px)' }}>
+                            <span style={{ fontSize: '24px', fontWeight: 700, color: colors.teal }}>{stats?.matched}</span>
+                            <span style={{ fontSize: '13px', color: colors.textMuted, marginLeft: '8px' }}>markers found</span>
+                          </div>
+                          {(stats?.errors ?? 0) > 0 && (
+                            <div style={{ padding: '12px 20px', backgroundColor: colors.critical, border: `1px solid ${colors.criticalBorder}`, borderRadius: '12px' }}>
+                              <span style={{ fontSize: '24px', fontWeight: 700, color: '#F87171' }}>{stats?.errors}</span>
+                              <span style={{ fontSize: '13px', color: '#FCA5A5', marginLeft: '8px' }}>flagged</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <p style={{ fontSize: '14px', color: colors.textSoft, marginBottom: '20px' }}>
+                          {lang === 'es' ? 'Revisa los biomarcadores extraídos abajo. Haz clic en confirmar para guardarlos.' : 'Review your extracted biomarkers below. Click confirm to save them.'}
+                        </p>
+
+                        {/* Lab date */}
+                        <div style={{ padding: '16px 20px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '12px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                          <div>
+                            <span style={{ fontSize: '13px', color: colors.textMuted, display: 'block', marginBottom: '4px' }}>Fecha de muestra — corrige si hace falta</span>
+                            <span style={{ fontSize: '15px', color: colors.text, fontWeight: 600 }}>
+                              {labDate ? new Date(labDate + 'T12:00:00').toLocaleDateString('es-PR', { year: 'numeric', month: 'long', day: 'numeric' }) : 'No detectada'}
+                            </span>
+                          </div>
+                          <input type="date" value={labDate} onChange={(e) => setLabDate(e.target.value)}
+                            style={{ padding: '8px 12px', backgroundColor: 'rgba(6,19,22,0.5)', border: `1px solid ${colors.cardBorder}`, borderRadius: '8px', color: colors.text, fontFamily: fonts.ui, fontSize: '14px', outline: 'none' }} />
+                        </div>
+
+                        {/* Biomarker groups — 2-col grid on desktop staging */}
+                        {(() => {
+                          const panelMap = new Map<string, StagedBiomarker[]>()
+                          for (const b of staged) {
+                            const panel = CLINICAL_SLUG_TO_PANEL[b.slug] ?? 'Other'
+                            if (!panelMap.has(panel)) panelMap.set(panel, [])
+                            panelMap.get(panel)!.push(b)
+                          }
+                          const groups = Array.from(panelMap.entries()).sort((a, b) => {
+                            const ai = CLINICAL_PANEL_ORDER.indexOf(a[0]); const bi = CLINICAL_PANEL_ORDER.indexOf(b[0])
+                            return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
+                          })
+                          return (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px' }}>
+                              {groups.map(([panel, markers], gi) => {
+                                const realFlagCount = markers.filter(b => b.flag_error && Number.isFinite(b.value) && !isLikelyQualitativeUrinalysis(b.name)).length
+                                return (
+                                  <motion.div key={panel} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: gi * 0.04 }}
+                                    style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', backdropFilter: 'blur(20px)', overflow: 'hidden' }}>
+                                    <div style={{ padding: '11px 16px 10px', borderBottom: `1px solid ${colors.cardBorder}`, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                      <span style={{ fontSize: '12px', fontWeight: 700, color: colors.teal, flex: 1 }}>{panel}</span>
+                                      <span style={{ fontSize: '11px', color: colors.textMuted }}>{markers.length} markers</span>
+                                      {realFlagCount > 0 && (
+                                        <span style={{ fontSize: '10px', fontWeight: 700, color: '#F87171', backgroundColor: colors.critical, border: `1px solid ${colors.criticalBorder}`, borderRadius: '20px', padding: '1px 8px' }}>{realFlagCount} flagged</span>
+                                      )}
+                                    </div>
+                                    <div>
+                                      {markers.map((b, i) => {
+                                        const s = getStateStyles(b.state)
+                                        const isQualitative = b.extraction_status === 'qualitative_only'
+                                        const isUnreadable = b.extraction_status === 'unreadable'
+                                        const isPartial = b.extraction_status === 'partial'
+                                        const qualBadgeLabel = isQualitative && b.qualitative_value ? (QUALITATIVE_DISPLAY_LABELS[b.qualitative_value] ?? b.qualitative_value.toUpperCase()) : null
+                                        const sourceNameDiffers = b.source_marker_name && b.source_marker_name !== b.name
+                                        const subText: string | null = isUnreadable ? 'Meridian could not confidently extract this value from the PDF.' : isPartial ? b.error_reason ?? 'Value outside plausible range — not saved.' : !isQualitative && b.converted ? `Converted from ${b.original_value} ${b.original_unit}` : sourceNameDiffers ? `From: ${b.source_marker_name}` : null
+                                        const dotColor = isUnreadable ? '#FCD34D' : isPartial ? '#F87171' : s.dot
+                                        const rowBg = isPartial ? 'rgba(248,113,113,0.07)' : isUnreadable ? 'rgba(250,204,21,0.04)' : 'transparent'
+                                        return (
+                                          <div key={b.slug + i} style={{ padding: '10px 14px', borderTop: i === 0 ? 'none' : `1px solid ${colors.cardBorder}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', backgroundColor: rowBg }}>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                              <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: subText ? '3px' : '0' }}>
+                                                <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: dotColor, flexShrink: 0 }} />
+                                                <span style={{ fontSize: '12px', fontWeight: 600, color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</span>
+                                              </div>
+                                              {subText && <span style={{ fontSize: '10px', display: 'block', paddingLeft: '13px', color: isUnreadable ? '#FCD34D' : isPartial ? '#FCA5A5' : colors.textMuted }}>{subText}</span>}
+                                            </div>
+                                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                              {isQualitative ? (
+                                                <div style={{ display: 'inline-block', padding: '2px 9px', borderRadius: '20px', backgroundColor: s.bg, border: `1px solid ${s.border}`, fontSize: '10px', fontWeight: 700, color: s.dot }}>{qualBadgeLabel ?? '—'}</div>
+                                              ) : isUnreadable ? (
+                                                <span style={{ fontSize: '11px', color: '#FCD34D', fontStyle: 'italic' }}>—</span>
+                                              ) : (
+                                                <>
+                                                  <span style={{ fontSize: '15px', fontWeight: 700, color: colors.text }}>{b.value}</span>
+                                                  <span style={{ fontSize: '11px', color: colors.textMuted, marginLeft: '3px' }}>{b.unit}</span>
+                                                  <div style={{ fontSize: '9px', fontWeight: 700, marginTop: '1px', letterSpacing: '0.04em', color: isPartial ? '#F87171' : s.dot }}>{isPartial ? 'FLAG' : s.label}</div>
+                                                </>
+                                              )}
+                                            </div>
+                                          </div>
+                                        )
+                                      })}
+                                    </div>
+                                  </motion.div>
+                                )
+                              })}
+                            </div>
+                          )
+                        })()}
+
+                        {/* Duplicate warning */}
+                        {duplicateWarning && (() => {
+                          const ratio = duplicateWarning.total > 0 ? duplicateWarning.count / duplicateWarning.total : 0
+                          const level = (duplicateWarning.count <= 2 || ratio < 0.25) ? 'low' : ratio > 0.70 ? 'high' : 'moderate'
+                          const isBajo = level === 'low'
+                          return (
+                            <div style={{ padding: '14px 18px', backgroundColor: isBajo ? 'rgba(45,212,191,0.06)' : 'rgba(250,204,21,0.07)', border: `1px solid ${isBajo ? 'rgba(45,212,191,0.25)' : 'rgba(250,204,21,0.28)'}`, borderRadius: '12px', marginBottom: '16px' }}>
+                              <p style={{ fontSize: '13px', fontWeight: 600, color: isBajo ? colors.teal : '#FCD34D', margin: '0 0 5px' }}>
+                                {level === 'low' ? 'Same-day lab panel detected' : level === 'high' ? 'Possible duplicate upload' : 'Possible overlap detected'}
+                              </p>
+                              <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 12px', lineHeight: 1.5 }}>
+                                {level === 'low' ? 'Some markers from this date may already exist. Save anyway to add new markers.' : 'Most markers in this PDF appear to already exist for this date.'}
+                              </p>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button onClick={() => setDuplicateWarning(null)} style={{ padding: '6px 14px', borderRadius: '8px', border: `1px solid ${isBajo ? 'rgba(45,212,191,0.25)' : 'rgba(250,204,21,0.3)'}`, backgroundColor: 'transparent', color: isBajo ? colors.teal : '#FCD34D', fontFamily: fonts.ui, fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                                  {isBajo ? 'Dismiss' : (lang === 'es' ? 'Cancelar' : 'Cancel')}
+                                </button>
+                                {!isBajo && (
+                                  <button onClick={() => handleConfirm(true)} style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(250,204,21,0.3)', backgroundColor: 'rgba(250,204,21,0.1)', color: '#FCD34D', fontFamily: fonts.ui, fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                                    Save anyway
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })()}
+
+                        {/* Action buttons */}
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          <motion.button
+                            onClick={() => duplicateWarning ? handleConfirm(true) : handleConfirm()}
+                            disabled={confirming || !labDate}
+                            whileHover={confirming || !labDate ? {} : { scale: 1.02 }}
+                            whileTap={confirming || !labDate ? {} : { scale: 0.98 }}
+                            style={{ flex: 1, padding: '16px 24px', background: confirming || !labDate ? `${colors.teal}60` : `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`, border: 'none', borderRadius: '12px', color: colors.background, fontFamily: fonts.ui, fontSize: '16px', fontWeight: 600, cursor: confirming || !labDate ? 'not-allowed' : 'pointer' }}
+                          >
+                            {(() => {
+                              if (confirming) return 'Saving...'
+                              const qCount = staged.filter(b => b.extraction_status === 'parsed').length
+                              const sCount = staged.filter(b => b.extraction_status === 'qualitative_only').length
+                              const total = qCount + sCount
+                              return lang === 'es' ? `Confirmar ${total} ${total === 1 ? 'resultado' : 'resultados'}` : `Confirm ${total} ${total === 1 ? 'result' : 'results'}`
+                            })()}
+                          </motion.button>
+                          <button onClick={handleReset} style={{ padding: '16px 24px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '12px', color: colors.textMuted, fontFamily: fonts.ui, fontSize: '16px', cursor: 'pointer' }}>
+                            {lang === 'es' ? 'Cancelar' : 'Cancel'}
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Success */}
+                  {confirmed && (
+                    <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}
+                      style={{ position: 'relative', padding: '28px 24px 24px', backgroundColor: colors.optimal, border: `1px solid ${colors.optimalBorder}`, borderRadius: '16px' }}>
+                      <button onClick={handleReset} aria-label="Dismiss" style={{ position: 'absolute', top: '14px', right: '14px', width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'rgba(45,212,191,0.10)', border: '1px solid rgba(45,212,191,0.22)', color: colors.textMuted, fontSize: '13px', cursor: 'pointer', fontFamily: fonts.ui, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(45,212,191,0.18)', border: '1px solid rgba(45,212,191,0.40)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px' }}>✓</div>
+                        <div>
+                          <h2 style={{ fontFamily: fonts.heading, fontSize: '20px', fontWeight: 700, color: colors.text, margin: 0, lineHeight: 1.2 }}>Lab saved</h2>
+                          <span style={{ fontSize: '12px', color: colors.textMuted }}>
+                            {savedCount > 0 && savedQualCount > 0 ? `${savedCount} biomarkers + ${savedQualCount} serology results saved` : savedQualCount > 0 ? `${savedQualCount} serology results saved` : `${savedCount} biomarkers added to Snapshot`}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                        <motion.button onClick={() => { handleReset(); setTimeout(() => fileInputRef.current?.click(), 60) }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                          style={{ flex: 1, padding: '12px 16px', background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`, border: 'none', borderRadius: '10px', color: colors.background, fontFamily: fonts.ui, fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
+                          {lang === 'es' ? 'Subir otro PDF' : 'Upload another PDF'}
+                        </motion.button>
+                        <button onClick={handleReset} style={{ flex: 1, padding: '12px 16px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '10px', color: colors.textSoft, fontFamily: fonts.ui, fontSize: '14px', cursor: 'pointer' }}>
+                          {lang === 'es' ? 'Ver laboratorios' : 'View Labs'}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              )}
+
+              {/* ════════════════════════════════════════════════════════════
+                  SNAPSHOT + HISTORY VIEWS — not in upload flow
+                  ════════════════════════════════════════════════════════════ */}
+              {!inUploadFlow && !snapshotLoading && (
+                <div>
+
+                  {/* ── CONNECTED INSIGHTS BANNER — sticky, always visible ── */}
+                  {labsView === 'snapshot' && hasRecentLabs && connectedInsights.length > 0 && !activeFilter && (
+                    <div style={{
+                      borderBottom: `1px solid ${colors.cardBorder}`,
+                      backgroundColor: 'rgba(6,19,22,0.88)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      position: 'sticky',
+                      top: 0,
+                      zIndex: 10,
+                    }}>
+                      {/* Banner header */}
+                      <div style={{ padding: '12px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, overflow: 'hidden' }}>
+                          <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted, flexShrink: 0 }}>
+                            {lang === 'es' ? 'Insights conectados' : 'Connected Insights'}
+                          </span>
+                          {/* Chip strip */}
+                          <div style={{ display: 'flex', gap: '6px', overflow: 'hidden', flexWrap: 'nowrap' }}>
+                            {connectedInsights.slice(0, 5).map(insight => (
+                              <button key={insight.id}
+                                onClick={() => setMoreInsightsExpanded(prev => !prev)}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 10px', borderRadius: '20px', flexShrink: 0, backgroundColor: `${insight.dotColor}18`, border: `1px solid ${insight.dotColor}35`, cursor: 'pointer', outline: 'none', fontFamily: fonts.ui }}>
+                                <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: insight.dotColor }} />
+                                <span style={{ fontSize: '11px', fontWeight: 600, color: insight.dotColor, whiteSpace: 'nowrap' }}>{insight.title}</span>
+                              </button>
+                            ))}
+                            {connectedInsights.length > 5 && (
+                              <span style={{ fontSize: '11px', color: colors.textMuted, padding: '3px 6px', alignSelf: 'center' }}>+{connectedInsights.length - 5}</span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setMoreInsightsExpanded(prev => !prev)}
+                          style={{ padding: '4px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 600, backgroundColor: moreInsightsExpanded ? 'rgba(45,212,191,0.1)' : 'transparent', border: `1px solid ${moreInsightsExpanded ? 'rgba(45,212,191,0.25)' : colors.cardBorder}`, color: moreInsightsExpanded ? colors.teal : colors.textMuted, cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                          {moreInsightsExpanded ? (lang === 'es' ? 'Ocultar' : 'Collapse') : (lang === 'es' ? 'Ver detalles' : 'Expand')}
+                        </button>
+                      </div>
+
+                      {/* Expanded insight cards */}
+                      {moreInsightsExpanded && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ overflow: 'hidden' }}>
+                          <div style={{ padding: '0 32px 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '12px' }}>
+                            {connectedInsights.map(insight => (
+                              <div key={insight.id} style={{ padding: '16px 18px', backgroundColor: colors.cardBg, border: `1px solid ${insight.borderColor}`, borderRadius: '14px', backdropFilter: 'blur(24px)' }}>
+                                <div style={{ marginBottom: '8px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '2px', flexWrap: 'wrap' }}>
+                                    <p style={{ fontFamily: fonts.heading, fontSize: '15px', fontWeight: 700, color: colors.text, margin: 0 }}>{insight.title}</p>
+                                    <span style={{ fontSize: '10px', color: insight.dotColor, fontWeight: 600 }}>
+                                      {insight.severity === 'attention' ? (lang === 'es' ? '· patrón detectado' : '· pattern detected') : (lang === 'es' ? '· en seguimiento' : '· tracking')}
+                                    </span>
+                                  </div>
+                                  <p style={{ fontSize: '11px', color: colors.textMuted, margin: 0 }}>{insight.tagline}</p>
+                                </div>
+                                <p style={{ fontSize: '12px', color: colors.textSoft, lineHeight: 1.6, margin: '0 0 10px' }}>{insight.synthesis}</p>
+                                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                                  {insight.markers.map(m => (
+                                    <span key={m} style={{ fontSize: '10px', color: colors.textMuted, padding: '2px 7px', borderRadius: '4px', backgroundColor: 'rgba(103,232,249,0.05)', border: '1px solid rgba(103,232,249,0.11)' }}>{m}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── SNAPSHOT VIEW — 2-column panel grid ── */}
+                  {labsView === 'snapshot' && hasRecentLabs && (
+                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
+                      style={{ padding: '28px 32px' }}>
+
+                      {/* Section header */}
+                      <div style={{ marginBottom: '24px' }}>
+                        <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: colors.textMuted, textTransform: 'uppercase', margin: '0 0 5px' }}>
+                          {lang === 'es' ? 'Última toma de laboratorio' : 'Latest lab collection'}
+                        </p>
+                        <p style={{ fontFamily: fonts.heading, fontSize: '24px', fontWeight: 700, color: colors.text, margin: '0 0 3px', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
+                          {latestDate ? formatDateLong(latestDate) : '—'}
+                        </p>
+                        <p style={{ fontSize: '12px', color: colors.textMuted, margin: 0 }}>
+                          {lang === 'es'
+                            ? `${snapshotBiomarkers.length} biomarcadores en ${panelSummaries.length} ${panelSummaries.length === 1 ? 'panel' : 'paneles'}`
+                            : `${snapshotBiomarkers.length} biomarkers across ${panelSummaries.length} ${panelSummaries.length === 1 ? 'panel' : 'panels'}`}
+                        </p>
+                      </div>
+
+                      {/* Active filter — flat list */}
+                      {activeFilter && (
+                        <div style={{ marginBottom: '24px' }}>
+                          <p style={{ fontSize: '11px', color: colors.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '14px' }}>
+                            {lang === 'es'
+                              ? ({ Optimal: 'Normales', Watch: 'En seguimiento', Attention: 'Para revisar', Critical: 'Críticos' }[activeFilter] ?? activeFilter)
+                              : ({ Optimal: 'Normal', Watch: 'Tracking', Attention: 'Review', Critical: 'Critical' }[activeFilter] ?? activeFilter)
+                            } {lang === 'es' ? 'biomarcadores' : 'biomarkers'}
+                          </p>
+                          {filteredBiomarkers.length > 0 ? (
+                            <div style={{ columns: 2, columnGap: '16px' }}>
+                              {filteredGrouped.map(({ panel, markers }) => (
+                                <div key={panel} style={{ breakInside: 'avoid', marginBottom: '16px' }}>
+                                  <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: colors.textMuted, margin: '0 0 8px 2px' }}>{panel}</p>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {markers.map(b => {
+                                      const s = getStateStyles(b.state ?? '')
+                                      const resolvedRange = !b.flag_error ? resolveDisplayRange(b.marker_name, b.reference_range_min, b.reference_range_max, b.unit, bioProfile) : null
+                                      return (
+                                        <div key={b.id} style={{ padding: '12px 14px', backgroundColor: colors.cardBg, border: `1px solid ${s.dot}30`, borderRadius: '10px', cursor: 'pointer' }} onClick={() => setSelectedBiomarker(b)}>
+                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
+                                            <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, flex: 1 }}>{markerDisplayName(b.marker_name)}</span>
+                                            <span style={{ padding: '2px 8px', borderRadius: '5px', fontSize: '10px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot }}>{s.label}</span>
+                                          </div>
+                                          <div style={{ marginBottom: '4px' }}>
+                                            <span style={{ fontSize: '20px', fontWeight: 800, color: colors.text }}>{b.value}</span>
+                                            {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
+                                          </div>
+                                          {resolvedRange ? <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} /> : <div style={{ height: '7px', borderRadius: '6px', background: TRACK_UNKNOWN }} />}
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div style={{ padding: '20px', textAlign: 'center', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '10px' }}>
+                              <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>No biomarkers in this status for your recent snapshot.</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* ── 2-COLUMN PANEL GRID ── */}
+                      {!activeFilter && currentMarkerGroups.length > 0 && (() => {
+                        const leftCol = currentMarkerGroups.filter((_, i) => i % 2 === 0)
+                        const rightCol = currentMarkerGroups.filter((_, i) => i % 2 === 1)
+
+                        const PanelCard = ({ group }: { group: typeof currentMarkerGroups[0] }) => {
+                          const sc = group.stateCounts
+                          const abnormal = group.markers.filter(b => isOutOfRangeState(b.state) || b.state === 'Watch')
+                          const optimal  = group.markers.filter(b => isInRangeState(b.state))
+                          const optKey   = `desktop::${snapshotViewMode}::${group.key}`
+                          const isOptExp = optimalExpanded.has(optKey)
+                          const hiddenOpt = Math.max(0, optimal.length - OPTIMAL_SHOW_LIMIT)
+                          const autoExpand = hiddenOpt <= 1
+                          const visibleOpt = (isOptExp || autoExpand) ? optimal : optimal.slice(0, OPTIMAL_SHOW_LIMIT)
+                          const accentColor = sc.Critical > 0 ? '#F87171' : sc.Attention > 0 ? '#FB923C' : sc.Watch > 0 ? '#FCD34D' : '#2DD4BF'
+                          const accentBorder = sc.Critical > 0 ? 'rgba(248,113,113,0.22)' : sc.Attention > 0 ? 'rgba(251,146,60,0.18)' : sc.Watch > 0 ? 'rgba(250,204,21,0.15)' : colors.cardBorder
+
+                          return (
+                            <div style={{ backgroundColor: colors.cardBg, border: `1px solid ${accentBorder}`, borderRadius: '16px', backdropFilter: 'blur(24px)', overflow: 'hidden', marginBottom: '12px' }}>
+                              {/* Card header */}
+                              <div style={{ padding: '13px 16px 11px', borderBottom: `1px solid ${colors.cardBorder}` }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '5px' }}>
+                                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: accentColor, flexShrink: 0 }} />
+                                  <span style={{ fontSize: '13px', fontWeight: 700, color: colors.text, flex: 1 }}>{group.label}</span>
+                                  <span style={{ fontSize: '11px', color: colors.textMuted }}>{group.count}</span>
+                                </div>
+                                {/* State badges */}
+                                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '5px' }}>
+                                  {sc.Critical > 0 && <span style={{ padding: '1px 7px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, backgroundColor: colors.critical, border: `1px solid ${colors.criticalBorder}`, color: '#F87171' }}>{sc.Critical} {lang === 'es' ? 'crítico' : 'critical'}</span>}
+                                  {sc.Attention > 0 && <span style={{ padding: '1px 7px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, backgroundColor: colors.attention, border: `1px solid ${colors.attentionBorder}`, color: '#FB923C' }}>{sc.Attention} {lang === 'es' ? 'revisar' : 'review'}</span>}
+                                  {sc.Watch > 0 && <span style={{ padding: '1px 7px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, backgroundColor: colors.watch, border: `1px solid ${colors.watchBorder}`, color: '#FCD34D' }}>{sc.Watch} {lang === 'es' ? 'seguimiento' : 'watch'}</span>}
+                                  {sc.Optimal > 0 && <span style={{ padding: '1px 7px', borderRadius: '4px', fontSize: '10px', fontWeight: 600, backgroundColor: 'rgba(45,212,191,0.08)', border: 'rgba(45,212,191,0.18) 1px solid', color: colors.textMuted }}>{sc.Optimal} {lang === 'es' ? 'normal' : 'normal'}</span>}
+                                </div>
+                                <p style={{ fontSize: '11px', color: colors.textMuted, margin: 0, lineHeight: 1.45 }}>{group.education}</p>
+                              </div>
+
+                              {/* Biomarker rows */}
+                              {[...abnormal, ...visibleOpt].map(b => {
+                                const s = getStateStyles(b.state ?? '')
+                                const resolvedRange = !b.flag_error ? resolveDisplayRange(b.marker_name, b.reference_range_min, b.reference_range_max, b.unit, bioProfile) : null
+                                const isAbn = isOutOfRangeState(b.state) || b.state === 'Watch'
+                                return (
+                                  <div key={b.id} onClick={() => setSelectedBiomarker(b)}
+                                    style={{ padding: '10px 14px', borderTop: `1px solid ${colors.cardBorder}`, cursor: 'pointer', transition: 'background 0.12s' }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.025)')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '5px' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+                                        <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: s.dot, flexShrink: 0 }} />
+                                        <span style={{ fontSize: '12px', fontWeight: 600, color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{markerDisplayName(b.marker_name)}</span>
+                                      </div>
+                                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px', flexShrink: 0 }}>
+                                        <span style={{ fontSize: '14px', fontWeight: 700, color: isAbn ? s.dot : colors.text }}>{b.value}</span>
+                                        {b.unit && <span style={{ fontSize: '10px', color: colors.textMuted }}>{b.unit}</span>}
+                                        <span style={{ marginLeft: '4px', padding: '1px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 700, letterSpacing: '0.04em', backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot }}>{s.label}</span>
+                                      </div>
+                                    </div>
+                                    {resolvedRange
+                                      ? <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
+                                      : <div style={{ height: '5px', borderRadius: '4px', background: TRACK_UNKNOWN }} />}
+                                  </div>
+                                )
+                              })}
+
+                              {/* Show/hide normal */}
+                              {!autoExpand && hiddenOpt > 0 && !isOptExp && (
+                                <button onClick={() => toggleOptimalExpand(optKey)} style={{ width: '100%', padding: '8px', borderTop: `1px solid ${colors.cardBorder}`, background: 'transparent', border: 'none', borderRadius: '0 0 16px 16px', color: colors.textMuted, fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: fonts.ui, textAlign: 'center' }}>
+                                  +{hiddenOpt} {lang === 'es' ? 'marcadores normales' : 'normal markers'} ›
+                                </button>
+                              )}
+                              {isOptExp && hiddenOpt >= 2 && (
+                                <button onClick={() => toggleOptimalExpand(optKey)} style={{ width: '100%', padding: '8px', borderTop: `1px solid ${colors.cardBorder}`, background: 'transparent', border: 'none', borderRadius: '0 0 16px 16px', color: colors.textMuted, fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: fonts.ui, textAlign: 'center' }}>
+                                  {lang === 'es' ? 'Ocultar normales' : 'Hide normal markers'}
+                                </button>
+                              )}
+                            </div>
+                          )
+                        }
+
+                        return (
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', alignItems: 'start' }}>
+                            <div>{leftCol.map(g => <PanelCard key={g.key} group={g} />)}</div>
+                            <div>{rightCol.map(g => <PanelCard key={g.key} group={g} />)}</div>
+                          </div>
+                        )
+                      })()}
+
+                      {/* Empty state — no labs */}
+                      {!activeFilter && currentMarkerGroups.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '80px 48px' }}>
+                          <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(45,212,191,0.08)', border: '1px solid rgba(45,212,191,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={colors.teal} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="12" y2="12"/><line x1="15" y1="15" x2="12" y2="12"/>
+                            </svg>
+                          </div>
+                          <h2 style={{ fontFamily: fonts.heading, fontSize: '24px', fontWeight: 700, color: colors.text, margin: '0 0 10px' }}>
+                            {lang === 'es' ? 'Sube tu primer laboratorio' : 'Upload your first lab'}
+                          </h2>
+                          <p style={{ fontSize: '14px', color: colors.textSoft, maxWidth: '340px', margin: '0 auto 28px', lineHeight: 1.6 }}>
+                            {lang === 'es' ? 'Meridian extrae tus biomarcadores automáticamente y los traduce en señales biológicas.' : 'Meridian automatically extracts your biomarkers and translates them into biological signals.'}
+                          </p>
+                          <button onClick={() => fileInputRef.current?.click()}
+                            style={{ padding: '14px 32px', background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`, border: 'none', borderRadius: '12px', color: colors.background, fontFamily: fonts.ui, fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>
+                            {lang === 'es' ? 'Elegir archivo PDF' : 'Choose PDF file'}
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* ── No recent labs, older exist ── */}
+                  {labsView === 'snapshot' && !hasRecentLabs && hasAnyLabs && (
+                    <div style={{ padding: '28px 32px' }}>
+                      <div style={{ padding: '20px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                        <div>
+                          <p style={{ fontSize: '14px', fontWeight: 600, color: colors.textSoft, marginBottom: '2px' }}>No recent labs in the last 12 months.</p>
+                          <p style={{ fontSize: '12px', color: colors.textMuted }}>{lang === 'es' ? 'Tus resultados confirmados están guardados en el historial.' : 'Your confirmed results are saved in Timeline.'}</p>
+                        </div>
+                        <button onClick={() => { setLabsView('history'); if (!histFetched) loadHistoryData() }}
+                          style={{ padding: '8px 14px', backgroundColor: 'transparent', border: `1px solid ${colors.cardBorder}`, borderRadius: '8px', fontSize: '12px', fontWeight: 600, color: colors.textSoft, fontFamily: fonts.ui, cursor: 'pointer', flexShrink: 0 }}>
+                          {lang === 'es' ? 'Ver historial →' : 'View Timeline →'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── HISTORY VIEW ── */}
+                  {labsView === 'history' && (
+                    <div style={{ padding: '28px 32px' }}>
+                      <div style={{ marginBottom: '24px' }}>
+                        <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: colors.textMuted, margin: '0 0 4px' }}>
+                          {lang === 'es' ? 'Historial' : 'Timeline'}
+                        </p>
+                        <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0, lineHeight: 1.5 }}>
+                          {lang === 'es' ? 'Tus resultados confirmados de laboratorio a través del tiempo.' : 'Your confirmed lab results over time.'}
+                        </p>
+                      </div>
+
+                      {histLoading && (
+                        <div style={{ textAlign: 'center', padding: '40px' }}>
+                          <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} style={{ width: '32px', height: '32px', margin: '0 auto 12px', border: `2px solid ${colors.cardBorder}`, borderTopColor: colors.teal, borderRadius: '50%' }} />
+                          <p style={{ fontSize: '13px', color: colors.textMuted }}>{lang === 'es' ? 'Cargando historial...' : 'Loading Timeline...'}</p>
+                        </div>
+                      )}
+                      {histError && !histLoading && (
+                        <div style={{ padding: '16px 20px', backgroundColor: colors.critical, border: `1px solid ${colors.criticalBorder}`, borderRadius: '12px' }}>
+                          <p style={{ fontSize: '14px', color: '#F87171', margin: 0 }}>{histError}</p>
+                        </div>
+                      )}
+                      {!histLoading && !histError && histGroupRows(histBiomarkers).length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '60px 24px' }}>
+                          <p style={{ fontSize: '14px', color: colors.textMuted }}>{lang === 'es' ? 'Todavía no hay resultados guardados.' : 'No results saved yet.'}</p>
+                        </div>
+                      )}
+                      {!histLoading && histGroupRows(histBiomarkers).map(yearGroup => (
+                        <div key={yearGroup.year} style={{ marginBottom: '36px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                            <span style={{ fontFamily: fonts.heading, fontSize: '20px', fontWeight: 700, color: colors.text }}>{yearGroup.year}</span>
+                            <div style={{ flex: 1, height: '1px', backgroundColor: colors.cardBorder }} />
+                          </div>
+                          {yearGroup.months.map(monthGroup => (
+                            <div key={monthGroup.monthKey} style={{ marginBottom: '28px' }}>
+                              <p style={{ fontSize: '11px', fontWeight: 700, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '12px' }}>{monthGroup.label}</p>
+                              {monthGroup.dates.map(dateGroup => {
+                                const sessionKey = dateGroup.dateKey
+                                const isOpen = expandedPanels.has(sessionKey)
+                                const sc = {
+                                  Optimal:   dateGroup.panels.flatMap(p => p.items).filter(b => isInRangeState(b.state)).length,
+                                  Watch:     dateGroup.panels.flatMap(p => p.items).filter(b => b.state === 'Watch').length,
+                                  Attention: dateGroup.panels.flatMap(p => p.items).filter(b => b.state === 'Low' || b.state === 'High' || b.state === 'Attention').length,
+                                  Critical:  dateGroup.panels.flatMap(p => p.items).filter(b => b.state === 'Critical').length,
+                                }
+                                return (
+                                  <div key={sessionKey} style={{ backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '14px', marginBottom: '10px', overflow: 'hidden' }}>
+                                    <button
+                                      onClick={() => setExpandedPanels(prev => { const next = new Set(prev); isOpen ? next.delete(sessionKey) : next.add(sessionKey); return next })}
+                                      style={{ width: '100%', padding: '14px 18px', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: fonts.ui, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', outline: 'none' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                                        <div>
+                                          <p style={{ fontSize: '14px', fontWeight: 700, color: colors.text, margin: '0 0 2px', textAlign: 'left' }}>{dateGroup.label}</p>
+                                          <p style={{ fontSize: '11px', color: colors.textMuted, margin: 0 }}>{dateGroup.total} markers · {dateGroup.panelCount} panels</p>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                          {sc.Optimal > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#2DD4BF' }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2DD4BF', display: 'inline-block' }} />{sc.Optimal}</span>}
+                                          {sc.Watch > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FCD34D' }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#FCD34D', display: 'inline-block' }} />{sc.Watch}</span>}
+                                          {sc.Attention > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#FB923C' }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#FB923C', display: 'inline-block' }} />{sc.Attention}</span>}
+                                          {sc.Critical > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: 600, color: '#F87171' }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#F87171', display: 'inline-block' }} />{sc.Critical}</span>}
+                                        </div>
+                                      </div>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                                        {deleteConfirmDate === sessionKey ? (
+                                          <div style={{ display: 'flex', gap: '6px' }} onClick={e => e.stopPropagation()}>
+                                            <span style={{ fontSize: '12px', color: '#F87171' }}>¿Eliminar esta sesión?</span>
+                                            <button onClick={() => handleDeleteSession(sessionKey)} disabled={deleteLoading} style={{ padding: '3px 10px', backgroundColor: colors.critical, border: `1px solid ${colors.criticalBorder}`, borderRadius: '6px', color: '#F87171', fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: fonts.ui }}>
+                                              {deleteLoading ? '...' : 'Sí'}
+                                            </button>
+                                            <button onClick={() => setDeleteConfirmDate(null)} style={{ padding: '3px 10px', backgroundColor: 'transparent', border: `1px solid ${colors.cardBorder}`, borderRadius: '6px', color: colors.textMuted, fontSize: '11px', cursor: 'pointer', fontFamily: fonts.ui }}>No</button>
+                                          </div>
+                                        ) : (
+                                          <button onClick={e => { e.stopPropagation(); setDeleteConfirmDate(sessionKey) }}
+                                            style={{ padding: '4px 10px', backgroundColor: 'transparent', border: `1px solid ${colors.cardBorder}`, borderRadius: '6px', color: colors.textMuted, fontSize: '11px', cursor: 'pointer', fontFamily: fonts.ui }}>
+                                            {lang === 'es' ? 'Eliminar' : 'Delete'}
+                                          </button>
+                                        )}
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>
+                                          <path d="M4 6l4 4 4-4" stroke={colors.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                      </div>
+                                    </button>
+                                    {isOpen && (
+                                      <div style={{ borderTop: `1px solid ${colors.cardBorder}`, padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '10px' }}>
+                                        {dateGroup.panels.map(panelGroup => (
+                                          <div key={panelGroup.panel} style={{ backgroundColor: 'rgba(232,248,245,0.03)', border: `1px solid ${colors.cardBorder}`, borderRadius: '10px', overflow: 'hidden' }}>
+                                            <div style={{ padding: '8px 12px', borderBottom: `1px solid ${colors.cardBorder}` }}>
+                                              <span style={{ fontSize: '11px', fontWeight: 700, color: colors.teal, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{panelGroup.panel}</span>
+                                            </div>
+                                            <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                              {panelGroup.items.map(b => {
+                                                const s = histGetStateStyle(b.state)
+                                                const resolvedRange = (!b.flag_error && !isUrinalysisCategorical(b.marker_name)) ? resolveDisplayRange(b.marker_name, b.reference_range_min, b.reference_range_max, b.unit, bioProfile) : null
+                                                return (
+                                                  <div key={b.id} onClick={() => setHistSelectedBiomarker(b)}
+                                                    style={{ backgroundColor: colors.cardBg, border: `1px solid ${s.dot}30`, borderRadius: '8px', padding: '9px 11px', cursor: 'pointer' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px', gap: '6px' }}>
+                                                      <span style={{ fontSize: '12px', fontWeight: 600, color: colors.text, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{histMarkerDisplayName(b.marker_name)}</span>
+                                                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+                                                        <span style={{ fontSize: '13px', fontWeight: 700, color: colors.text }}>{b.value}</span>
+                                                        {b.unit && <span style={{ fontSize: '10px', color: colors.textMuted }}>{b.unit}</span>}
+                                                        {!b.flag_error && b.state && <span style={{ padding: '1px 5px', backgroundColor: s.bg, border: `1px solid ${s.border}`, borderRadius: '4px', fontSize: '9px', fontWeight: 700, color: s.dot }}>{s.label}</span>}
+                                                      </div>
+                                                    </div>
+                                                    {resolvedRange ? <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} /> : <div style={{ height: '5px', borderRadius: '4px', background: TRACK_UNKNOWN }} />}
+                                                  </div>
+                                                )
+                                              })}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </main>
           </div>
         </div>
