@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEven
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import NavBar from '@/components/NavBar';
+import DesktopSidebar from '@/components/DesktopSidebar';
+import DesktopTopBar from '@/components/DesktopTopBar';
 import { useMeridianLanguage } from '@/lib/i18n';
 import { MeridianPageShell } from '@/components/MeridianPageShell';
 import { MeridianPageHeader } from '@/components/MeridianPageHeader';
@@ -38,6 +40,25 @@ const COLORS = {
   cardBg: 'rgba(232,248,245,0.055)',
   cardBorder: 'rgba(103,232,249,0.13)',
 };
+
+// ── Breakpoint helpers ────────────────────────────────────────────────────────
+const DESKTOP_BP = 768;
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${DESKTOP_BP}px)`);
+    setIsDesktop(mq.matches);
+
+    const handler = (event: MediaQueryListEvent) => setIsDesktop(event.matches);
+    mq.addEventListener('change', handler);
+
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return isDesktop;
+}
 
 const SITE_OPTIONS: SiteOption[] = [
   {
@@ -738,7 +759,9 @@ export default function ProtocolPage() {
     setSaving(false);
   }
 
-  return (
+  const isDesktop = useIsDesktop();
+
+  const content = (
     <>
       <MeridianPageShell>
         <MeridianPageHeader
@@ -1040,4 +1063,39 @@ export default function ProtocolPage() {
       <NavBar />
     </>
   );
+
+  if (isDesktop) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: COLORS.background,
+          display: 'flex',
+        }}
+      >
+        <DesktopSidebar currentPath="/protocol" />
+        <div
+          style={{
+            marginLeft: '200px',
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '100vh',
+          }}
+        >
+          <DesktopTopBar />
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+            }}
+          >
+            {content}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return content;
 }
