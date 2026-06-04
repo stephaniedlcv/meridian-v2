@@ -590,7 +590,7 @@ export default function DashboardPage() {
       <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '55%', height: '55%', background: `radial-gradient(circle, ${colors.cyan}18 0%, transparent 70%)`, filter: 'blur(90px)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', top: '45%', left: '50%', transform: 'translateX(-50%)', width: '60%', height: '35%', background: `radial-gradient(circle, ${colors.cyan}0A 0%, transparent 70%)`, filter: 'blur(120px)', pointerEvents: 'none' }} />
 
-      <div style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 24px 100px', position: 'relative', zIndex: 1 }}>
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '44px 20px 120px', position: 'relative', zIndex: 1 }}>
 
         {/* Header */}
         <motion.div
@@ -612,8 +612,8 @@ export default function DashboardPage() {
                   alignItems:    'center',
                   gap:           '7px',
                   fontSize:      '11px',
-                  fontWeight:    600,
-                  letterSpacing: '0.07em',
+                  fontWeight:    700,
+                  letterSpacing: '0.08em',
                   textTransform: 'uppercase',
                   color:         colors.textMuted,
                   marginBottom:  '12px',
