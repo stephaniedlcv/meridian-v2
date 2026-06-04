@@ -2401,30 +2401,222 @@ export default function LabsUploadPage() {
         {/* ── Page header ── */}
         {!inUploadFlow && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            {/* Page context label */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: isDesktop ? '8px' : '7px', marginBottom: isDesktop ? '18px' : '20px' }}>
-              <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.6)', flexShrink: 0 }} />
-              <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
-                {lang === 'es' ? 'Señales de biomarcadores' : 'Biomarker Signals'}
-              </span>
-            </div>
-            <h1 style={{
-              fontFamily: fonts.heading,
-              fontSize: isDesktop ? 'clamp(38px, 4vw, 56px)' : 'clamp(26px, 5vw, 32px)',
-              fontWeight: 700,
-              color: colors.text,
-              marginBottom: isDesktop ? '14px' : '16px',
-              lineHeight: isDesktop ? 1.04 : 1.2,
-            }}>
-              {hasRecentLabs ? (lang === 'es' ? 'Laboratorios' : 'Labs') : (lang === 'es' ? 'Subir laboratorios' : 'Upload your labs')}
-            </h1>
-            <p style={{ fontSize: isDesktop ? '16px' : '14px', fontWeight: 650, color: colors.text, marginBottom: '4px', maxWidth: isDesktop ? '620px' : undefined, lineHeight: 1.55 }}>
-              {lang === 'es' ? 'Tus marcadores clínicos.' : 'Your clinical markers.'}
-            </p>
-            <p style={{ fontSize: isDesktop ? '15px' : '14px', color: colors.textSoft, marginBottom: hasRecentLabs ? (isDesktop ? '30px' : '24px') : (isDesktop ? '26px' : '20px'), maxWidth: isDesktop ? '620px' : undefined, lineHeight: 1.7 }}>
-              Traducido en señales biológicas.
-            </p>
-            <div style={{ height: '1px', background: 'linear-gradient(90deg, rgba(45,212,191,0.0), rgba(103,232,249,0.18) 34%, rgba(45,212,191,0.10) 70%, rgba(103,232,249,0.0))', marginBottom: isDesktop ? '34px' : '28px' }} />
+            {isDesktop ? (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: hasRecentLabs ? 'minmax(0, 1fr) 340px' : 'minmax(0, 1fr) 360px',
+                gap: '24px',
+                alignItems: 'stretch',
+                marginBottom: '34px',
+              }}>
+                <div style={{
+                  padding: '30px 32px',
+                  borderRadius: '24px',
+                  background: 'linear-gradient(135deg, rgba(232,248,245,0.075), rgba(45,212,191,0.035))',
+                  border: `1px solid ${colors.cardBorder}`,
+                  boxShadow: '0 24px 70px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.055)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'radial-gradient(circle at 18% 0%, rgba(103,232,249,0.13), transparent 38%)',
+                    pointerEvents: 'none',
+                  }} />
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
+                      <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 8px rgba(45,212,191,0.72)', flexShrink: 0 }} />
+                      <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
+                        {lang === 'es' ? 'Señales de biomarcadores' : 'Biomarker Signals'}
+                      </span>
+                    </div>
+
+                    <h1 style={{
+                      fontFamily: fonts.heading,
+                      fontSize: 'clamp(42px, 4vw, 58px)',
+                      fontWeight: 700,
+                      color: colors.text,
+                      margin: '0 0 14px',
+                      lineHeight: 1.02,
+                      letterSpacing: '-0.055em',
+                    }}>
+                      {hasRecentLabs ? (lang === 'es' ? 'Laboratorios' : 'Labs') : (lang === 'es' ? 'Subir laboratorios' : 'Upload your labs')}
+                    </h1>
+
+                    <p style={{ fontSize: '16px', fontWeight: 650, color: colors.text, margin: '0 0 6px', maxWidth: '620px', lineHeight: 1.55 }}>
+                      {lang === 'es' ? 'Tus marcadores clínicos, convertidos en contexto accionable.' : 'Your clinical markers, translated into actionable context.'}
+                    </p>
+                    <p style={{ fontSize: '14px', color: colors.textSoft, margin: 0, maxWidth: '680px', lineHeight: 1.75 }}>
+                      {lang === 'es'
+                        ? 'Meridian organiza tus laboratorios por señales, paneles e historial para ayudarte a entender qué cambió, qué se mantiene estable y qué merece seguimiento.'
+                        : 'Meridian organizes your labs by signals, panels, and history so you can understand what changed, what stayed stable, and what deserves follow-up.'}
+                    </p>
+
+                    {hasRecentLabs && (
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                        gap: '12px',
+                        marginTop: '24px',
+                        maxWidth: '640px',
+                      }}>
+                        {[
+                          { label: lang === 'es' ? 'Última muestra' : 'Latest sample', value: latestDate ? formatDateShort(latestDate) : '—' },
+                          { label: lang === 'es' ? 'Biomarcadores' : 'Biomarkers', value: String(snapshotBiomarkers.length) },
+                          { label: lang === 'es' ? 'Paneles' : 'Panels', value: String(panelSummaries.length) },
+                        ].map(item => (
+                          <div key={item.label} style={{
+                            padding: '13px 14px',
+                            borderRadius: '16px',
+                            backgroundColor: 'rgba(6,19,22,0.42)',
+                            border: '1px solid rgba(103,232,249,0.11)',
+                          }}>
+                            <p style={{
+                              fontSize: '10px',
+                              fontWeight: 800,
+                              letterSpacing: '0.08em',
+                              textTransform: 'uppercase',
+                              color: colors.textMuted,
+                              margin: '0 0 6px',
+                            }}>{item.label}</p>
+                            <p style={{
+                              fontFamily: fonts.heading,
+                              fontSize: '20px',
+                              fontWeight: 700,
+                              color: colors.text,
+                              margin: 0,
+                              lineHeight: 1.05,
+                            }}>{item.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{
+                  padding: '24px',
+                  borderRadius: '24px',
+                  background: 'linear-gradient(145deg, rgba(45,212,191,0.10), rgba(103,232,249,0.035))',
+                  border: '1px solid rgba(45,212,191,0.22)',
+                  boxShadow: '0 24px 70px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.06)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: hasRecentLabs ? '260px' : '250px',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                }}>
+                  <div>
+                    <p style={{
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      letterSpacing: '0.10em',
+                      textTransform: 'uppercase',
+                      color: colors.teal,
+                      margin: '0 0 10px',
+                    }}>
+                      {lang === 'es' ? 'Actualizar registro' : 'Update record'}
+                    </p>
+                    <h2 style={{
+                      fontFamily: fonts.heading,
+                      fontSize: '26px',
+                      fontWeight: 700,
+                      color: colors.text,
+                      margin: '0 0 10px',
+                      lineHeight: 1.08,
+                      letterSpacing: '-0.035em',
+                    }}>
+                      {lang === 'es' ? 'Sube un nuevo PDF' : 'Upload a new PDF'}
+                    </h2>
+                    <p style={{
+                      fontSize: '13px',
+                      color: colors.textSoft,
+                      lineHeight: 1.65,
+                      margin: 0,
+                    }}>
+                      {lang === 'es'
+                        ? 'Añade nuevos resultados para actualizar tu snapshot, historial y señales conectadas.'
+                        : 'Add new results to update your snapshot, history, and connected signals.'}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      width: '100%',
+                      marginTop: '22px',
+                      padding: '13px 16px',
+                      borderRadius: '14px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontFamily: fonts.ui,
+                      fontSize: '14px',
+                      fontWeight: 800,
+                      color: colors.background,
+                      background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
+                      boxShadow: '0 14px 34px rgba(45,212,191,0.18)',
+                    }}
+                  >
+                    {lang === 'es' ? 'Subir laboratorio' : 'Upload lab'}
+                  </button>
+
+                  {hasRecentLabs && (
+                    <button
+                      onClick={() => {
+                        setLabsView('history')
+                        if (!histFetched) loadHistoryData()
+                      }}
+                      style={{
+                        width: '100%',
+                        marginTop: '10px',
+                        padding: '11px 14px',
+                        borderRadius: '13px',
+                        border: `1px solid ${colors.cardBorder}`,
+                        cursor: 'pointer',
+                        fontFamily: fonts.ui,
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        color: colors.textSoft,
+                        backgroundColor: 'rgba(6,19,22,0.35)',
+                      }}
+                    >
+                      {lang === 'es' ? 'Ver historial completo' : 'View full history'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Page context label */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '20px' }}>
+                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.6)', flexShrink: 0 }} />
+                  <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
+                    {lang === 'es' ? 'Señales de biomarcadores' : 'Biomarker Signals'}
+                  </span>
+                </div>
+                <h1 style={{
+                  fontFamily: fonts.heading,
+                  fontSize: 'clamp(26px, 5vw, 32px)',
+                  fontWeight: 700,
+                  color: colors.text,
+                  marginBottom: '16px',
+                  lineHeight: 1.2,
+                }}>
+                  {hasRecentLabs ? (lang === 'es' ? 'Laboratorios' : 'Labs') : (lang === 'es' ? 'Subir laboratorios' : 'Upload your labs')}
+                </h1>
+                <p style={{ fontSize: '14px', fontWeight: 650, color: colors.text, marginBottom: '4px', lineHeight: 1.55 }}>
+                  {lang === 'es' ? 'Tus marcadores clínicos.' : 'Your clinical markers.'}
+                </p>
+                <p style={{ fontSize: '14px', color: colors.textSoft, marginBottom: hasRecentLabs ? '24px' : '20px', lineHeight: 1.7 }}>
+                  Traducido en señales biológicas.
+                </p>
+                <div style={{ height: '1px', background: 'linear-gradient(90deg, rgba(45,212,191,0.0), rgba(103,232,249,0.18) 34%, rgba(45,212,191,0.10) 70%, rgba(103,232,249,0.0))', marginBottom: '28px' }} />
+              </>
+            )}
           </motion.div>
         )}
 
@@ -3168,7 +3360,7 @@ export default function LabsUploadPage() {
                         {lang === 'es' ? 'Lo que tu biología está mostrando' : 'What your biology is showing'}
                       </h2>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: isDesktop ? 'grid' : 'flex', gridTemplateColumns: isDesktop ? 'repeat(2, minmax(0, 1fr))' : undefined, flexDirection: isDesktop ? undefined : 'column', gap: '14px' }}>
                       {(moreInsightsExpanded ? connectedInsights : connectedInsights.slice(0, 3)).map(insight => (
                         <div key={insight.id} style={{
                           padding: '20px',
@@ -3244,7 +3436,7 @@ export default function LabsUploadPage() {
                         Toca cualquiera para explorar
                       </span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: isDesktop ? 'grid' : 'flex', gridTemplateColumns: isDesktop ? 'repeat(2, minmax(0, 1fr))' : undefined, flexDirection: isDesktop ? undefined : 'column', gap: '12px' }}>
                       {keyBiomarkers.map(b => {
                         const s = getStateStyles(b.state ?? '')
                         const resolvedRange = !b.flag_error ? resolveDisplayRange(b.marker_name, b.reference_range_min, b.reference_range_max, b.unit, bioProfile) : null
