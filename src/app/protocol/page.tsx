@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEven
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import NavBar from '@/components/NavBar';
+import { useMeridianLanguage } from '@/lib/i18n';
 import { MeridianPageShell } from '@/components/MeridianPageShell';
 import { MeridianPageHeader } from '@/components/MeridianPageHeader';
 
@@ -146,25 +147,6 @@ function sortEntries(entries: TirzepatideEntry[]) {
   return [...entries].sort((a, b) => parseLocalDate(b.date).getTime() - parseLocalDate(a.date).getTime());
 }
 
-function getPreferredLanguage(): AppLanguage {
-  if (typeof window === 'undefined') {
-    return 'es';
-  }
-
-  const localValues = [
-    window.localStorage.getItem('meridian_language'),
-    window.localStorage.getItem('meridian-lang'),
-    window.localStorage.getItem('meridianLang'),
-    window.localStorage.getItem('language'),
-    window.localStorage.getItem('lang'),
-    window.localStorage.getItem('locale'),
-  ].filter(Boolean) as string[];
-
-  const rawLanguage =
-    localValues[0] || document.documentElement.lang || window.navigator.language || 'es';
-
-  return rawLanguage.toLowerCase().startsWith('en') ? 'en' : 'es';
-}
 
 const COPY = {
   es: {
@@ -576,7 +558,7 @@ export default function ProtocolPage() {
     [],
   );
 
-  const [lang, setLang] = useState<AppLanguage>('es');
+  const [lang] = useMeridianLanguage();
   const copy = COPY[lang];
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -601,10 +583,8 @@ export default function ProtocolPage() {
     let isMounted = true;
 
     async function loadProtocolData() {
-      const selectedLang = getPreferredLanguage();
-      const selectedCopy = COPY[selectedLang];
+      const selectedCopy = copy;
 
-      setLang(selectedLang);
       setLoading(true);
       setErrorMessage('');
       setSuccessMessage('');

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
+import { useMeridianLanguage } from '@/lib/i18n';
 
 type AppLanguage = 'es' | 'en';
 
@@ -18,23 +19,6 @@ const COLORS = {
   inputBg: 'rgba(6,19,22,0.6)',
 };
 
-function getPreferredLanguage(): AppLanguage {
-  if (typeof window === 'undefined') return 'es';
-
-  const localValues = [
-    window.localStorage.getItem('meridian_language'),
-    window.localStorage.getItem('meridian-lang'),
-    window.localStorage.getItem('meridianLang'),
-    window.localStorage.getItem('language'),
-    window.localStorage.getItem('lang'),
-    window.localStorage.getItem('locale'),
-  ].filter(Boolean) as string[];
-
-  const rawLanguage =
-    localValues[0] || document.documentElement.lang || window.navigator.language || 'es';
-
-  return rawLanguage.toLowerCase().startsWith('en') ? 'en' : 'es';
-}
 
 const COPY = {
   es: {
@@ -160,7 +144,7 @@ export default function Glp1ProtocolToggle() {
     [],
   );
 
-  const [lang, setLang] = useState<AppLanguage>('es');
+  const [lang] = useMeridianLanguage();
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -172,8 +156,6 @@ export default function Glp1ProtocolToggle() {
     let isMounted = true;
 
     async function loadPreference() {
-      const selectedLang = getPreferredLanguage();
-      setLang(selectedLang);
       setLoading(true);
       setMessage('');
 
