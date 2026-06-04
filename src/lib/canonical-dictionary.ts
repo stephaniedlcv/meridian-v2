@@ -1,3 +1,4 @@
+import { classifyValueAgainstClinicalRange, type BiologicalProfile, type ClinicalBiomarkerState } from './marker-state'
 // MERIDIAN — Canonical Biomarker Dictionary v3
 // Fixes: LDL/VLDL confusion, added ratios, absolute counts, anion gap
 // Improved fuzzy matching with protected terms
@@ -2698,24 +2699,17 @@ export function isImpossibleValue(slug: string, value: number): boolean {
 // ── Clinical State Engine (Clinical Stability Phase) ─────────────────────────
 // Classification uses ONLY clinical reference ranges (normalF / normalM).
 // Optimal ranges are stored in the DB for future use but are NOT used here.
-// Output states: Normal (in range) | Low (below) | High (above) | Critical (severe)
-// Severity threshold: >50% deviation from the clinical boundary → Critical.
+// Kept here as a compatibility wrapper for existing OCR imports.
 export function classifyBiomarkerState(
   slug: string,
   value: number,
-  biologicalProfile: 'female' | 'male'
-): 'Normal' | 'Low' | 'High' | 'Critical' {
+  biologicalProfile: BiologicalProfile
+): ClinicalBiomarkerState {
   const marker = CANONICAL_DICTIONARY[slug]
   if (!marker) return 'Normal'
+
   const normal = biologicalProfile === 'female' ? marker.normalF : marker.normalM
-  if (value >= normal.min && value <= normal.max) return 'Normal'
-  if (value < normal.min) {
-    const dist = normal.min > 0 ? (normal.min - value) / normal.min : (normal.min - value)
-    return dist > 0.5 ? 'Critical' : 'Low'
-  }
-  // value > normal.max
-  const dist = normal.max > 0 ? (value - normal.max) / normal.max : (value - normal.max)
-  return dist > 0.5 ? 'Critical' : 'High'
+  return classifyValueAgainstClinicalRange(value, normal)
 }
 
 // Returns the clinical reference range for a slug + biological profile.
