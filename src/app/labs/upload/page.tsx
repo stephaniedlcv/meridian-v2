@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
+import DesktopSidebar from '@/components/DesktopSidebar'
+import DesktopTopBar from '@/components/DesktopTopBar'
 import { getSafetyStatusForBiomarker } from '@/lib/safety-engine'
 import { getNextOnboardingStep } from '@/lib/onboarding'
 import { resolveDisplayRange } from '@/lib/range-resolver'
@@ -36,6 +38,25 @@ const colors = {
 const fonts = {
   heading: '"Fraunces", serif',
   ui: '"Plus Jakarta Sans", sans-serif',
+}
+
+// ── Breakpoint helpers ────────────────────────────────────────────────────────
+const DESKTOP_BP = 768
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${DESKTOP_BP}px)`)
+    setIsDesktop(mq.matches)
+
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    mq.addEventListener('change', handler)
+
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  return isDesktop
 }
 
 // ── Upload-flow interfaces (unchanged) ────────────────────────────────────────
@@ -2339,9 +2360,10 @@ export default function LabsUploadPage() {
 
   // Whether the active upload flow is in progress
   const inUploadFlow = uploading || !!staged || confirmed
+  const isDesktop = useIsDesktop()
 
   // ── Render ───────────────────────────────────────────────────────────────────
-  return (
+  const content = (
     <div style={{
       minHeight: '100vh',
       backgroundColor: colors.background,
@@ -4009,4 +4031,34 @@ export default function LabsUploadPage() {
       <NavBar />
     </div>
   )
+
+  if (isDesktop) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: colors.background,
+        fontFamily: fonts.ui,
+        display: 'flex',
+      }}>
+        <DesktopSidebar currentPath="/labs/upload" />
+        <div style={{
+          marginLeft: '200px',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+        }}>
+          <DesktopTopBar />
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+          }}>
+            {content}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return content
 }
