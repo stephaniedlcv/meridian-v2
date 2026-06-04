@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import NavBar from '@/components/NavBar';
+import DesktopSidebar from '@/components/DesktopSidebar';
+import DesktopTopBar from '@/components/DesktopTopBar';
 import { MeridianPageShell } from '@/components/MeridianPageShell';
 import { MeridianPageHeader } from '@/components/MeridianPageHeader';
 import type { HealthEvent, LabDocument } from '@/types/database';
@@ -36,6 +38,25 @@ const fonts = {
   heading: 'var(--font-fraunces), "Fraunces", serif',
   ui: 'var(--font-plus-jakarta-sans), "Plus Jakarta Sans", sans-serif',
 };
+
+// ── Breakpoint helpers ────────────────────────────────────────────────────────
+const DESKTOP_BP = 768;
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${DESKTOP_BP}px)`);
+    setIsDesktop(mq.matches);
+
+    const handler = (event: MediaQueryListEvent) => setIsDesktop(event.matches);
+    mq.addEventListener('change', handler);
+
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return isDesktop;
+}
 
 const styles: Record<string, CSSProperties> = {
   page: {
@@ -292,7 +313,9 @@ export default function HealthTimelinePage() {
     await loadTimelineData();
   }
 
-  return (
+  const isDesktop = useIsDesktop();
+
+  const content = (
     <>
       <MeridianPageShell>
         <MeridianPageHeader
@@ -386,6 +409,41 @@ export default function HealthTimelinePage() {
       <NavBar />
     </>
   );
+
+  if (isDesktop) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: colors.background,
+          display: 'flex',
+        }}
+      >
+        <DesktopSidebar currentPath="/timeline" />
+        <div
+          style={{
+            marginLeft: '200px',
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '100vh',
+          }}
+        >
+          <DesktopTopBar />
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+            }}
+          >
+            {content}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return content;
 }
 
 function MiniStat({ label, value }: { label: string; value: number }) {
