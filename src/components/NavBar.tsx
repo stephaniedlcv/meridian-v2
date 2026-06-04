@@ -379,6 +379,41 @@ export default function NavBar() {
           0%, 100% { filter: none; }
           50%       { filter: drop-shadow(0 0 6px rgba(45,212,191,0.3)); }
         }
+
+        @media (min-width: 768px) {
+          .meridian-bottom-nav {
+            top: calc(env(safe-area-inset-top, 0px) + 16px) !important;
+            bottom: auto !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            width: auto !important;
+            border-top: none !important;
+            border: 1px solid rgba(103,232,249,0.13) !important;
+            border-radius: 999px !important;
+            padding: 6px !important;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+          }
+
+          .meridian-nav-inner {
+            max-width: none !important;
+            gap: 4px !important;
+            justify-content: center !important;
+          }
+
+          .meridian-nav-item {
+            flex-direction: row !important;
+            gap: 7px !important;
+            min-width: auto !important;
+            padding: 9px 13px !important;
+            border-radius: 999px !important;
+          }
+
+          .meridian-nav-label {
+            font-size: 11px !important;
+            letter-spacing: 0.01em !important;
+          }
+        }
       `}</style>
 
       {/* Global top actions */}
@@ -638,7 +673,7 @@ export default function NavBar() {
       </div>
 
       {/* Bottom navigation — 4 items */}
-      <nav style={{
+      <nav className="meridian-bottom-nav" style={{
         position:             'fixed',
         bottom:               0,
         left:                 0,
@@ -650,7 +685,7 @@ export default function NavBar() {
         zIndex:               100,
         padding:              '8px 0 env(safe-area-inset-bottom, 8px)',
       }}>
-        <div style={{
+        <div className="meridian-nav-inner" style={{
           maxWidth:       '560px',
           margin:         '0 auto',
           display:        'flex',
@@ -663,6 +698,7 @@ export default function NavBar() {
             return (
               <button
                 key={item.path}
+                className="meridian-nav-item"
                 onClick={() => router.push(item.path)}
                 style={{
                   background:    isActive ? 'rgba(45,212,191,0.07)' : 'none',
@@ -681,7 +717,7 @@ export default function NavBar() {
                 }}
               >
                 <NavIcon id={item.id} isActive={isActive} />
-                <span style={{
+                <span className="meridian-nav-label" style={{
                   fontSize:      '9px',
                   fontWeight:    600,
                   letterSpacing: '0.04em',
