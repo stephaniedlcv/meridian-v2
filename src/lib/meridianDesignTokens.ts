@@ -26,8 +26,8 @@ export const meridianFonts = {
 };
 
 export const meridianPageStyles = {
-  // Based on Labs real page wrapper:
-  // padding: 44px 20px 120px
+  // Premium app page foundation.
+  // Mobile keeps the same compact rhythm; desktop gains wider editorial spacing.
   page: {
     minHeight: '100vh',
     backgroundColor: meridianColors.background,
@@ -35,31 +35,28 @@ export const meridianPageStyles = {
     fontFamily: meridianFonts.ui,
     position: 'relative',
     overflow: 'hidden',
-    padding: '44px 20px 120px',
+    padding: 'clamp(44px, 5vw, 64px) clamp(20px, 4vw, 48px) 120px',
   } satisfies CSSProperties,
 
-  // Based on Labs real content width:
-  // maxWidth: 680px
+  // Premium desktop canvas.
+  // This replaces the old mobile-first 680px shell while staying safe on small screens.
   shell: {
     width: '100%',
-    maxWidth: '680px',
+    maxWidth: '1120px',
     margin: '0 auto',
     position: 'relative',
     zIndex: 1,
   } satisfies CSSProperties,
 
-  // Based on Dashboard/Labs header rhythm.
   header: {
-    marginBottom: '28px',
+    marginBottom: '34px',
   } satisfies CSSProperties,
 
-  // Based on Labs page context label:
-  // flex row + dot + uppercase 11px label.
   eyebrowRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: '7px',
-    marginBottom: '20px',
+    gap: '8px',
+    marginBottom: '18px',
   } satisfies CSSProperties,
 
   eyebrowDot: {
@@ -67,59 +64,56 @@ export const meridianPageStyles = {
     height: '5px',
     borderRadius: '50%',
     background: meridianColors.teal,
-    boxShadow: '0 0 6px rgba(45,212,191,0.6)',
+    boxShadow: '0 0 8px rgba(45,212,191,0.72)',
     flexShrink: 0,
   } satisfies CSSProperties,
 
   eyebrow: {
     fontSize: '11px',
-    fontWeight: 700,
-    letterSpacing: '0.08em',
+    fontWeight: 800,
+    letterSpacing: '0.10em',
     textTransform: 'uppercase',
     color: meridianColors.textMuted,
   } satisfies CSSProperties,
 
-  // Based on Labs real title:
-  // clamp(26px, 5vw, 32px), lineHeight 1.2, marginBottom 16px.
   title: {
     fontFamily: meridianFonts.heading,
-    fontSize: 'clamp(26px, 5vw, 32px)',
+    fontSize: 'clamp(32px, 4vw, 52px)',
     fontWeight: 700,
     color: meridianColors.text,
-    margin: '0 0 16px',
-    lineHeight: 1.2,
-    letterSpacing: '-0.04em',
+    margin: '0 0 14px',
+    lineHeight: 1.04,
+    letterSpacing: '-0.055em',
+    textShadow: '0 18px 54px rgba(103,232,249,0.10)',
   } satisfies CSSProperties,
 
-  // Based on Dashboard/Labs body copy:
-  // 14px, textSoft, readable lineHeight.
   subtitle: {
     margin: 0,
-    maxWidth: '360px',
+    maxWidth: '620px',
     color: meridianColors.textSoft,
-    fontSize: '14px',
-    lineHeight: 1.65,
+    fontSize: '15px',
+    lineHeight: 1.7,
   } satisfies CSSProperties,
 
   divider: {
     height: '1px',
     background:
-      'linear-gradient(90deg, transparent, rgba(103,232,249,0.12) 40%, rgba(103,232,249,0.08) 60%, transparent)',
-    marginTop: '24px',
-    marginBottom: '28px',
+      'linear-gradient(90deg, rgba(45,212,191,0.0), rgba(103,232,249,0.18) 34%, rgba(45,212,191,0.10) 70%, rgba(103,232,249,0.0))',
+    marginTop: '28px',
+    marginBottom: '34px',
   } satisfies CSSProperties,
 
   actionButton: {
     border: `1px solid ${meridianColors.cardBorderActive}`,
-    borderRadius: 14,
-    padding: '8px 12px',
+    borderRadius: 16,
+    padding: '10px 14px',
     color: meridianColors.teal,
     background:
-      'linear-gradient(135deg, rgba(45,212,191,0.12), rgba(103,232,249,0.045))',
+      'linear-gradient(135deg, rgba(45,212,191,0.14), rgba(103,232,249,0.055))',
     boxShadow:
-      '0 12px 32px rgba(45,212,191,0.07), inset 0 1px 0 rgba(255,255,255,0.06)',
+      '0 14px 40px rgba(45,212,191,0.08), inset 0 1px 0 rgba(255,255,255,0.07)',
     fontSize: 12,
-    fontWeight: 700,
+    fontWeight: 800,
     letterSpacing: '-0.01em',
     cursor: 'pointer',
     whiteSpace: 'nowrap',
