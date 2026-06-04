@@ -5,6 +5,8 @@ import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
+import DesktopSidebar from '@/components/DesktopSidebar'
+import DesktopTopBar from '@/components/DesktopTopBar'
 import { getSafetyStatusForBiomarker } from '@/lib/safety-engine'
 import { getNextOnboardingStep } from '@/lib/onboarding'
 import { useMeridianLanguage, type MeridianLanguage } from '@/lib/i18n'
@@ -159,143 +161,6 @@ function getTimeGreeting(
     evening:   ['Tu cuerpo ha estado trabajando hoy.','A good time to review before your recovery window opens.','The day\'s signals are in.','Tu sistema tiene datos que vale la pena revisar esta noche.','Tu ciclo de recuperación se acerca. Esta es la lectura de hoy.'],
   }
   return { greeting, subline: ambient[period][dayIndex % ambient[period].length] }
-}
-
-// ─── Sidebar (desktop only) ────────────────────────────────────────────────────
-function DesktopSidebar({ lang, userName, currentPath }: { lang: MeridianLanguage; userName: string; currentPath: string }) {
-  const router = useRouter()
-  const firstName = getFirstName(userName)
-
-  const navItems = [
-    { path: '/dashboard',   icon: '⌂', label: lang === 'es' ? 'Inicio'         : 'Home'      },
-    { path: '/labs/upload', icon: '⬡', label: lang === 'es' ? 'Laboratorios'   : 'Labs'      },
-    { path: '/protocol',    icon: '◈', label: lang === 'es' ? 'Plan'           : 'Plan'      },
-    { path: '/timeline',    icon: '◷', label: lang === 'es' ? 'Agenda'         : 'Agenda'    },
-  ]
-
-  return (
-    <aside style={{
-      width: '200px',
-      flexShrink: 0,
-      background: colors.sidebarBg,
-      borderRight: `0.5px solid ${colors.sidebarBorder}`,
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      height: '100vh',
-      zIndex: 10,
-    }}>
-      {/* Logo */}
-      <div style={{
-        padding: '22px 18px 18px',
-        borderBottom: `0.5px solid ${colors.sidebarBorder}`,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-      }}>
-        <span style={{
-          fontFamily: 'var(--font-fraunces), serif',
-          fontSize: '22px', fontWeight: 700, lineHeight: 1,
-          background: 'linear-gradient(135deg, #FFFFFF 0%, #67E8F9 45%, #2DD4BF 100%)',
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-          filter: 'drop-shadow(0 0 8px rgba(45,212,191,0.55))',
-        }}>M</span>
-        <span style={{ fontFamily: 'var(--font-fraunces), serif', fontSize: '15px', fontWeight: 700, color: colors.text, letterSpacing: '-0.03em' }}>
-          Meridian
-        </span>
-      </div>
-
-      {/* Nav */}
-      <nav style={{ padding: '14px 8px', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        {navItems.map(item => {
-          const active = currentPath === item.path
-          return (
-            <button
-              key={item.path}
-              onClick={() => router.push(item.path)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '9px',
-                padding: '9px 10px', borderRadius: '7px',
-                border: 'none', cursor: 'pointer',
-                background: active ? 'rgba(45,212,191,0.09)' : 'transparent',
-                color: active ? colors.text : colors.textMuted,
-                fontSize: '13px', fontWeight: 500,
-                textAlign: 'left', width: '100%',
-              }}
-            >
-              <span style={{ fontSize: '14px', color: active ? colors.teal : colors.textMuted, width: '16px', textAlign: 'center' }}>
-                {item.icon}
-              </span>
-              {item.label}
-            </button>
-          )
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div style={{
-        padding: '14px 12px',
-        borderTop: `0.5px solid ${colors.sidebarBorder}`,
-        display: 'flex', alignItems: 'center', gap: '9px',
-      }}>
-        <div style={{
-          width: '28px', height: '28px', borderRadius: '50%',
-          background: 'rgba(45,212,191,0.15)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '10px', fontWeight: 600, color: colors.teal, flexShrink: 0,
-        }}>
-          {firstName ? firstName.slice(0, 2).toUpperCase() : 'M'}
-        </div>
-        <div>
-          <div style={{ fontSize: '12px', fontWeight: 500, color: colors.textSoft }}>{firstName || 'Meridian'}</div>
-          <div style={{ fontSize: '10px', color: colors.textMuted }}>{lang === 'es' ? 'Plan activo' : 'Active plan'}</div>
-        </div>
-      </div>
-    </aside>
-  )
-}
-
-// ─── Top bar (desktop only) ────────────────────────────────────────────────────
-function DesktopTopBar({ lang, currentPage }: { lang: MeridianLanguage; currentPage: string }) {
-  const router = useRouter()
-  return (
-    <header style={{
-      height: '48px',
-      borderBottom: `0.5px solid ${colors.sidebarBorder}`,
-      display: 'flex', alignItems: 'center',
-      padding: '0 28px', gap: '10px',
-      flexShrink: 0,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
-        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, flexShrink: 0 }} />
-        <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted }}>
-          {new Date().toLocaleDateString(lang === 'es' ? 'es-PR' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-        </span>
-      </div>
-      <button
-        onClick={() => router.push('/notifications')}
-        style={{ width: '38px', height: '38px', borderRadius: '11px', background: 'rgba(6,19,22,0.82)', border: `1px solid ${colors.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(20px)' }}
-        aria-label="Notifications"
-      >
-        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke={colors.teal} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M10 2A4.5 4.5 0 0 0 5.5 6.5v3.2L4 12h12l-1.5-2.3V6.5A4.5 4.5 0 0 0 10 2Z" />
-          <path d="M8.5 14.5a1.5 1.5 0 0 0 3 0" />
-        </svg>
-      </button>
-      <button
-        onClick={() => router.push('/profile')}
-        style={{ width: '38px', height: '38px', borderRadius: '11px', background: 'rgba(6,19,22,0.82)', border: `1px solid ${colors.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(20px)' }}
-        aria-label="Profile"
-      >
-        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke={colors.textSoft} strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="10" cy="6.5" r="3" />
-          <path d="M3 18c0-3.9 3.1-6 7-6s7 2.1 7 6" />
-        </svg>
-      </button>
-    </header>
-  )
 }
 
 // ─── Wearable score pills ──────────────────────────────────────────────────────
@@ -856,11 +721,11 @@ export default function DashboardPage() {
   if (isDesktop) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: colors.background, fontFamily: fonts.ui, display: 'flex' }}>
-        <DesktopSidebar lang={lang} userName={userName} currentPath="/dashboard" />
+        <DesktopSidebar userName={userName} currentPath="/dashboard" />
 
         {/* Main area — offset by sidebar width */}
         <div style={{ marginLeft: '200px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-          <DesktopTopBar lang={lang} currentPage="dashboard" />
+          <DesktopTopBar />
 
           {/* Scrollable content */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '32px 40px 48px' }}>
