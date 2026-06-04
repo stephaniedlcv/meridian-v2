@@ -109,15 +109,25 @@ const TONE_MAP: Record<string, string> = {
 
 const FORBIDDEN_WORDS = [
   'diagnose', 'diagnosed', 'diagnosis',
+  'diagnosticar', 'diagnosticado', 'diagnosticada', 'diagnóstico',
   'disease', 'disorder',
+  'enfermedad', 'trastorno',
   'prescribe', 'prescription',
+  'prescribir', 'recetar', 'receta',
   'cure', 'treat', 'treatment',
+  'curar', 'cura', 'tratar', 'tratamiento',
   'danger', 'dangerous',
+  'peligro', 'peligroso', 'peligrosa',
   'critical', 'emergency',
+  'crítico', 'crítica', 'emergencia',
   'anemia', 'anemic',
+  'anémico', 'anémica',
   'hypothyroidism', 'hyperthyroidism',
+  'hipotiroidismo', 'hipertiroidismo',
   'diabetes', 'diabetic',
+  'diabético', 'diabética',
   'hypertension',
+  'hipertensión',
 ]
 
 // ===== SYSTEM PROMPT =====
@@ -162,7 +172,7 @@ ${tone}
 
 ### ABSOLUTE RULES (never break these)
 1. NEVER diagnose. Say "Iron reserves may be below what your activity level needs" NOT "You have anemia"
-2. NEVER use these words: disease, diagnose, prescribe, cure, danger, critical, emergency, anemia, hypothyroidism, diabetes, hypertension, disorder, treatment
+2. NEVER use these words in English or Spanish: disease, diagnose, prescribe, cure, danger, critical, emergency, anemia, hypothyroidism, diabetes, hypertension, disorder, treatment, diagnóstico, enfermedad, trastorno, prescribir, recetar, cura, peligro, crítico, emergencia, hipotiroidismo, hipertiroidismo, diabético, hipertensión, tratamiento
 3. NEVER mention a biomarker that is not in the provided data
 4. NEVER give more than 3 action steps
 5. NEVER say "consult your doctor" as the only answer — give context first
