@@ -382,31 +382,34 @@ export default function NavBar() {
 
         @media (min-width: 768px) {
           .meridian-bottom-nav {
-            top: calc(env(safe-area-inset-top, 0px) + 16px) !important;
+            top: 50% !important;
             bottom: auto !important;
-            left: 50% !important;
+            left: 24px !important;
             right: auto !important;
-            transform: translateX(-50%) !important;
+            transform: translateY(-50%) !important;
             width: auto !important;
             border-top: none !important;
             border: 1px solid rgba(103,232,249,0.13) !important;
-            border-radius: 999px !important;
-            padding: 6px !important;
-            box-shadow: 0 14px 40px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+            border-radius: 24px !important;
+            padding: 8px !important;
+            box-shadow: 0 18px 48px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.04) !important;
           }
 
           .meridian-nav-inner {
             max-width: none !important;
-            gap: 4px !important;
+            flex-direction: column !important;
+            gap: 6px !important;
             justify-content: center !important;
+            align-items: stretch !important;
           }
 
           .meridian-nav-item {
             flex-direction: row !important;
-            gap: 7px !important;
-            min-width: auto !important;
-            padding: 9px 13px !important;
-            border-radius: 999px !important;
+            justify-content: flex-start !important;
+            gap: 8px !important;
+            min-width: 132px !important;
+            padding: 10px 12px !important;
+            border-radius: 16px !important;
           }
 
           .meridian-nav-label {
