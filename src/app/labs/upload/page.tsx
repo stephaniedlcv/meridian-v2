@@ -2399,224 +2399,32 @@ export default function LabsUploadPage() {
       <div style={{ maxWidth: isDesktop ? '1120px' : '680px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
 
         {/* ── Page header ── */}
-        {!inUploadFlow && (
+        {!inUploadFlow && !isDesktop && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            {isDesktop ? (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: hasRecentLabs ? 'minmax(0, 1fr) 340px' : 'minmax(0, 1fr) 360px',
-                gap: '24px',
-                alignItems: 'stretch',
-                marginBottom: '34px',
-              }}>
-                <div style={{
-                  padding: '30px 32px',
-                  borderRadius: '24px',
-                  background: 'linear-gradient(135deg, rgba(232,248,245,0.075), rgba(45,212,191,0.035))',
-                  border: `1px solid ${colors.cardBorder}`,
-                  boxShadow: '0 24px 70px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.055)',
-                  backdropFilter: 'blur(24px)',
-                  WebkitBackdropFilter: 'blur(24px)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'radial-gradient(circle at 18% 0%, rgba(103,232,249,0.13), transparent 38%)',
-                    pointerEvents: 'none',
-                  }} />
-                  <div style={{ position: 'relative', zIndex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
-                      <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 8px rgba(45,212,191,0.72)', flexShrink: 0 }} />
-                      <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
-                        {lang === 'es' ? 'Señales de biomarcadores' : 'Biomarker Signals'}
-                      </span>
-                    </div>
-
-                    <h1 style={{
-                      fontFamily: fonts.heading,
-                      fontSize: 'clamp(42px, 4vw, 58px)',
-                      fontWeight: 700,
-                      color: colors.text,
-                      margin: '0 0 14px',
-                      lineHeight: 1.02,
-                      letterSpacing: '-0.055em',
-                    }}>
-                      {hasRecentLabs ? (lang === 'es' ? 'Laboratorios' : 'Labs') : (lang === 'es' ? 'Subir laboratorios' : 'Upload your labs')}
-                    </h1>
-
-                    <p style={{ fontSize: '16px', fontWeight: 650, color: colors.text, margin: '0 0 6px', maxWidth: '620px', lineHeight: 1.55 }}>
-                      {lang === 'es' ? 'Tus marcadores clínicos, convertidos en contexto accionable.' : 'Your clinical markers, translated into actionable context.'}
-                    </p>
-                    <p style={{ fontSize: '14px', color: colors.textSoft, margin: 0, maxWidth: '680px', lineHeight: 1.75 }}>
-                      {lang === 'es'
-                        ? 'Meridian organiza tus laboratorios por señales, paneles e historial para ayudarte a entender qué cambió, qué se mantiene estable y qué merece seguimiento.'
-                        : 'Meridian organizes your labs by signals, panels, and history so you can understand what changed, what stayed stable, and what deserves follow-up.'}
-                    </p>
-
-                    {hasRecentLabs && (
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                        gap: '12px',
-                        marginTop: '24px',
-                        maxWidth: '640px',
-                      }}>
-                        {[
-                          { label: lang === 'es' ? 'Última muestra' : 'Latest sample', value: latestDate ? formatDateShort(latestDate) : '—' },
-                          { label: lang === 'es' ? 'Biomarcadores' : 'Biomarkers', value: String(snapshotBiomarkers.length) },
-                          { label: lang === 'es' ? 'Paneles' : 'Panels', value: String(panelSummaries.length) },
-                        ].map(item => (
-                          <div key={item.label} style={{
-                            padding: '13px 14px',
-                            borderRadius: '16px',
-                            backgroundColor: 'rgba(6,19,22,0.42)',
-                            border: '1px solid rgba(103,232,249,0.11)',
-                          }}>
-                            <p style={{
-                              fontSize: '10px',
-                              fontWeight: 800,
-                              letterSpacing: '0.08em',
-                              textTransform: 'uppercase',
-                              color: colors.textMuted,
-                              margin: '0 0 6px',
-                            }}>{item.label}</p>
-                            <p style={{
-                              fontFamily: fonts.heading,
-                              fontSize: '20px',
-                              fontWeight: 700,
-                              color: colors.text,
-                              margin: 0,
-                              lineHeight: 1.05,
-                            }}>{item.value}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div style={{
-                  padding: '24px',
-                  borderRadius: '24px',
-                  background: 'linear-gradient(145deg, rgba(45,212,191,0.10), rgba(103,232,249,0.035))',
-                  border: '1px solid rgba(45,212,191,0.22)',
-                  boxShadow: '0 24px 70px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.06)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: hasRecentLabs ? '260px' : '250px',
-                  backdropFilter: 'blur(24px)',
-                  WebkitBackdropFilter: 'blur(24px)',
-                }}>
-                  <div>
-                    <p style={{
-                      fontSize: '10px',
-                      fontWeight: 800,
-                      letterSpacing: '0.10em',
-                      textTransform: 'uppercase',
-                      color: colors.teal,
-                      margin: '0 0 10px',
-                    }}>
-                      {lang === 'es' ? 'Actualizar registro' : 'Update record'}
-                    </p>
-                    <h2 style={{
-                      fontFamily: fonts.heading,
-                      fontSize: '26px',
-                      fontWeight: 700,
-                      color: colors.text,
-                      margin: '0 0 10px',
-                      lineHeight: 1.08,
-                      letterSpacing: '-0.035em',
-                    }}>
-                      {lang === 'es' ? 'Sube un nuevo PDF' : 'Upload a new PDF'}
-                    </h2>
-                    <p style={{
-                      fontSize: '13px',
-                      color: colors.textSoft,
-                      lineHeight: 1.65,
-                      margin: 0,
-                    }}>
-                      {lang === 'es'
-                        ? 'Añade nuevos resultados para actualizar tu snapshot, historial y señales conectadas.'
-                        : 'Add new results to update your snapshot, history, and connected signals.'}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    style={{
-                      width: '100%',
-                      marginTop: '22px',
-                      padding: '13px 16px',
-                      borderRadius: '14px',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontFamily: fonts.ui,
-                      fontSize: '14px',
-                      fontWeight: 800,
-                      color: colors.background,
-                      background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
-                      boxShadow: '0 14px 34px rgba(45,212,191,0.18)',
-                    }}
-                  >
-                    {lang === 'es' ? 'Subir laboratorio' : 'Upload lab'}
-                  </button>
-
-                  {hasRecentLabs && (
-                    <button
-                      onClick={() => {
-                        setLabsView('history')
-                        if (!histFetched) loadHistoryData()
-                      }}
-                      style={{
-                        width: '100%',
-                        marginTop: '10px',
-                        padding: '11px 14px',
-                        borderRadius: '13px',
-                        border: `1px solid ${colors.cardBorder}`,
-                        cursor: 'pointer',
-                        fontFamily: fonts.ui,
-                        fontSize: '13px',
-                        fontWeight: 700,
-                        color: colors.textSoft,
-                        backgroundColor: 'rgba(6,19,22,0.35)',
-                      }}
-                    >
-                      {lang === 'es' ? 'Ver historial completo' : 'View full history'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* Page context label */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '20px' }}>
-                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.6)', flexShrink: 0 }} />
-                  <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
-                    {lang === 'es' ? 'Señales de biomarcadores' : 'Biomarker Signals'}
-                  </span>
-                </div>
-                <h1 style={{
-                  fontFamily: fonts.heading,
-                  fontSize: 'clamp(26px, 5vw, 32px)',
-                  fontWeight: 700,
-                  color: colors.text,
-                  marginBottom: '16px',
-                  lineHeight: 1.2,
-                }}>
-                  {hasRecentLabs ? (lang === 'es' ? 'Laboratorios' : 'Labs') : (lang === 'es' ? 'Subir laboratorios' : 'Upload your labs')}
-                </h1>
-                <p style={{ fontSize: '14px', fontWeight: 650, color: colors.text, marginBottom: '4px', lineHeight: 1.55 }}>
-                  {lang === 'es' ? 'Tus marcadores clínicos.' : 'Your clinical markers.'}
-                </p>
-                <p style={{ fontSize: '14px', color: colors.textSoft, marginBottom: hasRecentLabs ? '24px' : '20px', lineHeight: 1.7 }}>
-                  Traducido en señales biológicas.
-                </p>
-                <div style={{ height: '1px', background: 'linear-gradient(90deg, rgba(45,212,191,0.0), rgba(103,232,249,0.18) 34%, rgba(45,212,191,0.10) 70%, rgba(103,232,249,0.0))', marginBottom: '28px' }} />
-              </>
-            )}
+            {/* Page context label */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: isDesktop ? '8px' : '7px', marginBottom: isDesktop ? '18px' : '20px' }}>
+              <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.6)', flexShrink: 0 }} />
+              <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
+                {lang === 'es' ? 'Señales de biomarcadores' : 'Biomarker Signals'}
+              </span>
+            </div>
+            <h1 style={{
+              fontFamily: fonts.heading,
+              fontSize: isDesktop ? 'clamp(38px, 4vw, 56px)' : 'clamp(26px, 5vw, 32px)',
+              fontWeight: 700,
+              color: colors.text,
+              marginBottom: isDesktop ? '14px' : '16px',
+              lineHeight: isDesktop ? 1.04 : 1.2,
+            }}>
+              {hasRecentLabs ? (lang === 'es' ? 'Laboratorios' : 'Labs') : (lang === 'es' ? 'Subir laboratorios' : 'Upload your labs')}
+            </h1>
+            <p style={{ fontSize: isDesktop ? '16px' : '14px', fontWeight: 650, color: colors.text, marginBottom: '4px', maxWidth: isDesktop ? '620px' : undefined, lineHeight: 1.55 }}>
+              {lang === 'es' ? 'Tus marcadores clínicos.' : 'Your clinical markers.'}
+            </p>
+            <p style={{ fontSize: isDesktop ? '15px' : '14px', color: colors.textSoft, marginBottom: hasRecentLabs ? (isDesktop ? '30px' : '24px') : (isDesktop ? '26px' : '20px'), maxWidth: isDesktop ? '620px' : undefined, lineHeight: 1.7 }}>
+              Traducido en señales biológicas.
+            </p>
+            <div style={{ height: '1px', background: 'linear-gradient(90deg, rgba(45,212,191,0.0), rgba(103,232,249,0.18) 34%, rgba(45,212,191,0.10) 70%, rgba(103,232,249,0.0))', marginBottom: isDesktop ? '34px' : '28px' }} />
           </motion.div>
         )}
 
@@ -3360,7 +3168,7 @@ export default function LabsUploadPage() {
                         {lang === 'es' ? 'Lo que tu biología está mostrando' : 'What your biology is showing'}
                       </h2>
                     </div>
-                    <div style={{ display: isDesktop ? 'grid' : 'flex', gridTemplateColumns: isDesktop ? 'repeat(2, minmax(0, 1fr))' : undefined, flexDirection: isDesktop ? undefined : 'column', gap: '14px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                       {(moreInsightsExpanded ? connectedInsights : connectedInsights.slice(0, 3)).map(insight => (
                         <div key={insight.id} style={{
                           padding: '20px',
@@ -3436,7 +3244,7 @@ export default function LabsUploadPage() {
                         Toca cualquiera para explorar
                       </span>
                     </div>
-                    <div style={{ display: isDesktop ? 'grid' : 'flex', gridTemplateColumns: isDesktop ? 'repeat(2, minmax(0, 1fr))' : undefined, flexDirection: isDesktop ? undefined : 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {keyBiomarkers.map(b => {
                         const s = getStateStyles(b.state ?? '')
                         const resolvedRange = !b.flag_error ? resolveDisplayRange(b.marker_name, b.reference_range_min, b.reference_range_max, b.unit, bioProfile) : null
@@ -4225,27 +4033,357 @@ export default function LabsUploadPage() {
   )
 
   if (isDesktop) {
+    const sidebarPanels = currentMarkerGroups.map(group => {
+      const sc = group.stateCounts
+      const dotColor =
+        sc.Critical > 0 ? '#F87171'
+        : sc.Attention > 0 ? '#FB923C'
+        : sc.Watch > 0 ? '#FCD34D'
+        : '#2DD4BF'
+
+      return {
+        key: group.key,
+        label: group.label,
+        count: group.count,
+        dotColor,
+      }
+    })
+
     return (
       <div style={{
         minHeight: '100vh',
         backgroundColor: colors.background,
         fontFamily: fonts.ui,
         display: 'flex',
+        position: 'relative',
+        overflow: 'hidden',
       }}>
+        {/* Ambient orbs — desktop background only */}
+        <div style={{
+          position: 'fixed',
+          top: '-15%',
+          left: '12%',
+          width: '42%',
+          height: '42%',
+          background: `radial-gradient(circle, ${colors.teal}18 0%, transparent 70%)`,
+          filter: 'blur(90px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+        <div style={{
+          position: 'fixed',
+          bottom: '-18%',
+          right: '4%',
+          width: '42%',
+          height: '42%',
+          background: `radial-gradient(circle, ${colors.cyan}15 0%, transparent 70%)`,
+          filter: 'blur(90px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+
         <DesktopSidebar currentPath="/labs/upload" />
+
         <div style={{
           marginLeft: '200px',
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100vh',
+          position: 'relative',
+          zIndex: 1,
         }}>
           <DesktopTopBar />
+
           <div style={{
             flex: 1,
-            overflowY: 'auto',
+            display: 'flex',
+            overflow: 'hidden',
+            position: 'relative',
           }}>
-            {content}
+            {/* Labs internal rail — Claude-style */}
+            <aside style={{
+              width: '240px',
+              flexShrink: 0,
+              borderRight: `1px solid ${colors.cardBorder}`,
+              overflowY: 'auto',
+              height: 'calc(100vh - 48px)',
+              display: 'flex',
+              flexDirection: 'column',
+              background: 'linear-gradient(180deg, rgba(232,248,245,0.035), rgba(6,19,22,0.18))',
+              backdropFilter: 'blur(18px)',
+              WebkitBackdropFilter: 'blur(18px)',
+            }}>
+              <div style={{ padding: '24px 20px 16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '7px' }}>
+                  <div style={{
+                    width: '5px',
+                    height: '5px',
+                    borderRadius: '50%',
+                    background: colors.teal,
+                    boxShadow: `0 0 7px ${colors.teal}90`,
+                  }} />
+                  <span style={{
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    letterSpacing: '0.10em',
+                    textTransform: 'uppercase',
+                    color: colors.textMuted,
+                  }}>
+                    {lang === 'es' ? 'Señales de biomarcadores' : 'Biomarker Signals'}
+                  </span>
+                </div>
+
+                <h1 style={{
+                  fontFamily: fonts.heading,
+                  fontSize: '24px',
+                  fontWeight: 700,
+                  color: colors.text,
+                  margin: 0,
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.04em',
+                }}>
+                  {lang === 'es' ? 'Labs' : 'Labs'}
+                </h1>
+
+                {hasRecentLabs && latestDate && (
+                  <p style={{
+                    fontSize: '11px',
+                    color: colors.textMuted,
+                    margin: '6px 0 0',
+                  }}>
+                    {formatDateShort(latestDate)}
+                  </p>
+                )}
+              </div>
+
+              {hasRecentLabs && (
+                <div style={{ padding: '0 16px 16px' }}>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '7px',
+                  }}>
+                    <div style={{
+                      gridColumn: '1 / -1',
+                      padding: '11px 13px',
+                      backgroundColor: 'rgba(45,212,191,0.06)',
+                      border: '1px solid rgba(45,212,191,0.16)',
+                      borderRadius: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}>
+                      <span style={{
+                        fontSize: '11px',
+                        color: colors.textMuted,
+                        fontWeight: 650,
+                      }}>
+                        {lang === 'es' ? 'Total biomarcadores' : 'Total biomarkers'}
+                      </span>
+                      <span style={{
+                        fontSize: '19px',
+                        fontWeight: 800,
+                        color: colors.teal,
+                      }}>
+                        {snapshotBiomarkersDisplay.length}
+                      </span>
+                    </div>
+
+                    {[
+                      { key: 'Optimal', count: totalStateCounts.Optimal, color: '#2DD4BF', label: lang === 'es' ? 'Normal' : 'Normal' },
+                      { key: 'Attention', count: totalStateCounts.Attention, color: '#FB923C', label: lang === 'es' ? 'Revisar' : 'Review' },
+                      { key: 'Watch', count: totalStateCounts.Watch, color: '#FCD34D', label: lang === 'es' ? 'Seguimiento' : 'Tracking' },
+                      { key: 'Critical', count: totalStateCounts.Critical, color: '#F87171', label: lang === 'es' ? 'Crítico' : 'Critical' },
+                    ].filter(item => item.count > 0).map(item => {
+                      const isActive = activeFilter === item.key
+                      return (
+                        <button
+                          key={item.key}
+                          onClick={() => setActiveFilter(prev => prev === item.key ? null : item.key)}
+                          style={{
+                            padding: '10px 9px',
+                            borderRadius: '11px',
+                            border: `1px solid ${isActive ? item.color : 'rgba(103,232,249,0.11)'}`,
+                            backgroundColor: isActive ? `${item.color}18` : 'rgba(232,248,245,0.035)',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontFamily: fonts.ui,
+                          }}
+                        >
+                          <span style={{
+                            display: 'block',
+                            fontSize: '16px',
+                            fontWeight: 800,
+                            color: item.color,
+                            lineHeight: 1,
+                            marginBottom: '5px',
+                          }}>
+                            {item.count}
+                          </span>
+                          <span style={{
+                            display: 'block',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            color: colors.textMuted,
+                            lineHeight: 1.2,
+                          }}>
+                            {item.label}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ padding: '0 16px 16px' }}>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: '14px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: fonts.ui,
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    color: colors.background,
+                    background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`,
+                    boxShadow: '0 12px 30px rgba(45,212,191,0.16)',
+                  }}
+                >
+                  {lang === 'es' ? 'Subir PDF' : 'Upload PDF'}
+                </button>
+              </div>
+
+              {hasRecentLabs && (
+                <div style={{
+                  padding: '16px',
+                  borderTop: `1px solid ${colors.cardBorder}`,
+                }}>
+                  <p style={{
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: colors.textMuted,
+                    margin: '0 0 10px',
+                  }}>
+                    {lang === 'es' ? 'Vista' : 'View'}
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '18px' }}>
+                    {(['snapshot', 'history'] as const).map(view => {
+                      const isActive = labsView === view
+                      return (
+                        <button
+                          key={view}
+                          onClick={() => {
+                            setLabsView(view)
+                            if (view === 'history' && !histFetched) loadHistoryData()
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '9px 10px',
+                            borderRadius: '10px',
+                            border: `1px solid ${isActive ? 'rgba(45,212,191,0.28)' : 'rgba(103,232,249,0.10)'}`,
+                            backgroundColor: isActive ? 'rgba(45,212,191,0.08)' : 'transparent',
+                            color: isActive ? colors.text : colors.textMuted,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontFamily: fonts.ui,
+                            fontSize: '12px',
+                            fontWeight: isActive ? 800 : 650,
+                          }}
+                        >
+                          {view === 'snapshot'
+                            ? (lang === 'es' ? 'Resumen' : 'Snapshot')
+                            : (lang === 'es' ? 'Historial' : 'History')}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {sidebarPanels.length > 0 && (
+                    <>
+                      <p style={{
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: colors.textMuted,
+                        margin: '0 0 10px',
+                      }}>
+                        {lang === 'es' ? 'Paneles' : 'Panels'}
+                      </p>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        {sidebarPanels.map(panel => (
+                          <button
+                            key={panel.key}
+                            onClick={() => setFullClinicalExpanded(true)}
+                            style={{
+                              width: '100%',
+                              padding: '8px 9px',
+                              borderRadius: '10px',
+                              border: '1px solid transparent',
+                              backgroundColor: 'transparent',
+                              color: colors.textMuted,
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              fontFamily: fonts.ui,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}
+                          >
+                            <span style={{
+                              width: '7px',
+                              height: '7px',
+                              borderRadius: '50%',
+                              backgroundColor: panel.dotColor,
+                              boxShadow: `0 0 5px ${panel.dotColor}80`,
+                              flexShrink: 0,
+                            }} />
+                            <span style={{
+                              flex: 1,
+                              minWidth: 0,
+                              fontSize: '12px',
+                              fontWeight: 650,
+                              color: colors.textSoft,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}>
+                              {panel.label}
+                            </span>
+                            <span style={{
+                              fontSize: '11px',
+                              color: colors.textMuted,
+                              opacity: 0.7,
+                            }}>
+                              {panel.count}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </aside>
+
+            {/* Main Labs content */}
+            <main style={{
+              flex: 1,
+              minWidth: 0,
+              overflowY: 'auto',
+              position: 'relative',
+            }}>
+              {content}
+            </main>
           </div>
         </div>
       </div>
