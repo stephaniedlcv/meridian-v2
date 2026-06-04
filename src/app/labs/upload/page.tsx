@@ -1714,7 +1714,7 @@ interface ConnectedInsight {
   borderColor: string
 }
 
-function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsight[] {
+function computeConnectedInsights(biomarkers: RecentBiomarker[], lang: 'en' | 'es' = 'es'): ConnectedInsight[] {
   const bySlug = new Map(biomarkers.map(b => [b.marker_name, b]))
   const isAbnormal = (slug: string) => {
     const b = bySlug.get(slug)
@@ -1723,6 +1723,7 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
   const isPresent = (slug: string) => bySlug.has(slug)
 
   const insights: ConnectedInsight[] = []
+  const isEs = lang === 'es'
 
   // Metabolic cluster: triglycerides + HDL + glycemic markers
   {
@@ -1733,9 +1734,9 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'metabolic_cluster',
-        title: 'Cluster metabólico',
-        tagline: 'Señales lipídicas · glucémicas',
-        synthesis: 'Triglicéridos, HDL y marcadores glucémicos forman parte del mismo panorama metabólico. Cuando se mueven juntos, la señal combinada suele tener más peso interpretativo que cualquier marcador aislado — Meridian observa este cluster para identificar consistencia direccional entre lecturas.',
+        title: isEs ? 'Cluster metabólico' : 'Metabolic Cluster',
+        tagline: isEs ? 'Señales lipídicas · glucémicas' : 'Lipid · glycemic signals',
+        synthesis: isEs ? 'Triglicéridos, HDL y marcadores glucémicos forman parte del mismo panorama metabólico. Cuando se mueven juntos, la señal combinada suele tener más peso interpretativo que cualquier marcador aislado — Meridian observa este cluster para identificar consistencia direccional entre lecturas.' : 'Triglycerides, HDL, and glycemic markers are part of the same metabolic picture. When they move together, the combined signal usually carries more interpretive weight than any single marker alone — Meridian watches this cluster for directional consistency across readings.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -1754,9 +1755,9 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'oxygen_transport',
-        title: 'Transporte de oxígeno',
-        tagline: 'Hierro · señales de células rojas',
-        synthesis: 'Las reservas de hierro y los marcadores de células rojas están conectados por el mismo sistema de transporte de oxígeno. Cuando ferritina, hemoglobina o marcadores de tamaño celular cambian juntos, el patrón puede conectar con energía, capacidad de recuperación y eficiencia del cuerpo para mantener su suministro de oxígeno.',
+        title: isEs ? 'Transporte de oxígeno' : 'Oxygen Transport',
+        tagline: isEs ? 'Hierro · señales de células rojas' : 'Iron · red blood cell signals',
+        synthesis: isEs ? 'Las reservas de hierro y los marcadores de células rojas están conectados por el mismo sistema de transporte de oxígeno. Cuando ferritina, hemoglobina o marcadores de tamaño celular cambian juntos, el patrón puede conectar con energía, capacidad de recuperación y eficiencia del cuerpo para mantener su suministro de oxígeno.' : 'Iron stores and red blood cell markers are connected through the same oxygen transport system. When ferritin, hemoglobin, or cell-size markers shift together, the pattern may connect with energy, recovery capacity, and the body’s efficiency at maintaining oxygen supply.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -1775,9 +1776,9 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'thyroid_axis',
-        title: 'Eje tiroideo',
-        tagline: 'TSH · señales tiroideas',
-        synthesis: 'TSH y las hormonas tiroideas forman un circuito de retroalimentación conectado. Cuando varios marcadores de este cluster se mueven en la misma dirección, Meridian le da más peso al patrón — un cambio aislado puede significar algo distinto a un movimiento dentro de todo el panorama tiroideo.',
+        title: isEs ? 'Eje tiroideo' : 'Thyroid Axis',
+        tagline: isEs ? 'TSH · señales tiroideas' : 'TSH · thyroid signals',
+        synthesis: isEs ? 'TSH y las hormonas tiroideas forman un circuito de retroalimentación conectado. Cuando varios marcadores de este cluster se mueven en la misma dirección, Meridian le da más peso al patrón — un cambio aislado puede significar algo distinto a un movimiento dentro de todo el panorama tiroideo.' : 'TSH and thyroid hormones form a connected feedback loop. When several markers in this cluster move in the same direction, Meridian gives more weight to the pattern — an isolated change can mean something different than movement across the full thyroid picture.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -1796,9 +1797,9 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'inflammatory_signal',
-        title: 'Señal inflamatoria',
-        tagline: 'CRP · marcadores inmunes',
-        synthesis: 'Los marcadores inflamatorios e inmunes se están moviendo en conjunto — una combinación que Meridian observa dentro del panorama más amplio de estrés, recuperación y riesgo cardiovascular, no como valores aislados.',
+        title: isEs ? 'Señal inflamatoria' : 'Inflammatory Signal',
+        tagline: isEs ? 'CRP · marcadores inmunes' : 'CRP · immune markers',
+        synthesis: isEs ? 'Los marcadores inflamatorios e inmunes se están moviendo en conjunto — una combinación que Meridian observa dentro del panorama más amplio de estrés, recuperación y riesgo cardiovascular, no como valores aislados.' : 'Inflammatory and immune markers are moving together — a combination Meridian watches within the broader picture of stress, recovery, and cardiovascular risk, not as isolated values.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -1817,9 +1818,9 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'stress_hormone',
-        title: 'Balance hormonal',
-        tagline: 'Cortisol · señales hormonales sexuales',
-        synthesis: 'Cortisol, DHEA-S y testosterona están conectados a través del sistema adrenal y de reserva hormonal. Cuando cambian juntos, el patrón combinado puede reflejar carga de estrés, capacidad de recuperación o balance hormonal — señales que una sola hormona no mostraría con claridad por sí sola.',
+        title: isEs ? 'Balance hormonal' : 'Hormonal Balance',
+        tagline: isEs ? 'Cortisol · señales hormonales sexuales' : 'Cortisol · sex hormone signals',
+        synthesis: isEs ? 'Cortisol, DHEA-S y testosterona están conectados a través del sistema adrenal y de reserva hormonal. Cuando cambian juntos, el patrón combinado puede reflejar carga de estrés, capacidad de recuperación o balance hormonal — señales que una sola hormona no mostraría con claridad por sí sola.' : 'Cortisol, DHEA-S, and testosterone are connected through the adrenal and hormonal reserve system. When they shift together, the combined pattern may reflect stress load, recovery capacity, or hormonal balance — signals that one hormone alone may not clearly show.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -1838,9 +1839,9 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'methylation',
-        title: 'Vía de metilación',
-        tagline: 'Vitaminas B · señales de homocisteína',
-        synthesis: 'B12, folato y homocisteína operan dentro de la misma vía metabólica. Cuando se mueven en una dirección consistente, el patrón puede reflejar una señal de disponibilidad nutricional — algo que una lectura individual puede pasar por alto si se mira de forma aislada.',
+        title: isEs ? 'Vía de metilación' : 'Methylation Pathway',
+        tagline: isEs ? 'Vitaminas B · señales de homocisteína' : 'B vitamins · homocysteine signals',
+        synthesis: isEs ? 'B12, folato y homocisteína operan dentro de la misma vía metabólica. Cuando se mueven en una dirección consistente, el patrón puede reflejar una señal de disponibilidad nutricional — algo que una lectura individual puede pasar por alto si se mira de forma aislada.' : 'B12, folate, and homocysteine operate within the same metabolic pathway. When they move in a consistent direction, the pattern may reflect a signal of nutritional availability — something an individual reading may miss when viewed in isolation.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -1859,9 +1860,9 @@ function computeConnectedInsights(biomarkers: RecentBiomarker[]): ConnectedInsig
       const sev = abnormal.length >= 2 ? 'attention' : 'watch'
       insights.push({
         id: 'renal_cluster',
-        title: 'Función renal',
-        tagline: 'Señales de filtración renal',
-        synthesis: 'Creatinina, eGFR y BUN son ventanas al mismo sistema de filtración renal. Cuando se mueven en conjunto, el patrón tiene más peso interpretativo que cualquier lectura individual — Meridian observa las tendencias direccionales de este cluster con el tiempo.',
+        title: isEs ? 'Función renal' : 'Kidney Function',
+        tagline: isEs ? 'Señales de filtración renal' : 'Kidney filtration signals',
+        synthesis: isEs ? 'Creatinina, eGFR y BUN son ventanas al mismo sistema de filtración renal. Cuando se mueven en conjunto, el patrón tiene más peso interpretativo que cualquier lectura individual — Meridian observa las tendencias direccionales de este cluster con el tiempo.' : 'Creatinine, eGFR, and BUN are windows into the same kidney filtration system. When they move together, the pattern carries more interpretive weight than any individual reading — Meridian watches the directional trends of this cluster over time.',
         markers: present.map(markerDisplayName),
         slugSet: new Set(present),
         severity: sev,
@@ -2326,8 +2327,8 @@ export default function LabsUploadPage() {
 
   // Cross-system insights derived from snapshot biomarkers
   const connectedInsights = useMemo(
-    () => computeConnectedInsights(snapshotBiomarkersDisplay),
-    [snapshotBiomarkersDisplay]
+    () => computeConnectedInsights(snapshotBiomarkersDisplay, lang),
+    [snapshotBiomarkersDisplay, lang]
   )
 
   // Curated priority biomarkers — top 4–6 by severity + insight cluster membership
@@ -3136,13 +3137,13 @@ export default function LabsUploadPage() {
                         fontSize: '11px', fontWeight: 700, textTransform: 'uppercase',
                         letterSpacing: '0.07em', color: colors.textMuted, margin: '0 0 8px',
                       }}>
-                        Insights conectados
+                        {lang === 'es' ? 'Insights conectados' : 'Connected Insights'}
                       </p>
                       <h2 style={{
                         fontFamily: fonts.heading, fontSize: '22px', fontWeight: 700,
                         color: colors.text, margin: 0, lineHeight: 1.25,
                       }}>
-                        Lo que tu biología está mostrando
+                        {lang === 'es' ? 'Lo que tu biología está mostrando' : 'What your biology is showing'}
                       </h2>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -3164,7 +3165,7 @@ export default function LabsUploadPage() {
                                 {insight.title}
                               </p>
                               <span style={{ fontSize: '11px', color: insight.dotColor, fontWeight: 600, letterSpacing: '0.03em' }}>
-                                {insight.severity === 'attention' ? '· patrón detectado' : '· en seguimiento'}
+                                {insight.severity === 'attention' ? (lang === 'es' ? '· patrón detectado' : '· pattern detected') : (lang === 'es' ? '· en seguimiento' : '· tracking')}
                               </span>
                             </div>
                             <p style={{ fontSize: '11px', color: colors.textMuted, margin: 0 }}>
@@ -3559,7 +3560,7 @@ export default function LabsUploadPage() {
                                     {sc.Critical > 0 && (sc.Attention > 0 || sc.Watch > 0) && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
                                     {sc.Attention > 0 && <span style={{ color: '#FB923C', fontWeight: 600 }}>{sc.Attention} en revisión</span>}
                                     {sc.Attention > 0 && sc.Watch > 0 && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
-                                    {sc.Watch > 0 && <span style={{ color: '#FCD34D' }}>{sc.Watch} en seguimiento</span>}
+                                    {sc.Watch > 0 && <span style={{ color: '#FCD34D' }}>{sc.Watch} {lang === 'es' ? 'en seguimiento' : 'tracking'}</span>}
                                     {(sc.Critical > 0 || sc.Attention > 0 || sc.Watch > 0) && sc.Optimal > 0 && <span style={{ color: colors.textMuted, opacity: 0.4 }}> · </span>}
                                     {sc.Optimal > 0 && <span style={{ color: colors.textMuted }}>{sc.Optimal} {lang === 'es' ? 'normal' : 'normal'}</span>}
                                   </span>
