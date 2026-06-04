@@ -195,13 +195,14 @@ function DesktopSidebar({ lang, userName, currentPath }: { lang: MeridianLanguag
         alignItems: 'center',
         gap: '10px',
       }}>
-        <div style={{
-          width: '26px', height: '26px', borderRadius: '7px',
-          background: 'rgba(45,212,191,0.15)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '12px', fontWeight: 700, color: colors.teal,
-        }}>M</div>
-        <span style={{ fontSize: '13px', fontWeight: 600, color: colors.text, letterSpacing: '-0.02em' }}>
+        <span style={{
+          fontFamily: 'var(--font-fraunces), serif',
+          fontSize: '22px', fontWeight: 700, lineHeight: 1,
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #67E8F9 45%, #2DD4BF 100%)',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+          filter: 'drop-shadow(0 0 8px rgba(45,212,191,0.55))',
+        }}>M</span>
+        <span style={{ fontFamily: 'var(--font-fraunces), serif', fontSize: '15px', fontWeight: 700, color: colors.text, letterSpacing: '-0.03em' }}>
           Meridian
         </span>
       </div>
@@ -275,17 +276,23 @@ function DesktopTopBar({ lang, currentPage }: { lang: MeridianLanguage; currentP
       </div>
       <button
         onClick={() => router.push('/notifications')}
-        style={{ width: '30px', height: '30px', borderRadius: '7px', background: 'rgba(103,232,249,0.04)', border: `0.5px solid rgba(103,232,249,0.09)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.teal, fontSize: '14px', cursor: 'pointer' }}
+        style={{ width: '38px', height: '38px', borderRadius: '11px', background: 'rgba(6,19,22,0.82)', border: `1px solid ${colors.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(20px)' }}
         aria-label="Notifications"
       >
-        🔔
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke={colors.teal} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10 2A4.5 4.5 0 0 0 5.5 6.5v3.2L4 12h12l-1.5-2.3V6.5A4.5 4.5 0 0 0 10 2Z" />
+          <path d="M8.5 14.5a1.5 1.5 0 0 0 3 0" />
+        </svg>
       </button>
       <button
         onClick={() => router.push('/profile')}
-        style={{ width: '30px', height: '30px', borderRadius: '7px', background: 'rgba(103,232,249,0.04)', border: `0.5px solid rgba(103,232,249,0.09)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.textMuted, fontSize: '14px', cursor: 'pointer' }}
+        style={{ width: '38px', height: '38px', borderRadius: '11px', background: 'rgba(6,19,22,0.82)', border: `1px solid ${colors.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(20px)' }}
         aria-label="Profile"
       >
-        👤
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke={colors.textSoft} strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="10" cy="6.5" r="3" />
+          <path d="M3 18c0-3.9 3.1-6 7-6s7 2.1 7 6" />
+        </svg>
       </button>
     </header>
   )
@@ -547,27 +554,32 @@ export default function DashboardPage() {
               {(state === 'solved' || state === 'safety_alert') && insight && <SolvedBlock insight={insight} safetyAlert={safetyAlert} lang={lang} />}
             </motion.div>
 
-            {/* ── TWO COLUMNS: Timeline card + Quick actions / disclaimer ── */}
+            {/* ── TWO COLUMNS: Timeline card + disclaimer (only when solved) ── */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }}
             >
-              <DashboardTimelineCard event={nextHealthEvent} onOpen={() => router.push('/timeline')} lang={lang} />
-
-              {state === 'no_data' ? (
-                <button
-                  onClick={() => router.push('/labs/upload')}
-                  style={{ padding: '18px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '22px', cursor: 'pointer', textAlign: 'center', width: '100%' }}
-                >
-                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>🧪</div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>{lang === 'es' ? 'Subir laboratorios' : 'Upload Labs'}</div>
-                </button>
-              ) : (
-                <div style={{ padding: '16px', borderRadius: '22px', background: colors.cardBg, border: `1px solid ${colors.cardBorder}`, fontSize: '11px', color: colors.textMuted, textAlign: 'center', lineHeight: 1.7 }}>
-                  {lang === 'es' ? 'Meridian ofrece información de salud solo con fines educativos. No es consejo médico, diagnóstico ni tratamiento. Consulta siempre a un profesional de salud cualificado.' : 'Meridian provides health insights for informational purposes only. Not medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider.'}
+              {(state === 'solved' || state === 'safety_alert') ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }}>
+                  <DashboardTimelineCard event={nextHealthEvent} onOpen={() => router.push('/timeline')} lang={lang} />
+                  <div style={{ padding: '16px', borderRadius: '22px', background: colors.cardBg, border: `1px solid ${colors.cardBorder}`, fontSize: '11px', color: colors.textMuted, textAlign: 'center', lineHeight: 1.7 }}>
+                    {lang === 'es' ? 'Meridian ofrece información de salud solo con fines educativos. No es consejo médico, diagnóstico ni tratamiento. Consulta siempre a un profesional de salud cualificado.' : 'Meridian provides health insights for informational purposes only. Not medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider.'}
+                  </div>
                 </div>
+              ) : state === 'no_data' ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }}>
+                  <DashboardTimelineCard event={nextHealthEvent} onOpen={() => router.push('/timeline')} lang={lang} />
+                  <button
+                    onClick={() => router.push('/labs/upload')}
+                    style={{ padding: '18px', backgroundColor: colors.cardBg, border: `1px solid ${colors.cardBorder}`, borderRadius: '22px', cursor: 'pointer', textAlign: 'center', width: '100%' }}
+                  >
+                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>🧪</div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>{lang === 'es' ? 'Subir laboratorios' : 'Upload Labs'}</div>
+                  </button>
+                </div>
+              ) : (
+                <DashboardTimelineCard event={nextHealthEvent} onOpen={() => router.push('/timeline')} lang={lang} />
               )}
             </motion.div>
 
