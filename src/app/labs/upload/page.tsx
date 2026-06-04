@@ -2014,7 +2014,7 @@ export default function LabsUploadPage() {
             .order('collected_at', { ascending: false })
             .order('created_at', { ascending: false })
           if (histFetchError) {
-            setHistError(lang === 'es' ? 'No se pudo cargar tu línea de tiempo. Inténtalo nuevamente.' : 'Could not load your Timeline. Please try again.')
+            setHistError(lang === 'es' ? 'No se pudo cargar tu historial. Inténtalo nuevamente.' : 'Could not load your Timeline. Please try again.')
           } else {
             setHistBiomarkers(histData || [])
             setHistFetched(true)
@@ -2196,7 +2196,7 @@ export default function LabsUploadPage() {
       .order('collected_at', { ascending: false })
       .order('created_at', { ascending: false })
     if (fetchError) {
-      setHistError(lang === 'es' ? 'No se pudo cargar tu línea de tiempo. Inténtalo nuevamente.' : 'Could not load your Timeline. Please try again.')
+      setHistError(lang === 'es' ? 'No se pudo cargar tu historial. Inténtalo nuevamente.' : 'Could not load your Timeline. Please try again.')
     } else {
       setHistBiomarkers(data || [])
       setHistFetched(true)
@@ -3122,7 +3122,7 @@ export default function LabsUploadPage() {
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          {view === 'snapshot' ? (lang === 'es' ? 'Resumen' : 'Snapshot') : (lang === 'es' ? 'Línea de tiempo' : 'Timeline')}
+                          {view === 'snapshot' ? (lang === 'es' ? 'Resumen' : 'Snapshot') : (lang === 'es' ? 'Historial' : 'Timeline')}
                         </button>
                       </div>
                     )
@@ -3726,7 +3726,7 @@ export default function LabsUploadPage() {
                     No recent labs in the last 12 months.
                   </p>
                   <p style={{ fontSize: '12px', color: colors.textMuted }}>
-                    {lang === 'es' ? 'Tus resultados confirmados están guardados en la línea de tiempo.' : 'Your confirmed results are saved in Timeline.'}
+                    {lang === 'es' ? 'Tus resultados confirmados están guardados en el historial.' : 'Your confirmed results are saved in Timeline.'}
                   </p>
                 </div>
                 <button
@@ -3744,7 +3744,7 @@ export default function LabsUploadPage() {
                     flexShrink: 0,
                   }}
                 >
-                  {lang === 'es' ? 'Ver línea de tiempo →' : 'View Timeline →'}
+                  {lang === 'es' ? 'Ver historial →' : 'View Timeline →'}
                 </button>
               </motion.div>
             )}
@@ -3757,7 +3757,7 @@ export default function LabsUploadPage() {
                 {/* Timeline section header */}
                 <div style={{ marginBottom: '20px' }}>
                   <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: colors.textMuted, margin: '0 0 4px' }}>
-                    {lang === 'es' ? 'Línea de tiempo' : 'Timeline'}
+                    {lang === 'es' ? 'Historial' : 'Timeline'}
                   </p>
                   <p style={{ fontSize: '13px', color: colors.textMuted, margin: '0 0 14px', lineHeight: 1.5 }}>
                     Tus resultados confirmados de laboratorio a través del tiempo.
@@ -3799,7 +3799,7 @@ export default function LabsUploadPage() {
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          {view === 'snapshot' ? (lang === 'es' ? 'Resumen' : 'Snapshot') : (lang === 'es' ? 'Línea de tiempo' : 'Timeline')}
+                          {view === 'snapshot' ? (lang === 'es' ? 'Resumen' : 'Snapshot') : (lang === 'es' ? 'Historial' : 'Timeline')}
                         </button>
                       )
                     })}
