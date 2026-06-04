@@ -2370,7 +2370,7 @@ export default function LabsUploadPage() {
       fontFamily: fonts.ui,
       position: 'relative',
       overflow: 'hidden',
-      padding: '44px 20px 120px',
+      padding: isDesktop ? '48px 48px 96px' : '44px 20px 120px',
     }}>
       {/* Detail sheet — snapshot */}
       {selectedBiomarker && (
@@ -2396,35 +2396,35 @@ export default function LabsUploadPage() {
       <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '50%', height: '50%', background: `radial-gradient(circle, ${colors.teal}20 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '50%', height: '50%', background: `radial-gradient(circle, ${colors.cyan}20 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
 
-      <div style={{ maxWidth: '680px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <div style={{ maxWidth: isDesktop ? '1120px' : '680px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
 
         {/* ── Page header ── */}
         {!inUploadFlow && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             {/* Page context label */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isDesktop ? '8px' : '7px', marginBottom: isDesktop ? '18px' : '20px' }}>
               <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.6)', flexShrink: 0 }} />
-              <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
                 {lang === 'es' ? 'Señales de biomarcadores' : 'Biomarker Signals'}
               </span>
             </div>
             <h1 style={{
               fontFamily: fonts.heading,
-              fontSize: 'clamp(26px, 5vw, 32px)',
+              fontSize: isDesktop ? 'clamp(38px, 4vw, 56px)' : 'clamp(26px, 5vw, 32px)',
               fontWeight: 700,
               color: colors.text,
-              marginBottom: '16px',
-              lineHeight: 1.2,
+              marginBottom: isDesktop ? '14px' : '16px',
+              lineHeight: isDesktop ? 1.04 : 1.2,
             }}>
               {hasRecentLabs ? (lang === 'es' ? 'Laboratorios' : 'Labs') : (lang === 'es' ? 'Subir laboratorios' : 'Upload your labs')}
             </h1>
-            <p style={{ fontSize: '14px', fontWeight: 600, color: colors.text, marginBottom: '2px' }}>
+            <p style={{ fontSize: isDesktop ? '16px' : '14px', fontWeight: 650, color: colors.text, marginBottom: '4px', maxWidth: isDesktop ? '620px' : undefined, lineHeight: 1.55 }}>
               {lang === 'es' ? 'Tus marcadores clínicos.' : 'Your clinical markers.'}
             </p>
-            <p style={{ fontSize: '14px', color: colors.textSoft, marginBottom: hasRecentLabs ? '24px' : '20px' }}>
+            <p style={{ fontSize: isDesktop ? '15px' : '14px', color: colors.textSoft, marginBottom: hasRecentLabs ? (isDesktop ? '30px' : '24px') : (isDesktop ? '26px' : '20px'), maxWidth: isDesktop ? '620px' : undefined, lineHeight: 1.7 }}>
               Traducido en señales biológicas.
             </p>
-            <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(103,232,249,0.12) 40%, rgba(103,232,249,0.08) 60%, transparent)', marginBottom: '28px' }} />
+            <div style={{ height: '1px', background: 'linear-gradient(90deg, rgba(45,212,191,0.0), rgba(103,232,249,0.18) 34%, rgba(45,212,191,0.10) 70%, rgba(103,232,249,0.0))', marginBottom: isDesktop ? '34px' : '28px' }} />
           </motion.div>
         )}
 
