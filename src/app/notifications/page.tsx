@@ -200,10 +200,10 @@ export default function NotificationsPage() {
       <div style={{ position: 'fixed', top: '-20%', left: '-15%', width: '65%', height: '65%', background: 'radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'fixed', bottom: '-20%', right: '-15%', width: '65%', height: '65%', background: 'radial-gradient(circle, rgba(103,232,249,0.08) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 0 }} />
 
-      <div style={{ maxWidth: '540px', margin: '0 auto', padding: '0 20px 120px', position: 'relative', zIndex: 1 }}>
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '44px 20px 120px', position: 'relative', zIndex: 1 }}>
 
         {/* ── Header ── */}
-        <div style={{ paddingTop: '48px', marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+        <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
           <div>
             <div style={{
               display: 'flex', alignItems: 'center', gap: '7px',
@@ -216,7 +216,7 @@ export default function NotificationsPage() {
             </div>
             <h1 style={{
               margin: 0, fontFamily: fonts.heading,
-              fontSize: '26px', fontWeight: 700,
+              fontSize: 'clamp(26px, 5vw, 32px)', fontWeight: 700,
               letterSpacing: '-0.04em', color: colors.text,
               lineHeight: 1.2,
             }}>

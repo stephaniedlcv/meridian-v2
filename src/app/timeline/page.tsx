@@ -43,12 +43,12 @@ const styles: Record<string, CSSProperties> = {
     color: colors.text,
     background:
       'radial-gradient(circle at 50% 0%, rgba(45,212,191,0.08) 0%, rgba(45,212,191,0.025) 28%, transparent 58%), linear-gradient(180deg, #061316 0%, #02090B 100%)',
-    padding: '24px 24px 100px',
+    padding: '44px 20px 120px',
     fontFamily: fonts.ui,
   },
   shell: {
     width: '100%',
-    maxWidth: 640,
+    maxWidth: 680,
     margin: '0 auto',
   },
   eyebrow: {
@@ -56,8 +56,8 @@ const styles: Record<string, CSSProperties> = {
     color: colors.textMuted,
     fontSize: 11,
     lineHeight: 1,
-    fontWeight: 600,
-    letterSpacing: '0.07em',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
     textTransform: 'uppercase',
   },
   hero: {

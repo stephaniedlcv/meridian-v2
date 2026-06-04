@@ -150,7 +150,7 @@ function sortEntries(entries: TirzepatideEntry[]) {
 
 const COPY = {
   es: {
-    eyebrow: '• PLAN DE SALUD',
+    eyebrow: 'PLAN DE SALUD',
     title: 'Plan',
     subtitleStrong: 'Tu plan activo.',
     subtitleLine: 'Registro semanal y rotación de sitio.',
@@ -199,7 +199,7 @@ const COPY = {
     noNotes: 'Sin notas registradas.',
   },
   en: {
-    eyebrow: '• HEALTH PLAN',
+    eyebrow: 'HEALTH PLAN',
     title: 'Plan',
     subtitleStrong: 'Your active plan.',
     subtitleLine: 'Weekly tracking and site rotation.',
