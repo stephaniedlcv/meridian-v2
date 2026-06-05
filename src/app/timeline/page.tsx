@@ -426,7 +426,7 @@ export default function HealthTimelinePage() {
           <DesktopTopBar />
 
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            <div style={{ padding: '32px 40px 64px', maxWidth: '860px', margin: '0 auto' }}>
+            <div style={{ padding: '32px 40px 64px', maxWidth: '1120px', margin: '0 auto' }}>
 
               {/* ── Page header ── */}
               <div style={{ marginBottom: '28px' }}>
