@@ -514,6 +514,55 @@ export default function PlanPage() {
     </div>
   );
 
+  const supplementGroups = [
+    {
+      key: 'morning',
+      label: lang === 'es' ? 'Mañana' : 'Morning',
+      hint: lang === 'es' ? 'Para iniciar el día con estructura.' : 'For starting the day with structure.',
+      items: supplements.filter(s => s.timing === 'morning'),
+    },
+    {
+      key: 'with_food',
+      label: lang === 'es' ? 'Con comida' : 'With food',
+      hint: lang === 'es' ? 'Mejor organizado alrededor de comidas.' : 'Best organized around meals.',
+      items: supplements.filter(s => s.timing === 'with_food'),
+    },
+    {
+      key: 'midday_evening',
+      label: lang === 'es' ? 'Tarde / Noche' : 'Afternoon / Evening',
+      hint: lang === 'es' ? 'Soporte para la segunda mitad del día.' : 'Support for the second half of the day.',
+      items: supplements.filter(s => s.timing === 'midday' || s.timing === 'evening'),
+    },
+    {
+      key: 'bedtime',
+      label: lang === 'es' ? 'Antes de dormir' : 'Before bed',
+      hint: lang === 'es' ? 'Parte de tu ritual de recuperación.' : 'Part of your recovery rhythm.',
+      items: supplements.filter(s => s.timing === 'before_bed'),
+    },
+    {
+      key: 'training',
+      label: lang === 'es' ? 'Entrenamiento' : 'Training',
+      hint: lang === 'es' ? 'Alrededor de tus sesiones de movimiento.' : 'Around your movement sessions.',
+      items: supplements.filter(s => s.timing === 'before_training' || s.timing === 'after_training'),
+    },
+    {
+      key: 'as_needed',
+      label: lang === 'es' ? 'Según necesidad' : 'As needed',
+      hint: lang === 'es' ? 'No tienen que ser diarios por diseño.' : 'Not necessarily daily by design.',
+      items: supplements.filter(s => s.frequency === 'as_needed' || s.frequency === 'high_stress_only' || s.frequency === 'cycling'),
+    },
+    {
+      key: 'other',
+      label: lang === 'es' ? 'Otros' : 'Other',
+      hint: lang === 'es' ? 'Suplementos activos sin momento definido.' : 'Active supplements without a defined timing.',
+      items: supplements.filter(s => {
+        const knownTiming = ['morning', 'with_food', 'midday', 'evening', 'before_bed', 'before_training', 'after_training'].includes(s.timing || '');
+        const knownFrequency = ['as_needed', 'high_stress_only', 'cycling'].includes(s.frequency);
+        return !knownTiming && !knownFrequency;
+      }),
+    },
+  ].filter(group => group.items.length > 0);
+
   // ── Supplements section ────────────────────────────────────────────────────
 
   const supplementsSection = (
@@ -532,30 +581,108 @@ export default function PlanPage() {
           onCta={() => setActiveModal('supplement')}
         />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {supplements.map(s => (
-            <div key={s.id} style={{ padding: '14px 16px', backgroundColor: C.cardBg, border: `1px solid ${s.active ? C.cardBorder : 'rgba(103,232,249,0.06)'}`, borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '14px', opacity: s.active ? 1 : 0.5 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: C.text }}>{s.supplement_name}</span>
-                  {s.brand && <span style={{ fontSize: '11px', color: C.textMuted }}>{s.brand}</span>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          {supplementGroups.map(group => (
+            <div key={group.key}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
+                <div>
+                  <p style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.textMuted, margin: '0 0 3px' }}>
+                    {group.label}
+                  </p>
+                  <p style={{ fontSize: '11px', color: C.textSoft, margin: 0 }}>
+                    {group.hint}
+                  </p>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {s.dose && <span style={{ fontSize: '11px', color: C.textSoft }}>{s.dose} {s.dose_unit}</span>}
-                  <span style={{ fontSize: '11px', color: C.textMuted }}>·</span>
-                  <span style={{ fontSize: '11px', color: C.textMuted }}>{fmtFrequency(s.frequency, lang)}</span>
-                  {s.timing && <><span style={{ fontSize: '11px', color: C.textMuted }}>·</span><span style={{ fontSize: '11px', color: C.textMuted }}>{fmtTiming(s.timing, lang)}</span></>}
-                </div>
+                <span style={{ fontSize: '11px', color: C.textMuted }}>
+                  {group.items.length}
+                </span>
               </div>
-              <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                <button onClick={() => toggleSupp(s.id, s.active)}
-                  style={{ padding: '4px 10px', borderRadius: '8px', border: `0.5px solid ${C.cardBorder}`, background: 'transparent', color: s.active ? C.teal : C.textMuted, fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: F.ui }}>
-                  {s.active ? (lang === 'es' ? 'Activo' : 'Active') : (lang === 'es' ? 'Pausado' : 'Paused')}
-                </button>
-                <button onClick={() => deleteSupp(s.id)}
-                  style={{ padding: '4px 8px', borderRadius: '8px', border: `0.5px solid rgba(248,113,113,0.2)`, background: 'transparent', color: 'rgba(248,113,113,0.6)', fontSize: '11px', cursor: 'pointer', fontFamily: F.ui }}>
-                  ✕
-                </button>
+
+              <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(2, minmax(0, 1fr))' : '1fr', gap: '10px' }}>
+                {group.items.map(s => (
+                  <div
+                    key={s.id}
+                    style={{
+                      padding: '14px 15px',
+                      background: s.active
+                        ? 'linear-gradient(135deg, rgba(232,248,245,0.045) 0%, rgba(6,19,22,0.58) 100%)'
+                        : 'rgba(6,19,22,0.28)',
+                      border: `1px solid ${s.active ? C.cardBorder : 'rgba(103,232,249,0.06)'}`,
+                      borderRadius: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      opacity: s.active ? 1 : 0.55,
+                      boxShadow: s.active ? '0 14px 34px rgba(0,0,0,0.14)' : 'none',
+                    }}
+                  >
+                    <div style={{ width: '8px', height: '8px', borderRadius: '999px', background: s.active ? C.teal : C.textMuted, boxShadow: s.active ? `0 0 10px ${C.teal}80` : 'none', flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', minWidth: 0 }}>
+                        <span style={{ fontSize: '13px', fontWeight: 750, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {s.supplement_name}
+                        </span>
+                        {s.brand && (
+                          <span style={{ fontSize: '11px', color: C.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {s.brand}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        {s.dose && <span style={{ fontSize: '11px', color: C.textSoft }}>{s.dose} {s.dose_unit}</span>}
+                        <span style={{ fontSize: '11px', color: C.textMuted }}>·</span>
+                        <span style={{ fontSize: '11px', color: C.textMuted }}>{fmtFrequency(s.frequency, lang)}</span>
+                        {s.timing && (
+                          <>
+                            <span style={{ fontSize: '11px', color: C.textMuted }}>·</span>
+                            <span style={{ fontSize: '11px', color: C.textMuted }}>{fmtTiming(s.timing, lang)}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                      <button
+                        onClick={() => toggleSupp(s.id, s.active)}
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: '999px',
+                          border: `0.5px solid ${s.active ? 'rgba(45,212,191,0.35)' : C.cardBorder}`,
+                          background: s.active ? 'rgba(45,212,191,0.08)' : 'transparent',
+                          color: s.active ? C.teal : C.textMuted,
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          letterSpacing: '0.05em',
+                          textTransform: 'uppercase',
+                          cursor: 'pointer',
+                          fontFamily: F.ui,
+                        }}
+                      >
+                        {s.active ? (lang === 'es' ? 'Activo' : 'Active') : (lang === 'es' ? 'Pausado' : 'Paused')}
+                      </button>
+                      <button
+                        onClick={() => {
+                          const ok = window.confirm(lang === 'es' ? '¿Eliminar este suplemento?' : 'Delete this supplement?');
+                          if (ok) deleteSupp(s.id);
+                        }}
+                        title={lang === 'es' ? 'Más opciones' : 'More options'}
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '999px',
+                          border: `0.5px solid ${C.cardBorder}`,
+                          background: 'rgba(6,19,22,0.25)',
+                          color: C.textMuted,
+                          fontSize: '14px',
+                          cursor: 'pointer',
+                          fontFamily: F.ui,
+                        }}
+                      >
+                        ⋯
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
