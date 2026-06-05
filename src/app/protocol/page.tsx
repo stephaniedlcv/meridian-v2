@@ -514,6 +514,76 @@ export default function PlanPage() {
     </div>
   );
 
+  const PlanGuidanceCard = () => (
+    <div
+      style={{
+        marginBottom: '28px',
+        padding: isDesktop ? '20px 22px' : '18px',
+        borderRadius: '20px',
+        border: `1px solid ${C.cardBorder}`,
+        background: 'linear-gradient(135deg, rgba(45,212,191,0.10) 0%, rgba(6,19,22,0.72) 42%, rgba(103,232,249,0.06) 100%)',
+        boxShadow: '0 18px 48px rgba(0,0,0,0.18)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          top: '-80px',
+          right: '-70px',
+          width: '180px',
+          height: '180px',
+          borderRadius: '999px',
+          background: 'radial-gradient(circle, rgba(45,212,191,0.16) 0%, transparent 68%)',
+          pointerEvents: 'none',
+        }}
+      />
+      <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: isDesktop ? '1.2fr 0.8fr' : '1fr', gap: '18px', alignItems: 'center' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '999px', background: C.teal, boxShadow: `0 0 12px ${C.teal}` }} />
+            <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.teal }}>
+              {lang === 'es' ? 'Guía Meridian' : 'Meridian guidance'}
+            </span>
+          </div>
+          <h2 style={{ fontFamily: F.heading, fontSize: isDesktop ? '22px' : '20px', lineHeight: 1.15, letterSpacing: '-0.03em', color: C.text, margin: '0 0 8px' }}>
+            {lang === 'es' ? 'Lo que le das a tu cuerpo, organizado con intención.' : 'What you give your body, organized with intention.'}
+          </h2>
+          <p style={{ fontSize: '13px', lineHeight: 1.65, color: C.textSoft, margin: 0, maxWidth: '680px' }}>
+            {lang === 'es'
+              ? 'Plan reúne tus suplementos, medicamentos y protocolos activos para que puedas verlos como parte de una rutina completa, no como notas sueltas. A medida que tu contexto cambie, este espacio te ayuda a ajustar con calma y mantener claridad.'
+              : 'Plan brings together your supplements, medications, and active protocols so you can see them as part of a complete routine, not scattered notes. As your context changes, this space helps you adjust calmly and keep clarity.'}
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gap: '8px' }}>
+          {[
+            lang === 'es' ? 'Stack organizado por momento del día' : 'Stack organized by time of day',
+            lang === 'es' ? 'Medicamentos y protocolos en un solo lugar' : 'Medications and protocols in one place',
+            lang === 'es' ? 'Historial útil para detectar patrones' : 'History that helps reveal patterns',
+          ].map(item => (
+            <div
+              key={item}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '9px',
+                padding: '9px 11px',
+                borderRadius: '12px',
+                border: `0.5px solid ${C.cardBorder}`,
+                background: 'rgba(6,19,22,0.34)',
+              }}
+            >
+              <span style={{ width: '5px', height: '5px', borderRadius: '999px', background: C.cyan, flexShrink: 0 }} />
+              <span style={{ fontSize: '12px', color: C.textSoft, fontWeight: 650 }}>{item}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   const supplementGroups = [
     {
       key: 'morning',
@@ -1099,6 +1169,7 @@ export default function PlanPage() {
   const mainContent = (
     <div style={{ padding: isDesktop ? '32px 40px 64px' : '24px 20px 100px', maxWidth: isDesktop ? '1120px' : '680px', margin: '0 auto' }}>
       <PageHeader />
+      <PlanGuidanceCard />
       {loading ? (
         <div style={{ padding: '40px 0', textAlign: 'center', color: C.textMuted, fontSize: '13px' }}>
           {lang === 'es' ? 'Cargando tu plan...' : 'Loading your plan...'}
