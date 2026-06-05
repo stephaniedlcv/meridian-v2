@@ -410,35 +410,116 @@ export default function HealthTimelinePage() {
     </>
   );
 
+
+  // ── DESKTOP LAYOUT ────────────────────────────────────────────────────────────
   if (isDesktop) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          backgroundColor: colors.background,
-          display: 'flex',
-        }}
-      >
+      <div style={{ minHeight: '100vh', backgroundColor: colors.background, fontFamily: fonts.ui, display: 'flex', position: 'relative', overflow: 'hidden' }}>
+
+        {/* Ambient orbs */}
+        <div style={{ position: 'fixed', top: '-15%', left: '10%', width: '40%', height: '40%', background: `radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
+        <div style={{ position: 'fixed', bottom: '-15%', right: '5%', width: '40%', height: '40%', background: `radial-gradient(circle, rgba(103,232,249,0.10) 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
+
         <DesktopSidebar currentPath="/timeline" />
-        <div
-          style={{
-            marginLeft: '200px',
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: '100vh',
-          }}
-        >
+
+        <div style={{ marginLeft: '200px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative', zIndex: 1 }}>
           <DesktopTopBar />
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-            }}
-          >
-            {content}
+
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            <div style={{ padding: '32px 40px 64px', maxWidth: '860px', margin: '0 auto' }}>
+
+              {/* ── Page header ── */}
+              <div style={{ marginBottom: '28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
+                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: `0 0 6px rgba(45,212,191,0.6)` }} />
+                  <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: colors.textMuted }}>
+                    Agenda de salud
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px' }}>
+                  <div>
+                    <h1 style={{ fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700, color: colors.text, margin: '0 0 4px', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                      Agenda
+                    </h1>
+                    <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>
+                      Organiza tus citas médicas, laboratorios y seguimientos.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={openCreateAppointmentModal}
+                    style={{ padding: '9px 20px', background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`, border: 'none', borderRadius: '20px', color: colors.background, fontFamily: fonts.ui, fontSize: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    + Añadir cita
+                  </button>
+                </div>
+              </div>
+
+              {/* ── Stats row ── */}
+              <div style={{ display: 'flex', gap: '0', borderBottom: `1px solid ${colors.cardBorder}`, marginBottom: '24px' }}>
+                {[
+                  { label: 'Próximas', value: upcomingEvents.length, tab: 'upcoming' as TimelineTab },
+                  { label: 'Historial', value: pastEvents.length, tab: 'past' as TimelineTab },
+                  { label: 'Labs', value: labDocuments.length, tab: 'labs' as TimelineTab },
+                ].map(stat => {
+                  const isActive = activeTab === stat.tab
+                  return (
+                    <button key={stat.tab} type="button" onClick={() => setActiveTab(stat.tab)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 0', marginRight: '32px', background: 'none', border: 'none', borderBottom: isActive ? `1.5px solid ${colors.teal}` : '1.5px solid transparent', cursor: 'pointer', fontFamily: fonts.ui, outline: 'none', transition: 'border-color 0.15s', marginBottom: '-1px' }}>
+                      <span style={{ fontSize: '20px', fontWeight: 700, color: colors.text, lineHeight: 1 }}>{stat.value}</span>
+                      <span style={{ fontSize: '11px', color: isActive ? colors.teal : colors.textMuted, fontWeight: 600 }}>{stat.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* ── Error ── */}
+              {error && (
+                <div style={{ marginBottom: '16px', padding: '12px 16px', border: '1px solid rgba(248,113,113,0.22)', borderRadius: '12px', background: 'rgba(248,113,113,0.08)', color: '#FECACA', fontSize: '13px' }}>
+                  {error}
+                </div>
+              )}
+
+              {/* ── Content area ── */}
+              {isLoading ? (
+                <div style={{ display: 'grid', gap: '10px' }}>
+                  {[0, 1, 2].map(i => (
+                    <div key={i} style={{ height: '96px', borderRadius: '14px', border: `1px solid ${colors.cardBorder}`, background: colors.cardSoft, opacity: 0.6 }} />
+                  ))}
+                </div>
+              ) : activeTab === 'labs' ? (
+                <LabDocumentList
+                  labs={labDocuments}
+                  onUploadClick={() => setIsLabUploadModalOpen(true)}
+                  onChanged={handleLabListChanged}
+                />
+              ) : (
+                <EventsSection
+                  events={currentEvents}
+                  emptyTitle={activeTab === 'upcoming' ? 'No tienes próximas citas.' : 'No hay historial todavía.'}
+                  emptyDescription={activeTab === 'upcoming' ? 'Añade tu primera cita para empezar a organizar tu seguimiento de salud.' : 'Cuando completes una cita, aparecerá aquí para que puedas revisar notas y próximos pasos.'}
+                  emptyActionLabel={activeTab === 'upcoming' ? '+ Añadir cita' : 'Ver próximas'}
+                  onEmptyAction={() => { if (activeTab === 'upcoming') { openCreateAppointmentModal(); } else { setActiveTab('upcoming'); } }}
+                  onViewDetails={openViewAppointmentModal}
+                />
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Modals */}
+        <AppointmentModal
+          isOpen={isAppointmentModalOpen}
+          mode={appointmentModalMode}
+          appointment={selectedAppointment}
+          onClose={handleAppointmentModalClose}
+          onSaved={handleAppointmentSaved}
+          onDeleted={handleAppointmentDeleted}
+        />
+        <LabUploadModal
+          isOpen={isLabUploadModalOpen}
+          onClose={() => setIsLabUploadModalOpen(false)}
+          onUploaded={handleLabUploaded}
+        />
       </div>
     );
   }
@@ -464,23 +545,22 @@ function TimelineTabButton({
   isActive: boolean;
   onClick: () => void;
 }) {
+  const colors = {
+    text: '#EAFBF7',
+    textMuted: '#5F8E85',
+    cardBorderActive: 'rgba(45,212,191,0.34)',
+  };
   return (
     <button
       type="button"
       onClick={onClick}
       style={{
-        border: isActive
-          ? `1px solid ${colors.cardBorderActive}`
-          : '1px solid transparent',
+        border: isActive ? `1px solid ${colors.cardBorderActive}` : '1px solid transparent',
         borderRadius: 16,
         padding: '12px 10px',
         color: isActive ? colors.text : colors.textMuted,
-        background: isActive
-          ? 'linear-gradient(135deg, rgba(45,212,191,0.13), rgba(103,232,249,0.055))'
-          : 'transparent',
-        boxShadow: isActive
-          ? '0 10px 30px rgba(45,212,191,0.075), inset 0 1px 0 rgba(255,255,255,0.05)'
-          : 'none',
+        background: isActive ? 'linear-gradient(135deg, rgba(45,212,191,0.13), rgba(103,232,249,0.055))' : 'transparent',
+        boxShadow: isActive ? '0 10px 30px rgba(45,212,191,0.075), inset 0 1px 0 rgba(255,255,255,0.05)' : 'none',
         fontSize: 12,
         fontWeight: 800,
         letterSpacing: '0.02em',
@@ -493,19 +573,11 @@ function TimelineTabButton({
 }
 
 function TimelineLoadingState() {
+  const colors = { cardBorder: 'rgba(103,232,249,0.13)', cardSoft: 'rgba(255,255,255,0.035)' };
   return (
     <div style={{ display: 'grid', gap: 12 }}>
       {[0, 1, 2].map((item) => (
-        <div
-          key={item}
-          style={{
-            height: 128,
-            borderRadius: 28,
-            border: `1px solid ${colors.cardBorder}`,
-            background: colors.cardSoft,
-            opacity: 0.72,
-          }}
-        />
+        <div key={item} style={{ height: 128, borderRadius: 28, border: `1px solid ${colors.cardBorder}`, background: colors.cardSoft, opacity: 0.72 }} />
       ))}
     </div>
   );
@@ -526,6 +598,9 @@ function EventsSection({
   onEmptyAction: () => void;
   onViewDetails: (event: HealthEvent) => void;
 }) {
+  const styles = {
+    section: { display: 'grid', gap: 12 } as const,
+  };
   if (!events.length) {
     return (
       <EmptyState
@@ -536,15 +611,10 @@ function EventsSection({
       />
     );
   }
-
   return (
     <section style={styles.section}>
       {events.map((event) => (
-        <AppointmentCard
-          key={event.id}
-          event={event}
-          onViewDetails={onViewDetails}
-        />
+        <AppointmentCard key={event.id} event={event} onViewDetails={onViewDetails} />
       ))}
     </section>
   );
@@ -561,34 +631,22 @@ function EmptyState({
   actionLabel: string;
   onAction: () => void;
 }) {
+  const colors = {
+    text: '#EAFBF7', textSoft: '#9ACBC1',
+    teal: '#2DD4BF', cardBorderActive: 'rgba(45,212,191,0.34)',
+  };
+  const fonts = { heading: 'var(--font-fraunces), "Fraunces", serif' };
   return (
-    <section style={styles.emptyCard}>
+    <section style={{ minHeight: 236, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed rgba(103,232,249,0.18)', borderRadius: 30, background: 'linear-gradient(180deg, rgba(7,29,31,0.62), rgba(2,9,11,0.40))', padding: 24, textAlign: 'center' }}>
       <div style={{ maxWidth: 440 }}>
-        <div style={styles.emptyIcon}>
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.45"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="3" y="4" width="14" height="13" rx="2.2" />
-            <path d="M6.5 2.5v3" />
-            <path d="M13.5 2.5v3" />
-            <path d="M3 8h14" />
-            <path d="M6.5 11h2" />
-            <path d="M11.5 11h2" />
-            <path d="M6.5 14h2" />
+        <div style={{ width: 42, height: 42, margin: '0 auto 15px', borderRadius: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${colors.cardBorderActive}`, background: 'rgba(45,212,191,0.08)', color: colors.teal }}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="14" height="13" rx="2.2" /><path d="M6.5 2.5v3" /><path d="M13.5 2.5v3" /><path d="M3 8h14" /><path d="M6.5 11h2" /><path d="M11.5 11h2" /><path d="M6.5 14h2" />
           </svg>
         </div>
-
-        <h2 style={styles.emptyTitle}>{title}</h2>
-        <p style={styles.emptyDescription}>{description}</p>
-
-        <button type="button" onClick={onAction} style={styles.secondaryButton}>
+        <h2 style={{ margin: 0, color: colors.text, fontFamily: fonts.heading, fontSize: 24, lineHeight: 1.1, fontWeight: 700, letterSpacing: '-0.035em' }}>{title}</h2>
+        <p style={{ margin: '10px auto 0', maxWidth: 420, color: colors.textSoft, fontSize: 14, lineHeight: 1.6 }}>{description}</p>
+        <button type="button" onClick={onAction} style={{ marginTop: 22, border: `1px solid ${colors.cardBorderActive}`, borderRadius: 16, padding: '11px 15px', color: colors.text, background: 'rgba(45,212,191,0.10)', fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>
           {actionLabel}
         </button>
       </div>
