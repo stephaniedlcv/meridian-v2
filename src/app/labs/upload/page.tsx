@@ -589,15 +589,29 @@ function getRangeDirection(slug: string): RangeDirection {
 // Gradient definitions — clinical position only, independent from severity
 // 13-stop gradient: gradual spectral blending, muted warm tones, luminous teal center
 const TRACK_LOW_NORMAL_HIGH = 'linear-gradient(to right, rgba(248,113,113,0.22) 0%, rgba(248,113,113,0.28) 5%, rgba(251,146,60,0.31) 13%, rgba(251,146,60,0.17) 21%, rgba(45,212,191,0.07) 28%, rgba(45,212,191,0.17) 37%, rgba(103,232,249,0.25) 50%, rgba(45,212,191,0.17) 63%, rgba(45,212,191,0.07) 72%, rgba(251,146,60,0.17) 79%, rgba(251,146,60,0.31) 87%, rgba(248,113,113,0.28) 95%, rgba(248,113,113,0.22) 100%)'
+// higher_is_better: teal on right, red on left (HDL, eGFR, Vitamin D)
+const TRACK_HIGHER_IS_BETTER = 'linear-gradient(to right, rgba(248,113,113,0.28) 0%, rgba(251,146,60,0.25) 12%, rgba(251,146,60,0.12) 22%, rgba(45,212,191,0.07) 32%, rgba(45,212,191,0.18) 50%, rgba(103,232,249,0.28) 72%, rgba(45,212,191,0.22) 85%, rgba(45,212,191,0.14) 100%)'
+// lower_is_better: teal on left, red on right (LDL, triglycerides, A1c, CRP)
+const TRACK_LOWER_IS_BETTER  = 'linear-gradient(to right, rgba(45,212,191,0.14) 0%, rgba(45,212,191,0.22) 15%, rgba(103,232,249,0.28) 28%, rgba(45,212,191,0.18) 50%, rgba(45,212,191,0.07) 68%, rgba(251,146,60,0.12) 78%, rgba(251,146,60,0.25) 88%, rgba(248,113,113,0.28) 100%)'
 const TRACK_UNKNOWN = 'linear-gradient(to right, rgba(95,142,133,0.14) 0%, rgba(95,142,133,0.26) 50%, rgba(95,142,133,0.14) 100%)'
+
+function getTrackGradient(slug?: string): string {
+  if (!slug) return TRACK_LOW_NORMAL_HIGH
+  const dir = getRangeDirection(slug)
+  if (dir === 'higher_is_better') return TRACK_HIGHER_IS_BETTER
+  if (dir === 'lower_is_better')  return TRACK_LOWER_IS_BETTER
+  if (dir === 'middle_is_best')   return TRACK_LOW_NORMAL_HIGH
+  return TRACK_LOW_NORMAL_HIGH
+}
 
 interface RangeBarProps {
   value: number
   refMin: number
   refMax: number
+  slug?: string
 }
 
-function BiomarkerRangeBar({ value, refMin, refMax }: RangeBarProps) {
+function BiomarkerRangeBar({ value, refMin, refMax, slug }: RangeBarProps) {
   const span = Math.max(refMax - refMin, 1e-6)
   // padding = 0.40× span → ref range occupies 55.6% of bar (22%–78%)
   // gives clear visual spread: edge values near edge, out-of-range clearly outside
@@ -614,7 +628,7 @@ function BiomarkerRangeBar({ value, refMin, refMax }: RangeBarProps) {
     <div style={{ width: '100%', paddingTop: '6px' }}>
       <div style={{
         position: 'relative', height: '8px', borderRadius: '6px', width: '100%',
-        background: TRACK_LOW_NORMAL_HIGH,
+        background: getTrackGradient(slug),
         boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.30), inset 0 0 20px rgba(103,232,249,0.07), 0 1px 0 rgba(103,232,249,0.03)',
         overflow: 'visible',
       }}>
@@ -642,13 +656,13 @@ function BiomarkerRangeBar({ value, refMin, refMax }: RangeBarProps) {
   )
 }
 
-function renderClinicalReferenceBar(value: number, refMin: number, refMax: number, unit?: string) {
+function renderClinicalReferenceBar(value: number, refMin: number, refMax: number, unit?: string, slug?: string) {
   return (
     <>
       <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 8px' }}>
         <span style={{ fontWeight: 600, color: colors.text }}>{refMin} – {refMax}</span>{unit ? ` ${unit}` : ''}
       </p>
-      <BiomarkerRangeBar value={value} refMin={refMin} refMax={refMax} />
+      <BiomarkerRangeBar value={value} refMin={refMin} refMax={refMax} slug={slug} />
     </>
   )
 }
@@ -1496,7 +1510,7 @@ function BiomarkerDetailSheet({
           <div style={cardStyle}>
             <p style={labelStyle}>Referencia clínica</p>
             {resolvedRange ? (
-              renderClinicalReferenceBar(biomarker.value, resolvedRange.min, resolvedRange.max, biomarker.unit || undefined)
+              renderClinicalReferenceBar(biomarker.value, resolvedRange.min, resolvedRange.max, biomarker.unit || undefined, biomarker.marker_name)
             ) : (
               <div style={{ width: '100%', paddingTop: '6px' }}>
                 <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
@@ -1674,7 +1688,7 @@ function HistoryDetailSheet({
             {resolvedRange ? (
               <>
                 <p style={{ fontSize: '13px', color: colors.textSoft, margin: '0 0 8px' }}><span style={{ fontWeight: 600, color: colors.text }}>{resolvedRange.min} – {resolvedRange.max}</span>{biomarker.unit ? ` ${biomarker.unit}` : ''}</p>
-                <BiomarkerRangeBar value={biomarker.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
+                <BiomarkerRangeBar value={biomarker.value} refMin={resolvedRange.min} refMax={resolvedRange.max} slug={biomarker.marker_name} />
               </>
             ) : (
               <div style={{ width: '100%', paddingTop: '6px' }}>
@@ -3280,7 +3294,7 @@ export default function LabsUploadPage() {
                               </div>
                             </div>
                             {resolvedRange ? (
-                              renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max, b.unit || undefined)
+                              renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max, b.unit || undefined, b.marker_name)
                             ) : (
                               <div style={{ width: '100%', paddingTop: '4px' }}>
                                 <div style={{ height: '7px', borderRadius: '6px', background: TRACK_UNKNOWN }} />
@@ -3454,7 +3468,7 @@ export default function LabsUploadPage() {
                                       {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                     </div>
                                     {resolvedRange ? (
-                                      <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
+                                      <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} slug={b.marker_name} />
                                     ) : (
                                       <div style={{ width: '100%', paddingTop: '6px' }}>
                                         <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
@@ -3623,7 +3637,7 @@ export default function LabsUploadPage() {
                                             </div>
                                           </div>
                                           {resolvedRange ? (
-                                            renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max, b.unit || undefined)
+                                            renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max, b.unit || undefined, b.marker_name)
                                           ) : (
                                             <div style={{ width: '100%', paddingTop: '6px' }}>
                                               <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
@@ -3678,7 +3692,7 @@ export default function LabsUploadPage() {
                                               <span style={{ fontSize: '13px', color: colors.textMuted, opacity: 0.4, lineHeight: 1 }}>›</span>
                                             </div>
                                           </div>
-                                          {resolvedRange && renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max, b.unit || undefined)}
+                                          {resolvedRange && renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max, b.unit || undefined, b.marker_name)}
                                         </div>
                                       )
                                     })}
@@ -3933,7 +3947,7 @@ export default function LabsUploadPage() {
                                                 {b.unit && <span style={{ fontSize: '12px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                               </div>
                                               {resolvedRange ? (
-                                                renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max, b.unit || undefined)
+                                                renderClinicalReferenceBar(b.value, resolvedRange.min, resolvedRange.max, b.unit || undefined, b.marker_name)
                                               ) : (
                                                 <div style={{ width: '100%', paddingTop: '6px' }}>
                                                   <div style={{ height: '8px', borderRadius: '6px', background: TRACK_UNKNOWN, boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.28)' }} />
@@ -4068,7 +4082,7 @@ export default function LabsUploadPage() {
               {sc.Watch > 0 && <span style={{ padding: '1px 7px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, backgroundColor: colors.watch, border: `1px solid ${colors.watchBorder}`, color: '#FCD34D' }}>{sc.Watch} {lang === 'es' ? 'seguimiento' : 'watch'}</span>}
               {sc.Optimal > 0 && <span style={{ padding: '1px 7px', borderRadius: '4px', fontSize: '10px', fontWeight: 600, backgroundColor: 'rgba(45,212,191,0.07)', border: '1px solid rgba(45,212,191,0.16)', color: colors.textMuted }}>{sc.Optimal} {lang === 'es' ? 'normal' : 'normal'}</span>}
             </div>
-            <p style={{ fontSize: '11px', color: colors.textMuted, margin: 0, lineHeight: 1.45 }}>{group.education}</p>
+            <p style={{ fontSize: '11px', color: colors.textMuted, margin: 0, lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{group.education}</p>
           </div>
           {/* Rows */}
           {[...abnormal, ...visOpt].map(b => {
@@ -4088,7 +4102,7 @@ export default function LabsUploadPage() {
                   <span style={{ padding: '1px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 700, backgroundColor: s.bg, border: `1px solid ${s.border}`, color: s.dot, flexShrink: 0 }}>{s.label}</span>
                 </div>
                 {resolvedRange
-                  ? <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} />
+                  ? <BiomarkerRangeBar value={b.value} refMin={resolvedRange.min} refMax={resolvedRange.max} slug={b.marker_name} />
                   : <div style={{ height: '4px', borderRadius: '3px', background: TRACK_UNKNOWN }} />}
               </div>
             )
@@ -4446,7 +4460,7 @@ export default function LabsUploadPage() {
                                         <span style={{ fontSize: '20px', fontWeight: 800, color: colors.text }}>{b.value}</span>
                                         {b.unit && <span style={{ fontSize: '11px', color: colors.textMuted, marginLeft: '5px' }}>{b.unit}</span>}
                                       </div>
-                                      {rr ? <BiomarkerRangeBar value={b.value} refMin={rr.min} refMax={rr.max} /> : <div style={{ height: '5px', borderRadius: '4px', background: TRACK_UNKNOWN }} />}
+                                      {rr ? <BiomarkerRangeBar value={b.value} refMin={rr.min} refMax={rr.max} slug={b.marker_name} /> : <div style={{ height: '5px', borderRadius: '4px', background: TRACK_UNKNOWN }} />}
                                     </div>
                                   )
                                 })}
@@ -4594,7 +4608,7 @@ export default function LabsUploadPage() {
                                                     {!b.flag_error && b.state && <span style={{ padding: '1px 5px', backgroundColor: s.bg, border: `1px solid ${s.border}`, borderRadius: '4px', fontSize: '9px', fontWeight: 700, color: s.dot }}>{s.label}</span>}
                                                   </div>
                                                 </div>
-                                                {rr ? <BiomarkerRangeBar value={b.value} refMin={rr.min} refMax={rr.max} /> : <div style={{ height: '4px', borderRadius: '3px', background: TRACK_UNKNOWN }} />}
+                                                {rr ? <BiomarkerRangeBar value={b.value} refMin={rr.min} refMax={rr.max} slug={b.marker_name} /> : <div style={{ height: '4px', borderRadius: '3px', background: TRACK_UNKNOWN }} />}
                                               </div>
                                             )
                                           })}
