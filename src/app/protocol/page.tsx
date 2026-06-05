@@ -973,6 +973,126 @@ export default function PlanPage() {
     </div>
   );
 
+  // ── Training Program section ────────────────────────────────────────────────
+
+  const trainingProgramSection = (
+    <div style={{ marginBottom: '32px' }}>
+      <SectionHeader
+        label={lang === 'es' ? 'Programa de entrenamiento' : 'Training program'}
+        onAdd={() => {}}
+        addLabel={lang === 'es' ? 'Crear' : 'Create'}
+      />
+
+      <div
+        style={{
+          padding: isDesktop ? '22px' : '18px',
+          borderRadius: '20px',
+          border: `1px solid ${C.cardBorder}`,
+          background: 'linear-gradient(135deg, rgba(232,248,245,0.045) 0%, rgba(6,19,22,0.62) 100%)',
+          boxShadow: '0 18px 42px rgba(0,0,0,0.14)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: '-80px',
+            right: '-70px',
+            width: '180px',
+            height: '180px',
+            borderRadius: '999px',
+            background: 'radial-gradient(circle, rgba(103,232,249,0.12) 0%, transparent 68%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: isDesktop ? '1.1fr 0.9fr' : '1fr', gap: '18px', alignItems: 'center' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '999px', background: C.cyan, boxShadow: `0 0 12px ${C.cyan}` }} />
+              <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.cyan }}>
+                {lang === 'es' ? 'Builder personalizado' : 'Custom builder'}
+              </span>
+            </div>
+
+            <h2 style={{ fontFamily: F.heading, fontSize: isDesktop ? '22px' : '20px', lineHeight: 1.15, letterSpacing: '-0.03em', color: C.text, margin: '0 0 8px' }}>
+              {lang === 'es' ? 'Crea tu programa a tu manera.' : 'Build your program your way.'}
+            </h2>
+
+            <p style={{ fontSize: '13px', color: C.textSoft, margin: 0, lineHeight: 1.6, maxWidth: '620px' }}>
+              {lang === 'es'
+                ? 'Organiza días de entrenamiento, ejercicios, series, repeticiones, cargas objetivo y notas. Meridian puede usar plantillas como punto de partida, pero el usuario decide qué añadir.'
+                : 'Organize training days, exercises, sets, reps, target loads, and notes. Meridian can offer templates as a starting point, but the user decides what to add.'}
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gap: '8px' }}>
+            {[
+              lang === 'es' ? 'Crear desde cero' : 'Create from scratch',
+              lang === 'es' ? 'Usar plantilla opcional' : 'Use optional template',
+              lang === 'es' ? 'Editar días y ejercicios luego' : 'Edit days and exercises later',
+            ].map(item => (
+              <div
+                key={item}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '9px',
+                  padding: '9px 11px',
+                  borderRadius: '12px',
+                  border: `0.5px solid ${C.cardBorder}`,
+                  background: 'rgba(6,19,22,0.34)',
+                }}
+              >
+                <span style={{ width: '5px', height: '5px', borderRadius: '999px', background: C.teal, flexShrink: 0 }} />
+                <span style={{ fontSize: '12px', color: C.textSoft, fontWeight: 650 }}>{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ position: 'relative', marginTop: '18px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => {}}
+            style={{
+              padding: '10px 14px',
+              borderRadius: '999px',
+              border: 'none',
+              background: `linear-gradient(135deg, ${C.teal} 0%, ${C.cyan} 100%)`,
+              color: '#041112',
+              fontFamily: F.ui,
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+            }}
+          >
+            {lang === 'es' ? 'Crear programa' : 'Create program'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {}}
+            style={{
+              padding: '10px 14px',
+              borderRadius: '999px',
+              border: `0.5px solid ${C.cardBorder}`,
+              background: 'rgba(6,19,22,0.28)',
+              color: C.textSoft,
+              fontFamily: F.ui,
+              fontSize: '12px',
+              fontWeight: 750,
+              cursor: 'pointer',
+            }}
+          >
+            {lang === 'es' ? 'Ver plantillas' : 'View templates'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   // ── Peptides section ───────────────────────────────────────────────────────
 
   const PeptidesSection = () => (
@@ -1174,13 +1294,18 @@ export default function PlanPage() {
         <div style={{ padding: '40px 0', textAlign: 'center', color: C.textMuted, fontSize: '13px' }}>
           {lang === 'es' ? 'Cargando tu plan...' : 'Loading your plan...'}
         </div>
-      ) : nothingActive ? (
-        <NothingActive />
       ) : (
         <>
-          {supplementsSection}
-          {showMedications && medicationsSection}
-          {showPeptides && <PeptidesSection />}
+          {nothingActive ? (
+            <NothingActive />
+          ) : (
+            <>
+              {supplementsSection}
+              {showMedications && medicationsSection}
+              {showPeptides && <PeptidesSection />}
+            </>
+          )}
+          {trainingProgramSection}
         </>
       )}
       {showGlp1History && (
