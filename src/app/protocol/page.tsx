@@ -893,7 +893,7 @@ export default function PlanPage() {
   // ── Main content ───────────────────────────────────────────────────────────
 
   const mainContent = (
-    <div style={{ padding: isDesktop ? '32px 40px 64px' : '24px 20px 100px', maxWidth: isDesktop ? '860px' : '680px', margin: '0 auto' }}>
+    <div style={{ padding: isDesktop ? '32px 40px 64px' : '24px 20px 100px', maxWidth: isDesktop ? '1120px' : '680px', margin: '0 auto' }}>
       <PageHeader />
       {loading ? (
         <div style={{ padding: '40px 0', textAlign: 'center', color: C.textMuted, fontSize: '13px' }}>
