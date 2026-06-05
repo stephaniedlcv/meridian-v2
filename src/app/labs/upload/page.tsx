@@ -469,13 +469,37 @@ function buildPanelSummaries(rows: RecentBiomarker[]): PanelSummary[] {
     })
 }
 
+function canonicalDisplayMarkerKey(markerName: string): string {
+  const normalized = markerName
+    .toLowerCase()
+    .trim()
+    .replace(/[\s-]+/g, '_')
+
+  const compact = normalized.replace(/[^a-z0-9]/g, '')
+
+  // Display-level aliases only. Keep true separate lipid markers intact:
+  // non_hdl, ldl_hdl_ratio, and chol_hdl_ratio must not collapse into HDL.
+  if (
+    normalized === 'hdl' ||
+    normalized === 'hdl_cholesterol' ||
+    normalized === 'hdl_c' ||
+    compact === 'hdlcholesterol' ||
+    compact === 'hdlc'
+  ) {
+    return 'hdl'
+  }
+
+  return normalized
+}
+
 function deduplicateByMarker(rows: RecentBiomarker[]): RecentBiomarker[] {
   // Rows are already ordered collected_at DESC, created_at DESC.
-  // First occurrence of each marker_name is the most recent result.
+  // First occurrence of each canonical display key is the most recent result.
   const seen = new Set<string>()
   return rows.filter(row => {
-    if (seen.has(row.marker_name)) return false
-    seen.add(row.marker_name)
+    const key = canonicalDisplayMarkerKey(row.marker_name)
+    if (seen.has(key)) return false
+    seen.add(key)
     return true
   })
 }

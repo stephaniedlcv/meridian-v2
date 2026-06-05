@@ -344,6 +344,18 @@ export default function PlanPage() {
         }
       }
 
+      // Generic medication entries (non-GLP-1). This is intentionally soft-fail
+      // because some environments may not have the medication_entries migration yet.
+      if (profile?.medications_enabled) {
+        const { data: meds } = await supabase
+          .from('medication_entries')
+          .select('*')
+          .eq('user_id', user.id)
+          .neq('category', 'glp1')
+          .order('date', { ascending: false });
+        if (mounted) setMedications((meds ?? []) as MedicationEntry[]);
+      }
+
       // Supplements
       setLoadingSupps(true);
       const { data: supps } = await supabase
@@ -386,6 +398,38 @@ export default function PlanPage() {
     const updated = sortEntries([payload.data, ...entries]);
     setEntries(updated); setDate(fmtInput(new Date())); setMedNotes(''); setSite(getSuggestedSite(updated));
     setMedSuccess(lang === 'es' ? 'Entrada guardada.' : 'Entry saved.'); setSavingMed(false); setShowMedForm(false);
+  }
+
+  // ── Save generic medication ───────────────────────────────────────────────
+  async function handleSaveNewMedication() {
+    if (!userId || !newMed.name.trim() || !newMed.dose) return;
+    setSavingNewMed(true);
+    setMedError('');
+    setMedSuccess('');
+
+    const { data, error } = await supabase.from('medication_entries').insert({
+      user_id: userId,
+      medication_name: newMed.name.trim(),
+      category: newMed.category,
+      date: fmtInput(new Date()),
+      dose: Number(newMed.dose),
+      dose_unit: newMed.dose_unit,
+      route: newMed.route,
+      site: null,
+      notes: newMed.notes.trim() || null,
+    }).select().single();
+
+    if (error || !data) {
+      setMedError(lang === 'es' ? 'No se pudo guardar el medicamento.' : 'Could not save medication.');
+      setSavingNewMed(false);
+      return;
+    }
+
+    setMedications(prev => [data as MedicationEntry, ...prev]);
+    setNewMed({ name: '', category: 'other', dose: '', dose_unit: 'mg', route: 'oral', notes: '' });
+    setActiveModal(null);
+    setMedSuccess(lang === 'es' ? 'Medicamento guardado.' : 'Medication saved.');
+    setSavingNewMed(false);
   }
 
   // ── Save supplement ────────────────────────────────────────────────────────
@@ -554,9 +598,9 @@ export default function PlanPage() {
             {/* Status tiles */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: showMedForm ? '16px' : '0' }}>
               {[
-                { label: lang === 'es' ? 'Dosis actual' : 'Current dose', value: latestEntry ? `${Number(latestEntry.dose)} mg` : '—', hint: latestEntry ? fmtDate(latestEntry.date, lang) : (lang === 'es' ? 'Sin registros' : 'No entries') },
-                { label: lang === 'es' ? 'Días desde última' : 'Days since last', value: daysSinceLast !== null ? String(daysSinceLast) : '—', hint: lang === 'es' ? 'Desde tu último registro' : 'From your last entry' },
-                { label: lang === 'es' ? 'Próxima fecha' : 'Next date', value: nextDate ? fmtDate(nextDate, lang) : '—', hint: lang === 'es' ? 'Cadencia semanal estimada' : 'Estimated weekly cadence' },
+                { label: lang === 'es' ? 'Dosis actual' : 'Current dose', value: latestEntry ? `${Number(latestEntry.dose)} mg` : (lang === 'es' ? 'Sin registro' : 'Not logged'), hint: latestEntry ? fmtDate(latestEntry.date, lang) : (lang === 'es' ? 'Registra tu primera dosis' : 'Log your first dose') },
+                { label: lang === 'es' ? 'Días desde última' : 'Days since last', value: daysSinceLast !== null ? String(daysSinceLast) : (lang === 'es' ? 'Sin registro' : 'Not logged'), hint: lang === 'es' ? 'Desde tu último registro' : 'From your last entry' },
+                { label: lang === 'es' ? 'Próxima fecha' : 'Next date', value: nextDate ? fmtDate(nextDate, lang) : (lang === 'es' ? 'Pendiente' : 'Pending'), hint: lang === 'es' ? 'Cadencia semanal estimada' : 'Estimated weekly cadence' },
                 { label: lang === 'es' ? 'Sitio sugerido' : 'Suggested site', value: getSiteShort(suggestedSite, lang), hint: getSiteLabel(suggestedSite, lang) },
               ].map(tile => (
                 <div key={tile.label} style={{ padding: '12px', background: 'rgba(6,19,22,0.4)', border: `0.5px solid ${C.cardBorder}`, borderRadius: '10px' }}>
@@ -630,11 +674,27 @@ export default function PlanPage() {
       )}
 
       {!flags.glp1_protocol_enabled && flags.medications_enabled && (
-        <EmptyCard
-          text={lang === 'es' ? 'Registra tus medicamentos activos — Rx, hormonas, y otros tratamientos.' : 'Record your active medications — Rx, hormones, and other treatments.'}
-          cta={lang === 'es' ? 'Añadir medicamento' : 'Add medication'}
-          onCta={() => setActiveModal('medication')}
-        />
+        medications.length === 0 ? (
+          <EmptyCard
+            text={lang === 'es' ? 'Registra tus medicamentos activos — Rx, hormonas, y otros tratamientos.' : 'Record your active medications — Rx, hormones, and other treatments.'}
+            cta={lang === 'es' ? 'Añadir medicamento' : 'Add medication'}
+            onCta={() => setActiveModal('medication')}
+          />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button onClick={() => setActiveModal('medication')} style={{ alignSelf: 'flex-start', padding: '8px 12px', borderRadius: '999px', border: `0.5px solid ${C.cardBorder}`, background: 'rgba(103,232,249,0.07)', color: C.cyan, fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+              + {lang === 'es' ? 'Añadir medicamento' : 'Add medication'}
+            </button>
+            {medications.map(m => (
+              <div key={m.id} style={{ padding: '12px', borderRadius: '12px', border: `0.5px solid ${C.cardBorder}`, background: 'rgba(6,19,22,0.34)', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: C.text, flex: 1 }}>{m.medication_name}</span>
+                <span style={{ fontSize: '11px', color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{m.category}</span>
+                <span style={{ padding: '3px 10px', borderRadius: '20px', border: '0.5px solid rgba(103,232,249,0.22)', background: 'rgba(103,232,249,0.07)', fontSize: '12px', fontWeight: 700, color: C.cyan }}>{Number(m.dose)} {m.dose_unit}</span>
+                <span style={{ fontSize: '12px', color: C.textMuted }}>{m.route}</span>
+              </div>
+            ))}
+          </div>
+        )
       )}
     </div>
   );
@@ -706,6 +766,46 @@ export default function PlanPage() {
 
   const Modals = () => (
     <AnimatePresence>
+      {activeModal === 'medication' && (
+        <Modal title={lang === 'es' ? 'Añadir medicamento' : 'Add medication'} onClose={() => setActiveModal(null)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <Field label={lang === 'es' ? 'Nombre *' : 'Name *'}>
+              <input type="text" value={newMed.name} onChange={e => setNewMed(p => ({ ...p, name: e.target.value }))} placeholder="Metformin, Levothyroxine..." style={inputStyle} />
+            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <Field label={lang === 'es' ? 'Categoría' : 'Category'}>
+                <select value={newMed.category} onChange={e => setNewMed(p => ({ ...p, category: e.target.value }))} style={inputStyle}>
+                  {[['rx', 'Rx'], ['hormone', lang === 'es' ? 'Hormona' : 'Hormone'], ['thyroid', lang === 'es' ? 'Tiroides' : 'Thyroid'], ['other', lang === 'es' ? 'Otro' : 'Other']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </Field>
+              <Field label={lang === 'es' ? 'Vía' : 'Route'}>
+                <select value={newMed.route} onChange={e => setNewMed(p => ({ ...p, route: e.target.value }))} style={inputStyle}>
+                  {[['oral', 'Oral'], ['subcutaneous', lang === 'es' ? 'Subcutánea' : 'Subcutaneous'], ['intramuscular', lang === 'es' ? 'Intramuscular' : 'Intramuscular'], ['topical', lang === 'es' ? 'Tópica' : 'Topical'], ['other', lang === 'es' ? 'Otra' : 'Other']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </Field>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <Field label={lang === 'es' ? 'Dosis *' : 'Dose *'}>
+                <input type="number" value={newMed.dose} onChange={e => setNewMed(p => ({ ...p, dose: e.target.value }))} placeholder="500" style={inputStyle} min="0" />
+              </Field>
+              <Field label={lang === 'es' ? 'Unidad' : 'Unit'}>
+                <select value={newMed.dose_unit} onChange={e => setNewMed(p => ({ ...p, dose_unit: e.target.value }))} style={inputStyle}>
+                  {['mg','mcg','g','IU','units','ml'].map(u => <option key={u} value={u}>{u}</option>)}
+                </select>
+              </Field>
+            </div>
+            <Field label={lang === 'es' ? 'Notas (opcional)' : 'Notes (optional)'}>
+              <textarea value={newMed.notes} onChange={e => setNewMed(p => ({ ...p, notes: e.target.value }))} style={{ ...inputStyle, minHeight: '64px', resize: 'vertical' }} />
+            </Field>
+            {medError && <p style={{ color: '#FCA5A5', fontSize: '12px', margin: 0 }}>{medError}</p>}
+            <button onClick={handleSaveNewMedication} disabled={savingNewMed || !newMed.name.trim() || !newMed.dose}
+              style={{ width: '100%', padding: '12px', background: `linear-gradient(135deg, ${C.teal} 0%, ${C.cyan} 100%)`, border: 'none', borderRadius: '12px', color: '#041112', fontFamily: F.ui, fontSize: '14px', fontWeight: 700, cursor: (!newMed.name.trim() || !newMed.dose || savingNewMed) ? 'not-allowed' : 'pointer', opacity: (!newMed.name.trim() || !newMed.dose || savingNewMed) ? 0.6 : 1 }}>
+              {savingNewMed ? (lang === 'es' ? 'Guardando...' : 'Saving...') : (lang === 'es' ? 'Guardar medicamento' : 'Save medication')}
+            </button>
+          </div>
+        </Modal>
+      )}
+
       {activeModal === 'supplement' && (
         <Modal title={lang === 'es' ? 'Añadir suplemento' : 'Add supplement'} onClose={() => setActiveModal(null)}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
