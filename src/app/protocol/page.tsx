@@ -514,7 +514,7 @@ export default function PlanPage() {
 
   // ── Supplements section ────────────────────────────────────────────────────
 
-  const SupplementsSection = () => (
+  const supplementsSection = (
     <div style={{ marginBottom: '32px' }}>
       <SectionHeader
         label={lang === 'es' ? 'Suplementos' : 'Supplements'}
@@ -564,7 +564,7 @@ export default function PlanPage() {
 
   // ── Medications section ────────────────────────────────────────────────────
 
-  const MedicationsSection = () => (
+  const medicationsSection = (
     <div style={{ marginBottom: '32px' }}>
       <SectionHeader
         label={lang === 'es' ? 'Medicamentos activos' : 'Active medications'}
@@ -619,7 +619,7 @@ export default function PlanPage() {
                     <form onSubmit={handleMedSubmit}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', margin: '14px 0 12px' }}>
                         <Field label={lang === 'es' ? 'Fecha' : 'Date'}>
-                          <input ref={dateInputRef} type="date" value={date} onClick={() => dateInputRef.current?.showPicker?.()} onFocus={() => dateInputRef.current?.showPicker?.()} onChange={e => setDate(e.target.value)} style={inputStyle} required />
+                          <input ref={dateInputRef} type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} required />
                         </Field>
                         <Field label={lang === 'es' ? 'Dosis' : 'Dose'}>
                           <select value={dose} onChange={e => setDose(Number(e.target.value))} style={inputStyle}>
@@ -903,8 +903,8 @@ export default function PlanPage() {
         <NothingActive />
       ) : (
         <>
-          <SupplementsSection />
-          {showMedications && <MedicationsSection />}
+          {supplementsSection}
+          {showMedications && medicationsSection}
           {showPeptides && <PeptidesSection />}
         </>
       )}
