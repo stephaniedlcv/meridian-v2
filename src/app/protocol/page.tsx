@@ -619,7 +619,7 @@ export default function PlanPage() {
                     <form onSubmit={handleMedSubmit}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', margin: '14px 0 12px' }}>
                         <Field label={lang === 'es' ? 'Fecha' : 'Date'}>
-                          <input ref={dateInputRef} type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} required />
+                          <input ref={dateInputRef} type="date" value={date} onClick={() => dateInputRef.current?.showPicker?.()} onFocus={() => dateInputRef.current?.showPicker?.()} onChange={e => setDate(e.target.value)} style={inputStyle} required />
                         </Field>
                         <Field label={lang === 'es' ? 'Dosis' : 'Dose'}>
                           <select value={dose} onChange={e => setDose(Number(e.target.value))} style={inputStyle}>
@@ -764,7 +764,7 @@ export default function PlanPage() {
 
   // ── Modals ─────────────────────────────────────────────────────────────────
 
-  const Modals = () => (
+  const modals = (
     <AnimatePresence>
       {activeModal === 'medication' && (
         <Modal title={lang === 'es' ? 'Añadir medicamento' : 'Add medication'} onClose={() => setActiveModal(null)}>
@@ -908,7 +908,7 @@ export default function PlanPage() {
           {showPeptides && <PeptidesSection />}
         </>
       )}
-      <Modals />
+      {modals}
     </div>
   );
 
