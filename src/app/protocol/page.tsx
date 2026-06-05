@@ -549,7 +549,10 @@ export default function PlanPage() {
       key: 'as_needed',
       label: lang === 'es' ? 'Según necesidad' : 'As needed',
       hint: lang === 'es' ? 'No tienen que ser diarios por diseño.' : 'Not necessarily daily by design.',
-      items: supplements.filter(s => s.frequency === 'as_needed' || s.frequency === 'high_stress_only' || s.frequency === 'cycling'),
+      items: supplements.filter(s => {
+        const knownTiming = ['morning', 'with_food', 'midday', 'evening', 'before_bed', 'before_training', 'after_training'].includes(s.timing || '');
+        return !knownTiming && (s.frequency === 'as_needed' || s.frequency === 'high_stress_only' || s.frequency === 'cycling');
+      }),
     },
     {
       key: 'other',
