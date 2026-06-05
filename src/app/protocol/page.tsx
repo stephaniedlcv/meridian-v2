@@ -298,6 +298,8 @@ export default function PlanPage() {
 
   // ── Modals ─────────────────────────────────────────────────────────────────
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  const [showGlp1History, setShowGlp1History] = useState(false);
+  const [selectedGlp1Note, setSelectedGlp1Note] = useState<string | null>(null);
 
   // ── New supplement form state ──────────────────────────────────────────────
   const [newSupp, setNewSupp] = useState({ name: '', brand: '', dose: '', dose_unit: 'mg', frequency: 'daily', timing: 'morning', notes: '' });
@@ -619,7 +621,42 @@ export default function PlanPage() {
                     <form onSubmit={handleMedSubmit}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', margin: '14px 0 12px' }}>
                         <Field label={lang === 'es' ? 'Fecha' : 'Date'}>
-                          <input ref={dateInputRef} type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} required />
+                          <div style={{ position: 'relative' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                try { dateInputRef.current?.showPicker?.(); } catch {}
+                              }}
+                              style={{
+                                width: '100%',
+                                minHeight: '42px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '10px',
+                                border: `1px solid ${C.cardBorder}`,
+                                background: 'rgba(6,19,22,0.62)',
+                                color: C.text,
+                                borderRadius: '12px',
+                                padding: '11px 13px',
+                                fontSize: '13px',
+                                fontFamily: F.ui,
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                              }}
+                            >
+                              <span>{date ? fmtDate(date, lang) : (lang === 'es' ? 'Seleccionar fecha' : 'Select date')}</span>
+                              <span style={{ color: C.teal, fontSize: '14px' }}>◷</span>
+                            </button>
+                            <input
+                              ref={dateInputRef}
+                              type="date"
+                              value={date}
+                              onChange={e => setDate(e.target.value)}
+                              style={{ position: 'absolute', opacity: 0, width: 1, height: 1, pointerEvents: 'none', bottom: 0, left: 0 }}
+                              required
+                            />
+                          </div>
                         </Field>
                         <Field label={lang === 'es' ? 'Dosis' : 'Dose'}>
                           <select value={dose} onChange={e => setDose(Number(e.target.value))} style={inputStyle}>
@@ -659,14 +696,51 @@ export default function PlanPage() {
                 {lang === 'es' ? 'Historial reciente' : 'Recent history'}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {entries.slice(0, 5).map(e => (
+                {entries.slice(0, 3).map(e => (
                   <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: 'rgba(6,19,22,0.35)', border: `0.5px solid ${C.cardBorder}`, borderRadius: '10px' }}>
                     <span style={{ fontSize: '13px', fontWeight: 600, color: C.text, flex: 1 }}>{fmtDate(e.date, lang)}</span>
                     <span style={{ fontSize: '12px', color: C.textMuted }}>{getSiteShort(e.site, lang)}</span>
                     <span style={{ padding: '3px 10px', borderRadius: '20px', border: '0.5px solid rgba(103,232,249,0.22)', background: 'rgba(103,232,249,0.07)', fontSize: '12px', fontWeight: 700, color: C.cyan }}>{Number(e.dose)} mg</span>
-                    {e.notes && <span style={{ fontSize: '11px', color: C.textMuted, maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes}</span>}
+                    <button
+                      type="button"
+                      onClick={() => e.notes && setSelectedGlp1Note(e.notes)}
+                      title={e.notes ? (lang === 'es' ? 'Ver nota' : 'View note') : (lang === 'es' ? 'Sin nota' : 'No note')}
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '999px',
+                        border: `0.5px solid ${e.notes ? 'rgba(45,212,191,0.35)' : C.cardBorder}`,
+                        background: e.notes ? 'rgba(45,212,191,0.08)' : 'rgba(6,19,22,0.25)',
+                        color: e.notes ? C.teal : C.textMuted,
+                        cursor: e.notes ? 'pointer' : 'default',
+                        fontSize: '13px',
+                        fontFamily: F.ui,
+                      }}
+                    >
+                      ✎
+                    </button>
                   </div>
                 ))}
+                {entries.length > 3 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowGlp1History(true)}
+                    style={{
+                      alignSelf: 'flex-start',
+                      marginTop: '4px',
+                      padding: '8px 0',
+                      background: 'transparent',
+                      border: 'none',
+                      color: C.teal,
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      fontFamily: F.ui,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {lang === 'es' ? 'Ver historial completo →' : 'View full history →'}
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -908,6 +982,46 @@ export default function PlanPage() {
           {showPeptides && <PeptidesSection />}
         </>
       )}
+      {showGlp1History && (
+        <Modal title={lang === 'es' ? 'Historial GLP-1' : 'GLP-1 History'} onClose={() => setShowGlp1History(false)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '62vh', overflowY: 'auto', paddingRight: '2px' }}>
+            {entries.map(e => (
+              <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: 'rgba(6,19,22,0.35)', border: `0.5px solid ${C.cardBorder}`, borderRadius: '12px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: C.text, flex: 1 }}>{fmtDate(e.date, lang)}</span>
+                <span style={{ fontSize: '12px', color: C.textMuted }}>{getSiteShort(e.site, lang)}</span>
+                <span style={{ padding: '3px 10px', borderRadius: '20px', border: '0.5px solid rgba(103,232,249,0.22)', background: 'rgba(103,232,249,0.07)', fontSize: '12px', fontWeight: 700, color: C.cyan }}>{Number(e.dose)} mg</span>
+                <button
+                  type="button"
+                  onClick={() => e.notes && setSelectedGlp1Note(e.notes)}
+                  title={e.notes ? (lang === 'es' ? 'Ver nota' : 'View note') : (lang === 'es' ? 'Sin nota' : 'No note')}
+                  style={{
+                    width: '30px',
+                    height: '30px',
+                    borderRadius: '999px',
+                    border: `0.5px solid ${e.notes ? 'rgba(45,212,191,0.35)' : C.cardBorder}`,
+                    background: e.notes ? 'rgba(45,212,191,0.08)' : 'rgba(6,19,22,0.25)',
+                    color: e.notes ? C.teal : C.textMuted,
+                    cursor: e.notes ? 'pointer' : 'default',
+                    fontSize: '13px',
+                    fontFamily: F.ui,
+                  }}
+                >
+                  ✎
+                </button>
+              </div>
+            ))}
+          </div>
+        </Modal>
+      )}
+
+      {selectedGlp1Note && (
+        <Modal title={lang === 'es' ? 'Nota de registro' : 'Entry note'} onClose={() => setSelectedGlp1Note(null)}>
+          <p style={{ margin: 0, color: C.text, fontSize: '14px', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+            {selectedGlp1Note}
+          </p>
+        </Modal>
+      )}
+
       {modals}
     </div>
   );
