@@ -4309,7 +4309,7 @@ export default function LabsUploadPage() {
                         return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
                       })
                       return (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: isDesktop ? '24px' : '12px', marginBottom: '24px' }}>
                           {groups.map(([panel, markers], gi) => {
                             const realFlagCount = markers.filter(b => b.flag_error && Number.isFinite(b.value) && !isLikelyQualitativeUrinalysis(b.name)).length
                             return (
@@ -4405,7 +4405,7 @@ export default function LabsUploadPage() {
               {/* Connected Insights expanded panel */}
               {labsView === 'snapshot' && hasRecentLabs && moreInsightsExpanded && connectedInsights.length > 0 && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ overflow: 'hidden', borderBottom: `1px solid ${colors.cardBorder}`, backgroundColor: 'rgba(6,19,22,0.9)', backdropFilter: 'blur(20px)' }}>
-                  <div style={{ padding: '16px 36px 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '12px' }}>
+                  <div style={{ padding: '16px 36px 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: isDesktop ? '24px' : '12px' }}>
                     {connectedInsights.map(insight => (
                       <div key={insight.id} style={{ padding: '16px 18px', backgroundColor: colors.cardBg, border: `1px solid ${insight.borderColor}`, borderRadius: '14px' }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
@@ -4502,7 +4502,7 @@ export default function LabsUploadPage() {
 
                   {/* 2-col grid */}
                   {!activeFilter && currentMarkerGroups.length > 0 && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', alignItems: 'start' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: isDesktop ? '24px' : '12px', alignItems: 'start' }}>
                       <div>{leftCol.map(g => <PanelCard key={g.key} group={g} />)}</div>
                       <div>{rightCol.map(g => <PanelCard key={g.key} group={g} />)}</div>
                     </div>
