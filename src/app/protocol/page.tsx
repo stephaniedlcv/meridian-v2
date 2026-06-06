@@ -14,6 +14,7 @@ import { useMeridianLanguage } from '@/lib/i18n';
 type InjectionSite = 'abdomen_left' | 'abdomen_right' | 'thigh_left' | 'thigh_right';
 type AppLanguage = 'es' | 'en';
 type ActiveModal = 'medication' | 'supplement' | 'peptide' | null;
+type PlanTab = 'today' | 'stack' | 'protocols' | 'training';
 
 type TirzepatideEntry = {
   id: string;
@@ -298,6 +299,7 @@ export default function PlanPage() {
 
   // ── Modals ─────────────────────────────────────────────────────────────────
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  const [activePlanTab, setActivePlanTab] = useState<PlanTab>('today');
   const [showGlp1History, setShowGlp1History] = useState(false);
   const [selectedGlp1Note, setSelectedGlp1Note] = useState<string | null>(null);
 
@@ -581,6 +583,101 @@ export default function PlanPage() {
           ))}
         </div>
       </div>
+    </div>
+  );
+
+  const activeSupplementCount = supplements.filter(s => s.active).length;
+  const protocolCount = medications.length + entries.length + peptides.filter(p => p.cycle_active).length;
+
+  const planTabs: Array<{ key: PlanTab; label: string; hint: string; count?: number }> = [
+    {
+      key: 'today',
+      label: lang === 'es' ? 'Today' : 'Today',
+      hint: lang === 'es' ? 'Resumen diario' : 'Daily home',
+    },
+    {
+      key: 'stack',
+      label: lang === 'es' ? 'Stack' : 'Stack',
+      hint: lang === 'es' ? 'Suplementos' : 'Supplements',
+      count: activeSupplementCount,
+    },
+    {
+      key: 'protocols',
+      label: lang === 'es' ? 'Protocols' : 'Protocols',
+      hint: lang === 'es' ? 'Meds + péptidos' : 'Meds + peptides',
+      count: protocolCount,
+    },
+    {
+      key: 'training',
+      label: lang === 'es' ? 'Training' : 'Training',
+      hint: lang === 'es' ? 'Programa' : 'Program',
+    },
+  ];
+
+  const PlanSectionNav = () => (
+    <div
+      style={{
+        marginBottom: '26px',
+        padding: '6px',
+        borderRadius: '18px',
+        border: `1px solid ${C.cardBorder}`,
+        background: 'rgba(6,19,22,0.45)',
+        display: 'grid',
+        gridTemplateColumns: isDesktop ? 'repeat(4, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))',
+        gap: '6px',
+        boxShadow: '0 14px 34px rgba(0,0,0,0.12)',
+      }}
+    >
+      {planTabs.map(tab => {
+        const active = activePlanTab === tab.key;
+        return (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActivePlanTab(tab.key)}
+            style={{
+              border: `0.5px solid ${active ? 'rgba(45,212,191,0.35)' : 'transparent'}`,
+              background: active
+                ? 'linear-gradient(135deg, rgba(45,212,191,0.14) 0%, rgba(103,232,249,0.07) 100%)'
+                : 'transparent',
+              color: active ? C.text : C.textMuted,
+              borderRadius: '13px',
+              padding: isDesktop ? '12px 13px' : '11px 10px',
+              cursor: 'pointer',
+              fontFamily: F.ui,
+              textAlign: 'left',
+              transition: 'all 160ms ease',
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '3px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 850, letterSpacing: '-0.01em' }}>{tab.label}</span>
+              {typeof tab.count === 'number' && tab.count > 0 && (
+                <span
+                  style={{
+                    minWidth: '20px',
+                    height: '20px',
+                    padding: '0 7px',
+                    borderRadius: '999px',
+                    background: active ? 'rgba(45,212,191,0.16)' : 'rgba(232,248,245,0.055)',
+                    color: active ? C.teal : C.textMuted,
+                    border: `0.5px solid ${active ? 'rgba(45,212,191,0.28)' : C.cardBorder}`,
+                    fontSize: '10px',
+                    fontWeight: 850,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </span>
+            <span style={{ fontSize: '10px', color: active ? C.textSoft : C.textMuted, fontWeight: 650 }}>
+              {tab.hint}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 
@@ -1132,6 +1229,143 @@ export default function PlanPage() {
     </div>
   );
 
+  const todayCards = [
+    {
+      key: 'stack',
+      label: lang === 'es' ? 'Stack' : 'Stack',
+      title: activeSupplementCount > 0
+        ? `${activeSupplementCount} ${lang === 'es' ? 'activos' : 'active'}`
+        : (lang === 'es' ? 'Sin suplementos' : 'No supplements'),
+      detail: lang === 'es' ? 'Organiza tu ritmo diario y restock.' : 'Organize your daily rhythm and restock.',
+      action: lang === 'es' ? 'Ver stack' : 'View stack',
+      tab: 'stack' as PlanTab,
+    },
+    {
+      key: 'protocols',
+      label: lang === 'es' ? 'Protocols' : 'Protocols',
+      title: protocolCount > 0
+        ? `${protocolCount} ${lang === 'es' ? 'registros' : 'records'}`
+        : (lang === 'es' ? 'Sin protocolos' : 'No protocols'),
+      detail: lang === 'es' ? 'Meds, GLP-1, péptidos y tratamientos si aplican.' : 'Meds, GLP-1, peptides, and treatments if they apply.',
+      action: lang === 'es' ? 'Ver protocolos' : 'View protocols',
+      tab: 'protocols' as PlanTab,
+    },
+    {
+      key: 'training',
+      label: lang === 'es' ? 'Training' : 'Training',
+      title: lang === 'es' ? 'Builder listo' : 'Builder ready',
+      detail: lang === 'es' ? 'Crea una estructura semanal personalizada.' : 'Create a custom weekly structure.',
+      action: lang === 'es' ? 'Ver training' : 'View training',
+      tab: 'training' as PlanTab,
+    },
+  ];
+
+  const todaySection = (
+    <div style={{ marginBottom: '32px' }}>
+      <div
+        style={{
+          marginBottom: '18px',
+          padding: isDesktop ? '22px' : '18px',
+          borderRadius: '22px',
+          border: `1px solid ${C.cardBorder}`,
+          background: 'linear-gradient(135deg, rgba(45,212,191,0.09) 0%, rgba(6,19,22,0.66) 48%, rgba(103,232,249,0.055) 100%)',
+          boxShadow: '0 18px 48px rgba(0,0,0,0.16)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: '-90px',
+            right: '-80px',
+            width: '210px',
+            height: '210px',
+            borderRadius: '999px',
+            background: 'radial-gradient(circle, rgba(45,212,191,0.14) 0%, transparent 68%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ width: '7px', height: '7px', borderRadius: '999px', background: C.teal, boxShadow: `0 0 12px ${C.teal}` }} />
+            <span style={{ fontSize: '10px', fontWeight: 850, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.teal }}>
+              {lang === 'es' ? 'Home de Plan' : 'Plan home'}
+            </span>
+          </div>
+          <h2 style={{ fontFamily: F.heading, fontSize: isDesktop ? '24px' : '21px', lineHeight: 1.12, letterSpacing: '-0.035em', color: C.text, margin: '0 0 8px' }}>
+            {lang === 'es' ? 'Tu ritmo de hoy, en un solo lugar.' : 'Today’s rhythm, in one place.'}
+          </h2>
+          <p style={{ fontSize: '13px', color: C.textSoft, margin: 0, lineHeight: 1.6, maxWidth: '680px' }}>
+            {lang === 'es'
+              ? 'Today reúne lo que aplica: stack, protocolos, entrenamiento y alertas futuras de restock. Si algo no aplica, Meridian no lo fuerza.'
+              : 'Today brings together what applies: stack, protocols, training, and future restock alerts. If something does not apply, Meridian does not force it.'}
+          </p>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(3, minmax(0, 1fr))' : '1fr', gap: '12px' }}>
+        {todayCards.map(card => (
+          <button
+            key={card.key}
+            type="button"
+            onClick={() => setActivePlanTab(card.tab)}
+            style={{
+              padding: '16px',
+              borderRadius: '18px',
+              border: `1px solid ${C.cardBorder}`,
+              background: 'rgba(6,19,22,0.38)',
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontFamily: F.ui,
+              boxShadow: '0 14px 34px rgba(0,0,0,0.12)',
+            }}
+          >
+            <span style={{ fontSize: '10px', fontWeight: 850, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.textMuted, display: 'block', marginBottom: '8px' }}>
+              {card.label}
+            </span>
+            <span style={{ fontFamily: F.heading, fontSize: '20px', fontWeight: 750, color: C.text, display: 'block', marginBottom: '6px', letterSpacing: '-0.03em' }}>
+              {card.title}
+            </span>
+            <span style={{ fontSize: '12px', color: C.textSoft, lineHeight: 1.5, display: 'block', marginBottom: '14px' }}>
+              {card.detail}
+            </span>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: C.teal }}>
+              {card.action} →
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div style={{ marginTop: '14px', padding: '14px 15px', borderRadius: '16px', border: `0.5px solid ${C.cardBorder}`, background: 'rgba(6,19,22,0.28)' }}>
+        <p style={{ margin: 0, fontSize: '12px', color: C.textSoft, lineHeight: 1.55 }}>
+          {lang === 'es'
+            ? 'Próximo: aquí aparecerán acciones del día, alertas de inventario y recordatorios suaves según lo que el usuario configure.'
+            : 'Next: this will show daily actions, inventory alerts, and gentle reminders based on what the user configures.'}
+        </p>
+      </div>
+    </div>
+  );
+
+  const protocolsSection = (
+    <div style={{ marginBottom: '32px' }}>
+      {!showMedications && !showPeptides ? (
+        <EmptyCard
+          text={lang === 'es'
+            ? 'No hay protocolos activos. Añade medicamentos, tratamientos o péptidos solo si aplican.'
+            : 'No active protocols. Add medications, treatments, or peptides only if they apply.'}
+          cta={lang === 'es' ? 'Añadir protocolo' : 'Add protocol'}
+          onCta={() => setActiveModal('medication')}
+        />
+      ) : (
+        <>
+          {showMedications && medicationsSection}
+          {showPeptides && <PeptidesSection />}
+        </>
+      )}
+    </div>
+  );
+
   // ── Nothing active empty state ─────────────────────────────────────────────
 
   const NothingActive = () => (
@@ -1296,16 +1530,11 @@ export default function PlanPage() {
         </div>
       ) : (
         <>
-          {nothingActive ? (
-            <NothingActive />
-          ) : (
-            <>
-              {supplementsSection}
-              {showMedications && medicationsSection}
-              {showPeptides && <PeptidesSection />}
-            </>
-          )}
-          {trainingProgramSection}
+          <PlanSectionNav />
+          {activePlanTab === 'today' && todaySection}
+          {activePlanTab === 'stack' && supplementsSection}
+          {activePlanTab === 'protocols' && protocolsSection}
+          {activePlanTab === 'training' && trainingProgramSection}
         </>
       )}
       {showGlp1History && (
