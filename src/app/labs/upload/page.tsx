@@ -4309,7 +4309,7 @@ export default function LabsUploadPage() {
                         return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
                       })
                       return (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: isDesktop ? '24px' : '12px', marginBottom: '24px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: isDesktop ? '24px' : '12px', rowGap: isDesktop ? '24px' : '12px', marginBottom: '24px' }}>
                           {groups.map(([panel, markers], gi) => {
                             const realFlagCount = markers.filter(b => b.flag_error && Number.isFinite(b.value) && !isLikelyQualitativeUrinalysis(b.name)).length
                             return (
