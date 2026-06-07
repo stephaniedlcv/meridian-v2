@@ -349,6 +349,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY!,
         'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'pdfs-2024-09-25',
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
@@ -377,9 +378,18 @@ export async function POST(request: NextRequest) {
 
     if (!anthropicResponse.ok) {
       const errorText = await anthropicResponse.text()
-      console.error('Claude API error:', errorText)
+      const errorId = Date.now().toString(36)
+
+      console.error(
+        `[ocr:${errorId}] Anthropic API error — status: ${anthropicResponse.status}, body: ${errorText.slice(0, 300)}`
+      )
+
       return NextResponse.json(
-        { success: false, error: 'Failed to process PDF with Claude API' },
+        {
+          success: false,
+          error: 'Failed to process PDF with Claude API',
+          error_id: errorId,
+        },
         { status: 500 }
       )
     }
@@ -683,9 +693,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response)
   } catch (error) {
-    console.error('OCR Pipeline error:', error)
+    const errorId = Date.now().toString(36)
+    const message = error instanceof Error ? error.message : String(error)
+
+    // Never log request body/PDF base64 or secrets.
+    console.error(`[ocr:${errorId}] Pipeline error:`, message)
+
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      {
+        success: false,
+        error: 'Internal server error',
+        error_id: errorId,
+      },
       { status: 500 }
     )
   }
