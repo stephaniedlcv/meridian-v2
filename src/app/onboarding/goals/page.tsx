@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { motion } from 'framer-motion'
 import { getNextOnboardingStep } from '@/lib/onboarding'
+import { useMeridianLanguage } from '@/lib/i18n'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,22 +32,61 @@ type GoalValue =
   | 'claridad'
   | 'condicion'
 
-const goals: Array<{ label: string; value: GoalValue; subtext: string }> = [
-  { label: 'Just getting started', value: 'primer_paso',   subtext: 'Beginning my health journey' },
-  { label: 'Energy & vitality',    value: 'bienestar',     subtext: 'Feel better, day to day' },
-  { label: 'Optimization',         value: 'optimizacion',  subtext: "Fine-tune what's already good" },
-  { label: 'Peak performance',     value: 'rendimiento',   subtext: 'Push physical and mental limits' },
-  { label: 'Longevity',            value: 'longevidad',    subtext: 'Investing in long-term health' },
-  { label: 'Clarity & focus',      value: 'claridad',      subtext: 'Cognitive performance and mood' },
-  { label: 'Specific condition',   value: 'condicion',     subtext: 'Monitoring something specific' },
-]
-
 export default function GoalsPage() {
   const router = useRouter()
+  const [lang] = useMeridianLanguage()
   const [userId, setUserId]               = useState<string | null>(null)
   const [selectedGoals, setSelectedGoals] = useState<GoalValue[]>([])
   const [loading, setLoading]             = useState(false)
   const [error, setError]                 = useState('')
+
+  const copy = lang === 'es'
+    ? {
+        step: 'Modo Meridian · Paso 3 de 5',
+        title: '¿Hacia qué estás trabajando?',
+        subtitle: 'Selecciona todo lo que aplique. Meridian balanceará la guía según tus metas.',
+        note: 'Podrás cambiar esto luego desde Perfil.',
+        section: 'Tus metas',
+        selected: 'seleccionada',
+        selectedPlural: 'seleccionadas',
+        chooseOne: 'Escoge al menos una meta para continuar.',
+        saving: 'Guardando...',
+        continue: 'Continuar →',
+        continueWith: (count: number) => `Continuar con ${count} ${count === 1 ? 'meta' : 'metas'} →`,
+      }
+    : {
+        step: 'Meridian Mode · Step 3 of 5',
+        title: 'What are you working toward?',
+        subtitle: 'Select everything that applies — Meridian will balance guidance across all your goals.',
+        note: 'You can change this later from Profile.',
+        section: 'Your goals',
+        selected: 'selected',
+        selectedPlural: 'selected',
+        chooseOne: 'Choose at least one goal to continue.',
+        saving: 'Saving...',
+        continue: 'Continue →',
+        continueWith: (count: number) => `Continue with ${count} goal${count > 1 ? 's' : ''} →`,
+      }
+
+  const goals: Array<{ label: string; value: GoalValue; subtext: string }> = lang === 'es'
+    ? [
+        { label: 'Estoy comenzando',        value: 'primer_paso',   subtext: 'Iniciando mi camino de salud' },
+        { label: 'Energía y bienestar',     value: 'bienestar',     subtext: 'Sentirme mejor día a día' },
+        { label: 'Optimización',            value: 'optimizacion',  subtext: 'Afinar lo que ya está bien' },
+        { label: 'Rendimiento alto',        value: 'rendimiento',   subtext: 'Llevar mi capacidad física y mental más lejos' },
+        { label: 'Longevidad',              value: 'longevidad',    subtext: 'Invertir en salud a largo plazo' },
+        { label: 'Claridad y enfoque',      value: 'claridad',      subtext: 'Rendimiento cognitivo y estado de ánimo' },
+        { label: 'Condición específica',    value: 'condicion',     subtext: 'Monitorear algo específico' },
+      ]
+    : [
+        { label: 'Just getting started', value: 'primer_paso',   subtext: 'Beginning my health journey' },
+        { label: 'Energy & vitality',    value: 'bienestar',     subtext: 'Feel better, day to day' },
+        { label: 'Optimization',         value: 'optimizacion',  subtext: "Fine-tune what's already good" },
+        { label: 'Peak performance',     value: 'rendimiento',   subtext: 'Push physical and mental limits' },
+        { label: 'Longevity',            value: 'longevidad',    subtext: 'Investing in long-term health' },
+        { label: 'Clarity & focus',      value: 'claridad',      subtext: 'Cognitive performance and mood' },
+        { label: 'Specific condition',   value: 'condicion',     subtext: 'Monitoring something specific' },
+      ]
 
   useEffect(() => {
     let isMounted = true
@@ -79,7 +119,7 @@ export default function GoalsPage() {
 
   async function handleContinue() {
     if (!userId || selectedGoals.length === 0) {
-      setError('Choose at least one goal to continue.')
+      setError(copy.chooseOne)
       return
     }
     setLoading(true)
@@ -136,7 +176,7 @@ export default function GoalsPage() {
             borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
-            Meridian Mode · Step 3 of 4
+            {copy.step}
           </div>
         </div>
 
@@ -160,25 +200,25 @@ export default function GoalsPage() {
               lineHeight: 1.1, letterSpacing: '-0.04em',
               color: colors.text, fontWeight: 700,
             }}>
-              What are you working toward?
+              {copy.title}
             </h1>
             <p style={{ margin: '0 0 4px', color: colors.textSoft, fontSize: '14px', lineHeight: 1.6 }}>
-              Select everything that applies — Meridian will balance guidance across all your goals.
+              {copy.subtitle}
             </p>
             <p style={{ margin: 0, color: colors.textMuted, fontSize: '12px', lineHeight: 1.5 }}>
-              You can change this later from Profile.
+              {copy.note}
             </p>
           </div>
 
           {/* Section label */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
             <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
-              Your goals
+              {copy.section}
             </span>
             <div style={{ flex: 1, height: '1px', background: colors.cardBorder }} />
             {selectedGoals.length > 0 && (
               <span style={{ fontSize: '11px', fontWeight: 600, color: colors.teal, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
-                {selectedGoals.length} selected
+                {selectedGoals.length} {selectedGoals.length === 1 ? copy.selected : copy.selectedPlural}
               </span>
             )}
           </div>
@@ -255,9 +295,9 @@ export default function GoalsPage() {
               transition: 'box-shadow 200ms ease, background 200ms ease',
             }}
           >
-            {loading ? 'Saving...' : selectedGoals.length > 0
-              ? `Continue with ${selectedGoals.length} goal${selectedGoals.length > 1 ? 's' : ''} →`
-              : 'Continue →'
+            {loading ? copy.saving : selectedGoals.length > 0
+              ? copy.continueWith(selectedGoals.length)
+              : copy.continue
             }
           </button>
         </div>
