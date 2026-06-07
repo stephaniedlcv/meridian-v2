@@ -1,5 +1,6 @@
 'use client'
 
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env';
 import { useEffect, useRef, useState } from 'react'
 import { useMeridianLanguage, type MeridianLanguage } from '../../lib/i18n'
 import { useRouter } from 'next/navigation'
@@ -151,8 +152,8 @@ function displayWeight(kg: number): string {
 export default function ProfilePage() {
   const router = useRouter()
   const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+    getSupabaseUrl(),
+    getSupabasePublishableKey()
   )
   const fileInputRef = useRef<HTMLInputElement>(null)
 

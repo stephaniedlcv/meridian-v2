@@ -1,5 +1,6 @@
 'use client'
 
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env';
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
@@ -1959,8 +1960,8 @@ export default function LabsUploadPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+    getSupabaseUrl(),
+    getSupabasePublishableKey()
   )
 
   // ── Existing upload-flow state (unchanged) ───────────────────────────────────

@@ -1,5 +1,6 @@
 'use client'
 
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env';
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
@@ -793,8 +794,8 @@ export default function DashboardPage() {
   const [lang]   = useMeridianLanguage()
   const isDesktop = useIsDesktop()
   const supabase = useMemo(() => createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+    getSupabaseUrl(),
+    getSupabasePublishableKey()
   ), [])
 
   const [loading,          setLoading]          = useState(true)
