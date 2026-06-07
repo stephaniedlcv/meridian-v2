@@ -38,11 +38,11 @@ export default function MiniTrendCard({
       style={{
         position: 'relative',
         overflow: 'hidden',
-        borderRadius: '18px',
+        borderRadius: '16px',
         border: '1px solid rgba(103,232,249,0.13)',
         background: 'rgba(232,248,245,0.045)',
-        padding: '15px',
-        minHeight: '132px',
+        padding: '12px',
+        minHeight: '108px',
       }}
     >
       <div
@@ -57,13 +57,13 @@ export default function MiniTrendCard({
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
           <div>
-            <p style={{ margin: 0, fontSize: '11px', color: '#5F8E85', fontWeight: 700 }}>
+            <p style={{ margin: 0, fontSize: '10px', color: '#5F8E85', fontWeight: 800, letterSpacing: '0.02em' }}>
               {label}
             </p>
             <p
               style={{
-                margin: '6px 0 0',
-                fontSize: '24px',
+                margin: '4px 0 0',
+                fontSize: '22px',
                 color: '#EAFBF7',
                 fontWeight: 800,
                 letterSpacing: '-0.05em',
@@ -76,7 +76,7 @@ export default function MiniTrendCard({
         </div>
 
         {delta && (
-          <p style={{ margin: '8px 0 0', color: '#9ACBC1', fontSize: '11px', fontWeight: 600 }}>
+          <p style={{ margin: '6px 0 0', color: '#9ACBC1', fontSize: '10.5px', fontWeight: 600 }}>
             {delta}
           </p>
         )}
@@ -84,7 +84,9 @@ export default function MiniTrendCard({
         <svg
           viewBox="0 0 100 34"
           preserveAspectRatio="none"
-          style={{ width: '100%', height: '38px', marginTop: '10px', display: 'block' }}
+          aria-hidden="true"
+          focusable="false"
+          style={{ width: '100%', height: '28px', marginTop: '6px', display: 'block', pointerEvents: 'none' }}
         >
           <polyline
             points={polyline}
