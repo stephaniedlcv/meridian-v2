@@ -451,21 +451,22 @@ function PulseCard({
         <h2 style={{
           margin: 0,
           fontFamily: fonts.heading,
-          fontSize: 'clamp(30px, 4vw, 48px)',
-          lineHeight: 1.02,
-          letterSpacing: '-0.055em',
+          fontSize: 'clamp(26px, 3vw, 38px)',
+          lineHeight: 1.08,
+          letterSpacing: '-0.045em',
           color: colors.text,
-          maxWidth: '760px',
+          maxWidth: '700px',
+          textShadow: `0 0 26px ${copy.accent}18`,
         }}>
           {copy.title}
         </h2>
 
         <p style={{
-          margin: '16px 0 0',
-          fontSize: '15px',
-          lineHeight: 1.7,
+          margin: '14px 0 0',
+          fontSize: '14px',
+          lineHeight: 1.65,
           color: colors.textSoft,
-          maxWidth: '760px',
+          maxWidth: '720px',
         }}>
           {copy.body}
         </p>
