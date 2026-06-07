@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { motion } from 'framer-motion'
 import { getNextOnboardingStep } from '@/lib/onboarding'
+import { useMeridianLanguage } from '@/lib/i18n'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -47,6 +48,7 @@ const CalendarIcon = () => (
 
 export default function IdentityPage() {
   const router = useRouter()
+  const [lang] = useMeridianLanguage()
 
   const [userId, setUserId]         = useState<string | null>(null)
   const [firstName, setFirstName]   = useState('')
@@ -55,6 +57,64 @@ export default function IdentityPage() {
   const [bioProfile, setBioProfile] = useState<BioProfile>(null)
   const [loading, setLoading]       = useState(false)
   const [error, setError]           = useState('')
+
+  const copy = lang === 'es'
+    ? {
+        step: 'Contexto personal · Paso 1 de 4',
+        title: 'Personaliza Meridian',
+        subtitle: 'Ayuda a Meridian a entender tu contexto antes de interpretar tus señales.',
+        profileNote: 'Podrás actualizar esto luego desde Perfil.',
+        identitySection: 'Tu identidad',
+        firstName: 'Nombre',
+        lastName: 'Apellido',
+        firstPlaceholder: 'Nombre',
+        lastPlaceholder: 'Apellido',
+        identityHelp: 'Personaliza tus insights de biomarcadores, reportes y continuidad del perfil.',
+        birthDate: 'Fecha de nacimiento',
+        birthDateHelp: 'Se usa para calcular rangos de referencia ajustados por edad para tus biomarcadores.',
+        biologicalProfile: 'Perfil biológico',
+        biologicalProfileHelp: 'Esto se refiere a tu biología, no a tu identidad. Meridian lo usa para rangos clínicos de referencia más precisos.',
+        femaleLabel: 'Biología femenina',
+        femaleSub: 'Rangos hormonales femeninos y contexto de ciclo',
+        maleLabel: 'Biología masculina',
+        maleSub: 'Rangos hormonales masculinos y seguimiento de PSA',
+        errors: {
+          firstName: 'El nombre es requerido.',
+          lastName: 'El apellido es requerido.',
+          birthDate: 'La fecha de nacimiento es requerida.',
+          biologicalProfile: 'El perfil biológico es requerido para calcular rangos de referencia precisos.',
+        },
+        saving: 'Guardando...',
+        continue: 'Continuar →',
+      }
+    : {
+        step: 'Personal Context · Step 1 of 4',
+        title: 'Personalize Meridian',
+        subtitle: 'Help Meridian understand your context before it interprets your signals.',
+        profileNote: 'You can update this later from Profile.',
+        identitySection: 'Your identity',
+        firstName: 'First name',
+        lastName: 'Last name',
+        firstPlaceholder: 'First',
+        lastPlaceholder: 'Last',
+        identityHelp: 'Personalizes your biomarker insights, reports, and profile continuity.',
+        birthDate: 'Date of birth',
+        birthDateHelp: 'Used to calculate age-adjusted reference ranges for your biomarkers.',
+        biologicalProfile: 'Biological profile',
+        biologicalProfileHelp: 'This is about your biology — not your identity. Meridian uses this for accurate clinical reference ranges.',
+        femaleLabel: 'Female biology',
+        femaleSub: 'Female hormonal ranges and cycle context',
+        maleLabel: 'Male biology',
+        maleSub: 'Male hormonal ranges and PSA tracking',
+        errors: {
+          firstName: 'First name is required.',
+          lastName: 'Last name is required.',
+          birthDate: 'Date of birth is required.',
+          biologicalProfile: 'Biological profile is required for accurate reference ranges.',
+        },
+        saving: 'Saving...',
+        continue: 'Continue →',
+      }
 
   useEffect(() => {
     let isMounted = true
@@ -84,10 +144,10 @@ export default function IdentityPage() {
 
   async function handleContinue() {
     if (!userId) return
-    if (!firstName.trim()) { setError('First name is required.'); return }
-    if (!lastName.trim())  { setError('Last name is required.'); return }
-    if (!birthDate)         { setError('Date of birth is required.'); return }
-    if (!bioProfile)        { setError('Biological profile is required for accurate reference ranges.'); return }
+    if (!firstName.trim()) { setError(copy.errors.firstName); return }
+    if (!lastName.trim())  { setError(copy.errors.lastName); return }
+    if (!birthDate)         { setError(copy.errors.birthDate); return }
+    if (!bioProfile)        { setError(copy.errors.biologicalProfile); return }
     setLoading(true)
     setError('')
     const { error: updateError } = await supabase
@@ -138,7 +198,7 @@ export default function IdentityPage() {
             borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
-            Personal Context · Step 1 of 4
+            {copy.step}
           </div>
         </div>
 
@@ -162,20 +222,20 @@ export default function IdentityPage() {
               lineHeight: 1.1, letterSpacing: '-0.04em',
               color: colors.text, fontWeight: 700,
             }}>
-              Personalize Meridian
+              {copy.title}
             </h1>
             <p style={{ margin: '0 0 4px', color: colors.textSoft, fontSize: '14px', lineHeight: 1.6 }}>
-              Help Meridian understand your context before it interprets your signals.
+              {copy.subtitle}
             </p>
             <p style={{ margin: 0, color: colors.textMuted, fontSize: '12px', lineHeight: 1.5 }}>
-              You can update this later from Profile.
+              {copy.profileNote}
             </p>
           </div>
 
           {/* ── Identity section ── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
             <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
-              Your identity
+              {copy.identitySection}
             </span>
             <div style={{ flex: 1, height: '1px', background: colors.cardBorder }} />
           </div>
@@ -187,42 +247,42 @@ export default function IdentityPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label htmlFor="first-name" style={{ display: 'block', color: colors.text, fontSize: '13px', fontWeight: 700, marginBottom: '7px', letterSpacing: '-0.01em' }}>
-                    First name
+                    {copy.firstName}
                   </label>
                   <input
                     id="first-name"
                     type="text"
                     value={firstName}
                     onChange={(e) => { setFirstName(e.target.value); if (error) setError('') }}
-                    placeholder="First"
+                    placeholder={copy.firstPlaceholder}
                     autoComplete="given-name"
                     style={inputBase}
                   />
                 </div>
                 <div>
                   <label htmlFor="last-name" style={{ display: 'block', color: colors.text, fontSize: '13px', fontWeight: 700, marginBottom: '7px', letterSpacing: '-0.01em' }}>
-                    Last name
+                    {copy.lastName}
                   </label>
                   <input
                     id="last-name"
                     type="text"
                     value={lastName}
                     onChange={(e) => { setLastName(e.target.value); if (error) setError('') }}
-                    placeholder="Last"
+                    placeholder={copy.lastPlaceholder}
                     autoComplete="family-name"
                     style={inputBase}
                   />
                 </div>
               </div>
               <p style={{ margin: '6px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
-                Personalizes your biomarker insights, reports, and profile continuity.
+                {copy.identityHelp}
               </p>
             </section>
 
             {/* Date of birth — premium presentation */}
             <section>
               <label htmlFor="birth-date" style={{ display: 'block', color: colors.text, fontSize: '13px', fontWeight: 700, marginBottom: '7px', letterSpacing: '-0.01em' }}>
-                Date of birth
+                {copy.birthDate}
               </label>
               <div style={{ position: 'relative' }}>
                 <div style={{
@@ -251,7 +311,7 @@ export default function IdentityPage() {
                 />
               </div>
               <p style={{ margin: '6px 0 0', color: colors.textMuted, fontSize: '12px', lineHeight: 1.45 }}>
-                Used to calculate age-adjusted reference ranges for your biomarkers.
+                {copy.birthDateHelp}
               </p>
             </section>
           </div>
@@ -259,19 +319,19 @@ export default function IdentityPage() {
           {/* ── Biological profile section ── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
             <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
-              Biological profile
+              {copy.biologicalProfile}
             </span>
             <div style={{ flex: 1, height: '1px', background: colors.cardBorder }} />
           </div>
 
           <p style={{ margin: '0 0 12px', color: colors.textMuted, fontSize: '12px', lineHeight: 1.5 }}>
-            This is about your biology — not your identity. Meridian uses this for accurate clinical reference ranges.
+            {copy.biologicalProfileHelp}
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '8px' }}>
             {([
-              { value: 'female' as const, label: 'Female biology',   sub: 'Female hormonal ranges and cycle context' },
-              { value: 'male'   as const, label: 'Male biology',     sub: 'Male hormonal ranges and PSA tracking' },
+              { value: 'female' as const, label: copy.femaleLabel, sub: copy.femaleSub },
+              { value: 'male'   as const, label: copy.maleLabel,   sub: copy.maleSub },
             ]).map((opt) => {
               const isOn = bioProfile === opt.value
               return (
@@ -335,7 +395,7 @@ export default function IdentityPage() {
               transition: 'box-shadow 200ms ease, background 200ms ease',
             }}
           >
-            {loading ? 'Saving...' : 'Continue →'}
+            {loading ? copy.saving : copy.continue}
           </button>
         </div>
       </motion.section>
