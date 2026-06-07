@@ -4320,7 +4320,11 @@ export default function LabsUploadPage() {
 
           {/* ── UPLOAD FLOW ── */}
           {inUploadFlow && (
-            <div style={{ padding: '36px 36px', maxWidth: '720px' }}>
+            <div style={{
+              padding: isDesktop ? '36px 44px 44px' : '28px 20px',
+              width: '100%',
+              maxWidth: 'none',
+            }}>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
                 <p style={{ fontSize: '14px', color: colors.textSoft, marginBottom: '20px', lineHeight: 1.6 }}>
                   {lang === 'es' ? 'Sube un PDF de tu laboratorio. Meridian extraerá tus biomarcadores automáticamente.' : 'Upload a PDF from your lab provider. Meridian will extract your biomarkers automatically.'}
@@ -4374,7 +4378,13 @@ export default function LabsUploadPage() {
                         return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
                       })
                       return (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: isDesktop ? '24px' : '12px', rowGap: isDesktop ? '36px' : '16px', marginBottom: '24px' }}>
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: isDesktop ? 'repeat(2, minmax(0, 1fr))' : '1fr',
+                          columnGap: isDesktop ? '24px' : '12px',
+                          rowGap: isDesktop ? '36px' : '16px',
+                          marginBottom: '24px',
+                        }}>
                           {groups.map(([panel, markers], gi) => {
                             const realFlagCount = markers.filter(b => b.flag_error && Number.isFinite(b.value) && !isLikelyQualitativeUrinalysis(b.name)).length
                             return (
@@ -4442,16 +4452,49 @@ export default function LabsUploadPage() {
 
               {confirmed && (
                 <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}
-                  style={{ position: 'relative', padding: '28px 24px 24px', backgroundColor: colors.optimal, border: `1px solid ${colors.optimalBorder}`, borderRadius: '16px' }}>
+                  style={{
+                    position: 'relative',
+                    padding: isDesktop ? '32px 36px 30px' : '28px 24px 24px',
+                    maxWidth: isDesktop ? '760px' : 'none',
+                    margin: isDesktop ? '0 auto' : undefined,
+                    backgroundColor: colors.optimal,
+                    border: `1px solid ${colors.optimalBorder}`,
+                    borderRadius: '16px',
+                  }}>
                   <button onClick={handleReset} style={{ position: 'absolute', top: '14px', right: '14px', width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'rgba(45,212,191,0.10)', border: '1px solid rgba(45,212,191,0.22)', color: colors.textMuted, fontSize: '13px', cursor: 'pointer', fontFamily: fonts.ui, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
                     <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(45,212,191,0.18)', border: '1px solid rgba(45,212,191,0.40)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px' }}>✓</div>
                     <div>
-                      <h2 style={{ fontFamily: fonts.heading, fontSize: '20px', fontWeight: 700, color: colors.text, margin: 0 }}>Lab saved</h2>
-                      <span style={{ fontSize: '12px', color: colors.textMuted }}>{savedCount > 0 && savedQualCount > 0 ? `${savedCount} biomarkers + ${savedQualCount} serology results saved` : savedQualCount > 0 ? `${savedQualCount} serology results saved` : `${savedCount} biomarkers added`}</span>
+                      <h2 style={{ fontFamily: fonts.heading, fontSize: '20px', fontWeight: 700, color: colors.text, margin: 0 }}>
+                        {lang === 'es' ? 'Laboratorio guardado' : 'Lab saved'}
+                      </h2>
+                      <span style={{ fontSize: '12px', color: colors.textMuted }}>
+                        {(() => {
+                          if (savedCount > 0 && savedQualCount > 0) {
+                            return lang === 'es'
+                              ? `${savedCount} ${savedCount === 1 ? 'biomarcador numérico' : 'biomarcadores numéricos'} + ${savedQualCount} ${savedQualCount === 1 ? 'resultado cualitativo' : 'resultados cualitativos'} guardados`
+                              : `${savedCount} ${savedCount === 1 ? 'numeric biomarker' : 'numeric biomarkers'} + ${savedQualCount} ${savedQualCount === 1 ? 'qualitative result' : 'qualitative results'} saved`
+                          }
+                          if (savedQualCount > 0) {
+                            return lang === 'es'
+                              ? `${savedQualCount} ${savedQualCount === 1 ? 'resultado cualitativo guardado' : 'resultados cualitativos guardados'}`
+                              : `${savedQualCount} ${savedQualCount === 1 ? 'qualitative result saved' : 'qualitative results saved'}`
+                          }
+                          return lang === 'es'
+                            ? `${savedCount} ${savedCount === 1 ? 'biomarcador añadido' : 'biomarcadores añadidos'}`
+                            : `${savedCount} ${savedCount === 1 ? 'biomarker added' : 'biomarkers added'}`
+                        })()}
+                      </span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+
+                  <p style={{ fontSize: '13px', color: colors.textSoft, margin: '18px 0 0', lineHeight: 1.65 }}>
+                    {lang === 'es'
+                      ? 'Los resultados confirmados se añadieron a tu historial. Si esta misma visita incluyó más de un PDF, puedes subir el siguiente archivo ahora.'
+                      : 'Confirmed results were added to your history. If this lab visit included more than one PDF, you can upload the next file now.'}
+                  </p>
+
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '22px', flexWrap: isDesktop ? 'nowrap' : 'wrap' }}>
                     <motion.button onClick={() => { handleReset(); setTimeout(() => fileInputRef.current?.click(), 60) }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                       style={{ flex: 1, padding: '12px 16px', background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`, border: 'none', borderRadius: '10px', color: colors.background, fontFamily: fonts.ui, fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
                       {lang === 'es' ? 'Subir otro PDF' : 'Upload another PDF'}
