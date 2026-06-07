@@ -87,21 +87,18 @@ export async function POST(request: NextRequest) {
 
     const collectedDate = collected_at || new Date().toISOString()
 
-    // Separate quantitative (fully parsed numeric) from qualitative (serology/urinalysis) markers.
-    // Both paths are valid for persistence; they differ only in which value column is populated.
+    // Current production schema only supports numeric biomarkers in biomarkers_static.
+    // Qualitative-only results are intentionally skipped here until the qualitative
+    // diagnostics schema is migrated. This prevents value/null and unknown-column
+    // insert failures from blocking numeric lab saves.
     const rows = (biomarkers as ConfirmedBiomarker[])
-      .filter(b => {
-        if (b.flag_error) return false
-        if (b.extraction_status === 'parsed') return true
-        if (b.extraction_status === 'qualitative_only') {
-          // Only persist qualitative values we explicitly recognise
-          return typeof b.qualitative_value === 'string' &&
-            VALID_QUALITATIVE_VALUES.has(b.qualitative_value)
-        }
-        return false
-      })
+      .filter(b =>
+        !b.flag_error &&
+        b.extraction_status === 'parsed' &&
+        typeof b.value === 'number' &&
+        Number.isFinite(b.value)
+      )
       .map(b => {
-        const isQualitative = b.extraction_status === 'qualitative_only'
         const normalizedState = normalizeState(b.state)
         if (normalizedState !== b.state) {
           console.warn('OCR state normalized before insert:', {
@@ -110,16 +107,16 @@ export async function POST(request: NextRequest) {
             normalizedState,
           })
         }
+
         return {
           user_id: context.user.id,
           marker_name:          b.slug,
-          value:                isQualitative ? null : b.value,
-          value_qualitative:    isQualitative ? b.qualitative_value : null,
-          unit:                 isQualitative ? '' : b.unit,
-          reference_range_min:  isQualitative ? null : b.reference_range_min,
-          reference_range_max:  isQualitative ? null : b.reference_range_max,
-          optimal_range_min:    isQualitative ? null : b.optimal_range_min,
-          optimal_range_max:    isQualitative ? null : b.optimal_range_max,
+          value:                b.value,
+          unit:                 b.unit,
+          reference_range_min:  b.reference_range_min,
+          reference_range_max:  b.reference_range_max,
+          optimal_range_min:    b.optimal_range_min,
+          optimal_range_max:    b.optimal_range_max,
           state:                normalizedState,
           collected_at:         collectedDate,
           source_pdf_url:       source_pdf_url || null,
@@ -148,8 +145,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const quantitative_count = rows.filter(r => r.value !== null).length
-    const qualitative_count  = rows.filter(r => r.value === null).length
+    const quantitative_count = rows.length
+    const qualitative_count  = 0
 
     return NextResponse.json({
       success:            true,
