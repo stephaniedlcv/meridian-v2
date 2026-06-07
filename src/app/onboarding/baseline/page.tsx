@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { motion } from 'framer-motion'
 import { getNextOnboardingStep } from '@/lib/onboarding'
+import { useMeridianLanguage } from '@/lib/i18n'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -117,45 +118,13 @@ type TrainingValue  = 0 | 1 | 3 | 5
 type GoalPhaseValue = 'recomposition' | 'fat_loss' | 'muscle_gain' | 'maintenance' | 'performance' | 'recovery'
 type DietValue      = 'omnivore' | 'high_protein' | 'mediterranean' | 'vegetarian' | 'vegan' | 'low_carb' | 'flexible'
 
-const ACTIVITY_OPTIONS: Array<{ value: ActivityValue; label: string }> = [
-  { value: 'desk',     label: 'Mostly desk-based'     },
-  { value: 'light',    label: 'Light daily movement'  },
-  { value: 'active',   label: 'Consistent training'   },
-  { value: 'athletic', label: 'Athletic lifestyle'     },
-]
-
-const TRAINING_OPTIONS: Array<{ value: TrainingValue; label: string }> = [
-  { value: 0, label: 'Not currently training' },
-  { value: 1, label: '1–2 days / week'        },
-  { value: 3, label: '3–4 days / week'        },
-  { value: 5, label: '5+ days / week'         },
-]
-
-const GOAL_PHASE_OPTIONS: Array<{ value: GoalPhaseValue; label: string }> = [
-  { value: 'recomposition', label: 'Recomposition' },
-  { value: 'fat_loss',      label: 'Fat loss'       },
-  { value: 'muscle_gain',   label: 'Muscle gain'    },
-  { value: 'maintenance',   label: 'Maintenance'    },
-  { value: 'performance',   label: 'Performance'    },
-  { value: 'recovery',      label: 'Recovery'       },
-]
-
-const DIET_OPTIONS: Array<{ value: DietValue; label: string }> = [
-  { value: 'omnivore',      label: 'Omnivore'            },
-  { value: 'high_protein',  label: 'High protein'        },
-  { value: 'mediterranean', label: 'Mediterranean'       },
-  { value: 'vegetarian',    label: 'Vegetarian'          },
-  { value: 'vegan',         label: 'Vegan'               },
-  { value: 'low_carb',      label: 'Low carb'            },
-  { value: 'flexible',      label: 'Flexible / intuitive'},
-]
-
 const FEET_OPTIONS = [4, 5, 6, 7]
 const INCHES_OPTIONS = Array.from({ length: 12 }, (_, i) => i)
 
 // ── Main component ─────────────────────────────────────────────────────────
 export default function BaselinePage() {
   const router = useRouter()
+  const [lang] = useMeridianLanguage()
 
   const [userId,        setUserId]       = useState<string | null>(null)
   const [loading,       setLoading]      = useState(false)
@@ -173,6 +142,108 @@ export default function BaselinePage() {
   // Lifestyle
   const [goalPhase,   setGoalPhase]   = useState<GoalPhaseValue | null>(null)
   const [dietPattern, setDietPattern] = useState<DietValue      | null>(null)
+
+  const copy = lang === 'es'
+    ? {
+        step: 'Base inicial · Paso 4 de 5',
+        title: 'Construye tu base inicial',
+        subtitle: 'Ayuda a Meridian a calibrar tu recuperación, metabolismo y guía diaria.',
+        note: 'Podrás actualizar esto cuando quieras desde Perfil.',
+        physicalContext: 'Contexto físico',
+        height: 'Estatura',
+        weight: 'Peso',
+        activityTraining: 'Actividad y entrenamiento',
+        activityLevel: 'Nivel de actividad',
+        trainingFrequency: 'Frecuencia de entrenamiento',
+        lifestyle: 'Estilo de vida',
+        goalPhase: 'Fase de meta',
+        dietPattern: 'Patrón de alimentación',
+        saving: 'Guardando...',
+        continue: 'Continuar →',
+      }
+    : {
+        step: 'Baseline · Step 4 of 5',
+        title: 'Build your baseline',
+        subtitle: 'Help Meridian calibrate your recovery, metabolism, and daily guidance.',
+        note: 'You can update this anytime from Profile.',
+        physicalContext: 'Physical context',
+        height: 'Height',
+        weight: 'Weight',
+        activityTraining: 'Activity & training',
+        activityLevel: 'Activity level',
+        trainingFrequency: 'Training frequency',
+        lifestyle: 'Lifestyle',
+        goalPhase: 'Goal phase',
+        dietPattern: 'Diet pattern',
+        saving: 'Saving...',
+        continue: 'Continue →',
+      }
+
+  const activityOptions: Array<{ value: ActivityValue; label: string }> = lang === 'es'
+    ? [
+        { value: 'desk',     label: 'Mayormente sentada' },
+        { value: 'light',    label: 'Movimiento diario ligero' },
+        { value: 'active',   label: 'Entrenamiento constante' },
+        { value: 'athletic', label: 'Estilo de vida atlético' },
+      ]
+    : [
+        { value: 'desk',     label: 'Mostly desk-based' },
+        { value: 'light',    label: 'Light daily movement' },
+        { value: 'active',   label: 'Consistent training' },
+        { value: 'athletic', label: 'Athletic lifestyle' },
+      ]
+
+  const trainingOptions: Array<{ value: TrainingValue; label: string }> = lang === 'es'
+    ? [
+        { value: 0, label: 'No entreno actualmente' },
+        { value: 1, label: '1–2 días / semana' },
+        { value: 3, label: '3–4 días / semana' },
+        { value: 5, label: '5+ días / semana' },
+      ]
+    : [
+        { value: 0, label: 'Not currently training' },
+        { value: 1, label: '1–2 days / week' },
+        { value: 3, label: '3–4 days / week' },
+        { value: 5, label: '5+ days / week' },
+      ]
+
+  const goalPhaseOptions: Array<{ value: GoalPhaseValue; label: string }> = lang === 'es'
+    ? [
+        { value: 'recomposition', label: 'Recomposición' },
+        { value: 'fat_loss',      label: 'Pérdida de grasa' },
+        { value: 'muscle_gain',   label: 'Ganancia muscular' },
+        { value: 'maintenance',   label: 'Mantenimiento' },
+        { value: 'performance',   label: 'Rendimiento' },
+        { value: 'recovery',      label: 'Recuperación' },
+      ]
+    : [
+        { value: 'recomposition', label: 'Recomposition' },
+        { value: 'fat_loss',      label: 'Fat loss' },
+        { value: 'muscle_gain',   label: 'Muscle gain' },
+        { value: 'maintenance',   label: 'Maintenance' },
+        { value: 'performance',   label: 'Performance' },
+        { value: 'recovery',      label: 'Recovery' },
+      ]
+
+  const dietOptions: Array<{ value: DietValue; label: string }> = lang === 'es'
+    ? [
+        { value: 'omnivore',      label: 'Omnívora' },
+        { value: 'high_protein',  label: 'Alta en proteína' },
+        { value: 'mediterranean', label: 'Mediterránea' },
+        { value: 'vegetarian',    label: 'Vegetariana' },
+        { value: 'vegan',         label: 'Vegana' },
+        { value: 'low_carb',      label: 'Baja en carbohidratos' },
+        { value: 'flexible',      label: 'Flexible / intuitiva' },
+      ]
+    : [
+        { value: 'omnivore',      label: 'Omnivore' },
+        { value: 'high_protein',  label: 'High protein' },
+        { value: 'mediterranean', label: 'Mediterranean' },
+        { value: 'vegetarian',    label: 'Vegetarian' },
+        { value: 'vegan',         label: 'Vegan' },
+        { value: 'low_carb',      label: 'Low carb' },
+        { value: 'flexible',      label: 'Flexible / intuitive' },
+      ]
 
   useEffect(() => {
     let isMounted = true
@@ -253,7 +324,7 @@ export default function BaselinePage() {
             borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
-            Baseline · Step 4 of 5
+            {copy.step}
           </div>
         </div>
 
@@ -277,18 +348,18 @@ export default function BaselinePage() {
               lineHeight: 1.1, letterSpacing: '-0.04em',
               color: colors.text, fontWeight: 700,
             }}>
-              Build your baseline
+              {copy.title}
             </h1>
             <p style={{ margin: '0 0 4px', color: colors.textSoft, fontSize: '14px', lineHeight: 1.6 }}>
-              Help Meridian calibrate your recovery, metabolism, and daily guidance.
+              {copy.subtitle}
             </p>
             <p style={{ margin: 0, color: colors.textMuted, fontSize: '12px', lineHeight: 1.5 }}>
-              You can update this anytime from Profile.
+              {copy.note}
             </p>
           </div>
 
           {/* ── Physical context ─────────────────────────────── */}
-          <SectionDivider label="Physical context" />
+          <SectionDivider label={copy.physicalContext} />
 
           {/* Height + Weight — side by side */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '0' }}>
@@ -296,7 +367,7 @@ export default function BaselinePage() {
             {/* Height */}
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: colors.text, marginBottom: '7px', letterSpacing: '-0.01em' }}>
-                Height
+                {copy.height}
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                 <select
@@ -325,7 +396,7 @@ export default function BaselinePage() {
             {/* Weight */}
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: colors.text, marginBottom: '7px', letterSpacing: '-0.01em' }}>
-                Weight
+                {copy.weight}
               </label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -349,22 +420,22 @@ export default function BaselinePage() {
           </div>
 
           {/* ── Activity & training ───────────────────────────── */}
-          <SectionDivider label="Activity & training" />
+          <SectionDivider label={copy.activityTraining} />
 
           <div style={{ display: 'grid', gap: '14px' }}>
             <div>
-              <p style={{ margin: '0 0 8px', fontSize: '12px', color: colors.textMuted }}>Activity level</p>
+              <p style={{ margin: '0 0 8px', fontSize: '12px', color: colors.textMuted }}>{copy.activityLevel}</p>
               <ChipGrid<ActivityValue>
-                options={ACTIVITY_OPTIONS}
+                options={activityOptions}
                 value={activityLevel}
                 onChange={setActivityLevel}
                 columns={2}
               />
             </div>
             <div>
-              <p style={{ margin: '0 0 8px', fontSize: '12px', color: colors.textMuted }}>Training frequency</p>
+              <p style={{ margin: '0 0 8px', fontSize: '12px', color: colors.textMuted }}>{copy.trainingFrequency}</p>
               <ChipGrid<TrainingValue>
-                options={TRAINING_OPTIONS}
+                options={trainingOptions}
                 value={trainingFreq}
                 onChange={setTrainingFreq}
                 columns={2}
@@ -373,22 +444,22 @@ export default function BaselinePage() {
           </div>
 
           {/* ── Lifestyle ────────────────────────────────────── */}
-          <SectionDivider label="Lifestyle" />
+          <SectionDivider label={copy.lifestyle} />
 
           <div style={{ display: 'grid', gap: '14px' }}>
             <div>
-              <p style={{ margin: '0 0 8px', fontSize: '12px', color: colors.textMuted }}>Goal phase</p>
+              <p style={{ margin: '0 0 8px', fontSize: '12px', color: colors.textMuted }}>{copy.goalPhase}</p>
               <ChipGrid<GoalPhaseValue>
-                options={GOAL_PHASE_OPTIONS}
+                options={goalPhaseOptions}
                 value={goalPhase}
                 onChange={setGoalPhase}
                 columns={3}
               />
             </div>
             <div>
-              <p style={{ margin: '0 0 8px', fontSize: '12px', color: colors.textMuted }}>Diet pattern</p>
+              <p style={{ margin: '0 0 8px', fontSize: '12px', color: colors.textMuted }}>{copy.dietPattern}</p>
               <ChipGrid<DietValue>
-                options={DIET_OPTIONS}
+                options={dietOptions}
                 value={dietPattern}
                 onChange={setDietPattern}
                 columns={3}
@@ -424,7 +495,7 @@ export default function BaselinePage() {
               transition: 'box-shadow 200ms ease, background 200ms ease',
             }}
           >
-            {loading ? 'Saving...' : 'Continue →'}
+            {loading ? copy.saving : copy.continue}
           </button>
         </div>
       </motion.section>
