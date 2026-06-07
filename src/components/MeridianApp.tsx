@@ -1,5 +1,6 @@
 'use client'
 
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env';
 import { useRouter }             from 'next/navigation'
 import { useEffect, useState, useRef } from 'react'
 import { createBrowserClient }   from '@supabase/ssr'
@@ -370,8 +371,8 @@ export default function MeridianApp() {
 
   useEffect(() => {
     const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      getSupabaseUrl(),
+      getSupabasePublishableKey(),
     )
     async function checkAuth() {
       const { data: { user } } = await supabase.auth.getUser()

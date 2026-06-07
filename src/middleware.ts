@@ -1,3 +1,4 @@
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env';
 import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession }      from '@/lib/supabase/middleware'
 import { createServerClient } from '@supabase/ssr'
@@ -10,8 +11,8 @@ export async function middleware(request: NextRequest) {
   // Full admin role check happens server-side in the admin layout.
   if (request.nextUrl.pathname.startsWith('/admin')) {
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      getSupabaseUrl(),
+      getSupabasePublishableKey(),
       {
         cookies: {
           getAll: () => request.cookies.getAll(),

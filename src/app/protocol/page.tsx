@@ -1,5 +1,6 @@
 'use client';
 
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
@@ -266,8 +267,8 @@ export default function PlanPage() {
   const router = useRouter();
   const dateInputRef = useRef<HTMLInputElement | null>(null);
   const supabase = useMemo(() => createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    getSupabaseUrl(),
+    getSupabasePublishableKey(),
   ), []);
 
   const [lang] = useMeridianLanguage();

@@ -1,5 +1,6 @@
 'use client'
 
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env';
 import { useState, useEffect } from 'react'
 import { useRouter }           from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
@@ -119,8 +120,8 @@ function relativeTime(iso: string): string {
 export default function NotificationsPage() {
   const router   = useRouter()
   const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    getSupabaseUrl(),
+    getSupabasePublishableKey(),
   )
 
   const [pageLoading,   setPageLoading]   = useState(true)

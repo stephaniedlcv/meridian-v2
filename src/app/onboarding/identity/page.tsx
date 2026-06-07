@@ -1,5 +1,6 @@
 'use client'
 
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env';
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
@@ -8,8 +9,8 @@ import { getNextOnboardingStep } from '@/lib/onboarding'
 import { useMeridianLanguage } from '@/lib/i18n'
 
 const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  getSupabaseUrl(),
+  getSupabasePublishableKey()
 )
 
 const colors = {

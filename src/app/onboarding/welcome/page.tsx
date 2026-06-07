@@ -1,5 +1,6 @@
 'use client'
 
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env';
 import { Suspense, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -55,8 +56,8 @@ function WelcomePageInner() {
   const searchParams = useSearchParams()
   const [lang] = useMeridianLanguage()
   const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+    getSupabaseUrl(),
+    getSupabasePublishableKey()
   )
 
   const [email, setEmail]                       = useState('')

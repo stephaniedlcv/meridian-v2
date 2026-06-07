@@ -1,5 +1,6 @@
 'use client'
 
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env';
 /**
  * /onboarding/profile — DEPRECATED
  *
@@ -14,8 +15,8 @@ import { createBrowserClient } from '@supabase/ssr'
 import { getNextOnboardingStep } from '@/lib/onboarding'
 
 const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  getSupabaseUrl(),
+  getSupabasePublishableKey()
 )
 
 export default function ProfilePageRedirect() {

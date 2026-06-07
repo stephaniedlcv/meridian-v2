@@ -1,5 +1,6 @@
 'use client'
 
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env';
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
@@ -48,8 +49,8 @@ const HeartIcon = () => (
 // object reference every render, causing the useEffect (which depends on it) to
 // re-fire on every render and loop router.push calls for completed users.
 const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  getSupabaseUrl(),
+  getSupabasePublishableKey()
 )
 
 export default function ConnectPage() {
