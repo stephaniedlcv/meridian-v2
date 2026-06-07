@@ -719,8 +719,48 @@ function DashboardTimelineCard({ event, onOpen, lang }: { event: UpcomingHealthE
             {lang === 'es' ? 'Próximas citas, preparación y documentos clave.' : 'Upcoming appointments, prep, and key documents.'}
           </div>
         </div>
-        <div style={{ width: '38px', height: '38px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(45,212,191,0.09)', border: '1px solid rgba(45,212,191,0.22)', flexShrink: 0 }}>
-          <span style={{ fontSize: '18px' }}>📅</span>
+        <div style={{
+          width: '38px',
+          height: '38px',
+          borderRadius: '14px',
+          display: 'grid',
+          placeItems: 'center',
+          background: 'rgba(45,212,191,0.055)',
+          border: '1px solid rgba(45,212,191,0.32)',
+          boxShadow: '0 0 18px rgba(45,212,191,0.08)',
+          flexShrink: 0,
+        }}>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+            focusable="false"
+            style={{ display: 'block' }}
+          >
+            <rect
+              x="4.5"
+              y="5.5"
+              width="15"
+              height="14"
+              rx="3"
+              stroke="rgba(45,212,191,0.92)"
+              strokeWidth="1.7"
+            />
+            <path
+              d="M8 3.75V7.25M16 3.75V7.25M5 10H19"
+              stroke="rgba(103,232,249,0.82)"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
+            <path
+              d="M8.25 13.25H9.75M11.25 13.25H12.75M14.25 13.25H15.75M8.25 16.25H9.75M11.25 16.25H12.75"
+              stroke="rgba(234,251,247,0.55)"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+            />
+          </svg>
         </div>
       </div>
       <div style={{ display: 'flex', gap: '14px', alignItems: 'stretch' }}>
