@@ -1,5 +1,6 @@
 'use client';
 
+import { getSupabasePublishableKey, getSupabaseUrl } from '@/lib/supabase/env';
 import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/types/database';
 
@@ -12,8 +13,8 @@ export function createClient() {
   }
 
   supabaseBrowserClient = createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    getSupabaseUrl(),
+    getSupabasePublishableKey(),
   );
 
   return supabaseBrowserClient;
