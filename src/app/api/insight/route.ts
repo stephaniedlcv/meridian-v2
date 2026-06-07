@@ -397,6 +397,8 @@ function localizeInsightForSpanish(insight: GoldenInsight): GoldenInsight {
 }
 
 export async function GET(request: NextRequest) {
+  const errorId = Math.random().toString(36).slice(2, 10)
+
   try {
     const { context, errorResponse } = await getAuthenticatedRouteContext()
 
@@ -581,12 +583,25 @@ Return the user-facing fields in ${language === 'es' ? 'Spanish' : 'English'}.`
       )
     }
 
+    const anthropicApiKey = process.env.ANTHROPIC_API_KEY
+
+    if (!anthropicApiKey) {
+      console.error(`[insight:${errorId}] Missing ANTHROPIC_API_KEY`)
+      return NextResponse.json({
+        success: true,
+        state: 'insight_unavailable',
+        insight: null,
+        dominant_marker: engineResult.dominant?.slug ?? null,
+        safety_alert: engineResult.has_safety_alert,
+      } satisfies InsightResponse)
+    }
+
     // Call Claude API
     const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY!,
+        'x-api-key': anthropicApiKey,
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
@@ -602,7 +617,7 @@ Return the user-facing fields in ${language === 'es' ? 'Spanish' : 'English'}.`
 
     if (!anthropicResponse.ok) {
       const errorText = await anthropicResponse.text()
-      console.error('[insight] Claude API error — status:', anthropicResponse.status, 'body:', errorText.slice(0, 300))
+      console.error(`[insight:${errorId}] Claude API error — status:`, anthropicResponse.status, 'body:', errorText.slice(0, 300))
       return NextResponse.json({
         success: true,
         state: 'labs_saved',
@@ -623,7 +638,7 @@ Return the user-facing fields in ${language === 'es' ? 'Spanish' : 'English'}.`
       const cleaned = rawText.replace(/```json|```/g, '').trim()
       insight = JSON.parse(cleaned)
     } catch {
-      console.error('[insight] Failed to parse Claude response:', rawText.slice(0, 300))
+      console.error(`[insight:${errorId}] Failed to parse Claude response:`, rawText.slice(0, 300))
       return NextResponse.json({
         success: true,
         state: 'labs_saved',
@@ -640,7 +655,7 @@ Return the user-facing fields in ${language === 'es' ? 'Spanish' : 'English'}.`
     }
 
     if (!validateMarkers(insight, validSlugs)) {
-      console.error('[insight] Hallucination detected — returning insight_unavailable')
+      console.error(`[insight:${errorId}] Hallucination detected — returning insight_unavailable`)
       return NextResponse.json({
         success: true,
         state: 'insight_unavailable',
@@ -653,7 +668,7 @@ Return the user-facing fields in ${language === 'es' ? 'Spanish' : 'English'}.`
     // ===== GUARDRAIL 2: Forbidden words check =====
     const forbiddenWord = containsForbiddenWords(insight)
     if (forbiddenWord) {
-      console.error(`[insight] Forbidden word detected: "${forbiddenWord}" — returning insight_unavailable`)
+      console.error(`[insight:${errorId}] Forbidden word detected: "${forbiddenWord}" — returning insight_unavailable`)
       return NextResponse.json({
         success: true,
         state: 'insight_unavailable',
@@ -681,7 +696,7 @@ Return the user-facing fields in ${language === 'es' ? 'Spanish' : 'English'}.`
 
     return NextResponse.json(response)
   } catch (error) {
-    console.error('[insight] Unhandled error:', error instanceof Error ? error.message : String(error))
+    console.error(`[insight:${errorId}] Unhandled error:`, error instanceof Error ? error.message : String(error))
     return NextResponse.json({
       success: true,
       state: 'insight_unavailable',
