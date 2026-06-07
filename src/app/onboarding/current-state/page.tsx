@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { motion } from 'framer-motion'
 import { getNextOnboardingStep } from '@/lib/onboarding'
+import { useMeridianLanguage } from '@/lib/i18n'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,25 +35,67 @@ type StateValue =
   | 'performance'
   | 'managing_health'
 
-const stateOptions: Array<{ value: StateValue; label: string; sub: string }> = [
-  { value: 'just_started',    label: 'Just getting started', sub: 'Beginning my health journey' },
-  { value: 'burned_out',      label: 'Burned out',           sub: 'Low energy, running on empty' },
-  { value: 'poor_sleep',      label: 'Poor sleep',           sub: 'Inconsistent rest and recovery' },
-  { value: 'stressed',        label: 'Frequently stressed',  sub: 'High mental or physical load' },
-  { value: 'weight_loss',     label: 'Losing weight',        sub: 'Working toward a lighter body' },
-  { value: 'muscle_gain',     label: 'Gaining muscle',       sub: 'Building strength and mass' },
-  { value: 'digestive',       label: 'Digestive discomfort', sub: 'Gut health is a focus' },
-  { value: 'training',        label: 'Training consistently',sub: 'Active fitness routine' },
-  { value: 'performance',     label: 'Performance focused',  sub: 'Optimizing physical output' },
-  { value: 'managing_health', label: 'Managing a condition', sub: 'Monitoring something specific' },
-]
-
 export default function CurrentStatePage() {
   const router = useRouter()
+  const [lang] = useMeridianLanguage()
   const [userId, setUserId]     = useState<string | null>(null)
   const [selected, setSelected] = useState<StateValue[]>([])
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
+
+  const copy = lang === 'es'
+    ? {
+        step: 'Estado actual · Paso 2 de 5',
+        title: '¿Dónde estás ahora mismo?',
+        subtitle: 'Selecciona todo lo que se sienta cierto para ti ahora.',
+        note: 'Meridian calibra sus señales según tu estado actual.',
+        section: 'Selecciona todo lo que aplique',
+        selected: 'seleccionado',
+        selectedPlural: 'seleccionados',
+        saving: 'Guardando...',
+        continue: 'Continuar →',
+        continueWith: (count: number) => `Continuar con ${count} ${count === 1 ? 'selección' : 'selecciones'} →`,
+        skip: 'Omitir por ahora',
+      }
+    : {
+        step: 'Current State · Step 2 of 5',
+        title: 'Where are you right now?',
+        subtitle: 'Select everything that feels true right now.',
+        note: 'Meridian calibrates its signals to your current state.',
+        section: 'Select all that apply',
+        selected: 'selected',
+        selectedPlural: 'selected',
+        saving: 'Saving...',
+        continue: 'Continue →',
+        continueWith: (count: number) => `Continue with ${count} selected →`,
+        skip: 'Skip for now',
+      }
+
+  const stateOptions: Array<{ value: StateValue; label: string; sub: string }> = lang === 'es'
+    ? [
+        { value: 'just_started',    label: 'Estoy comenzando',          sub: 'Iniciando mi camino de salud' },
+        { value: 'burned_out',      label: 'Agotamiento',               sub: 'Baja energía o sensación de estar al límite' },
+        { value: 'poor_sleep',      label: 'Sueño irregular',           sub: 'Descanso y recuperación inconsistentes' },
+        { value: 'stressed',        label: 'Estrés frecuente',          sub: 'Carga mental o física elevada' },
+        { value: 'weight_loss',     label: 'Pérdida de peso',           sub: 'Trabajando hacia un cuerpo más ligero' },
+        { value: 'muscle_gain',     label: 'Ganancia muscular',         sub: 'Construyendo fuerza y masa' },
+        { value: 'digestive',       label: 'Molestias digestivas',      sub: 'La salud intestinal es un enfoque' },
+        { value: 'training',        label: 'Entreno consistentemente',  sub: 'Rutina de fitness activa' },
+        { value: 'performance',     label: 'Enfoque en rendimiento',    sub: 'Optimizando capacidad física' },
+        { value: 'managing_health', label: 'Manejo una condición',      sub: 'Monitoreando algo específico' },
+      ]
+    : [
+        { value: 'just_started',    label: 'Just getting started', sub: 'Beginning my health journey' },
+        { value: 'burned_out',      label: 'Burned out',           sub: 'Low energy, running on empty' },
+        { value: 'poor_sleep',      label: 'Poor sleep',           sub: 'Inconsistent rest and recovery' },
+        { value: 'stressed',        label: 'Frequently stressed',  sub: 'High mental or physical load' },
+        { value: 'weight_loss',     label: 'Losing weight',        sub: 'Working toward a lighter body' },
+        { value: 'muscle_gain',     label: 'Gaining muscle',       sub: 'Building strength and mass' },
+        { value: 'digestive',       label: 'Digestive discomfort', sub: 'Gut health is a focus' },
+        { value: 'training',        label: 'Training consistently',sub: 'Active fitness routine' },
+        { value: 'performance',     label: 'Performance focused',  sub: 'Optimizing physical output' },
+        { value: 'managing_health', label: 'Managing a condition', sub: 'Monitoring something specific' },
+      ]
 
   useEffect(() => {
     let isMounted = true
@@ -131,7 +174,7 @@ export default function CurrentStatePage() {
             borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
-            Current State · Step 2 of 4
+            {copy.step}
           </div>
         </div>
 
@@ -154,25 +197,25 @@ export default function CurrentStatePage() {
               lineHeight: 1.1, letterSpacing: '-0.04em',
               color: colors.text, fontWeight: 700,
             }}>
-              Where are you right now?
+              {copy.title}
             </h1>
             <p style={{ margin: '0 0 4px', color: colors.textSoft, fontSize: '14px', lineHeight: 1.6 }}>
-              Select everything that feels true — you can pursue multiple realities at once.
+              {copy.subtitle}
             </p>
             <p style={{ margin: 0, color: colors.textMuted, fontSize: '12px', lineHeight: 1.5 }}>
-              Meridian calibrates its signals to your current state.
+              {copy.note}
             </p>
           </div>
 
           {/* Section label */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
             <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: colors.textMuted }}>
-              Select all that apply
+              {copy.section}
             </span>
             <div style={{ flex: 1, height: '1px', background: colors.cardBorder }} />
             {selected.length > 0 && (
               <span style={{ fontSize: '11px', fontWeight: 600, color: colors.teal, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
-                {selected.length} selected
+                {selected.length} {selected.length === 1 ? copy.selected : copy.selectedPlural}
               </span>
             )}
           </div>
@@ -278,7 +321,7 @@ export default function CurrentStatePage() {
               transition: 'box-shadow 200ms ease, background 200ms ease',
             }}
           >
-            {loading ? 'Saving...' : selected.length > 0 ? `Continue with ${selected.length} selected →` : 'Continue →'}
+            {loading ? copy.saving : selected.length > 0 ? copy.continueWith(selected.length) : copy.continue}
           </button>
         </div>
 
@@ -296,7 +339,7 @@ export default function CurrentStatePage() {
               padding: '8px',
             }}
           >
-            Skip for now
+            {copy.skip}
           </button>
         </div>
       </motion.section>
