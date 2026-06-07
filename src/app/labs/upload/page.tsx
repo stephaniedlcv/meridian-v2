@@ -2113,11 +2113,21 @@ export default function LabsUploadPage() {
           }
 
           const base64 = result.split(',')[1]
-          const response = await fetch('/api/ocr', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pdf_base64: base64, user_id: userId, biological_profile: bioProfile }),
-          })
+
+          const controller = new AbortController()
+          const timeoutId = window.setTimeout(() => controller.abort(), 90000)
+
+          let response: Response
+          try {
+            response = await fetch('/api/ocr', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ pdf_base64: base64, user_id: userId, biological_profile: bioProfile }),
+              signal: controller.signal,
+            })
+          } finally {
+            window.clearTimeout(timeoutId)
+          }
 
           let data: any = null
           try {
@@ -2154,9 +2164,16 @@ export default function LabsUploadPage() {
           setLabDate(typeof data.lab_date === 'string' ? data.lab_date : '')
         } catch (err) {
           console.error('[Meridian] Lab upload review flow failed:', err)
-          setError(lang === 'es'
-            ? 'No se pudo completar el análisis del PDF. Inténtalo nuevamente.'
-            : 'Could not complete PDF analysis. Please try again.')
+
+          const isAbortError = err instanceof DOMException && err.name === 'AbortError'
+
+          setError(isAbortError
+            ? (lang === 'es'
+              ? 'El análisis tardó demasiado y fue detenido. Intenta nuevamente con un PDF más pequeño o más claro.'
+              : 'The analysis took too long and was stopped. Please try again with a smaller or clearer PDF.')
+            : (lang === 'es'
+              ? 'No se pudo completar el análisis del PDF. Inténtalo nuevamente.'
+              : 'Could not complete PDF analysis. Please try again.'))
         } finally {
           setUploading(false)
         }
