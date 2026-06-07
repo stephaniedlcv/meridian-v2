@@ -225,41 +225,119 @@ function ExitOverlay({ active }: { active: boolean }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Log In corner utility — top-right, small, restrained
 // ─────────────────────────────────────────────────────────────────────────────
-function LoginCornerButton({
-  label, onClick, visible,
-}: { label: string; onClick: () => void; visible: boolean }) {
-  const [hovered, setHovered] = useState(false)
+// Top-right utility — language as a global preference, login as secondary action
+// ─────────────────────────────────────────────────────────────────────────────
+function TopRightControls({
+  lang,
+  setLanguage,
+  loginLabel,
+  onLogin,
+  visible,
+}: {
+  lang: MeridianLanguage
+  setLanguage: (lang: MeridianLanguage) => void
+  loginLabel: string
+  onLogin: () => void
+  visible: boolean
+}) {
+  const [hovered, setHovered] = useState<'es' | 'en' | 'login' | null>(null)
+
+  const languageOptions = [
+    { value: 'es', label: 'ES' },
+    { value: 'en', label: 'EN' },
+  ] as const
+
   return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    <div
       style={{
-        position:    'fixed',
-        top:         '22px',
-        right:       '24px',
-        zIndex:      10,
-        fontFamily:  F_UI,
-        fontSize:    '12px',
-        fontWeight:  400,
-        letterSpacing: '0.01em',
-        color:       hovered ? '#AFDAD4' : '#537D77',
-        background:  hovered ? 'rgba(232,248,245,0.04)' : 'transparent',
-        border:      `1px solid ${hovered ? 'rgba(103,232,249,0.16)' : 'rgba(103,232,249,0.07)'}`,
-        borderRadius: '8px',
-        padding:     '7px 14px',
-        cursor:      'pointer',
-        transition:  'all 0.18s ease',
-        backdropFilter: 'blur(12px)',
-        // Entrance fade — matches content animation
-        opacity:     visible ? 1 : 0,
-        transform:   visible ? 'translateY(0)' : 'translateY(-6px)',
+        position: 'fixed',
+        top: '22px',
+        right: '24px',
+        zIndex: 10,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(-6px)',
+        transition: 'opacity 1s ease 520ms, transform 1s ease 520ms',
       }}
     >
-      {label}
-    </button>
+      <div
+        aria-label="Language selector"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '3px',
+          padding: '3px',
+          borderRadius: '999px',
+          border: '1px solid rgba(103,232,249,0.10)',
+          background: 'rgba(6,19,22,0.22)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+        }}
+      >
+        {languageOptions.map((option) => {
+          const active = lang === option.value
+          const isHovered = hovered === option.value
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setLanguage(option.value)}
+              onMouseEnter={() => setHovered(option.value)}
+              onMouseLeave={() => setHovered(null)}
+              style={{
+                minWidth: '34px',
+                height: '28px',
+                borderRadius: '999px',
+                border: 'none',
+                background: active
+                  ? 'rgba(45,212,191,0.14)'
+                  : isHovered
+                    ? 'rgba(232,248,245,0.045)'
+                    : 'transparent',
+                color: active ? '#DDFBF6' : isHovered ? '#AFDAD4' : '#5F8E85',
+                fontFamily: F_UI,
+                fontSize: '11px',
+                fontWeight: active ? 800 : 700,
+                letterSpacing: '0.08em',
+                cursor: 'pointer',
+                transition: 'all 0.18s ease',
+                boxShadow: active ? '0 0 18px rgba(45,212,191,0.12)' : 'none',
+              }}
+            >
+              {option.label}
+            </button>
+          )
+        })}
+      </div>
+
+      <button
+        type="button"
+        onClick={onLogin}
+        onMouseEnter={() => setHovered('login')}
+        onMouseLeave={() => setHovered(null)}
+        style={{
+          fontFamily: F_UI,
+          fontSize: '12px',
+          fontWeight: 500,
+          letterSpacing: '0.01em',
+          color: hovered === 'login' ? '#AFDAD4' : '#537D77',
+          background: hovered === 'login' ? 'rgba(232,248,245,0.04)' : 'transparent',
+          border: `1px solid ${hovered === 'login' ? 'rgba(103,232,249,0.16)' : 'rgba(103,232,249,0.07)'}`,
+          borderRadius: '999px',
+          padding: '7px 14px',
+          cursor: 'pointer',
+          transition: 'all 0.18s ease',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+        }}
+      >
+        {loginLabel}
+      </button>
+    </div>
   )
 }
 
@@ -333,6 +411,7 @@ export default function MeridianApp() {
   const landingCopy = lang === 'es'
     ? {
         login: 'Iniciar sesión',
+        primary: 'Comenzar',
         system: 'Sistema de inteligencia biológica',
         headline: 'Entiende tu biología en contexto.',
         subcopy: 'Conecta tus laboratorios, hábitos y señales clave para recibir una prioridad clara cada día.',
@@ -342,6 +421,7 @@ export default function MeridianApp() {
       }
     : {
         login: 'Log in',
+        primary: 'Get started',
         system: 'Biological Intelligence System',
         headline: 'Understand your biology in context.',
         subcopy: 'Connect your labs, habits, and key signals to receive one clear priority every day.',
@@ -362,10 +442,12 @@ export default function MeridianApp() {
     <>
       <ExitOverlay active={transitioning} />
 
-      {/* Log In — fixed top-right utility position */}
-      <LoginCornerButton
-        label={landingCopy.login}
-        onClick={() => chooseLanguage(lang, 'login')}
+      {/* Global language control + secondary login */}
+      <TopRightControls
+        lang={lang}
+        setLanguage={setLanguage}
+        loginLabel={landingCopy.login}
+        onLogin={() => navigateTo('/onboarding/welcome?mode=login')}
         visible={mounted}
       />
 
@@ -499,42 +581,12 @@ export default function MeridianApp() {
             {landingCopy.subcopy}
           </div>
 
-          {/* Language-first entry */}
-          <div style={{
-            ...enter(460),
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '14px',
-          }}>
-            <div style={{
-              fontFamily: F_UI,
-              fontSize: '10px',
-              fontWeight: 700,
-              letterSpacing: '0.16em',
-              textTransform: 'uppercase',
-              color: '#5F8E85',
-            }}>
-              {landingCopy.choose}
-            </div>
-
-            <div style={{
-              display: 'flex',
-              gap: '10px',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-            }}>
-              <LanguageEntryButton
-                label={landingCopy.spanish}
-                active={lang === 'es'}
-                onClick={() => chooseLanguage('es')}
-              />
-              <LanguageEntryButton
-                label={landingCopy.english}
-                active={lang === 'en'}
-                onClick={() => chooseLanguage('en')}
-              />
-            </div>
+          {/* Primary CTA */}
+          <div style={{ ...enter(460) }}>
+            <PrimaryButton
+              label={landingCopy.primary}
+              onClick={() => navigateTo('/onboarding/welcome?mode=signup')}
+            />
           </div>
         </div>
       </div>
@@ -545,54 +597,6 @@ export default function MeridianApp() {
 // ─────────────────────────────────────────────────────────────────────────────
 // CTA buttons
 // ─────────────────────────────────────────────────────────────────────────────
-function LanguageEntryButton({
-  label,
-  active,
-  onClick,
-}: {
-  label: string
-  active: boolean
-  onClick: () => void
-}) {
-  const [hovered, setHovered] = useState(false)
-
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minWidth: '132px',
-        minHeight: '50px',
-        padding: '13px 24px',
-        borderRadius: '14px',
-        border: `1px solid ${active || hovered ? 'rgba(45,212,191,0.52)' : 'rgba(45,212,191,0.22)'}`,
-        background: active
-          ? 'linear-gradient(135deg, rgba(45,212,191,0.16), rgba(103,232,249,0.07))'
-          : hovered
-            ? 'rgba(45,212,191,0.09)'
-            : 'rgba(45,212,191,0.045)',
-        color: active || hovered ? '#E8FAF7' : '#9ECFC6',
-        fontFamily: F_UI,
-        fontSize: '14px',
-        fontWeight: active ? 700 : 500,
-        cursor: 'pointer',
-        backdropFilter: 'blur(20px)',
-        boxShadow: active || hovered
-          ? '0 0 28px rgba(45,212,191,0.16), inset 0 1px 0 rgba(255,255,255,0.06)'
-          : '0 0 14px rgba(45,212,191,0.06)',
-        transition: 'all 0.22s ease',
-      }}
-    >
-      {label}
-    </button>
-  )
-}
-
-// Legacy CTA kept available for future landing variants.
 function PrimaryButton({ label, onClick }: { label: string; onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
   return (
