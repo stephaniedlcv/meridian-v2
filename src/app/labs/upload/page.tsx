@@ -2100,21 +2100,68 @@ export default function LabsUploadPage() {
 
     try {
       const reader = new FileReader()
-      reader.onload = async () => {
-        const base64 = (reader.result as string).split(',')[1]
-        const response = await fetch('/api/ocr', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pdf_base64: base64, user_id: userId, biological_profile: bioProfile }),
-        })
-        const data = await response.json()
-        if (!data.success) { setError(data.error || (lang === 'es' ? 'No se pudo procesar el PDF' : 'Failed to process PDF')); setUploading(false); return }
-        setStaged(data.staged_biomarkers)
-        setUnmatched(data.unmatched || [])
-        setStats({ extracted: data.total_extracted, matched: data.total_matched, errors: data.total_errors })
-        setLabDate(data.lab_date || '')
+      reader.onerror = () => {
+        setError(lang === 'es' ? 'No se pudo leer el archivo.' : 'Failed to read file.')
         setUploading(false)
       }
+
+      reader.onload = async () => {
+        try {
+          const result = reader.result
+          if (typeof result !== 'string' || !result.includes(',')) {
+            throw new Error('Invalid file reader result')
+          }
+
+          const base64 = result.split(',')[1]
+          const response = await fetch('/api/ocr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pdf_base64: base64, user_id: userId, biological_profile: bioProfile }),
+          })
+
+          let data: any = null
+          try {
+            data = await response.json()
+          } catch {
+            data = null
+          }
+
+          if (!response.ok || !data?.success) {
+            setError(data?.error || (lang === 'es' ? 'No se pudo procesar el PDF.' : 'Failed to process PDF.'))
+            return
+          }
+
+          const nextStaged = Array.isArray(data.staged_biomarkers)
+            ? data.staged_biomarkers
+            : Array.isArray(data.biomarkers)
+              ? data.biomarkers
+              : []
+
+          if (nextStaged.length === 0) {
+            setError(lang === 'es'
+              ? 'Meridian analizó el PDF, pero no encontró biomarcadores listos para revisar.'
+              : 'Meridian analyzed the PDF, but did not find biomarkers ready for review.')
+            return
+          }
+
+          setStaged(nextStaged)
+          setUnmatched(Array.isArray(data.unmatched) ? data.unmatched : [])
+          setStats({
+            extracted: Number(data.total_extracted ?? nextStaged.length),
+            matched: Number(data.total_matched ?? nextStaged.length),
+            errors: Number(data.total_errors ?? 0),
+          })
+          setLabDate(typeof data.lab_date === 'string' ? data.lab_date : '')
+        } catch (err) {
+          console.error('[Meridian] Lab upload review flow failed:', err)
+          setError(lang === 'es'
+            ? 'No se pudo completar el análisis del PDF. Inténtalo nuevamente.'
+            : 'Could not complete PDF analysis. Please try again.')
+        } finally {
+          setUploading(false)
+        }
+      }
+
       reader.readAsDataURL(file)
     } catch {
       setError('Failed to read file')
