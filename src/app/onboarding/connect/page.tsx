@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { getNextOnboardingStep } from '@/lib/onboarding'
+import { useMeridianLanguage } from '@/lib/i18n'
 
 const colors = {
   background: '#061316',
@@ -53,10 +54,41 @@ const supabase = createBrowserClient(
 
 export default function ConnectPage() {
   const router = useRouter()
+  const [lang] = useMeridianLanguage()
 
   const [selected, setSelected] = useState<ConnectionOption[]>([])
   const [loading, setLoading] = useState(false)
   const [completeError, setCompleteError] = useState('')
+
+  const copy = lang === 'es'
+    ? {
+        step: 'Conectar datos · Paso 5 de 5',
+        title: 'Conecta tus datos',
+        subtitle: 'Meridian se vuelve más inteligente con cada fuente que añades.',
+        uploadLab: 'Subir PDF de laboratorio',
+        uploadLabSub: 'Extraeremos tus biomarcadores',
+        comingSoon: 'Próximamente',
+        ouraSub: 'HRV, sueño y temperatura — en una futura actualización.',
+        appleSub: 'Actividad, HRV y frecuencia cardíaca — en una futura actualización.',
+        saveError: 'No se pudo guardar tu progreso. Inténtalo nuevamente.',
+        loading: 'Cargando...',
+        continue: 'Continuar →',
+        connectLater: 'Lo conectaré luego',
+      }
+    : {
+        step: 'Connect Data · Step 5 of 5',
+        title: 'Connect your data',
+        subtitle: 'Meridian gets smarter with every source you add.',
+        uploadLab: 'Upload lab PDF',
+        uploadLabSub: "We'll extract your biomarkers",
+        comingSoon: 'Coming soon',
+        ouraSub: 'HRV, sleep, and temperature — in a future update.',
+        appleSub: 'Activity, HRV, and heart rate — in a future update.',
+        saveError: 'Unable to save your progress. Please try again.',
+        loading: 'Loading...',
+        continue: 'Continue →',
+        connectLater: "I'll connect later",
+      }
 
   useEffect(() => {
     async function checkUser() {
@@ -97,7 +129,7 @@ export default function ConnectPage() {
         .upsert({ id: user.id, onboarding_completed: true }, { onConflict: 'id' })
       if (error) {
         console.error('completeOnboarding: upsert failed', error)
-        setCompleteError('Unable to save your progress. Please try again.')
+        setCompleteError(copy.saveError)
         return false
       }
       return true
@@ -222,7 +254,7 @@ export default function ConnectPage() {
             borderRadius: '20px', background: 'rgba(45,212,191,0.07)',
           }}>
             <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
-            Connect Data · Step 5 of 5
+            {copy.step}
           </div>
         </div>
 
@@ -249,17 +281,17 @@ export default function ConnectPage() {
               fontWeight: 700,
               whiteSpace: 'nowrap',
             }}>
-              Connect your data
+              {copy.title}
             </h1>
             <p style={{ margin: 0, color: colors.textSoft, fontSize: '15px', lineHeight: 1.65 }}>
-              Meridian gets smarter with every source you add.
+              {copy.subtitle}
             </p>
           </div>
 
           {/* Connection cards */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
-              <ConnectionCard option="lab" icon={<FlaskIcon />} title="Upload lab PDF" subtitle="We'll extract your biomarkers" />
+              <ConnectionCard option="lab" icon={<FlaskIcon />} title={copy.uploadLab} subtitle={copy.uploadLabSub} />
             </motion.div>
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
               <div style={{
@@ -277,9 +309,9 @@ export default function ConnectPage() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <h3 style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '14px', fontWeight: 700, color: colors.text, margin: 0, letterSpacing: '-0.01em' }}>Oura Ring</h3>
-                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted, padding: '2px 7px', borderRadius: '8px', border: `1px solid ${colors.cardBorder}`, background: 'rgba(232,248,245,0.04)', flexShrink: 0 }}>Coming soon</span>
+                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted, padding: '2px 7px', borderRadius: '8px', border: `1px solid ${colors.cardBorder}`, background: 'rgba(232,248,245,0.04)', flexShrink: 0 }}>{copy.comingSoon}</span>
                   </div>
-                  <p style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '12px', color: colors.textMuted, lineHeight: 1.45, margin: 0 }}>HRV, sleep, and temperature — in a future update.</p>
+                  <p style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '12px', color: colors.textMuted, lineHeight: 1.45, margin: 0 }}>{copy.ouraSub}</p>
                 </div>
               </div>
             </motion.div>
@@ -299,9 +331,9 @@ export default function ConnectPage() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <h3 style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '14px', fontWeight: 700, color: colors.text, margin: 0, letterSpacing: '-0.01em' }}>Apple Health</h3>
-                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted, padding: '2px 7px', borderRadius: '8px', border: `1px solid ${colors.cardBorder}`, background: 'rgba(232,248,245,0.04)', flexShrink: 0 }}>Coming soon</span>
+                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: colors.textMuted, padding: '2px 7px', borderRadius: '8px', border: `1px solid ${colors.cardBorder}`, background: 'rgba(232,248,245,0.04)', flexShrink: 0 }}>{copy.comingSoon}</span>
                   </div>
-                  <p style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '12px', color: colors.textMuted, lineHeight: 1.45, margin: 0 }}>Activity, HRV, and heart rate — in a future update.</p>
+                  <p style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: '12px', color: colors.textMuted, lineHeight: 1.45, margin: 0 }}>{copy.appleSub}</p>
                 </div>
               </div>
             </motion.div>
@@ -334,7 +366,7 @@ export default function ConnectPage() {
               transition: 'box-shadow 200ms ease, background 200ms ease',
             }}
           >
-            {loading ? 'Loading...' : 'Continue →'}
+            {loading ? copy.loading : copy.continue}
           </button>
         </div>
 
@@ -351,7 +383,7 @@ export default function ConnectPage() {
               padding: '8px',
             }}
           >
-            I&apos;ll connect later
+            {copy.connectLater}
           </button>
         </div>
       </motion.section>
