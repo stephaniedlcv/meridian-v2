@@ -253,34 +253,34 @@ function BiologicalSignalOverview({
 
   const trendCards = [
     {
-      label: 'TSH',
+      label: lang === 'es' ? 'Señal tiroidea' : 'Thyroid Signal',
       value: hasLabs ? '3.03' : '—',
-      delta: hasLabs ? (lang === 'es' ? 'última señal tiroidea' : 'latest thyroid signal') : (lang === 'es' ? 'esperando labs' : 'waiting for labs'),
-      status: hasLabs ? (lang === 'es' ? 'Seguimiento' : 'Tracking') : (lang === 'es' ? 'Pendiente' : 'Pending'),
+      delta: hasLabs ? (lang === 'es' ? 'última lectura conectada' : 'latest connected read') : (lang === 'es' ? 'esperando labs' : 'waiting for labs'),
+      status: hasLabs ? (lang === 'es' ? 'Tendencia' : 'Trend') : (lang === 'es' ? 'Pendiente' : 'Pending'),
       tone: hasLabs ? 'cyan' : 'neutral',
       accent: '#67E8F9',
       points: [18, 16, 20, 14, 13, 10, 12],
     },
     {
-      label: 'A1c',
+      label: lang === 'es' ? 'Estabilidad glucémica' : 'Glucose Stability',
       value: hasLabs ? '4.8' : '—',
-      delta: hasLabs ? (lang === 'es' ? 'rango estable' : 'stable range') : (lang === 'es' ? 'sin data' : 'no data'),
+      delta: hasLabs ? (lang === 'es' ? 'señal estable' : 'stable signal') : (lang === 'es' ? 'sin data' : 'no data'),
       status: hasLabs ? (lang === 'es' ? 'Estable' : 'Stable') : (lang === 'es' ? 'Pendiente' : 'Pending'),
       tone: hasLabs ? 'optimal' : 'neutral',
       accent: '#4ADE80',
       points: [11, 10, 10, 9, 9, 8, 8],
     },
     {
-      label: lang === 'es' ? 'Vitamina D' : 'Vitamin D',
+      label: lang === 'es' ? 'Contexto nutricional' : 'Nutrient Context',
       value: hasLabs ? '48' : '—',
-      delta: hasLabs ? (lang === 'es' ? 'contexto nutricional' : 'nutrient context') : (lang === 'es' ? 'sin tendencia' : 'no trend'),
+      delta: hasLabs ? (lang === 'es' ? 'reserva disponible' : 'available reserve') : (lang === 'es' ? 'sin tendencia' : 'no trend'),
       status: hasLabs ? (lang === 'es' ? 'Contexto' : 'Context') : (lang === 'es' ? 'Pendiente' : 'Pending'),
       tone: hasLabs ? 'cyan' : 'neutral',
       accent: '#2DD4BF',
       points: [7, 9, 10, 13, 16, 18, 20],
     },
     {
-      label: 'eGFR',
+      label: lang === 'es' ? 'Filtración renal' : 'Kidney Filtration',
       value: hasLabs ? '84' : '—',
       delta: hasLabs ? (lang === 'es' ? 'requiere contexto' : 'context-aware') : (lang === 'es' ? 'sin data' : 'no data'),
       status: hasLabs ? (lang === 'es' ? 'Observar' : 'Watch') : (lang === 'es' ? 'Pendiente' : 'Pending'),
@@ -293,20 +293,20 @@ function BiologicalSignalOverview({
   return (
     <FuturisticPanel
       eyebrow={lang === 'es' ? 'CAPA INTERACTIVA' : 'INTERACTIVE LAYER'}
-      title={lang === 'es' ? 'Resumen de señales biológicas' : 'Biological Signal Overview'}
+      title={lang === 'es' ? 'Mapa de señales biológicas' : 'Biological Signal Map'}
       accent={primaryTone === 'attention' ? '#FB923C' : primaryTone === 'optimal' ? '#4ADE80' : '#2DD4BF'}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <p style={{
           margin: 0,
           color: colors.textSoft,
           fontSize: '13px',
-          lineHeight: 1.65,
-          maxWidth: '780px',
+          lineHeight: 1.5,
+          maxWidth: '720px',
         }}>
           {lang === 'es'
-            ? 'Una lectura visual rápida de los sistemas que Meridian podrá conectar con labs, protocolos, entrenamiento y progreso.'
-            : 'A quick visual read of the systems Meridian will connect across labs, protocols, training, and progress.'}
+            ? 'Una lectura integrada de tus señales biológicas clave, conectando labs, recuperación, protocolos y progreso.'
+            : 'An integrated read of your key biological signals, connecting labs, recovery, protocols, and progress.'}
         </p>
 
         <SignalRail items={railItems} />
@@ -314,7 +314,7 @@ function BiologicalSignalOverview({
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-          gap: '12px',
+          gap: '10px',
         }}>
           {trendCards.map((card) => (
             <MiniTrendCard
