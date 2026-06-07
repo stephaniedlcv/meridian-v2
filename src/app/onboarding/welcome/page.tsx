@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { getNextOnboardingStep } from '@/lib/onboarding'
+import { useMeridianLanguage } from '@/lib/i18n'
 
 const colors = {
   background: '#061316',
@@ -52,6 +53,7 @@ const EyeIcon = ({ open }: { open: boolean }) =>
 function WelcomePageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [lang] = useMeridianLanguage()
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
@@ -72,6 +74,60 @@ function WelcomePageInner() {
   const canSubmit = !loading && !!email && !!password &&
     (isLogin || (!!confirmPassword && passwordsMatch))
 
+  const copy = lang === 'es'
+    ? {
+        brandLabel: 'Sistema de inteligencia biológica',
+        headline: 'Entiende tu biología en contexto.',
+        subtitleLine1: 'Conecta tus laboratorios y señales clave.',
+        subtitleLine2: 'Recibe una prioridad clara cada día.',
+        checkInbox: 'Revisa tu correo',
+        confirmationSent: 'Enviamos un enlace de confirmación a',
+        activateAccount: 'Abre el enlace para activar tu cuenta y luego inicia sesión aquí.',
+        goToLogin: 'Ir a iniciar sesión →',
+        email: 'Correo electrónico',
+        password: 'Contraseña',
+        confirmPassword: 'Confirmar contraseña',
+        hidePassword: 'Ocultar contraseña',
+        showPassword: 'Mostrar contraseña',
+        hideConfirmPassword: 'Ocultar confirmación de contraseña',
+        showConfirmPassword: 'Mostrar confirmación de contraseña',
+        passwordsMatch: 'Las contraseñas coinciden',
+        passwordsDontMatch: 'Las contraseñas no coinciden',
+        loading: 'Cargando...',
+        login: 'Iniciar sesión →',
+        getStarted: 'Crear cuenta →',
+        noAccount: '¿No tienes cuenta? ',
+        hasAccount: '¿Ya tienes cuenta? ',
+        signUp: 'Crear cuenta',
+        logIn: 'Iniciar sesión',
+      }
+    : {
+        brandLabel: 'Biological Intelligence System',
+        headline: 'Understand your biology in context.',
+        subtitleLine1: 'Connect your labs and key signals.',
+        subtitleLine2: 'Get one clear priority every day.',
+        checkInbox: 'Check your inbox',
+        confirmationSent: 'We sent a confirmation link to',
+        activateAccount: 'Click the link to activate your account, then log in here.',
+        goToLogin: 'Go to Log in →',
+        email: 'Email address',
+        password: 'Password',
+        confirmPassword: 'Confirm password',
+        hidePassword: 'Hide password',
+        showPassword: 'Show password',
+        hideConfirmPassword: 'Hide confirm password',
+        showConfirmPassword: 'Show confirm password',
+        passwordsMatch: 'Passwords match',
+        passwordsDontMatch: "Passwords don't match",
+        loading: 'Loading...',
+        login: 'Log in →',
+        getStarted: 'Get started →',
+        noAccount: "Don't have an account? ",
+        hasAccount: 'Already have an account? ',
+        signUp: 'Sign up',
+        logIn: 'Log in',
+      }
+
   function switchMode(toLogin: boolean) {
     setIsLogin(toLogin)
     setError(null)
@@ -84,7 +140,7 @@ function WelcomePageInner() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isLogin && !passwordsMatch) { setError("Passwords don't match."); return }
+    if (!isLogin && !passwordsMatch) { setError(copy.passwordsDontMatch); return }
     setLoading(true)
     setError(null)
     try {
@@ -207,7 +263,7 @@ function WelcomePageInner() {
             textTransform: 'uppercase',
             color: '#5F8E85',
           }}>
-            Biological Intelligence System
+            {copy.brandLabel}
           </div>
           <div style={{
             width: '4px', height: '4px', borderRadius: '50%',
@@ -229,7 +285,7 @@ function WelcomePageInner() {
             letterSpacing: '-0.03em',
           }}
         >
-          Understand your biology in context.
+          {copy.headline}
         </h1>
 
         {/* Subtitle */}
@@ -243,8 +299,8 @@ function WelcomePageInner() {
             lineHeight: 1.7,
           }}
         >
-          Connect your labs and wearables.<br />
-          Get one clear priority every day.
+          {copy.subtitleLine1}<br />
+          {copy.subtitleLine2}
         </p>
 
         {/* Glass form card — lighter, more breathable */}
@@ -269,13 +325,13 @@ function WelcomePageInner() {
                 marginBottom: '16px',
               }}>
                 <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: colors.teal, boxShadow: '0 0 6px rgba(45,212,191,0.9)' }} />
-                Check your inbox
+                {copy.checkInbox}
               </div>
               <p style={{ color: colors.text, fontSize: '15px', lineHeight: 1.65, marginBottom: '10px' }}>
-                We sent a confirmation link to <strong>{email}</strong>.
+                {copy.confirmationSent} <strong>{email}</strong>.
               </p>
               <p style={{ color: colors.textSoft, fontSize: '13px', lineHeight: 1.6, marginBottom: '18px' }}>
-                Click the link to activate your account, then log in here.
+                {copy.activateAccount}
               </p>
               <button
                 type="button"
@@ -290,7 +346,7 @@ function WelcomePageInner() {
                   boxShadow: '0 0 24px rgba(45,212,191,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
                 }}
               >
-                Go to Log in →
+                {copy.goToLogin}
               </button>
             </div>
           ) : (
@@ -299,7 +355,7 @@ function WelcomePageInner() {
               <div style={{ marginBottom: '12px' }}>
                 <input
                   type="email"
-                  placeholder="Email address"
+                  placeholder={copy.email}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -311,7 +367,7 @@ function WelcomePageInner() {
               <div style={{ marginBottom: isLogin ? '18px' : '12px', position: 'relative' }}>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Password"
+                  placeholder={copy.password}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -321,7 +377,7 @@ function WelcomePageInner() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   tabIndex={-1}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? copy.hidePassword : copy.showPassword}
                   style={{
                     position: 'absolute', right: '13px', top: '50%',
                     transform: 'translateY(-50%)',
@@ -340,7 +396,7 @@ function WelcomePageInner() {
                   <div style={{ position: 'relative', marginBottom: '8px' }}>
                     <input
                       type={showConfirm ? 'text' : 'password'}
-                      placeholder="Confirm password"
+                      placeholder={copy.confirmPassword}
                       value={confirmPassword}
                       onChange={(e) => { setConfirmPassword(e.target.value); if (error) setError(null) }}
                       required
@@ -350,7 +406,7 @@ function WelcomePageInner() {
                       type="button"
                       onClick={() => setShowConfirm((v) => !v)}
                       tabIndex={-1}
-                      aria-label={showConfirm ? 'Hide confirm password' : 'Show confirm password'}
+                      aria-label={showConfirm ? copy.hideConfirmPassword : copy.showConfirmPassword}
                       style={{
                         position: 'absolute', right: '13px', top: '50%',
                         transform: 'translateY(-50%)',
@@ -378,7 +434,7 @@ function WelcomePageInner() {
                           : '0 0 6px rgba(232,168,124,0.6)',
                         flexShrink: 0,
                       }} />
-                      {passwordsMatch ? 'Passwords match' : "Passwords don't match"}
+                      {passwordsMatch ? copy.passwordsMatch : copy.passwordsDontMatch}
                     </p>
                   )}
                   {!showMatchState && <div style={{ marginBottom: '12px' }} />}
@@ -422,7 +478,7 @@ function WelcomePageInner() {
                     : 'none',
                 }}
               >
-                {loading ? 'Loading...' : isLogin ? 'Log in →' : 'Get started →'}
+                {loading ? copy.loading : isLogin ? copy.login : copy.getStarted}
               </motion.button>
             </form>
           )}
@@ -438,12 +494,12 @@ function WelcomePageInner() {
             marginTop: '18px',
           }}
         >
-          {isLogin ? "Don't have an account? " : 'Already have an account? '}
+          {isLogin ? copy.noAccount : copy.hasAccount}
           <span
             onClick={() => switchMode(!isLogin)}
             style={{ color: colors.teal, cursor: 'pointer' }}
           >
-            {isLogin ? 'Sign up' : 'Log in'}
+            {isLogin ? copy.signUp : copy.logIn}
           </span>
         </p>
       </motion.div>

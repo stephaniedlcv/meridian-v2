@@ -4,6 +4,7 @@ import { useRouter }             from 'next/navigation'
 import { useEffect, useState, useRef } from 'react'
 import { createBrowserClient }   from '@supabase/ssr'
 import { getNextOnboardingStep } from '@/lib/onboarding'
+import { useMeridianLanguage, type MeridianLanguage } from '@/lib/i18n'
 import type { LandingExperience, BackgroundTheme, AmbientMode } from '@/types/experience'
 import {
   FALLBACK_CONFIG, THEME_BG, THEME_ORBS, AMBIENT_INTENSITY,
@@ -267,6 +268,7 @@ function LoginCornerButton({
 // ─────────────────────────────────────────────────────────────────────────────
 export default function MeridianApp() {
   const router = useRouter()
+  const [lang, setLanguage] = useMeridianLanguage()
 
   const [authChecking,  setAuthChecking]  = useState(true)
   const [config,        setConfig]        = useState<LandingExperience>(FALLBACK_CONFIG)
@@ -318,10 +320,35 @@ export default function MeridianApp() {
     setTimeout(() => router.push(path), 560)
   }
 
+  function chooseLanguage(nextLang: MeridianLanguage, mode: 'signup' | 'login' = 'signup') {
+    setLanguage(nextLang)
+    navigateTo(`/onboarding/welcome?mode=${mode}`)
+  }
+
   if (authChecking) return <LoadingSkeleton />
 
   const bg       = THEME_BG[config.background_theme] ?? '#061316'
   const hasVideo = !!config.hero_video_url
+
+  const landingCopy = lang === 'es'
+    ? {
+        login: 'Iniciar sesión',
+        system: 'Sistema de inteligencia biológica',
+        headline: 'Entiende tu biología en contexto.',
+        subcopy: 'Conecta tus laboratorios, hábitos y señales clave para recibir una prioridad clara cada día.',
+        choose: 'Comenzar en',
+        spanish: 'Español',
+        english: 'English',
+      }
+    : {
+        login: 'Log in',
+        system: 'Biological Intelligence System',
+        headline: 'Understand your biology in context.',
+        subcopy: 'Connect your labs, habits, and key signals to receive one clear priority every day.',
+        choose: 'Start in',
+        spanish: 'Español',
+        english: 'English',
+      }
 
   function enter(delayMs: number): React.CSSProperties {
     return {
@@ -337,8 +364,8 @@ export default function MeridianApp() {
 
       {/* Log In — fixed top-right utility position */}
       <LoginCornerButton
-        label={config.secondary_cta_label}
-        onClick={() => navigateTo('/onboarding/welcome?mode=login')}
+        label={landingCopy.login}
+        onClick={() => chooseLanguage(lang, 'login')}
         visible={mounted}
       />
 
@@ -428,7 +455,7 @@ export default function MeridianApp() {
               // Lifted for readability over moving video — teal, not white
               color:         '#9EC8C1',
             }}>
-              Biological Intelligence System
+              {landingCopy.system}
             </span>
             <span style={{
               display: 'block', width: '4px', height: '4px', borderRadius: '50%',
@@ -454,7 +481,7 @@ export default function MeridianApp() {
             marginBottom:  '20px',
             whiteSpace:    'pre-line',
           }}>
-            {config.headline}
+            {landingCopy.headline}
           </div>
 
           {/* Subcopy */}
@@ -469,15 +496,45 @@ export default function MeridianApp() {
             maxWidth:      '360px',
             marginBottom:  '44px',
           }}>
-            {config.subcopy}
+            {landingCopy.subcopy}
           </div>
 
-          {/* Primary CTA only — Log In has moved to top-right corner */}
-          <div style={{ ...enter(460) }}>
-            <PrimaryButton
-              label={config.primary_cta_label}
-              onClick={() => navigateTo('/onboarding/welcome?mode=signup')}
-            />
+          {/* Language-first entry */}
+          <div style={{
+            ...enter(460),
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '14px',
+          }}>
+            <div style={{
+              fontFamily: F_UI,
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              color: '#5F8E85',
+            }}>
+              {landingCopy.choose}
+            </div>
+
+            <div style={{
+              display: 'flex',
+              gap: '10px',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+            }}>
+              <LanguageEntryButton
+                label={landingCopy.spanish}
+                active={lang === 'es'}
+                onClick={() => chooseLanguage('es')}
+              />
+              <LanguageEntryButton
+                label={landingCopy.english}
+                active={lang === 'en'}
+                onClick={() => chooseLanguage('en')}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -488,6 +545,54 @@ export default function MeridianApp() {
 // ─────────────────────────────────────────────────────────────────────────────
 // CTA buttons
 // ─────────────────────────────────────────────────────────────────────────────
+function LanguageEntryButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: '132px',
+        minHeight: '50px',
+        padding: '13px 24px',
+        borderRadius: '14px',
+        border: `1px solid ${active || hovered ? 'rgba(45,212,191,0.52)' : 'rgba(45,212,191,0.22)'}`,
+        background: active
+          ? 'linear-gradient(135deg, rgba(45,212,191,0.16), rgba(103,232,249,0.07))'
+          : hovered
+            ? 'rgba(45,212,191,0.09)'
+            : 'rgba(45,212,191,0.045)',
+        color: active || hovered ? '#E8FAF7' : '#9ECFC6',
+        fontFamily: F_UI,
+        fontSize: '14px',
+        fontWeight: active ? 700 : 500,
+        cursor: 'pointer',
+        backdropFilter: 'blur(20px)',
+        boxShadow: active || hovered
+          ? '0 0 28px rgba(45,212,191,0.16), inset 0 1px 0 rgba(255,255,255,0.06)'
+          : '0 0 14px rgba(45,212,191,0.06)',
+        transition: 'all 0.22s ease',
+      }}
+    >
+      {label}
+    </button>
+  )
+}
+
+// Legacy CTA kept available for future landing variants.
 function PrimaryButton({ label, onClick }: { label: string; onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
   return (
