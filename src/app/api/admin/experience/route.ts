@@ -27,7 +27,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    const db = createAdminClient() as any as any as any
+    const db = createAdminClient() as any
     const { data, error } = await db
       .from('landing_experience')
       .select('*')
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json() as Partial<LandingExperience>
-    const db   = createAdminClient() as any as any as any
+    const db   = createAdminClient() as any
     const now  = new Date().toISOString()
 
     const { data, error } = await db
@@ -118,7 +118,7 @@ export async function PATCH(req: NextRequest) {
     const { id, activate } = body
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
-    const db  = createAdminClient() as any as any as any
+    const db  = createAdminClient() as any
     const now = new Date().toISOString()
 
     // Deactivate all others if activating this one
@@ -195,7 +195,7 @@ export async function DELETE(req: NextRequest) {
     const { id } = await req.json() as { id: string }
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
-    const db = createAdminClient() as any as any as any
+    const db = createAdminClient() as any
 
     // Safety: never delete the active config
     const { data: existing } = await db
