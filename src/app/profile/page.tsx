@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import NavBar from '@/components/NavBar'
 import Glp1ProtocolToggle from '@/components/Glp1ProtocolToggle'
+import { MeridianPageShell } from '@/components/MeridianPageShell'
 import { getNextOnboardingStep } from '@/lib/onboarding'
 
 // ——— Design tokens ———
@@ -570,20 +571,13 @@ export default function ProfilePage() {
 
   // ——— Render ———
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: colors.background,
-      fontFamily: fonts.ui,
-      color: colors.text,
-      position: 'relative',
-      overflowX: 'hidden',
-    }}>
+    <MeridianPageShell contentStyle={{ maxWidth: 680 }}>
       {/* Ambient orbs */}
       <div style={{ position: 'fixed', top: '-20%', left: '-15%', width: '65%', height: '65%', background: 'radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'fixed', bottom: '-20%', right: '-15%', width: '65%', height: '65%', background: 'radial-gradient(circle, rgba(103,232,249,0.08) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'fixed', top: '45%', left: '50%', transform: 'translate(-50%,-50%)', width: '45%', height: '30%', background: 'radial-gradient(circle, rgba(45,212,191,0.04) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
 
-      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '44px 20px 120px', position: 'relative', zIndex: 1 }}>
+      <div style={{ position: 'relative', zIndex: 1 }}>
 
         {/* Page context label */}
         <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '7px' }}>
@@ -1361,7 +1355,7 @@ export default function ProfilePage() {
 
       </div>
       <NavBar />
-    </div>
+    </MeridianPageShell>
   )
 }
 
