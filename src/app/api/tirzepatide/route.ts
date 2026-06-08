@@ -212,5 +212,28 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // medication_entries is the parent medication model.
+  // tirzepatide_entries remains as a legacy dose-log table for rotation/history compatibility.
+  const { error: medicationSyncError } = await supabase
+    .from('medication_entries')
+    .upsert(
+      {
+        user_id: user.id,
+        medication_name: 'Tirzepatide',
+        category: 'glp1',
+        date: body.date,
+        dose: Number(body.dose),
+        dose_unit: 'mg',
+        route: 'subcutaneous',
+        site: body.site,
+        notes,
+      },
+      { onConflict: 'user_id,medication_name,date' },
+    );
+
+  if (medicationSyncError) {
+    console.warn('[Meridian] Medication parent model sync failed:', medicationSyncError.message);
+  }
+
   return NextResponse.json({ success: true, data });
 }
