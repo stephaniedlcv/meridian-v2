@@ -5,7 +5,7 @@ import { createServerClient } from '@supabase/ssr';
 
 export const dynamic = 'force-dynamic';
 
-type InjectionSite = 'abdomen_left' | 'abdomen_right' | 'thigh_left' | 'thigh_right';
+type InjectionSite = 'abdomen_left' | 'abdomen_right' | 'thigh_left' | 'thigh_right' | 'arm_left' | 'arm_right';
 
 type TirzepatidePayload = {
   date?: string;
@@ -21,6 +21,8 @@ const ALLOWED_SITES: InjectionSite[] = [
   'abdomen_right',
   'thigh_left',
   'thigh_right',
+  'arm_left',
+  'arm_right',
 ];
 
 const ALLOWED_DOSES = [2.5, 5, 7.5, 10, 12.5, 15];
@@ -171,7 +173,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'GLP-1 tracking is not enabled for this user.',
+        error: 'Medication dose tracking is not enabled for this user.',
       },
       { status: 403 },
     );

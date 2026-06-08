@@ -23,9 +23,9 @@ const COLORS = {
 
 const COPY = {
   es: {
-    eyebrow: 'Plan protocols',
-    title: 'Seguimiento GLP-1',
-    copy: 'Muestra el tracker en Plan solo si forma parte de tu tratamiento actual.',
+    eyebrow: 'Opciones de Plan',
+    title: 'Registro de medicamento',
+    copy: 'Muestra un registro de dosis en Plan solo si ya forma parte de tu cuidado actual.',
     enabled: 'Activo',
     disabled: 'Inactivo',
     saving: 'Guardando',
@@ -34,9 +34,9 @@ const COPY = {
     error: 'No pudimos actualizar esta preferencia.',
   },
   en: {
-    eyebrow: 'Plan protocols',
-    title: 'GLP-1 tracking',
-    copy: 'Shows the tracker in Plan only if it is part of your current treatment.',
+    eyebrow: 'Plan options',
+    title: 'Medication log',
+    copy: 'Shows a dose log in Plan only if it is already part of your current care.',
     enabled: 'Active',
     disabled: 'Inactive',
     saving: 'Saving',
