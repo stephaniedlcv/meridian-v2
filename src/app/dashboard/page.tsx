@@ -788,6 +788,40 @@ function DashboardTimelineCard({ event, onOpen, lang }: { event: UpcomingHealthE
   )
 }
 
+type DashboardSafetyBiomarker = {
+  marker_name: string
+  value: number | null
+  unit: string | null
+  collected_at: string
+  created_at?: string | null
+}
+
+function getLatestBiomarkersByMarkerName(
+  rows: DashboardSafetyBiomarker[] | null | undefined,
+): DashboardSafetyBiomarker[] {
+  const latestByMarker = new Map<string, DashboardSafetyBiomarker>()
+
+  for (const row of rows ?? []) {
+    const markerName = row.marker_name
+    if (!markerName) continue
+
+    const current = latestByMarker.get(markerName)
+    if (!current) {
+      latestByMarker.set(markerName, row)
+      continue
+    }
+
+    const rowDate = row.collected_at || row.created_at || ''
+    const currentDate = current.collected_at || current.created_at || ''
+
+    if (rowDate > currentDate) {
+      latestByMarker.set(markerName, row)
+    }
+  }
+
+  return Array.from(latestByMarker.values())
+}
+
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const router   = useRouter()
@@ -848,17 +882,25 @@ export default function DashboardPage() {
       if (hasBiomarkers) {
         const { data: recentForSafety } = await supabase
           .from('biomarkers_static')
-          .select('marker_name, value, unit')
+          .select('marker_name, value, unit, collected_at, created_at')
           .eq('user_id', user.id)
+          .eq('flag_error', false)
           .order('collected_at', { ascending: false })
-          .limit(60)
-        if (recentForSafety && recentForSafety.length > 0) {
+          .order('created_at', { ascending: false })
+          .limit(120)
+
+        const latestForSafety = getLatestBiomarkersByMarkerName(
+          (recentForSafety ?? []) as DashboardSafetyBiomarker[],
+        )
+
+        if (latestForSafety.length > 0) {
           const bioprofile = profile?.biological_profile ?? 'female'
-          localCritical = recentForSafety.some(b =>
+          localCritical = latestForSafety.some(b =>
             b.value !== null &&
             getSafetyStatusForBiomarker(b.marker_name, b.value, b.unit ?? '', bioprofile).status === 'critical'
           )
-          if (localCritical) { setHasCriticalMarker(true); setSafetyAlert(true) }
+          setHasCriticalMarker(localCritical)
+          if (localCritical) { setSafetyAlert(true) }
         }
       }
 
