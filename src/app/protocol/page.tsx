@@ -344,7 +344,7 @@ export default function PlanPage() {
         glp1_protocol_enabled: Boolean(profile.glp1_protocol_enabled),
       });
 
-      // GLP-1 entries (via existing API)
+      // GLP-1 dose-log entries via legacy API for rotation/history compatibility
       if (profile?.glp1_protocol_enabled || profile?.medications_enabled) {
         const res = await fetch('/api/tirzepatide', { method: 'GET', cache: 'no-store' });
         if (mounted && res.ok) {
@@ -355,14 +355,13 @@ export default function PlanPage() {
         }
       }
 
-      // Generic medication entries (non-GLP-1). This is intentionally soft-fail
-      // because some environments may not have the medication_entries migration yet.
-      if (profile?.medications_enabled) {
+      // medication_entries is the parent medication model, including GLP-1.
+      // tirzepatide_entries remains a legacy dose-log table for rotation/history compatibility.
+      if (profile?.medications_enabled || profile?.glp1_protocol_enabled) {
         const { data: meds } = await supabase
           .from('medication_entries')
           .select('*')
           .eq('user_id', user.id)
-          .neq('category', 'glp1')
           .order('date', { ascending: false });
         if (mounted) setMedications((meds ?? []) as MedicationEntry[]);
       }
@@ -594,7 +593,8 @@ export default function PlanPage() {
   );
 
   const activeSupplementCount = supplements.filter(s => s.active).length;
-  const protocolCount = medications.length + entries.length + peptides.filter(p => p.cycle_active).length;
+  const nonGlp1MedicationCount = medications.filter(m => m.category !== 'glp1').length;
+  const protocolCount = nonGlp1MedicationCount + entries.length + peptides.filter(p => p.cycle_active).length;
 
   const planTabs: Array<{ key: PlanTab; label: string; hint: string; count?: number }> = [
     {
