@@ -14,7 +14,7 @@ import { useMeridianLanguage } from '@/lib/i18n';
 
 type InjectionSite = 'abdomen_left' | 'abdomen_right' | 'thigh_left' | 'thigh_right' | 'arm_left' | 'arm_right';
 type AppLanguage = 'es' | 'en';
-type ActiveModal = 'medication' | 'supplement' | 'peptide' | null;
+type ActiveModal = 'medication' | 'supplement' | 'peptide' | 'training' | null;
 type PlanTab = 'today' | 'stack' | 'protocols' | 'training';
 
 type TirzepatideEntry = {
@@ -68,6 +68,47 @@ type PeptideEntry = {
   cycle_end: string | null;
   notes: string | null;
 };
+
+type TrainingGoal =
+  | 'recomposition'
+  | 'fat_loss'
+  | 'muscle_gain'
+  | 'strength'
+  | 'endurance'
+  | 'maintenance'
+  | 'custom';
+
+type TrainingProgramEntry = {
+  id: string;
+  user_id: string;
+  name: string;
+  goal: TrainingGoal;
+  total_weeks: number;
+  start_date: string;
+  sessions_per_week: number;
+  template_id: string | null;
+  phases: unknown;
+  milestones: unknown;
+  deload_weeks: number[];
+  active: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+function getTrainingGoalLabel(goal: TrainingGoal, lang: AppLanguage): string {
+  const labels: Record<TrainingGoal, Record<AppLanguage, string>> = {
+    recomposition: { es: 'Recomposición', en: 'Recomposition' },
+    fat_loss: { es: 'Pérdida de grasa', en: 'Fat loss' },
+    muscle_gain: { es: 'Ganancia muscular', en: 'Muscle gain' },
+    strength: { es: 'Fuerza', en: 'Strength' },
+    endurance: { es: 'Resistencia', en: 'Endurance' },
+    maintenance: { es: 'Mantenimiento', en: 'Maintenance' },
+    custom: { es: 'Personalizada', en: 'Custom' },
+  };
+
+  return labels[goal]?.[lang] ?? goal.replace(/_/g, ' ');
+}
 
 type ProfileFlags = {
   medications_enabled: boolean;
@@ -304,6 +345,11 @@ export default function PlanPage() {
   // ── Peptides ───────────────────────────────────────────────────────────────
   const [peptides, setPeptides] = useState<PeptideEntry[]>([]);
 
+  // ── Training program ───────────────────────────────────────────────────────
+  const [trainingProgram, setTrainingProgram] = useState<TrainingProgramEntry | null>(null);
+  const [newTraining, setNewTraining] = useState({ name: '', goal: 'recomposition' as TrainingGoal, start_date: fmtInput(new Date()), total_weeks: '24', sessions_per_week: '4', notes: '' });
+  const [savingTraining, setSavingTraining] = useState(false);
+
   // ── Modals ─────────────────────────────────────────────────────────────────
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const [activePlanTab, setActivePlanTab] = useState<PlanTab>('today');
@@ -385,6 +431,28 @@ export default function PlanPage() {
         if (mounted) setPeptides(peps ?? []);
       }
 
+      const { data: program } = await supabase
+        .from('training_programs')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('active', true)
+        .maybeSingle();
+
+      if (mounted) {
+        const activeProgram = (program ?? null) as TrainingProgramEntry | null;
+        setTrainingProgram(activeProgram);
+        if (activeProgram) {
+          setNewTraining({
+            name: activeProgram.name,
+            goal: activeProgram.goal,
+            start_date: activeProgram.start_date,
+            total_weeks: String(activeProgram.total_weeks),
+            sessions_per_week: String(activeProgram.sessions_per_week),
+            notes: activeProgram.notes ?? '',
+          });
+        }
+      }
+
       if (mounted) setLoading(false);
     }
     load();
@@ -398,6 +466,50 @@ export default function PlanPage() {
   const daysSinceLast = latestEntry ? daysSince(latestEntry.date) : null;
 
   // ── Save tirzepatide entry ─────────────────────────────────────────────────
+  async function handleSaveTrainingProgram() {
+    if (!userId || !newTraining.name.trim()) return;
+
+    setSavingTraining(true);
+
+    const totalWeeks = Number(newTraining.total_weeks);
+    const sessionsPerWeek = Number(newTraining.sessions_per_week);
+
+    const payload = {
+      user_id: userId,
+      name: newTraining.name.trim(),
+      goal: newTraining.goal,
+      start_date: newTraining.start_date || fmtInput(new Date()),
+      total_weeks: Number.isFinite(totalWeeks) ? Math.min(Math.max(totalWeeks, 4), 52) : 24,
+      sessions_per_week: Number.isFinite(sessionsPerWeek) ? Math.min(Math.max(sessionsPerWeek, 2), 6) : 4,
+      phases: [],
+      milestones: [],
+      deload_weeks: [],
+      active: true,
+      notes: newTraining.notes.trim() || null,
+    };
+
+    const query = trainingProgram
+      ? supabase.from('training_programs').update(payload).eq('id', trainingProgram.id).eq('user_id', userId).select('*').single()
+      : supabase.from('training_programs').insert(payload).select('*').single();
+
+    const { data, error } = await query;
+    setSavingTraining(false);
+
+    if (!error && data) {
+      const saved = data as TrainingProgramEntry;
+      setTrainingProgram(saved);
+      setNewTraining({
+        name: saved.name,
+        goal: saved.goal,
+        start_date: saved.start_date,
+        total_weeks: String(saved.total_weeks),
+        sessions_per_week: String(saved.sessions_per_week),
+        notes: saved.notes ?? '',
+      });
+      setActiveModal(null);
+    }
+  }
+
   async function handleMedSubmit(e: FormEvent) {
     e.preventDefault();
     if (!userId || !flags.glp1_protocol_enabled) return;
@@ -1083,8 +1195,8 @@ export default function PlanPage() {
     <div style={{ marginBottom: '32px' }}>
       <SectionHeader
         label={lang === 'es' ? 'Programa de entrenamiento' : 'Training program'}
-        onAdd={() => {}}
-        addLabel={lang === 'es' ? 'Crear' : 'Create'}
+        onAdd={() => setActiveModal('training')}
+        addLabel={trainingProgram ? (lang === 'es' ? 'Editar' : 'Edit') : (lang === 'es' ? 'Crear' : 'Create')}
       />
 
       <div
@@ -1111,88 +1223,125 @@ export default function PlanPage() {
           }}
         />
 
-        <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: isDesktop ? '1.1fr 0.9fr' : '1fr', gap: '18px', alignItems: 'center' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '999px', background: C.cyan, boxShadow: `0 0 12px ${C.cyan}` }} />
-              <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.cyan }}>
-                {lang === 'es' ? 'Builder personalizado' : 'Custom builder'}
-              </span>
+        {trainingProgram ? (
+          <div style={{ position: 'relative', display: 'grid', gap: '18px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ width: '7px', height: '7px', borderRadius: '999px', background: C.cyan, boxShadow: `0 0 12px ${C.cyan}` }} />
+                <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.cyan }}>
+                  {lang === 'es' ? 'Programa activo' : 'Active program'}
+                </span>
+              </div>
+
+              <h2 style={{ fontFamily: F.heading, fontSize: isDesktop ? '23px' : '20px', lineHeight: 1.15, letterSpacing: '-0.03em', color: C.text, margin: '0 0 8px' }}>
+                {trainingProgram.name}
+              </h2>
+
+              <p style={{ fontSize: '13px', color: C.textSoft, margin: 0, lineHeight: 1.6, maxWidth: '680px' }}>
+                {trainingProgram.notes || (lang === 'es'
+                  ? 'Tu estructura semanal está guardada en Meridian. Usa este espacio como base para organizar tu entrenamiento.'
+                  : 'Your weekly structure is saved in Meridian. Use this space as the base for organizing your training.')}
+              </p>
             </div>
 
-            <h2 style={{ fontFamily: F.heading, fontSize: isDesktop ? '22px' : '20px', lineHeight: 1.15, letterSpacing: '-0.03em', color: C.text, margin: '0 0 8px' }}>
-              {lang === 'es' ? 'Crea tu programa a tu manera.' : 'Build your program your way.'}
-            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(4, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))', gap: '10px' }}>
+              {[
+                { label: lang === 'es' ? 'Meta' : 'Goal', value: getTrainingGoalLabel(trainingProgram.goal, lang) },
+                { label: lang === 'es' ? 'Duración' : 'Length', value: `${trainingProgram.total_weeks} ${lang === 'es' ? 'semanas' : 'weeks'}` },
+                { label: lang === 'es' ? 'Frecuencia' : 'Frequency', value: `${trainingProgram.sessions_per_week} ${lang === 'es' ? 'días/semana' : 'days/week'}` },
+                { label: lang === 'es' ? 'Inicio' : 'Start', value: trainingProgram.start_date },
+              ].map(item => (
+                <div key={item.label} style={{ padding: '12px', borderRadius: '14px', border: `0.5px solid ${C.cardBorder}`, background: 'rgba(6,19,22,0.34)' }}>
+                  <p style={{ margin: '0 0 5px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: C.textMuted }}>{item.label}</p>
+                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 750, color: C.text, textTransform: item.label === (lang === 'es' ? 'Meta' : 'Goal') ? 'capitalize' : 'none' }}>{item.value}</p>
+                </div>
+              ))}
+            </div>
 
-            <p style={{ fontSize: '13px', color: C.textSoft, margin: 0, lineHeight: 1.6, maxWidth: '620px' }}>
-              {lang === 'es'
-                ? 'Organiza días de entrenamiento, ejercicios, series, repeticiones, cargas objetivo y notas. Meridian puede usar plantillas como punto de partida, pero el usuario decide qué añadir.'
-                : 'Organize training days, exercises, sets, reps, target loads, and notes. Meridian can offer templates as a starting point, but the user decides what to add.'}
-            </p>
+            <button
+              type="button"
+              onClick={() => setActiveModal('training')}
+              style={{
+                alignSelf: 'flex-start',
+                padding: '10px 14px',
+                borderRadius: '999px',
+                border: 'none',
+                background: `linear-gradient(135deg, ${C.teal} 0%, ${C.cyan} 100%)`,
+                color: '#041112',
+                fontFamily: F.ui,
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              {lang === 'es' ? 'Editar programa' : 'Edit program'}
+            </button>
           </div>
-
-          <div style={{ display: 'grid', gap: '8px' }}>
-            {[
-              lang === 'es' ? 'Crear desde cero' : 'Create from scratch',
-              lang === 'es' ? 'Usar plantilla opcional' : 'Use optional template',
-              lang === 'es' ? 'Editar días y ejercicios luego' : 'Edit days and exercises later',
-            ].map(item => (
-              <div
-                key={item}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '9px',
-                  padding: '9px 11px',
-                  borderRadius: '12px',
-                  border: `0.5px solid ${C.cardBorder}`,
-                  background: 'rgba(6,19,22,0.34)',
-                }}
-              >
-                <span style={{ width: '5px', height: '5px', borderRadius: '999px', background: C.teal, flexShrink: 0 }} />
-                <span style={{ fontSize: '12px', color: C.textSoft, fontWeight: 650 }}>{item}</span>
+        ) : (
+          <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: isDesktop ? '1.1fr 0.9fr' : '1fr', gap: '18px', alignItems: 'center' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ width: '7px', height: '7px', borderRadius: '999px', background: C.cyan, boxShadow: `0 0 12px ${C.cyan}` }} />
+                <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.cyan }}>
+                  {lang === 'es' ? 'Builder personalizado' : 'Custom builder'}
+                </span>
               </div>
-            ))}
+
+              <h2 style={{ fontFamily: F.heading, fontSize: isDesktop ? '22px' : '20px', lineHeight: 1.15, letterSpacing: '-0.03em', color: C.text, margin: '0 0 8px' }}>
+                {lang === 'es' ? 'Crea tu programa a tu manera.' : 'Build your program your way.'}
+              </h2>
+
+              <p style={{ fontSize: '13px', color: C.textSoft, margin: 0, lineHeight: 1.6, maxWidth: '620px' }}>
+                {lang === 'es'
+                  ? 'Guarda una estructura base: nombre, meta, duración, frecuencia semanal y notas. Los ejercicios detallados vendrán en una fase posterior.'
+                  : 'Save a base structure: name, goal, length, weekly frequency, and notes. Detailed exercises will come in a later phase.'}
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gap: '8px' }}>
+              {[
+                lang === 'es' ? 'Crear desde cero' : 'Create from scratch',
+                lang === 'es' ? 'Guardar en Supabase' : 'Save in Supabase',
+                lang === 'es' ? 'Editar detalles luego' : 'Edit details later',
+              ].map(item => (
+                <div
+                  key={item}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '9px',
+                    padding: '9px 11px',
+                    borderRadius: '12px',
+                    border: `0.5px solid ${C.cardBorder}`,
+                    background: 'rgba(6,19,22,0.34)',
+                  }}
+                >
+                  <span style={{ width: '5px', height: '5px', borderRadius: '999px', background: C.teal, flexShrink: 0 }} />
+                  <span style={{ fontSize: '12px', color: C.textSoft, fontWeight: 650 }}>{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setActiveModal('training')}
+              style={{
+                justifySelf: 'flex-start',
+                padding: '10px 14px',
+                borderRadius: '999px',
+                border: 'none',
+                background: `linear-gradient(135deg, ${C.teal} 0%, ${C.cyan} 100%)`,
+                color: '#041112',
+                fontFamily: F.ui,
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              {lang === 'es' ? 'Crear programa' : 'Create program'}
+            </button>
           </div>
-        </div>
-
-        <div style={{ position: 'relative', marginTop: '18px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={() => {}}
-            style={{
-              padding: '10px 14px',
-              borderRadius: '999px',
-              border: 'none',
-              background: `linear-gradient(135deg, ${C.teal} 0%, ${C.cyan} 100%)`,
-              color: '#041112',
-              fontFamily: F.ui,
-              fontSize: '12px',
-              fontWeight: 800,
-              cursor: 'pointer',
-            }}
-          >
-            {lang === 'es' ? 'Crear programa' : 'Create program'}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {}}
-            style={{
-              padding: '10px 14px',
-              borderRadius: '999px',
-              border: `0.5px solid ${C.cardBorder}`,
-              background: 'rgba(6,19,22,0.28)',
-              color: C.textSoft,
-              fontFamily: F.ui,
-              fontSize: '12px',
-              fontWeight: 750,
-              cursor: 'pointer',
-            }}
-          >
-            {lang === 'es' ? 'Ver plantillas' : 'View templates'}
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -1260,9 +1409,13 @@ export default function PlanPage() {
     {
       key: 'training',
       label: lang === 'es' ? 'Training' : 'Training',
-      title: lang === 'es' ? 'Builder listo' : 'Builder ready',
-      detail: lang === 'es' ? 'Crea una estructura semanal personalizada.' : 'Create a custom weekly structure.',
-      action: lang === 'es' ? 'Ver training' : 'View training',
+      title: trainingProgram
+        ? trainingProgram.name
+        : (lang === 'es' ? 'Sin programa activo' : 'No active program'),
+      detail: trainingProgram
+        ? `${trainingProgram.sessions_per_week} ${lang === 'es' ? 'días/semana' : 'days/week'} · ${trainingProgram.total_weeks} ${lang === 'es' ? 'semanas' : 'weeks'}`
+        : (lang === 'es' ? 'Crea una estructura semanal base.' : 'Create a base weekly structure.'),
+      action: trainingProgram ? (lang === 'es' ? 'Ver entrenamiento' : 'View training') : (lang === 'es' ? 'Configurar' : 'Set up'),
       tab: 'training' as PlanTab,
     },
   ];
@@ -1436,6 +1589,66 @@ export default function PlanPage() {
             <button onClick={handleSaveNewMedication} disabled={savingNewMed || !newMed.name.trim() || !newMed.dose}
               style={{ width: '100%', padding: '12px', background: `linear-gradient(135deg, ${C.teal} 0%, ${C.cyan} 100%)`, border: 'none', borderRadius: '12px', color: '#041112', fontFamily: F.ui, fontSize: '14px', fontWeight: 700, cursor: (!newMed.name.trim() || !newMed.dose || savingNewMed) ? 'not-allowed' : 'pointer', opacity: (!newMed.name.trim() || !newMed.dose || savingNewMed) ? 0.6 : 1 }}>
               {savingNewMed ? (lang === 'es' ? 'Guardando...' : 'Saving...') : (lang === 'es' ? 'Guardar medicamento' : 'Save medication')}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {activeModal === 'training' && (
+        <Modal title={trainingProgram ? (lang === 'es' ? 'Editar programa' : 'Edit program') : (lang === 'es' ? 'Crear programa' : 'Create program')} onClose={() => setActiveModal(null)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <Field label={lang === 'es' ? 'Nombre del programa *' : 'Program name *'}>
+              <input type="text" value={newTraining.name} onChange={e => setNewTraining(p => ({ ...p, name: e.target.value }))} placeholder={lang === 'es' ? 'Feminine Recomp Phase 1' : 'Feminine Recomp Phase 1'} style={inputStyle} />
+            </Field>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? '1fr 1fr' : '1fr', gap: '10px' }}>
+              <Field label={lang === 'es' ? 'Meta' : 'Goal'}>
+                <select value={newTraining.goal} onChange={e => setNewTraining(p => ({ ...p, goal: e.target.value as TrainingGoal }))} style={inputStyle}>
+                  {[
+                    ['recomposition', lang === 'es' ? 'Recomposición' : 'Recomposition'],
+                    ['fat_loss', lang === 'es' ? 'Pérdida de grasa' : 'Fat loss'],
+                    ['muscle_gain', lang === 'es' ? 'Ganancia muscular' : 'Muscle gain'],
+                    ['strength', lang === 'es' ? 'Fuerza' : 'Strength'],
+                    ['endurance', lang === 'es' ? 'Resistencia' : 'Endurance'],
+                    ['maintenance', lang === 'es' ? 'Mantenimiento' : 'Maintenance'],
+                    ['custom', lang === 'es' ? 'Personalizada' : 'Custom'],
+                  ].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </Field>
+
+              <Field label={lang === 'es' ? 'Fecha de inicio' : 'Start date'}>
+                <input type="date" value={newTraining.start_date} onChange={e => setNewTraining(p => ({ ...p, start_date: e.target.value }))} style={inputStyle} />
+              </Field>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? '1fr 1fr' : '1fr', gap: '10px' }}>
+              <Field label={lang === 'es' ? 'Duración / semanas' : 'Length / weeks'}>
+                <input type="number" value={newTraining.total_weeks} onChange={e => setNewTraining(p => ({ ...p, total_weeks: e.target.value }))} min="4" max="52" style={inputStyle} />
+              </Field>
+
+              <Field label={lang === 'es' ? 'Días por semana' : 'Days per week'}>
+                <input type="number" value={newTraining.sessions_per_week} onChange={e => setNewTraining(p => ({ ...p, sessions_per_week: e.target.value }))} min="2" max="6" style={inputStyle} />
+              </Field>
+            </div>
+
+            <Field label={lang === 'es' ? 'Notas / estructura base' : 'Notes / base structure'}>
+              <textarea
+                value={newTraining.notes}
+                onChange={e => setNewTraining(p => ({ ...p, notes: e.target.value }))}
+                placeholder={lang === 'es' ? 'Ej. Lower A, Upper A, Lower B, Upper B...' : 'Ex. Lower A, Upper A, Lower B, Upper B...'}
+                style={{ ...inputStyle, minHeight: '92px', resize: 'vertical' }}
+              />
+            </Field>
+
+            <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.5, color: C.textMuted }}>
+              {lang === 'es'
+                ? 'Este MVP guarda la estructura general del programa. Los ejercicios, series y progresiones detalladas se añadirán en una fase posterior.'
+                : 'This MVP saves the general program structure. Detailed exercises, sets, and progressions will be added in a later phase.'}
+            </p>
+
+            <button onClick={handleSaveTrainingProgram} disabled={savingTraining || !newTraining.name.trim()}
+              style={{ width: '100%', padding: '12px', background: `linear-gradient(135deg, ${C.teal} 0%, ${C.cyan} 100%)`, border: 'none', borderRadius: '12px', color: '#041112', fontFamily: F.ui, fontSize: '14px', fontWeight: 700, cursor: (!newTraining.name.trim() || savingTraining) ? 'not-allowed' : 'pointer', opacity: (!newTraining.name.trim() || savingTraining) ? 0.6 : 1 }}>
+              {savingTraining ? (lang === 'es' ? 'Guardando...' : 'Saving...') : (trainingProgram ? (lang === 'es' ? 'Guardar cambios' : 'Save changes') : (lang === 'es' ? 'Crear programa' : 'Create program'))}
             </button>
           </div>
         </Modal>
