@@ -82,7 +82,9 @@ export type TirzepatideSite =
   | 'abdomen_left'
   | 'abdomen_right'
   | 'thigh_left'
-  | 'thigh_right';
+  | 'thigh_right'
+  | 'arm_left'
+  | 'arm_right';
 
 export type MedicationCategory =
   | 'glp1'

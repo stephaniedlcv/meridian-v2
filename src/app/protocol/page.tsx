@@ -12,7 +12,7 @@ import { useMeridianLanguage } from '@/lib/i18n';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type InjectionSite = 'abdomen_left' | 'abdomen_right' | 'thigh_left' | 'thigh_right';
+type InjectionSite = 'abdomen_left' | 'abdomen_right' | 'thigh_left' | 'thigh_right' | 'arm_left' | 'arm_right';
 type AppLanguage = 'es' | 'en';
 type ActiveModal = 'medication' | 'supplement' | 'peptide' | null;
 type PlanTab = 'today' | 'stack' | 'protocols' | 'training';
@@ -110,16 +110,22 @@ function useIsDesktop() {
 
 // ── Site helpers (kept from original) ─────────────────────────────────────────
 
-const SITE_OPTIONS = [
+const SITE_OPTIONS: Array<{ value: InjectionSite; label: Record<AppLanguage, string>; short: Record<AppLanguage, string> }> = [
   { value: 'abdomen_left',  label: { es: 'Abdomen izquierdo', en: 'Left abdomen'  }, short: { es: 'Abd. izq.', en: 'Left abd.'   } },
-  { value: 'thigh_right',   label: { es: 'Muslo derecho',     en: 'Right thigh'   }, short: { es: 'Muslo der.', en: 'Right thigh' } },
   { value: 'abdomen_right', label: { es: 'Abdomen derecho',   en: 'Right abdomen' }, short: { es: 'Abd. der.', en: 'Right abd.'  } },
   { value: 'thigh_left',    label: { es: 'Muslo izquierdo',   en: 'Left thigh'    }, short: { es: 'Muslo izq.', en: 'Left thigh' } },
+  { value: 'thigh_right',   label: { es: 'Muslo derecho',     en: 'Right thigh'   }, short: { es: 'Muslo der.', en: 'Right thigh' } },
+  { value: 'arm_left',      label: { es: 'Brazo izquierdo',   en: 'Left arm'      }, short: { es: 'Brazo izq.', en: 'Left arm'    } },
+  { value: 'arm_right',     label: { es: 'Brazo derecho',     en: 'Right arm'     }, short: { es: 'Brazo der.', en: 'Right arm'   } },
 ];
 
 const SITE_ROTATION: Record<InjectionSite, InjectionSite> = {
-  abdomen_left: 'thigh_right', thigh_right: 'abdomen_right',
-  abdomen_right: 'thigh_left', thigh_left: 'abdomen_left',
+  abdomen_left: 'abdomen_right',
+  abdomen_right: 'thigh_left',
+  thigh_left: 'thigh_right',
+  thigh_right: 'arm_left',
+  arm_left: 'arm_right',
+  arm_right: 'abdomen_left',
 };
 
 const DOSE_OPTIONS = [2.5, 5, 7.5, 10, 12.5, 15];
@@ -604,7 +610,7 @@ export default function PlanPage() {
     },
     {
       key: 'protocols',
-      label: lang === 'es' ? 'Protocols' : 'Protocols',
+      label: lang === 'es' ? 'Protocolos' : 'Protocols',
       hint: lang === 'es' ? 'Meds + péptidos' : 'Meds + peptides',
       count: protocolCount,
     },
@@ -877,16 +883,16 @@ export default function PlanPage() {
 
       {flags.glp1_protocol_enabled && (
         <>
-          {/* Tirzepatide card */}
+          {/* Medication dose card */}
           <div style={{ padding: '16px 18px', backgroundColor: C.cardBg, border: `1px solid ${C.cardBorder}`, borderRadius: '14px', marginBottom: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '14px' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: C.text }}>Tirzepatide</span>
-                  <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 600, background: 'rgba(45,212,191,0.08)', border: '0.5px solid rgba(45,212,191,0.2)', color: C.teal }}>GLP-1</span>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: C.text }}>{lang === 'es' ? 'Medicamento registrado' : 'Registered medication'}</span>
+                  <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 600, background: 'rgba(45,212,191,0.08)', border: '0.5px solid rgba(45,212,191,0.2)', color: C.teal }}>{lang === 'es' ? 'Activo' : 'Active'}</span>
                 </div>
                 <span style={{ fontSize: '12px', color: C.textMuted }}>
-                  {lang === 'es' ? 'Subcutáneo · semanal' : 'Subcutaneous · weekly'}
+                  {lang === 'es' ? 'Registro de dosis · semanal si aplica' : 'Dose log · weekly if applicable'}
                 </span>
               </div>
               <button onClick={() => setShowMedForm(f => !f)}
@@ -1243,11 +1249,11 @@ export default function PlanPage() {
     },
     {
       key: 'protocols',
-      label: lang === 'es' ? 'Protocols' : 'Protocols',
+      label: lang === 'es' ? 'Protocolos' : 'Protocols',
       title: protocolCount > 0
         ? `${protocolCount} ${lang === 'es' ? 'registros' : 'records'}`
         : (lang === 'es' ? 'Sin protocolos' : 'No protocols'),
-      detail: lang === 'es' ? 'Meds, GLP-1, péptidos y tratamientos si aplican.' : 'Meds, GLP-1, peptides, and treatments if they apply.',
+      detail: lang === 'es' ? 'Medicamentos, péptidos y tratamientos solo si aplican.' : 'Medications, peptides, and treatments only if they apply.',
       action: lang === 'es' ? 'Ver protocolos' : 'View protocols',
       tab: 'protocols' as PlanTab,
     },
@@ -1539,7 +1545,7 @@ export default function PlanPage() {
         </>
       )}
       {showGlp1History && (
-        <Modal title={lang === 'es' ? 'Historial GLP-1' : 'GLP-1 History'} onClose={() => setShowGlp1History(false)}>
+        <Modal title={lang === 'es' ? 'Historial de medicamento' : 'Medication history'} onClose={() => setShowGlp1History(false)}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '62vh', overflowY: 'auto', paddingRight: '2px' }}>
             {entries.map(e => (
               <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: 'rgba(6,19,22,0.35)', border: `0.5px solid ${C.cardBorder}`, borderRadius: '12px' }}>
