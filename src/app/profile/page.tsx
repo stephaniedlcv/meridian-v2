@@ -107,6 +107,32 @@ const DIET_MAP: Record<DietPattern, string> = {
 }
 const ALL_DIET_PATTERNS: DietPattern[] = ['no_restriction', 'balanced', 'high_protein', 'vegetarian', 'vegan', 'mediterranean', 'low_carb', 'keto', 'other']
 
+function normalizeActivityLevel(value: unknown): ActivityLevel | null {
+  if (value === 'desk') return 'sedentary'
+  return ALL_ACTIVITY_LEVELS.includes(value as ActivityLevel) ? value as ActivityLevel : null
+}
+
+function normalizeTrainingDays(value: unknown): number | null {
+  const n = typeof value === 'number'
+    ? value
+    : typeof value === 'string' && /^[0-9]+$/.test(value.trim())
+      ? Number(value.trim())
+      : null
+
+  return n !== null && Number.isInteger(n) && n >= 0 && n <= 7 ? n : null
+}
+
+function normalizeBodyGoalPhase(value: unknown): BodyGoalPhase | null {
+  if (value === 'recovery') return 'wellness'
+  return ALL_GOAL_PHASES.includes(value as BodyGoalPhase) ? value as BodyGoalPhase : null
+}
+
+function normalizeDietPattern(value: unknown): DietPattern | null {
+  if (value === 'omnivore') return 'no_restriction'
+  if (value === 'flexible') return 'balanced'
+  return ALL_DIET_PATTERNS.includes(value as DietPattern) ? value as DietPattern : null
+}
+
 // ——— Helpers ———
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
@@ -229,10 +255,10 @@ export default function ProfilePage() {
           medications:         Array.isArray(raw.medications) ? raw.medications as string[] : null,
           height_cm:           typeof raw.height_cm === 'number' ? raw.height_cm : null,
           weight_kg:           typeof raw.weight_kg === 'number' ? raw.weight_kg : null,
-          activity_level:      (['sedentary','light','moderate','active','athletic'] as ActivityLevel[]).includes(raw.activity_level as ActivityLevel) ? raw.activity_level as ActivityLevel : null,
-          training_days:       typeof raw.training_days === 'number' ? raw.training_days : null,
-          body_goal_phase:     (['fat_loss','maintenance','muscle_gain','recomposition','performance','wellness'] as BodyGoalPhase[]).includes(raw.body_goal_phase as BodyGoalPhase) ? raw.body_goal_phase as BodyGoalPhase : null,
-          diet_pattern:        (['no_restriction','balanced','high_protein','vegetarian','vegan','mediterranean','low_carb','keto','other'] as DietPattern[]).includes(raw.diet_pattern as DietPattern) ? raw.diet_pattern as DietPattern : null,
+          activity_level:      normalizeActivityLevel(raw.activity_level),
+          training_days:       normalizeTrainingDays(raw.training_days),
+          body_goal_phase:     normalizeBodyGoalPhase(raw.body_goal_phase),
+          diet_pattern:        normalizeDietPattern(raw.diet_pattern),
         })
       }
 

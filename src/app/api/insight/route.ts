@@ -442,13 +442,40 @@ export async function GET(request: NextRequest) {
     const biologicalProfile = (profile.biological_profile as 'female' | 'male') || 'female'
     const userProfile = (profile.user_profile as string) || 'bienestar'
     const medications = (profile.medications as string[]) || []
+    const rawProfile = profile as Record<string, unknown>
+
+    const normalizeTrainingDays = (value: unknown): number | null => {
+      const n = typeof value === 'number'
+        ? value
+        : typeof value === 'string' && /^[0-9]+$/.test(value.trim())
+          ? Number(value.trim())
+          : null
+
+      return n !== null && Number.isInteger(n) && n >= 0 && n <= 7 ? n : null
+    }
+
+    const normalizeActivityLevel = (value: unknown): string | null => {
+      if (value === 'desk') return 'sedentary'
+      return typeof value === 'string' ? value : null
+    }
+
+    const normalizeBodyGoalPhase = (value: unknown): string | null => {
+      if (value === 'recovery') return 'wellness'
+      return typeof value === 'string' ? value : null
+    }
+
+    const normalizeDietPattern = (value: unknown): string | null => {
+      if (value === 'omnivore') return 'no_restriction'
+      if (value === 'flexible') return 'balanced'
+      return typeof value === 'string' ? value : null
+    }
 
     const healthContext: HealthContext = {
-      activityLevel: typeof profile.activity_level === 'string' ? profile.activity_level : null,
-      trainingDays: typeof profile.training_days === 'number' ? profile.training_days : null,
-      bodyGoalPhase: typeof profile.body_goal_phase === 'string' ? profile.body_goal_phase : null,
-      dietPattern: typeof profile.diet_pattern === 'string' ? profile.diet_pattern : null,
-      weightKg: typeof profile.weight_kg === 'number' ? profile.weight_kg : null,
+      activityLevel: normalizeActivityLevel(rawProfile.activity_level),
+      trainingDays: normalizeTrainingDays(rawProfile.training_days),
+      bodyGoalPhase: normalizeBodyGoalPhase(rawProfile.body_goal_phase),
+      dietPattern: normalizeDietPattern(rawProfile.diet_pattern),
+      weightKg: typeof rawProfile.weight_kg === 'number' ? rawProfile.weight_kg : null,
     }
 
     // Get biomarkers — no date cutoff so historical labs are always considered.
