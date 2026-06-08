@@ -7,6 +7,7 @@ import {
   downloadLabDocument,
 } from '@/lib/timeline/labDocuments';
 import { formatLabDate } from '@/lib/timeline/dateFormat';
+import { useMeridianLanguage } from '@/lib/i18n';
 
 function formatFileSize(size: number | null) {
   if (!size) {
@@ -31,6 +32,8 @@ export function LabDocumentList({
 }) {
   const [activeLabId, setActiveLabId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lang] = useMeridianLanguage();
+  const isEs = lang === 'es';
 
   async function handleDownload(lab: LabDocument) {
     setActiveLabId(lab.id);
@@ -151,7 +154,7 @@ export function LabDocumentList({
                   onClick={() => handleDownload(lab)}
                   className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isBusy ? 'Procesando…' : 'Download'}
+                  {isBusy ? (isEs ? 'Procesando…' : 'Processing…') : (isEs ? 'Descargar' : 'Download')}
                 </button>
 
                 <button
@@ -160,7 +163,7 @@ export function LabDocumentList({
                   onClick={() => handleDelete(lab)}
                   className="rounded-2xl border border-red-300/20 px-4 py-2 text-sm font-medium text-red-100 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Delete
+                  {isEs ? 'Eliminar' : 'Delete'}
                 </button>
               </div>
             </article>

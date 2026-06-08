@@ -25,6 +25,7 @@ import {
 } from '@/lib/timeline/dateFormat';
 import { buildLabShareMailto } from '@/lib/timeline/mailto';
 import { LabMultiSelect } from './LabMultiSelect';
+import { useMeridianLanguage } from '@/lib/i18n';
 
 type AppointmentModalMode = 'create' | 'edit' | 'view';
 
@@ -150,6 +151,8 @@ export function AppointmentModal({
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lang] = useMeridianLanguage();
+  const isEs = lang === 'es';
 
   const isViewMode = currentMode === 'view';
   const isEditMode = currentMode === 'edit';
@@ -160,15 +163,15 @@ export function AppointmentModal({
 
   const modalTitle = useMemo(() => {
     if (isCreateMode) {
-      return 'Añadir cita';
+      return isEs ? 'Añadir cita' : 'Add appointment';
     }
 
     if (isEditMode) {
-      return 'Editar cita';
+      return isEs ? 'Editar cita' : 'Edit appointment';
     }
 
-    return 'Detalle de la cita';
-  }, [isCreateMode, isEditMode]);
+    return isEs ? 'Detalle de la cita' : 'Appointment details';
+  }, [isCreateMode, isEditMode, isEs]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -228,12 +231,12 @@ export function AppointmentModal({
     const startsAt = buildStartsAt(form.date, form.time);
 
     if (!form.specialty.trim()) {
-      setError('Selecciona una especialidad.');
+      setError(isEs ? 'Selecciona una especialidad.' : 'Select a specialty.');
       return;
     }
 
     if (!startsAt) {
-      setError('Selecciona fecha y hora para la cita.');
+      setError(isEs ? 'Selecciona fecha y hora para la cita.' : 'Select a date and time for the appointment.');
       return;
     }
 
@@ -457,7 +460,7 @@ export function AppointmentModal({
                         onClick={() => handleDownloadLab(lab)}
                         className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10 disabled:opacity-60"
                       >
-                        {activeLabId === lab.id ? 'Generando…' : 'Download'}
+                        {activeLabId === lab.id ? (isEs ? 'Generando…' : 'Generating…') : (isEs ? 'Descargar' : 'Download')}
                       </button>
                     </div>
                   ))}
@@ -468,7 +471,7 @@ export function AppointmentModal({
                       disabled
                       className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-medium text-slate-500"
                     >
-                      Download all as ZIP · V2
+                      {isEs ? 'Descargar todo como ZIP · V2' : 'Download all as ZIP · V2'}
                     </button>
 
                     <button
@@ -682,7 +685,7 @@ export function AppointmentModal({
                 />
               </Field>
 
-              <Field label="Prep status">
+              <Field label={isEs ? 'Estado de preparación' : 'Prep status'}>
                 <select
                   value={form.prep_status}
                   onChange={(event) =>
@@ -714,7 +717,7 @@ export function AppointmentModal({
                 disabled
                 className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-medium text-slate-500"
               >
-                Suggest questions & what to bring · Coming soon
+                {isEs ? 'Sugerir preguntas y qué llevar · Próximamente' : 'Suggest questions & what to bring · Coming soon'}
               </button>
             </Section>
 
@@ -736,7 +739,7 @@ export function AppointmentModal({
 
               {shouldShowAfterVisit ? (
                 <>
-                  <Field label="Outcome / visit notes">
+                  <Field label={isEs ? 'Resultado y notas de la visita' : 'Outcome / visit notes'}>
                     <textarea
                       value={form.outcome_notes}
                       onChange={(event) =>
@@ -747,7 +750,7 @@ export function AppointmentModal({
                     />
                   </Field>
 
-                  <Field label="Follow-up tasks">
+                  <Field label={isEs ? 'Tareas de seguimiento' : 'Follow-up tasks'}>
                     <textarea
                       value={form.follow_up_tasks}
                       onChange={(event) =>

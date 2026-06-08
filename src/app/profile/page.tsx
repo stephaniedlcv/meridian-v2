@@ -107,6 +107,53 @@ const DIET_MAP: Record<DietPattern, string> = {
 }
 const ALL_DIET_PATTERNS: DietPattern[] = ['no_restriction', 'balanced', 'high_protein', 'vegetarian', 'vegan', 'mediterranean', 'low_carb', 'keto', 'other']
 
+function getActivityLabel(level: ActivityLevel, lang: MeridianLanguage): string {
+  if (lang === 'es') {
+    return {
+      sedentary: 'Mayormente sentada',
+      light: 'Actividad ligera',
+      moderate: 'Actividad moderada',
+      active: 'Activa',
+      athletic: 'Atlética',
+    }[level];
+  }
+
+  return ACTIVITY_MAP[level].label;
+}
+
+function getGoalPhaseLabel(phase: BodyGoalPhase, lang: MeridianLanguage): string {
+  if (lang === 'es') {
+    return {
+      fat_loss: 'Pérdida de grasa',
+      maintenance: 'Mantenimiento',
+      muscle_gain: 'Ganancia muscular',
+      recomposition: 'Recomposición',
+      performance: 'Rendimiento',
+      wellness: 'Bienestar general',
+    }[phase];
+  }
+
+  return GOAL_PHASE_MAP[phase];
+}
+
+function getDietPatternLabel(pattern: DietPattern, lang: MeridianLanguage): string {
+  if (lang === 'es') {
+    return {
+      no_restriction: 'Sin restricciones',
+      balanced: 'Balanceada',
+      high_protein: 'Alta en proteína',
+      vegetarian: 'Vegetariana',
+      vegan: 'Vegana',
+      mediterranean: 'Mediterránea',
+      low_carb: 'Baja en carbohidratos',
+      keto: 'Keto',
+      other: 'Otra',
+    }[pattern];
+  }
+
+  return DIET_MAP[pattern];
+}
+
 function normalizeActivityLevel(value: unknown): ActivityLevel | null {
   if (value === 'desk') return 'sedentary'
   return ALL_ACTIVITY_LEVELS.includes(value as ActivityLevel) ? value as ActivityLevel : null
@@ -939,17 +986,17 @@ export default function ProfilePage() {
           ) : (
             /* ─── Read-only view ─── */
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <ContextRow label="Height"    value={profile.height_cm    !== null ? displayHeight(profile.height_cm)          : null} />
+              <ContextRow label={lang === "es" ? "Estatura" : "Height"} value={profile.height_cm !== null ? displayHeight(profile.height_cm) : null} />
               <div style={{ height: '1px', background: colors.cardBorder, margin: '12px 0' }} />
-              <ContextRow label="Weight"    value={profile.weight_kg    !== null ? displayWeight(profile.weight_kg)          : null} />
+              <ContextRow label={lang === "es" ? "Peso" : "Weight"} value={profile.weight_kg !== null ? displayWeight(profile.weight_kg) : null} />
               <div style={{ height: '1px', background: colors.cardBorder, margin: '12px 0' }} />
-              <ContextRow label="Activity"  value={profile.activity_level  ? ACTIVITY_MAP[profile.activity_level].label      : null} />
+              <ContextRow label={lang === "es" ? "Actividad" : "Activity"} value={profile.activity_level ? getActivityLabel(profile.activity_level, lang) : null} />
               <div style={{ height: '1px', background: colors.cardBorder, margin: '12px 0' }} />
-              <ContextRow label="Training"  value={profile.training_days  !== null ? `${profile.training_days} day${profile.training_days === 1 ? '' : 's'}/week` : null} />
+              <ContextRow label={lang === "es" ? "Entrenamiento" : "Training"} value={profile.training_days !== null ? (lang === "es" ? `${profile.training_days} día${profile.training_days === 1 ? "" : "s"}/semana` : `${profile.training_days} day${profile.training_days === 1 ? "" : "s"}/week`) : null} />
               <div style={{ height: '1px', background: colors.cardBorder, margin: '12px 0' }} />
-              <ContextRow label="Goal phase" value={profile.body_goal_phase ? GOAL_PHASE_MAP[profile.body_goal_phase]        : null} />
+              <ContextRow label={lang === "es" ? "Fase de meta" : "Goal phase"} value={profile.body_goal_phase ? getGoalPhaseLabel(profile.body_goal_phase, lang) : null} />
               <div style={{ height: '1px', background: colors.cardBorder, margin: '12px 0' }} />
-              <ContextRow label="Diet"       value={profile.diet_pattern   ? DIET_MAP[profile.diet_pattern]                 : null} />
+              <ContextRow label={lang === "es" ? "Alimentación" : "Diet"} value={profile.diet_pattern ? getDietPatternLabel(profile.diet_pattern, lang) : null} />
             </div>
           )}
         </div>
