@@ -159,6 +159,13 @@ export type TrainingGoal =
   | 'wellness'
   | 'maintenance';
 
+export type LabUploadSessionStatus =
+  | 'processing'
+  | 'staged'
+  | 'confirmed'
+  | 'failed'
+  | 'cancelled';
+
 export type PendingBiomarkerStatus =
   | 'pending_classification'
   | 'classified'
@@ -243,6 +250,8 @@ export type BiomarkerStatic = {
 
   state: BiomarkerState;
   collected_at: string;
+  upload_session_id: string | null;
+  source_pdf_name: string | null;
   source_pdf_url: string | null;
 
   source_marker_name: string | null;
@@ -368,6 +377,45 @@ export type LabDocumentInsert = Partial<LabDocument> & {
 
 export type LabDocumentUpdate = Partial<LabDocument>;
 
+
+export type LabUploadSession = {
+  id: string;
+  user_id: string;
+
+  source_pdf_name: string | null;
+  source_pdf_url: string | null;
+  source_pdf_hash: string | null;
+  source_file_type: string | null;
+  file_size: number | null;
+  page_count: number | null;
+
+  status: LabUploadSessionStatus;
+  collected_at: string | null;
+  processed_at: string | null;
+  confirmed_at: string | null;
+
+  total_extracted: number;
+  total_matched: number;
+  total_errors: number;
+  confirmed_count: number;
+  quantitative_count: number;
+  qualitative_count: number;
+  pending_count: number;
+
+  error_message: string | null;
+  metadata: Record<string, unknown>;
+  deleted_at: string | null;
+
+  created_at: string;
+  updated_at: string;
+};
+
+export type LabUploadSessionInsert = Partial<LabUploadSession> & {
+  user_id: string;
+};
+
+export type LabUploadSessionUpdate = Partial<LabUploadSession>;
+
 export type TirzepatideEntry = {
   id: string;
   user_id: string;
@@ -484,6 +532,7 @@ export type PendingBiomarker = {
   raw_unit: string | null;
   raw_reference_range: string | null;
 
+  upload_session_id: string | null;
   collected_at: string;
   source_pdf_name: string | null;
 
@@ -606,6 +655,7 @@ export type Database = {
 
       health_events: Table<HealthEvent, HealthEventInsert, HealthEventUpdate>;
       lab_documents: Table<LabDocument, LabDocumentInsert, LabDocumentUpdate>;
+      lab_upload_sessions: Table<LabUploadSession, LabUploadSessionInsert, LabUploadSessionUpdate>;
 
       tirzepatide_entries: Table<TirzepatideEntry, TirzepatideEntryInsert, Partial<TirzepatideEntry>>;
       supplement_stack: Table<SupplementStack, SupplementStackInsert, Partial<SupplementStack>>;

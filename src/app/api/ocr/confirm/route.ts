@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { user_id, biomarkers, collected_at, source_pdf_url } = body
+    const { user_id, biomarkers, collected_at, source_pdf_url, source_pdf_name, upload_session_id } = body
 
     if (user_id && user_id !== context.user.id) {
       return NextResponse.json(
@@ -128,6 +128,12 @@ export async function POST(request: NextRequest) {
     )
 
     const collectedDate = collected_at || new Date().toISOString()
+    const uploadSessionId = typeof upload_session_id === 'string' && upload_session_id.trim()
+      ? upload_session_id.trim()
+      : null
+    const sourcePdfName = typeof source_pdf_name === 'string' && source_pdf_name.trim()
+      ? source_pdf_name.trim()
+      : null
 
     const rows = (biomarkers as ConfirmedBiomarker[])
       .filter(b => !b.flag_error)
@@ -157,6 +163,8 @@ export async function POST(request: NextRequest) {
             optimal_range_max:    b.optimal_range_max,
             state:                normalizedState,
             collected_at:         collectedDate,
+            upload_session_id:    uploadSessionId,
+            source_pdf_name:      sourcePdfName,
             source_pdf_url:       source_pdf_url || null,
             flag_error:           false,
             validated:            true,
@@ -192,6 +200,8 @@ export async function POST(request: NextRequest) {
             optimal_range_max:    null,
             state:                normalizedState,
             collected_at:         collectedDate,
+            upload_session_id:    uploadSessionId,
+            source_pdf_name:      sourcePdfName,
             source_pdf_url:       source_pdf_url || null,
             flag_error:           false,
             validated:            true,
@@ -228,6 +238,29 @@ export async function POST(request: NextRequest) {
 
     const quantitative_count = rows.filter(row => row.result_type === 'quantitative').length
     const qualitative_count  = rows.filter(row => row.result_type === 'qualitative').length
+
+    if (uploadSessionId) {
+      const { error: sessionError } = await supabase
+        .from('lab_upload_sessions')
+        .update({
+          status: 'confirmed',
+          collected_at: collectedDate,
+          confirmed_at: new Date().toISOString(),
+          processed_at: new Date().toISOString(),
+          source_pdf_name: sourcePdfName,
+          source_pdf_url: source_pdf_url || null,
+          confirmed_count: rows.length,
+          quantitative_count,
+          qualitative_count,
+          error_message: null,
+        })
+        .eq('id', uploadSessionId)
+        .eq('user_id', context.user.id)
+
+      if (sessionError) {
+        console.warn('[Meridian] lab_upload_sessions confirm update failed:', sessionError.message)
+      }
+    }
 
     return NextResponse.json({
       success:            true,
