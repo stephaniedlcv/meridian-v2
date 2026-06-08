@@ -30,18 +30,21 @@ const VALID_QUALITATIVE_VALUES = new Set([
 interface ConfirmedBiomarker {
   slug: string
   name: string
-  value: number
-  unit: string
+  source_marker_name?: string
+  source_raw_value?: string
+  value: number | null
+  unit: string | null
   reference_range_min: number | null
   reference_range_max: number | null
   optimal_range_min: number | null
   optimal_range_max: number | null
-  state: 'Optimal' | 'Watch' | 'Attention' | 'Critical'
+  state: string
   flag_error: boolean
   collected_at: string
   // Qualitative support fields (populated by the OCR pipeline for serology/urinalysis)
   extraction_status: 'parsed' | 'unreadable' | 'partial' | 'qualitative_only'
   qualitative_value: string | null
+  panel_type?: string | null
 }
 
 function normalizeState(state: string): 'Optimal' | 'Watch' | 'Attention' | 'Critical' {
@@ -53,6 +56,45 @@ function normalizeState(state: string): 'Optimal' | 'Watch' | 'Attention' | 'Cri
   if (normalized === 'attention') return 'Attention'
   if (normalized === 'watch') return 'Watch'
   return 'Optimal'
+}
+
+function normalizeQualitativeValueForPersistence(value: string | null | undefined): string | null {
+  if (typeof value !== 'string') return null
+
+  const trimmed = value.trim()
+  if (!trimmed) return null
+
+  const plusMatch = trimmed.match(/^(\+{1,4}|[1-4]\+)$/)
+  if (plusMatch) {
+    const plusCount = trimmed.includes('+') && trimmed[0] === '+'
+      ? trimmed.length
+      : Number.parseInt(trimmed[0], 10)
+    return `plus_${plusCount}`
+  }
+
+  let normalized = trimmed
+    .toLowerCase()
+    .replace(/[–—-]/g, ' ')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+
+  const aliases: Record<string, string> = {
+    nonreactive: 'non_reactive',
+    non_reactive: 'non_reactive',
+    notdetected: 'not_detected',
+    not_detected: 'not_detected',
+    none_seen: 'none_seen',
+    non_seen: 'none_seen',
+    no_seen: 'none_seen',
+    1: 'plus_1',
+    2: 'plus_2',
+    3: 'plus_3',
+    4: 'plus_4',
+  }
+
+  normalized = aliases[normalized] ?? normalized
+
+  return VALID_QUALITATIVE_VALUES.has(normalized) ? normalized : null
 }
 
 export async function POST(request: NextRequest) {
@@ -87,19 +129,10 @@ export async function POST(request: NextRequest) {
 
     const collectedDate = collected_at || new Date().toISOString()
 
-    // Current production schema only supports numeric biomarkers in biomarkers_static.
-    // Qualitative-only results are intentionally skipped here until the qualitative
-    // diagnostics schema is migrated. This prevents value/null and unknown-column
-    // insert failures from blocking numeric lab saves.
     const rows = (biomarkers as ConfirmedBiomarker[])
-      .filter(b =>
-        !b.flag_error &&
-        b.extraction_status === 'parsed' &&
-        typeof b.value === 'number' &&
-        Number.isFinite(b.value)
-      )
-      .map(b => {
-        const normalizedState = normalizeState(b.state)
+      .filter(b => !b.flag_error)
+      .flatMap(b => {
+        const normalizedState = normalizeState(b.state || 'Optimal')
         if (normalizedState !== b.state) {
           console.warn('OCR state normalized before insert:', {
             slug: b.slug,
@@ -108,21 +141,69 @@ export async function POST(request: NextRequest) {
           })
         }
 
-        return {
-          user_id: context.user.id,
-          marker_name:          b.slug,
-          value:                b.value,
-          unit:                 b.unit,
-          reference_range_min:  b.reference_range_min,
-          reference_range_max:  b.reference_range_max,
-          optimal_range_min:    b.optimal_range_min,
-          optimal_range_max:    b.optimal_range_max,
-          state:                normalizedState,
-          collected_at:         collectedDate,
-          source_pdf_url:       source_pdf_url || null,
-          flag_error:           false,
-          validated:            true,
+        if (
+          b.extraction_status === 'parsed' &&
+          typeof b.value === 'number' &&
+          Number.isFinite(b.value)
+        ) {
+          return [{
+            user_id: context.user.id,
+            marker_name:          b.slug,
+            value:                b.value,
+            unit:                 b.unit,
+            reference_range_min:  b.reference_range_min,
+            reference_range_max:  b.reference_range_max,
+            optimal_range_min:    b.optimal_range_min,
+            optimal_range_max:    b.optimal_range_max,
+            state:                normalizedState,
+            collected_at:         collectedDate,
+            source_pdf_url:       source_pdf_url || null,
+            flag_error:           false,
+            validated:            true,
+            result_type:          'quantitative',
+            source_marker_name:   b.source_marker_name || b.name || null,
+            source_raw_value:     b.source_raw_value || String(b.value),
+            panel_type:           b.panel_type || null,
+          }]
         }
+
+        if (b.extraction_status === 'qualitative_only') {
+          const qualitativeValue =
+            normalizeQualitativeValueForPersistence(b.qualitative_value) ||
+            normalizeQualitativeValueForPersistence(b.source_raw_value)
+
+          if (!qualitativeValue) {
+            console.warn('Qualitative biomarker skipped because value is not recognized:', {
+              slug: b.slug,
+              sourceRawValue: b.source_raw_value,
+              qualitativeValue: b.qualitative_value,
+            })
+            return []
+          }
+
+          return [{
+            user_id: context.user.id,
+            marker_name:          b.slug,
+            value:                null,
+            unit:                 b.unit || null,
+            reference_range_min:  null,
+            reference_range_max:  null,
+            optimal_range_min:    null,
+            optimal_range_max:    null,
+            state:                normalizedState,
+            collected_at:         collectedDate,
+            source_pdf_url:       source_pdf_url || null,
+            flag_error:           false,
+            validated:            true,
+            value_qualitative:    qualitativeValue,
+            result_type:          'qualitative',
+            source_marker_name:   b.source_marker_name || b.name || null,
+            source_raw_value:     b.source_raw_value || qualitativeValue,
+            panel_type:           b.panel_type || null,
+          }]
+        }
+
+        return []
       })
 
     if (rows.length === 0) {
@@ -145,8 +226,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const quantitative_count = rows.length
-    const qualitative_count  = 0
+    const quantitative_count = rows.filter(row => row.result_type === 'quantitative').length
+    const qualitative_count  = rows.filter(row => row.result_type === 'qualitative').length
 
     return NextResponse.json({
       success:            true,
