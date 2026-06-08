@@ -196,7 +196,7 @@ export type Profile = {
   height_cm: number | null;
   weight_kg: number | null;
   activity_level: string | null;
-  training_days: string | null;
+  training_days: number | null;
   body_goal_phase: string | null;
   diet_pattern: string | null;
 

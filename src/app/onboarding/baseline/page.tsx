@@ -114,10 +114,10 @@ function SectionDivider({ label }: { label: string }) {
 }
 
 // ── Types ──────────────────────────────────────────────────────────────────
-type ActivityValue  = 'desk' | 'light' | 'active' | 'athletic'
+type ActivityValue  = 'sedentary' | 'light' | 'moderate' | 'active' | 'athletic'
 type TrainingValue  = 0 | 1 | 3 | 5
-type GoalPhaseValue = 'recomposition' | 'fat_loss' | 'muscle_gain' | 'maintenance' | 'performance' | 'recovery'
-type DietValue      = 'omnivore' | 'high_protein' | 'mediterranean' | 'vegetarian' | 'vegan' | 'low_carb' | 'flexible'
+type GoalPhaseValue = 'recomposition' | 'fat_loss' | 'muscle_gain' | 'maintenance' | 'performance' | 'wellness'
+type DietValue      = 'no_restriction' | 'balanced' | 'high_protein' | 'mediterranean' | 'vegetarian' | 'vegan' | 'low_carb' | 'keto' | 'other'
 
 const FEET_OPTIONS = [4, 5, 6, 7]
 const INCHES_OPTIONS = Array.from({ length: 12 }, (_, i) => i)
@@ -182,16 +182,18 @@ export default function BaselinePage() {
 
   const activityOptions: Array<{ value: ActivityValue; label: string }> = lang === 'es'
     ? [
-        { value: 'desk',     label: 'Mayormente sentada' },
-        { value: 'light',    label: 'Movimiento diario ligero' },
-        { value: 'active',   label: 'Entrenamiento constante' },
-        { value: 'athletic', label: 'Estilo de vida atlético' },
+        { value: 'sedentary', label: 'Mayormente sentada' },
+        { value: 'light',     label: 'Movimiento diario ligero' },
+        { value: 'moderate',  label: 'Actividad moderada' },
+        { value: 'active',    label: 'Entrenamiento constante' },
+        { value: 'athletic',  label: 'Estilo de vida atlético' },
       ]
     : [
-        { value: 'desk',     label: 'Mostly desk-based' },
-        { value: 'light',    label: 'Light daily movement' },
-        { value: 'active',   label: 'Consistent training' },
-        { value: 'athletic', label: 'Athletic lifestyle' },
+        { value: 'sedentary', label: 'Mostly desk-based' },
+        { value: 'light',     label: 'Light daily movement' },
+        { value: 'moderate',  label: 'Moderate activity' },
+        { value: 'active',    label: 'Consistent training' },
+        { value: 'athletic',  label: 'Athletic lifestyle' },
       ]
 
   const trainingOptions: Array<{ value: TrainingValue; label: string }> = lang === 'es'
@@ -215,7 +217,7 @@ export default function BaselinePage() {
         { value: 'muscle_gain',   label: 'Ganancia muscular' },
         { value: 'maintenance',   label: 'Mantenimiento' },
         { value: 'performance',   label: 'Rendimiento' },
-        { value: 'recovery',      label: 'Recuperación' },
+        { value: 'wellness',      label: 'Bienestar general' },
       ]
     : [
         { value: 'recomposition', label: 'Recomposition' },
@@ -223,27 +225,31 @@ export default function BaselinePage() {
         { value: 'muscle_gain',   label: 'Muscle gain' },
         { value: 'maintenance',   label: 'Maintenance' },
         { value: 'performance',   label: 'Performance' },
-        { value: 'recovery',      label: 'Recovery' },
+        { value: 'wellness',      label: 'General wellness' },
       ]
 
   const dietOptions: Array<{ value: DietValue; label: string }> = lang === 'es'
     ? [
-        { value: 'omnivore',      label: 'Omnívora' },
-        { value: 'high_protein',  label: 'Alta en proteína' },
-        { value: 'mediterranean', label: 'Mediterránea' },
-        { value: 'vegetarian',    label: 'Vegetariana' },
-        { value: 'vegan',         label: 'Vegana' },
-        { value: 'low_carb',      label: 'Baja en carbohidratos' },
-        { value: 'flexible',      label: 'Flexible / intuitiva' },
+        { value: 'no_restriction', label: 'Sin restricciones' },
+        { value: 'balanced',       label: 'Balanceada / flexible' },
+        { value: 'high_protein',   label: 'Alta en proteína' },
+        { value: 'mediterranean',  label: 'Mediterránea' },
+        { value: 'vegetarian',     label: 'Vegetariana' },
+        { value: 'vegan',          label: 'Vegana' },
+        { value: 'low_carb',       label: 'Baja en carbohidratos' },
+        { value: 'keto',           label: 'Keto' },
+        { value: 'other',          label: 'Otra' },
       ]
     : [
-        { value: 'omnivore',      label: 'Omnivore' },
-        { value: 'high_protein',  label: 'High protein' },
-        { value: 'mediterranean', label: 'Mediterranean' },
-        { value: 'vegetarian',    label: 'Vegetarian' },
-        { value: 'vegan',         label: 'Vegan' },
-        { value: 'low_carb',      label: 'Low carb' },
-        { value: 'flexible',      label: 'Flexible / intuitive' },
+        { value: 'no_restriction', label: 'No restriction' },
+        { value: 'balanced',       label: 'Balanced / flexible' },
+        { value: 'high_protein',   label: 'High protein' },
+        { value: 'mediterranean',  label: 'Mediterranean' },
+        { value: 'vegetarian',     label: 'Vegetarian' },
+        { value: 'vegan',          label: 'Vegan' },
+        { value: 'low_carb',       label: 'Low carb' },
+        { value: 'keto',           label: 'Keto' },
+        { value: 'other',          label: 'Other' },
       ]
 
   useEffect(() => {
