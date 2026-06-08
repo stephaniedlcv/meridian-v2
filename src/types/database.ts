@@ -15,6 +15,8 @@ type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
 
 export type BiologicalProfile = 'female' | 'male';
 
+export type PreferredLanguage = 'en' | 'es';
+
 export type SafetyStatus = 'active' | 'medical_alert';
 
 export type UserProfile =
@@ -184,6 +186,7 @@ export type Profile = {
 
   biological_profile: BiologicalProfile;
   hormonal_profile: string | null;
+  preferred_language: PreferredLanguage;
   birth_date: string | null;
   medications: Json | null;
 

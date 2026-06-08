@@ -162,7 +162,7 @@ function WelcomePageInner() {
       })
       if (authError) { setError(authError.message); return }
       if (signUpData.session) {
-        await supabase.from('profiles').upsert({ id: signUpData.user!.id }, { onConflict: 'id' })
+        await supabase.from('profiles').upsert({ id: signUpData.user!.id, preferred_language: lang }, { onConflict: 'id' })
         router.push('/onboarding/identity')
       } else {
         setEmailConfirmPending(true)
