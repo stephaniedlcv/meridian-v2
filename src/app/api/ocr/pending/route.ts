@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { user_id, markers, collected_at, source_pdf_name } = body
+    const { user_id, markers, collected_at, source_pdf_name, upload_session_id } = body
 
     if (user_id && user_id !== context.user.id) {
       return NextResponse.json(
@@ -58,6 +58,9 @@ export async function POST(request: NextRequest) {
     )
 
     const collectedDate = collected_at || new Date().toISOString()
+    const uploadSessionId = typeof upload_session_id === 'string' && upload_session_id.trim()
+      ? upload_session_id.trim()
+      : null
 
     const rows = (markers as PendingMarkerInput[]).map(m => ({
       user_id: context.user.id,
@@ -65,6 +68,7 @@ export async function POST(request: NextRequest) {
       raw_value:            m.raw_value,
       raw_unit:             m.raw_unit,
       raw_reference_range:  m.raw_reference_range ?? null,
+      upload_session_id:    uploadSessionId,
       collected_at:         collectedDate,
       source_pdf_name:      source_pdf_name ?? null,
       status:               'pending_classification',
@@ -81,6 +85,18 @@ export async function POST(request: NextRequest) {
         { success: false, error: error.message },
         { status: 500 }
       )
+    }
+
+    if (uploadSessionId) {
+      const { error: sessionError } = await supabase
+        .from('lab_upload_sessions')
+        .update({ pending_count: rows.length })
+        .eq('id', uploadSessionId)
+        .eq('user_id', context.user.id)
+
+      if (sessionError) {
+        console.warn('[Meridian] lab_upload_sessions pending update failed:', sessionError.message)
+      }
     }
 
     return NextResponse.json({ success: true, saved_count: rows.length })

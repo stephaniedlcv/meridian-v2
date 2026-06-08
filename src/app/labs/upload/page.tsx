@@ -1971,6 +1971,7 @@ export default function LabsUploadPage() {
   const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
+  const [uploadSessionId, setUploadSessionId] = useState<string | null>(null)
   const [staged, setStaged] = useState<StagedBiomarker[] | null>(null)
   const [unmatched, setUnmatched] = useState<UnmatchedMarker[]>([])
   const [stats, setStats] = useState<{ extracted: number; matched: number; errors: number } | null>(null)
@@ -2092,17 +2093,52 @@ export default function LabsUploadPage() {
     if (!file) return
     if (file.type !== 'application/pdf') { setError('Please upload a PDF file'); return }
     if (file.size > 10 * 1024 * 1024) { setError('File too large. Maximum 10MB.'); return }
+    if (!userId) { setError(lang === 'es' ? 'Inicia sesión antes de subir un PDF.' : 'Please sign in before uploading a PDF.'); return }
 
     setFileName(file.name)
     setError(null)
     setStaged(null)
     setConfirmed(false)
+    setUploadSessionId(null)
     setUploading(true)
 
     try {
+      const { data: session, error: sessionError } = await supabase
+        .from('lab_upload_sessions')
+        .insert({
+          user_id: userId,
+          source_pdf_name: file.name,
+          source_file_type: file.type || 'application/pdf',
+          file_size: file.size,
+          status: 'processing',
+        })
+        .select('id')
+        .single()
+
+      if (sessionError || !session?.id) {
+        throw new Error(sessionError?.message || 'Could not create lab upload session')
+      }
+
+      const nextUploadSessionId = session.id
+      setUploadSessionId(nextUploadSessionId)
+
+      async function markUploadSessionFailed(message: string) {
+        await supabase
+          .from('lab_upload_sessions')
+          .update({
+            status: 'failed',
+            error_message: message,
+            processed_at: new Date().toISOString(),
+          })
+          .eq('id', nextUploadSessionId)
+          .eq('user_id', userId)
+      }
+
       const reader = new FileReader()
       reader.onerror = () => {
-        setError(lang === 'es' ? 'No se pudo leer el archivo.' : 'Failed to read file.')
+        const message = lang === 'es' ? 'No se pudo leer el archivo.' : 'Failed to read file.'
+        setError(message)
+        void markUploadSessionFailed(message)
         setUploading(false)
       }
 
@@ -2138,7 +2174,9 @@ export default function LabsUploadPage() {
           }
 
           if (!response.ok || !data?.success) {
-            setError(data?.error || (lang === 'es' ? 'No se pudo procesar el PDF.' : 'Failed to process PDF.'))
+            const message = data?.error || (lang === 'es' ? 'No se pudo procesar el PDF.' : 'Failed to process PDF.')
+            setError(message)
+            await markUploadSessionFailed(message)
             return
           }
 
@@ -2149,9 +2187,11 @@ export default function LabsUploadPage() {
               : []
 
           if (nextStaged.length === 0) {
-            setError(lang === 'es'
+            const message = lang === 'es'
               ? 'Meridian analizó el PDF, pero no encontró biomarcadores listos para revisar.'
-              : 'Meridian analyzed the PDF, but did not find biomarkers ready for review.')
+              : 'Meridian analyzed the PDF, but did not find biomarkers ready for review.'
+            setError(message)
+            await markUploadSessionFailed(message)
             return
           }
 
@@ -2162,19 +2202,37 @@ export default function LabsUploadPage() {
             matched: Number(data.total_matched ?? nextStaged.length),
             errors: Number(data.total_errors ?? 0),
           })
-          setLabDate(typeof data.lab_date === 'string' ? data.lab_date : '')
+          const detectedLabDate = typeof data.lab_date === 'string' ? data.lab_date : ''
+          setLabDate(detectedLabDate)
+
+          await supabase
+            .from('lab_upload_sessions')
+            .update({
+              status: 'staged',
+              collected_at: detectedLabDate ? new Date(detectedLabDate).toISOString() : null,
+              processed_at: new Date().toISOString(),
+              total_extracted: Number(data.total_extracted ?? nextStaged.length),
+              total_matched: Number(data.total_matched ?? nextStaged.length),
+              total_errors: Number(data.total_errors ?? 0),
+              error_message: null,
+            })
+            .eq('id', nextUploadSessionId)
+            .eq('user_id', userId)
         } catch (err) {
           console.error('[Meridian] Lab upload review flow failed:', err)
 
           const isAbortError = err instanceof DOMException && err.name === 'AbortError'
 
-          setError(isAbortError
+          const message = isAbortError
             ? (lang === 'es'
               ? 'El análisis tardó demasiado y fue detenido. Intenta nuevamente con un PDF más pequeño o más claro.'
               : 'The analysis took too long and was stopped. Please try again with a smaller or clearer PDF.')
             : (lang === 'es'
               ? 'No se pudo completar el análisis del PDF. Inténtalo nuevamente.'
-              : 'Could not complete PDF analysis. Please try again.'))
+              : 'Could not complete PDF analysis. Please try again.')
+
+          setError(message)
+          await markUploadSessionFailed(message)
         } finally {
           setUploading(false)
         }
@@ -2204,7 +2262,7 @@ export default function LabsUploadPage() {
       const response = await fetch('/api/ocr/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, biomarkers: safeBiomarkers, collected_at: collectedAt }),
+        body: JSON.stringify({ user_id: userId, biomarkers: safeBiomarkers, collected_at: collectedAt, source_pdf_name: fileName, upload_session_id: uploadSessionId }),
       })
       const data = await response.json()
       if (!data.success) { setError(data.error || 'Failed to save biomarkers'); setConfirming(false); return }
@@ -2250,6 +2308,7 @@ export default function LabsUploadPage() {
             markers:         pendingToSave,
             collected_at:    collectedAt,
             source_pdf_name: fileName,
+            upload_session_id: uploadSessionId,
           }),
         }).catch(err => console.error('[Meridian] Failed to save pending markers:', err))
       }
@@ -2305,6 +2364,7 @@ export default function LabsUploadPage() {
     setSavedQualCount(0)
     setLabDate('')
     setIgnoredPending(new Set())
+    setUploadSessionId(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
