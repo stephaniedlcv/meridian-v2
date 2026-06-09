@@ -1642,8 +1642,8 @@ export default function PlanPage() {
 
             <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.5, color: C.textMuted }}>
               {lang === 'es'
-                ? 'Este MVP guarda la estructura general del programa. Los ejercicios, series y progresiones detalladas se añadirán en una fase posterior.'
-                : 'This MVP saves the general program structure. Detailed exercises, sets, and progressions will be added in a later phase.'}
+                ? 'Por ahora, Meridian guarda la estructura general de tu programa. Más adelante podrás añadir ejercicios, series y progresiones con más detalle.'
+                : 'For now, Meridian saves the general structure of your program. Later, you’ll be able to add exercises, sets, and progressions in more detail.'}
             </p>
 
             <button onClick={handleSaveTrainingProgram} disabled={savingTraining || !newTraining.name.trim()}
