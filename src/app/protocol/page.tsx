@@ -596,13 +596,37 @@ export default function PlanPage() {
 
   // ── Toggle supplement active ───────────────────────────────────────────────
   async function toggleSupp(id: string, active: boolean) {
-    await supabase.from('supplement_stack').update({ active: !active }).eq('id', id);
+    if (!userId) return;
+
+    const { error } = await supabase
+      .from('supplement_stack')
+      .update({ active: !active })
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.warn('[Meridian] supplement_stack update failed:', error.message);
+      return;
+    }
+
     setSupplements(prev => prev.map(s => s.id === id ? { ...s, active: !active } : s));
   }
 
   // ── Delete supplement ──────────────────────────────────────────────────────
   async function deleteSupp(id: string) {
-    await supabase.from('supplement_stack').delete().eq('id', id);
+    if (!userId) return;
+
+    const { error } = await supabase
+      .from('supplement_stack')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.warn('[Meridian] supplement_stack delete failed:', error.message);
+      return;
+    }
+
     setSupplements(prev => prev.filter(s => s.id !== id));
   }
 
