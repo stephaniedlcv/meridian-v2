@@ -153,6 +153,8 @@ export function AppointmentModal({
   const [error, setError] = useState<string | null>(null);
   const [lang] = useMeridianLanguage();
   const isEs = lang === 'es';
+  const noInfo = isEs ? 'No indicado' : 'Not provided';
+  const noDate = isEs ? 'No indicada' : 'No date provided';
 
   const isViewMode = currentMode === 'view';
   const isEditMode = currentMode === 'edit';
@@ -379,64 +381,64 @@ export function AppointmentModal({
           <div className="grid gap-5 p-5">
             {error ? <ErrorMessage message={error} /> : null}
 
-            <Section title="La cita">
+            <Section title={isEs ? 'La cita' : 'Appointment'}>
               <div className="grid gap-4 sm:grid-cols-2">
-                <ReadField label="Especialidad" value={appointment.specialty} />
+                <ReadField label={isEs ? 'Especialidad' : 'Specialty'} value={appointment.specialty} />
                 <ReadField
-                  label="Proveedor"
-                  value={appointment.provider_name || 'No indicado'}
+                  label={isEs ? 'Proveedor' : 'Provider'}
+                  value={appointment.provider_name || noInfo}
                 />
                 <ReadField
-                  label="Fecha y hora"
+                  label={isEs ? 'Fecha y hora' : 'Date and time'}
                   value={formatAppointmentDateTime(appointment.starts_at)}
                 />
                 <ReadField
-                  label="Lugar"
+                  label={isEs ? 'Lugar' : 'Location'}
                   value={
                     appointment.is_virtual
                       ? 'Virtual'
-                      : appointment.location || 'No indicado'
+                      : appointment.location || noInfo
                   }
                 />
               </div>
 
               <ReadField
-                label="Razón de visita"
-                value={appointment.reason || 'No indicado'}
+                label={isEs ? 'Razón de visita' : 'Reason for visit'}
+                value={appointment.reason || noInfo}
               />
             </Section>
 
-            <Section title="Preparación">
+            <Section title={isEs ? 'Preparación' : 'Preparation'}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <ReadField
-                  label="Síntomas / temas"
-                  value={appointment.symptoms_notes || 'No indicado'}
+                  label={isEs ? 'Síntomas / temas' : 'Symptoms / topics'}
+                  value={appointment.symptoms_notes || noInfo}
                 />
                 <ReadField
-                  label="Medicamentos"
-                  value={appointment.medications_to_review || 'No indicado'}
+                  label={isEs ? 'Medicamentos' : 'Medications'}
+                  value={appointment.medications_to_review || noInfo}
                 />
                 <ReadField
-                  label="Suplementos"
-                  value={appointment.supplements_to_review || 'No indicado'}
+                  label={isEs ? 'Suplementos' : 'Supplements'}
+                  value={appointment.supplements_to_review || noInfo}
                 />
                 <ReadField
-                  label="Qué llevar"
-                  value={appointment.things_to_bring || 'No indicado'}
+                  label={isEs ? 'Qué llevar' : 'What to bring'}
+                  value={appointment.things_to_bring || noInfo}
                 />
               </div>
             </Section>
 
-            <Section title="Mis preguntas">
+            <Section title={isEs ? 'Mis preguntas' : 'My questions'}>
               <ReadField
-                label="Preguntas para esta visita"
-                value={appointment.user_questions || 'No indicado'}
+                label={isEs ? 'Preguntas para esta visita' : 'Questions for this visit'}
+                value={appointment.user_questions || noInfo}
               />
             </Section>
 
-            <Section title="Linked Labs">
+            <Section title={isEs ? 'Laboratorios vinculados' : 'Linked labs'}>
               {isLoadingLabs ? (
-                <p className="text-sm text-slate-300">Cargando labs…</p>
+                <p className="text-sm text-slate-300">{isEs ? 'Cargando laboratorios…' : 'Loading labs…'}</p>
               ) : linkedLabs.length ? (
                 <div className="grid gap-3">
                   {linkedLabs.map((lab) => (
@@ -449,7 +451,7 @@ export function AppointmentModal({
                         <p className="mt-1 text-xs text-slate-400">
                           {lab.lab_date
                             ? formatLabDate(lab.lab_date)
-                            : 'Sin fecha'}
+                            : (isEs ? 'Sin fecha' : 'No date')}
                           {lab.specialty ? ` · ${lab.specialty}` : ''}
                         </p>
                       </div>
@@ -479,31 +481,31 @@ export function AppointmentModal({
                       onClick={handleSendByEmail}
                       className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
                     >
-                      Send by email →
+                      {isEs ? 'Enviar por email' : 'Send by email'} →
                     </button>
                   </div>
                 </div>
               ) : (
                 <p className="text-sm text-slate-300">
-                  No hay laboratorios vinculados a esta cita.
+                  {isEs ? 'No hay laboratorios vinculados a esta cita.' : 'No labs are linked to this appointment.'}
                 </p>
               )}
             </Section>
 
             {(appointment.status === 'completed' ||
               appointment.status === 'needs_follow_up') ? (
-              <Section title="Después de la visita">
+              <Section title={isEs ? 'Después de la visita' : 'After the visit'}>
                 <ReadField
-                  label="Notas"
-                  value={appointment.outcome_notes || 'No indicado'}
+                  label={isEs ? 'Notas' : 'Notes'}
+                  value={appointment.outcome_notes || noInfo}
                 />
                 <ReadField
-                  label="Tareas de seguimiento"
-                  value={appointment.follow_up_tasks || 'No indicado'}
+                  label={isEs ? 'Tareas de seguimiento' : 'Follow-up tasks'}
+                  value={appointment.follow_up_tasks || noInfo}
                 />
                 <ReadField
-                  label="Fecha de seguimiento"
-                  value={appointment.follow_up_date || 'No indicada'}
+                  label={isEs ? 'Fecha de seguimiento' : 'Follow-up date'}
+                  value={appointment.follow_up_date || noDate}
                 />
               </Section>
             ) : null}
@@ -515,7 +517,7 @@ export function AppointmentModal({
                 disabled={isDeleting}
                 className="rounded-2xl border border-red-300/20 px-4 py-2.5 text-sm font-medium text-red-100 transition hover:bg-red-500/10 disabled:opacity-60"
               >
-                {isDeleting ? 'Eliminando…' : 'Eliminar cita'}
+                {isDeleting ? (isEs ? 'Eliminando…' : 'Deleting…') : (isEs ? 'Eliminar cita' : 'Delete appointment')}
               </button>
             </div>
           </div>
@@ -523,18 +525,18 @@ export function AppointmentModal({
           <form onSubmit={handleSave} className="grid gap-5 p-5">
             {error ? <ErrorMessage message={error} /> : null}
 
-            <Section title="1. La cita">
+            <Section title={isEs ? '1. La cita' : '1. Appointment'}>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Título">
+                <Field label={isEs ? 'Título' : 'Title'}>
                   <input
                     value={form.title}
                     onChange={(event) => updateField('title', event.target.value)}
-                    placeholder="Opcional"
+                    placeholder={isEs ? 'Opcional' : 'Optional'}
                     className="input"
                   />
                 </Field>
 
-                <Field label="Especialidad">
+                <Field label={isEs ? 'Especialidad' : 'Specialty'}>
                   <select
                     value={form.specialty}
                     onChange={(event) =>
@@ -550,18 +552,18 @@ export function AppointmentModal({
                   </select>
                 </Field>
 
-                <Field label="Proveedor">
+                <Field label={isEs ? 'Proveedor' : 'Provider'}>
                   <input
                     value={form.provider_name}
                     onChange={(event) =>
                       updateField('provider_name', event.target.value)
                     }
-                    placeholder="Nombre del doctor / proveedor"
+                    placeholder={isEs ? 'Nombre del doctor / proveedor' : 'Doctor / provider name'}
                     className="input"
                   />
                 </Field>
 
-                <Field label="Tipo">
+                <Field label={isEs ? 'Tipo' : 'Type'}>
                   <select
                     value={form.event_type}
                     onChange={(event) =>
@@ -569,15 +571,15 @@ export function AppointmentModal({
                     }
                     className="input"
                   >
-                    <option value="appointment">Appointment</option>
-                    <option value="lab">Lab</option>
+                    <option value="appointment">{isEs ? 'Cita' : 'Appointment'}</option>
+                    <option value="lab">{isEs ? 'Laboratorio' : 'Lab'}</option>
                     <option value="inbody">InBody</option>
-                    <option value="imaging">Imaging</option>
-                    <option value="other">Other</option>
+                    <option value="imaging">{isEs ? 'Imagen / estudio' : 'Imaging'}</option>
+                    <option value="other">{isEs ? 'Otro' : 'Other'}</option>
                   </select>
                 </Field>
 
-                <Field label="Fecha">
+                <Field label={isEs ? 'Fecha' : 'Date'}>
                   <input
                     type="date"
                     value={form.date}
@@ -586,7 +588,7 @@ export function AppointmentModal({
                   />
                 </Field>
 
-                <Field label="Hora">
+                <Field label={isEs ? 'Hora' : 'Time'}>
                   <input
                     type="time"
                     value={form.time}
@@ -604,35 +606,35 @@ export function AppointmentModal({
                     updateField('is_virtual', event.target.checked)
                   }
                 />
-                Esta cita es virtual
+                {isEs ? 'Esta cita es virtual' : 'This appointment is virtual'}
               </label>
 
               {!form.is_virtual ? (
-                <Field label="Lugar">
+                <Field label={isEs ? 'Lugar' : 'Location'}>
                   <input
                     value={form.location}
                     onChange={(event) =>
                       updateField('location', event.target.value)
                     }
-                    placeholder="Oficina, hospital o dirección"
+                    placeholder={isEs ? 'Oficina, hospital o dirección' : 'Office, hospital, or address'}
                     className="input"
                   />
                 </Field>
               ) : null}
 
-              <Field label="Razón de visita">
+              <Field label={isEs ? 'Razón de visita' : 'Reason for visit'}>
                 <textarea
                   value={form.reason}
                   onChange={(event) => updateField('reason', event.target.value)}
                   rows={3}
-                  placeholder="Resumen corto de 2–3 oraciones."
+                  placeholder={isEs ? 'Resumen corto de 2–3 oraciones.' : 'Short summary in 2–3 sentences.'}
                   className="input min-h-28 resize-none"
                 />
               </Field>
             </Section>
 
-            <Section title="2. Preparación">
-              <Field label="Síntomas / temas a mencionar">
+            <Section title={isEs ? '2. Preparación' : '2. Preparation'}>
+              <Field label={isEs ? 'Síntomas / temas a mencionar' : 'Symptoms / topics to mention'}>
                 <textarea
                   value={form.symptoms_notes}
                   onChange={(event) =>
@@ -644,7 +646,7 @@ export function AppointmentModal({
               </Field>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Medicamentos a revisar">
+                <Field label={isEs ? 'Medicamentos a revisar' : 'Medications to review'}>
                   <textarea
                     value={form.medications_to_review}
                     onChange={(event) =>
@@ -655,7 +657,7 @@ export function AppointmentModal({
                   />
                 </Field>
 
-                <Field label="Suplementos a revisar">
+                <Field label={isEs ? 'Suplementos a revisar' : 'Supplements to review'}>
                   <textarea
                     value={form.supplements_to_review}
                     onChange={(event) =>
@@ -667,7 +669,7 @@ export function AppointmentModal({
                 </Field>
               </div>
 
-              <Field label="Things to bring">
+              <Field label={isEs ? 'Qué llevar' : 'Things to bring'}>
                 <textarea
                   value={form.things_to_bring}
                   onChange={(event) =>
@@ -678,7 +680,7 @@ export function AppointmentModal({
                 />
               </Field>
 
-              <Field label="Linked labs">
+              <Field label={isEs ? 'Laboratorios vinculados' : 'Linked labs'}>
                 <LabMultiSelect
                   selectedIds={form.related_lab_ids}
                   onChange={(ids) => updateField('related_lab_ids', ids)}
@@ -693,15 +695,15 @@ export function AppointmentModal({
                   }
                   className="input"
                 >
-                  <option value="not_started">No iniciada</option>
-                  <option value="in_progress">En progreso</option>
-                  <option value="ready">Lista</option>
+                  <option value="not_started">{isEs ? 'No iniciada' : 'Not started'}</option>
+                  <option value="in_progress">{isEs ? 'En progreso' : 'In progress'}</option>
+                  <option value="ready">{isEs ? 'Lista' : 'Ready'}</option>
                 </select>
               </Field>
             </Section>
 
-            <Section title="3. Mis preguntas">
-              <Field label="Preguntas para esta visita">
+            <Section title={isEs ? '3. Mis preguntas' : '3. My questions'}>
+              <Field label={isEs ? 'Preguntas para esta visita' : 'Questions for this visit'}>
                 <textarea
                   value={form.user_questions}
                   onChange={(event) =>
@@ -721,8 +723,8 @@ export function AppointmentModal({
               </button>
             </Section>
 
-            <Section title="4. Después de la visita">
-              <Field label="Status">
+            <Section title={isEs ? '4. Después de la visita' : '4. After the visit'}>
+              <Field label={isEs ? 'Estado' : 'Status'}>
                 <select
                   value={form.status}
                   onChange={(event) =>
@@ -730,10 +732,10 @@ export function AppointmentModal({
                   }
                   className="input"
                 >
-                  <option value="upcoming">Próxima</option>
-                  <option value="completed">Completada</option>
-                  <option value="cancelled">Cancelada</option>
-                  <option value="needs_follow_up">Requiere seguimiento</option>
+                  <option value="upcoming">{isEs ? 'Próxima' : 'Upcoming'}</option>
+                  <option value="completed">{isEs ? 'Completada' : 'Completed'}</option>
+                  <option value="cancelled">{isEs ? 'Cancelada' : 'Cancelled'}</option>
+                  <option value="needs_follow_up">{isEs ? 'Requiere seguimiento' : 'Needs follow-up'}</option>
                 </select>
               </Field>
 
@@ -761,7 +763,7 @@ export function AppointmentModal({
                     />
                   </Field>
 
-                  <Field label="Follow-up date">
+                  <Field label={isEs ? 'Fecha de seguimiento' : 'Follow-up date'}>
                     <input
                       type="date"
                       value={form.follow_up_date}
@@ -774,8 +776,9 @@ export function AppointmentModal({
                 </>
               ) : (
                 <p className="text-sm text-slate-400">
-                  Las notas posteriores aparecerán cuando marques la cita como
-                  completada o con seguimiento pendiente.
+                  {isEs
+                    ? 'Las notas posteriores aparecerán cuando marques la cita como completada o con seguimiento pendiente.'
+                    : 'After-visit notes will appear when you mark the appointment as completed or needing follow-up.'}
                 </p>
               )}
             </Section>
@@ -795,7 +798,7 @@ export function AppointmentModal({
                 disabled={isSaving}
                 className="rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-200 disabled:opacity-60"
               >
-                {isSaving ? 'Guardando…' : 'Guardar cita'}
+                {isSaving ? (isEs ? 'Guardando…' : 'Saving…') : (isEs ? 'Guardar cita' : 'Save appointment')}
               </button>
             </div>
           </form>

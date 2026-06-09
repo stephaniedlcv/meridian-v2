@@ -79,7 +79,7 @@ export function AppointmentCard({
               {isEs ? 'Labs vinculados' : 'Linked labs'}: {linkedLabsCount}
             </span>
             <span className="rounded-full bg-white/5 px-3 py-1">
-              {isEs ? 'Prep' : 'Prep'}: {PREP_STATUS_LABELS[lang][event.prep_status] ?? event.prep_status}
+              {isEs ? 'Preparación' : 'Prep'}: {PREP_STATUS_LABELS[lang][event.prep_status] ?? event.prep_status}
             </span>
           </div>
         </div>
