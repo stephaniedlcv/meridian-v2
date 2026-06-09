@@ -16,6 +16,7 @@ import { AppointmentCard } from '@/components/timeline/AppointmentCard';
 import { AppointmentModal } from '@/components/timeline/AppointmentModal';
 import { LabDocumentList } from '@/components/timeline/LabDocumentList';
 import { LabUploadModal } from '@/components/timeline/LabUploadModal';
+import { useMeridianLanguage } from '@/lib/i18n';
 
 type TimelineTab = 'upcoming' | 'past' | 'labs';
 type AppointmentModalMode = 'create' | 'edit' | 'view';
@@ -246,6 +247,29 @@ export default function HealthTimelinePage() {
   const [isLabUploadModalOpen, setIsLabUploadModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lang] = useMeridianLanguage();
+  const isEs = lang === 'es';
+  const copy = {
+    eyebrow: isEs ? 'Agenda de salud' : 'Health agenda',
+    title: isEs ? 'Agenda' : 'Agenda',
+    subtitle: isEs
+      ? 'Organiza tus citas médicas, laboratorios y seguimientos en un solo lugar.'
+      : 'Organize appointments, labs, and follow-ups in one place.',
+    upcoming: isEs ? 'Próximas' : 'Upcoming',
+    past: isEs ? 'Historial' : 'History',
+    labs: isEs ? 'Laboratorios' : 'Labs',
+    addAppointment: isEs ? '+ Añadir cita' : '+ Add appointment',
+    emptyUpcomingTitle: isEs ? 'No tienes próximas citas.' : 'No upcoming appointments.',
+    emptyPastTitle: isEs ? 'No hay historial todavía.' : 'No history yet.',
+    emptyUpcomingDescription: isEs
+      ? 'Añade tu próxima cita o fecha importante para preparar documentos, preguntas y seguimiento.'
+      : 'Add your next appointment or important health date to prepare documents, questions, and follow-up.',
+    emptyPastDescription: isEs
+      ? 'Cuando completes una cita, aparecerá aquí para que puedas revisar notas y próximos pasos.'
+      : 'Completed appointments will appear here so you can review notes and next steps.',
+    viewUpcoming: isEs ? 'Ver próximas' : 'View upcoming',
+    loadError: isEs ? 'No pudimos cargar tu agenda de salud.' : 'We could not load your health agenda.',
+  };
 
   async function loadTimelineData() {
     setIsLoading(true);
@@ -265,7 +289,7 @@ export default function HealthTimelinePage() {
       setError(
         err instanceof Error
           ? err.message
-          : 'No pudimos cargar tu agenda de salud.',
+          : copy.loadError,
       );
     } finally {
       setIsLoading(false);
@@ -319,37 +343,32 @@ export default function HealthTimelinePage() {
     <>
       <MeridianPageShell>
         <MeridianPageHeader
-          eyebrow="Agenda de salud"
-          title="Agenda"
-          subtitle={
-            <>
-              Organiza tus citas médicas, laboratorios y seguimientos en un
-              solo lugar.
-            </>
-          }
+          eyebrow={copy.eyebrow}
+          title={copy.title}
+          subtitle={copy.subtitle}
         />
 
           <section style={styles.statsGrid}>
-            <MiniStat label="Próximas" value={upcomingEvents.length} />
-            <MiniStat label="Historial" value={pastEvents.length} />
-            <MiniStat label="Labs" value={labDocuments.length} />
+            <MiniStat label={copy.upcoming} value={upcomingEvents.length} />
+            <MiniStat label={copy.past} value={pastEvents.length} />
+            <MiniStat label={copy.labs} value={labDocuments.length} />
           </section>
 
           {error ? <div style={styles.error}>{error}</div> : null}
 
           <section style={styles.tabWrap}>
             <TimelineTabButton
-              label="Próximas"
+              label={copy.upcoming}
               isActive={activeTab === 'upcoming'}
               onClick={() => setActiveTab('upcoming')}
             />
             <TimelineTabButton
-              label="Historial"
+              label={copy.past}
               isActive={activeTab === 'past'}
               onClick={() => setActiveTab('past')}
             />
             <TimelineTabButton
-              label="Laboratorios"
+              label={copy.labs}
               isActive={activeTab === 'labs'}
               onClick={() => setActiveTab('labs')}
             />
@@ -368,16 +387,16 @@ export default function HealthTimelinePage() {
               events={currentEvents}
               emptyTitle={
                 activeTab === 'upcoming'
-                  ? 'No tienes próximas citas.'
-                  : 'No hay historial todavía.'
+                  ? copy.emptyUpcomingTitle
+                  : copy.emptyPastTitle
               }
               emptyDescription={
                 activeTab === 'upcoming'
-                  ? 'Añade tu primera cita para empezar a organizar tu seguimiento de salud.'
-                  : 'Cuando completes una cita, aparecerá aquí para que puedas revisar notas y próximos pasos.'
+                  ? copy.emptyUpcomingDescription
+                  : copy.emptyPastDescription
               }
               emptyActionLabel={
-                activeTab === 'upcoming' ? '+ Añadir cita' : 'Ver próximas'
+                activeTab === 'upcoming' ? copy.addAppointment : copy.viewUpcoming
               }
               onEmptyAction={() => {
                 if (activeTab === 'upcoming') {
@@ -433,23 +452,23 @@ export default function HealthTimelinePage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
                   <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.teal, boxShadow: `0 0 6px rgba(45,212,191,0.6)` }} />
                   <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: colors.textMuted }}>
-                    Agenda de salud
+                    {copy.eyebrow}
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px' }}>
                   <div>
                     <h1 style={{ fontFamily: fonts.heading, fontSize: '28px', fontWeight: 700, color: colors.text, margin: '0 0 4px', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-                      Agenda
+                      {copy.title}
                     </h1>
                     <p style={{ fontSize: '13px', color: colors.textMuted, margin: 0 }}>
-                      Organiza tus citas médicas, laboratorios y seguimientos.
+                      {copy.subtitle}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={openCreateAppointmentModal}
                     style={{ padding: '9px 20px', background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.cyan} 100%)`, border: 'none', borderRadius: '20px', color: colors.background, fontFamily: fonts.ui, fontSize: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    + Añadir cita
+                    {copy.addAppointment}
                   </button>
                 </div>
               </div>
@@ -457,9 +476,9 @@ export default function HealthTimelinePage() {
               {/* ── Stats row ── */}
               <div style={{ display: 'flex', gap: '0', borderBottom: `1px solid ${colors.cardBorder}`, marginBottom: '24px' }}>
                 {[
-                  { label: 'Próximas', value: upcomingEvents.length, tab: 'upcoming' as TimelineTab },
-                  { label: 'Historial', value: pastEvents.length, tab: 'past' as TimelineTab },
-                  { label: 'Labs', value: labDocuments.length, tab: 'labs' as TimelineTab },
+                  { label: copy.upcoming, value: upcomingEvents.length, tab: 'upcoming' as TimelineTab },
+                  { label: copy.past, value: pastEvents.length, tab: 'past' as TimelineTab },
+                  { label: copy.labs, value: labDocuments.length, tab: 'labs' as TimelineTab },
                 ].map(stat => {
                   const isActive = activeTab === stat.tab
                   return (
@@ -495,9 +514,9 @@ export default function HealthTimelinePage() {
               ) : (
                 <EventsSection
                   events={currentEvents}
-                  emptyTitle={activeTab === 'upcoming' ? 'No tienes próximas citas.' : 'No hay historial todavía.'}
-                  emptyDescription={activeTab === 'upcoming' ? 'Añade tu primera cita para empezar a organizar tu seguimiento de salud.' : 'Cuando completes una cita, aparecerá aquí para que puedas revisar notas y próximos pasos.'}
-                  emptyActionLabel={activeTab === 'upcoming' ? '+ Añadir cita' : 'Ver próximas'}
+                  emptyTitle={activeTab === 'upcoming' ? copy.emptyUpcomingTitle : copy.emptyPastTitle}
+                  emptyDescription={activeTab === 'upcoming' ? copy.emptyUpcomingDescription : copy.emptyPastDescription}
+                  emptyActionLabel={activeTab === 'upcoming' ? copy.addAppointment : copy.viewUpcoming}
                   onEmptyAction={() => { if (activeTab === 'upcoming') { openCreateAppointmentModal(); } else { setActiveTab('upcoming'); } }}
                   onViewDetails={openViewAppointmentModal}
                 />
